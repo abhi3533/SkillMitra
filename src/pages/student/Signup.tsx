@@ -1,0 +1,202 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, ArrowRight, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
+const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Kerala"];
+
+const StudentSignup = () => {
+  const [form, setForm] = useState({ fullName: "", email: "", phone: "", city: "", state: "", gender: "", password: "", trainerPref: "no_preference" });
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const update = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
+
+  const toggleLang = (lang: string) => {
+    setLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (languages.length === 0) {
+      toast({ title: "Select at least one language", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: {
+            full_name: form.fullName,
+            phone: form.phone,
+            role: "student",
+          },
+        },
+      });
+      if (error) throw error;
+      toast({ title: "Account created!", description: "Please check your email to verify your account." });
+      navigate("/student/login");
+    } catch (err: any) {
+      toast({ title: "Signup failed", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Left Panel */}
+      <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
+        <div className="max-w-md">
+          <Link to="/" className="flex items-center gap-2 mb-12">
+            <div className="w-10 h-10 rounded-lg gold-gradient flex items-center justify-center">
+              <span className="font-bold text-lg text-accent-foreground">S</span>
+            </div>
+            <span className="text-2xl font-bold text-primary-foreground">Skill<span className="text-accent">Mitra</span></span>
+          </Link>
+          <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>
+          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join 12,500+ students learning from verified industry experts in their own language.</p>
+          <div className="mt-8 space-y-3">
+            {["1:1 Personal training", "Learn in your language", "Verified expert trainers", "Earn certificates"].map(b => (
+              <div key={b} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full gold-gradient flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3 h-3 text-accent-foreground" />
+                </div>
+                <span className="text-sm text-primary-foreground/70">{b}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div className="flex-1 flex items-start justify-center p-6 lg:p-12 overflow-y-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
+          <div className="lg:hidden mb-8">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg hero-gradient flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">S</span>
+              </div>
+              <span className="text-xl font-bold text-foreground">Skill<span className="text-accent">Mitra</span></span>
+            </Link>
+          </div>
+
+          <h1 className="text-2xl font-bold text-foreground">Create Student Account</h1>
+          <p className="mt-2 text-muted-foreground">Fill in your details to get started</p>
+
+          <form onSubmit={handleSignup} className="mt-8 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Full Name *</Label>
+                <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} placeholder="Your full name" className="mt-1.5 h-11" required />
+              </div>
+              <div>
+                <Label>Email *</Label>
+                <Input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="you@email.com" className="mt-1.5 h-11" required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Phone *</Label>
+                <Input value={form.phone} onChange={e => update("phone", e.target.value)} placeholder="+91 98765 43210" className="mt-1.5 h-11" required />
+              </div>
+              <div>
+                <Label>Gender *</Label>
+                <Select value={form.gender} onValueChange={v => update("gender", v)}>
+                  <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>City</Label>
+                <Input value={form.city} onChange={e => update("city", e.target.value)} placeholder="Your city" className="mt-1.5 h-11" />
+              </div>
+              <div>
+                <Label>State</Label>
+                <Select value={form.state} onValueChange={v => update("state", v)}>
+                  <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="Select state" /></SelectTrigger>
+                  <SelectContent>
+                    {stateOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Preferred Learning Languages *</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {languageOptions.map(lang => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => toggleLang(lang)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      languages.includes(lang)
+                        ? "hero-gradient text-primary-foreground"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Trainer Gender Preference</Label>
+              <Select value={form.trainerPref} onValueChange={v => update("trainerPref", v)}>
+                <SelectTrigger className="mt-1.5 h-11"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male Trainer</SelectItem>
+                  <SelectItem value="female">Female Trainer</SelectItem>
+                  <SelectItem value="no_preference">No Preference</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Password *</Label>
+              <div className="relative mt-1.5">
+                <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" required minLength={8} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
+              {loading ? "Creating account..." : "Create Account"} {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Already have an account? <Link to="/student/login" className="text-primary font-semibold hover:underline">Log in</Link>
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default StudentSignup;

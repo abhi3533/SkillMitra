@@ -9,12 +9,20 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1280px",
       },
     },
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        'hero': ['3.5rem', { lineHeight: '1.1', fontWeight: '800' }],
+        'section': ['2.25rem', { lineHeight: '1.2', fontWeight: '700' }],
+        'card-title': ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }],
+        'body': ['1rem', { lineHeight: '1.6', fontWeight: '400' }],
+        'small': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],
+        'label': ['0.75rem', { lineHeight: '1', fontWeight: '500', letterSpacing: '0.05em' }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -25,6 +33,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          dark: "hsl(var(--primary-dark))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -75,6 +84,11 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        'card': '0 1px 3px rgba(0,0,0,0.08)',
+        'card-hover': '0 8px 24px rgba(26,86,219,0.12)',
+        'elevated': '0 4px 12px rgba(0,0,0,0.06)',
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -93,12 +107,12 @@ export default {
           to: { opacity: "1", transform: "translateX(0)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 0 0 hsl(142 71% 45% / 0.4)" },
-          "50%": { boxShadow: "0 0 0 8px hsl(142 71% 45% / 0)" },
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(142 72% 39% / 0.4)" },
+          "50%": { boxShadow: "0 0 0 8px hsl(142 72% 39% / 0)" },
         },
-        "count-up": {
-          from: { opacity: "0", transform: "scale(0.5)" },
-          to: { opacity: "1", transform: "scale(1)" },
+        "chat-pulse": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(221 79% 49% / 0.3)" },
+          "50%": { boxShadow: "0 0 0 12px hsl(221 79% 49% / 0)" },
         },
       },
       animation: {
@@ -107,7 +121,7 @@ export default {
         "fade-in": "fade-in 0.5s ease-out forwards",
         "slide-in-right": "slide-in-right 0.4s ease-out forwards",
         "pulse-glow": "pulse-glow 2s infinite",
-        "count-up": "count-up 0.6s ease-out forwards",
+        "chat-pulse": "chat-pulse 2s infinite",
       },
     },
   },

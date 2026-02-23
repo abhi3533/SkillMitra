@@ -20,10 +20,19 @@ const TrainerLogin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      toast({ title: "Welcome back!", description: "Redirecting to your dashboard..." });
-      navigate("/trainer/dashboard");
+
+      const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
+
+      if (roleData === "student") {
+        navigate("/student/dashboard");
+      } else if (roleData === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/trainer/dashboard");
+      }
+      toast({ title: "Welcome back!" });
     } catch (err: any) {
       toast({ title: "Login failed", description: err.message, variant: "destructive" });
     } finally {

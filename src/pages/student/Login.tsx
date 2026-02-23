@@ -20,10 +20,20 @@ const StudentLogin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      toast({ title: "Welcome back!", description: "Redirecting to your dashboard..." });
-      navigate("/student/dashboard");
+
+      // Check role and redirect accordingly
+      const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
+      
+      if (roleData === "trainer") {
+        navigate("/trainer/dashboard");
+      } else if (roleData === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/student/dashboard");
+      }
+      toast({ title: "Welcome back!" });
     } catch (err: any) {
       toast({ title: "Login failed", description: err.message, variant: "destructive" });
     } finally {
@@ -33,7 +43,6 @@ const StudentLogin = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
           <Link to="/" className="flex items-center gap-2 mb-12">
@@ -43,11 +52,10 @@ const StudentLogin = () => {
             <span className="text-2xl font-bold text-primary-foreground">Skill<span className="text-accent">Mitra</span></span>
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Welcome back, learner!</h2>
-          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Continue your learning journey with India's best trainers. Your next skill upgrade is just a login away.</p>
+          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Continue your learning journey with India's best trainers.</p>
         </div>
       </div>
 
-      {/* Right Panel */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="lg:hidden mb-8">
@@ -71,7 +79,7 @@ const StudentLogin = () => {
               <Label htmlFor="password">Password</Label>
               <div className="relative mt-1.5">
                 <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="h-11 pr-10" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -82,12 +90,10 @@ const StudentLogin = () => {
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/student/signup" className="text-primary font-semibold hover:underline">Sign up free</Link>
+            Don't have an account? <Link to="/student/signup" className="text-primary font-semibold hover:underline">Sign up free</Link>
           </p>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Are you a trainer?{" "}
-            <Link to="/trainer/login" className="text-accent font-semibold hover:underline">Trainer Login</Link>
+            Are you a trainer? <Link to="/trainer/login" className="text-accent font-semibold hover:underline">Trainer Login</Link>
           </p>
         </motion.div>
       </div>

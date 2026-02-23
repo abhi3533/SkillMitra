@@ -28,6 +28,14 @@ const StudentSignup = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim()) {
+      toast({ title: "Please fill all required fields", variant: "destructive" });
+      return;
+    }
+    if (form.password.length < 8) {
+      toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+      return;
+    }
     if (languages.length === 0) {
       toast({ title: "Select at least one language", variant: "destructive" });
       return;
@@ -47,6 +55,25 @@ const StudentSignup = () => {
         },
       });
       if (error) throw error;
+
+      // Update profile with additional fields (trigger already created base profile)
+      if (data.user) {
+        await supabase.from("profiles").update({
+          city: form.city || null,
+          state: form.state || null,
+          gender: form.gender || null,
+          language_preference: languages,
+        }).eq("id", data.user.id);
+
+        // Update student record with trainer preference
+        const { data: student } = await supabase.from("students").select("id").eq("user_id", data.user.id).single();
+        if (student) {
+          await supabase.from("students").update({
+            trainer_gender_preference: form.trainerPref,
+          }).eq("id", student.id);
+        }
+      }
+
       toast({ title: "Account created!", description: "Please check your email to verify your account." });
       navigate("/student/login");
     } catch (err: any) {

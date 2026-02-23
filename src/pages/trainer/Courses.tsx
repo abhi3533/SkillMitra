@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, BookOpen } from "lucide-react";
+import { Plus, BookOpen, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 
+interface CurriculumWeek {
+  weekTitle: string;
+  topics: string;
+  learningOutcome: string;
+  sessionCount: string;
+}
+
 const TrainerCourses = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -19,6 +26,9 @@ const TrainerCourses = () => {
   const [creating, setCreating] = useState(false);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", duration_days: "30", total_sessions: "12", course_fee: "", language: "English", level: "beginner" });
+  const [curriculum, setCurriculum] = useState<CurriculumWeek[]>([
+    { weekTitle: "", topics: "", learningOutcome: "", sessionCount: "3" },
+  ]);
 
   useEffect(() => {
     if (!user) return;
@@ -33,12 +43,23 @@ const TrainerCourses = () => {
     fetch();
   }, [user]);
 
+  const addWeek = () => setCurriculum(prev => [...prev, { weekTitle: "", topics: "", learningOutcome: "", sessionCount: "3" }]);
+
+  const updateWeek = (idx: number, field: keyof CurriculumWeek, val: string) => {
+    setCurriculum(prev => prev.map((w, i) => i === idx ? { ...w, [field]: val } : w));
+  };
+
   const handleCreate = async () => {
+    if (!form.title.trim()) { toast({ title: "Course title is required", variant: "destructive" }); return; }
+    if (!form.course_fee.trim() || parseFloat(form.course_fee) <= 0) { toast({ title: "Valid course fee is required", variant: "destructive" }); return; }
+
     setCreating(true);
     try {
       const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user!.id).single();
       if (!trainer) throw new Error("Trainer profile not found");
-      const { error } = await supabase.from("courses").insert({
+
+      // Insert course
+      const { data: course, error } = await supabase.from("courses").insert({
         trainer_id: trainer.id,
         title: form.title,
         description: form.description,
@@ -47,10 +68,28 @@ const TrainerCourses = () => {
         course_fee: parseFloat(form.course_fee),
         language: form.language,
         level: form.level,
-      });
+      }).select().single();
       if (error) throw error;
+
+      // Insert curriculum weeks
+      const validWeeks = curriculum.filter(w => w.weekTitle.trim());
+      if (validWeeks.length > 0 && course) {
+        const curriculumRows = validWeeks.map((w, i) => ({
+          course_id: course.id,
+          week_number: i + 1,
+          week_title: w.weekTitle,
+          topics: w.topics.split(",").map(t => t.trim()).filter(Boolean),
+          learning_outcome: w.learningOutcome,
+          session_count: parseInt(w.sessionCount) || 3,
+        }));
+        await supabase.from("course_curriculum").insert(curriculumRows);
+      }
+
       toast({ title: "Course created!", description: "Your course is pending admin approval." });
       setOpen(false);
+      setForm({ title: "", description: "", duration_days: "30", total_sessions: "12", course_fee: "", language: "English", level: "beginner" });
+      setCurriculum([{ weekTitle: "", topics: "", learningOutcome: "", sessionCount: "3" }]);
+
       // Refresh
       const { data } = await supabase.from("courses").select("*").eq("trainer_id", trainer.id).order("created_at", { ascending: false });
       setCourses(data || []);
@@ -72,7 +111,7 @@ const TrainerCourses = () => {
           <DialogTrigger asChild>
             <Button className="hero-gradient border-0"><Plus className="w-4 h-4 mr-2" />Create Course</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Create New Course</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
               <div><Label>Course Title *</Label><Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="mt-1.5" placeholder="e.g. Full Stack Web Development" /></div>
@@ -85,8 +124,23 @@ const TrainerCourses = () => {
                 <div><Label>Course Fee (₹) *</Label><Input type="number" value={form.course_fee} onChange={e => setForm(f => ({ ...f, course_fee: e.target.value }))} className="mt-1.5" placeholder="e.g. 14999" /></div>
                 <div><Label>Level</Label><Select value={form.level} onValueChange={v => setForm(f => ({ ...f, level: v }))}><SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="beginner">Beginner</SelectItem><SelectItem value="intermediate">Intermediate</SelectItem><SelectItem value="advanced">Advanced</SelectItem></SelectContent></Select></div>
               </div>
+
+              {/* Curriculum */}
+              <div className="border-t pt-4">
+                <Label className="text-base font-semibold">Curriculum (Optional)</Label>
+                {curriculum.map((w, i) => (
+                  <div key={i} className="mt-3 p-3 rounded-lg bg-secondary/50 space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground">Week {i + 1}</p>
+                    <Input value={w.weekTitle} onChange={e => updateWeek(i, "weekTitle", e.target.value)} placeholder="Week title" className="h-9 text-sm" />
+                    <Input value={w.topics} onChange={e => updateWeek(i, "topics", e.target.value)} placeholder="Topics (comma separated)" className="h-9 text-sm" />
+                    <Input value={w.learningOutcome} onChange={e => updateWeek(i, "learningOutcome", e.target.value)} placeholder="Learning outcome" className="h-9 text-sm" />
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={addWeek} className="mt-2 text-xs">+ Add Week</Button>
+              </div>
+
               <Button onClick={handleCreate} disabled={creating || !form.title || !form.course_fee} className="w-full hero-gradient border-0">
-                {creating ? "Creating..." : "Create Course"}
+                {creating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</> : "Create Course"}
               </Button>
             </div>
           </DialogContent>

@@ -1,142 +1,106 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Users, Calendar, DollarSign, Award, User, LogOut, Menu, X, Bell, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Users, DollarSign, Calendar, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-
-const sidebarItems = [
-  { label: "Overview", icon: LayoutDashboard, path: "/trainer/dashboard" },
-  { label: "My Courses", icon: BookOpen, path: "/trainer/courses" },
-  { label: "My Students", icon: Users, path: "/trainer/students" },
-  { label: "Schedule", icon: Calendar, path: "/trainer/dashboard" },
-  { label: "Earnings", icon: DollarSign, path: "/trainer/earnings" },
-  { label: "Certificates", icon: Award, path: "/trainer/certificates" },
-  { label: "Subscription", icon: TrendingUp, path: "/trainer/subscription" },
-  { label: "Profile", icon: User, path: "/trainer/dashboard" },
-];
+import { useAuth } from "@/hooks/useAuth";
+import TrainerLayout from "@/components/layouts/TrainerLayout";
 
 const TrainerDashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({ activeStudents: 0, monthEarnings: 0, totalSessions: 0, avgRating: 0, todaySessions: [] as any[], reviews: [] as any[] });
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating").eq("user_id", user.id).single();
+      if (!trainer) { setLoading(false); return; }
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+
+      const [enrollRes, sessRes, earningsRes, todayRes, reviewsRes] = await Promise.all([
+        supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "active"),
+        supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
+        supabase.from("enrollments").select("trainer_payout").eq("trainer_id", trainer.id).gte("enrollment_date", startOfMonth),
+        supabase.from("course_sessions").select("*").eq("trainer_id", trainer.id).gte("scheduled_at", todayStart).lt("scheduled_at", todayEnd),
+        supabase.from("ratings").select("*, students(*, profiles(full_name))").eq("trainer_id", trainer.id).order("created_at", { ascending: false }).limit(5),
+      ]);
+
+      const monthTotal = (earningsRes.data || []).reduce((s: number, e: any) => s + Number(e.trainer_payout || 0), 0);
+
+      setData({
+        activeStudents: enrollRes.count || 0,
+        monthEarnings: monthTotal,
+        totalSessions: sessRes.count || 0,
+        avgRating: Number(trainer.average_rating) || 0,
+        todaySessions: todayRes.data || [],
+        reviews: reviewsRes.data || [],
+      });
+      setLoading(false);
+    })();
+  }, [user]);
+
+  const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-40 bg-card border-b h-16 flex items-center px-4 lg:px-8">
-        <button className="lg:hidden mr-4" onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">S</span>
-          </div>
-          <span className="text-lg font-bold text-foreground">Skill<span className="text-accent">Mitra</span></span>
-        </Link>
-        <div className="flex-1" />
-        <button className="relative p-2 rounded-lg hover:bg-muted mr-2">
-          <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-destructive" />
-        </button>
-        <div className="w-8 h-8 rounded-full gold-gradient flex items-center justify-center">
-          <span className="text-accent-foreground text-xs font-bold">T</span>
-        </div>
-      </header>
+    <TrainerLayout>
+      <h1 className="text-2xl font-bold text-foreground">Trainer Dashboard</h1>
+      <p className="mt-1 text-muted-foreground">Manage your students, courses, and earnings</p>
 
-      <div className="flex pt-16">
-        <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:sticky top-16 left-0 z-30 h-[calc(100vh-4rem)] w-64 bg-card border-r transition-transform duration-300 flex flex-col`}>
-          <nav className="flex-1 p-4 space-y-1">
-            {sidebarItems.map(item => (
-              <Link key={item.label} to={item.path} onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === item.path ? "hero-gradient text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-                <item.icon className="w-5 h-5" />{item.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="p-4 border-t">
-            <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors">
-              <LogOut className="w-5 h-5" /> Sign Out
-            </button>
-          </div>
-        </aside>
-
-        <main className="flex-1 p-6 lg:p-8 min-h-[calc(100vh-4rem)]">
-          <h1 className="text-2xl font-bold text-foreground">Trainer Dashboard</h1>
-          <p className="mt-1 text-muted-foreground">Manage your students, courses, and earnings</p>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-            {[
-              { label: "Active Students", value: "24", color: "hero-gradient" },
-              { label: "This Month Earnings", value: "₹45,200", color: "gold-gradient" },
-              { label: "Total Sessions", value: "156", color: "bg-success" },
-              { label: "Avg. Rating", value: "4.8★", color: "hero-gradient" },
-            ].map(card => (
-              <div key={card.label} className="bg-card rounded-xl border p-5">
-                <div className={`w-10 h-10 rounded-lg ${card.color} flex items-center justify-center mb-3`}>
-                  <span className="text-primary-foreground font-bold text-xs">{card.value.slice(0, 2)}</span>
-                </div>
-                <p className="text-2xl font-bold text-foreground">{card.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{card.label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Today's Sessions */}
-          <div className="mt-8 bg-card rounded-xl border p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Today's Sessions</h2>
-            <div className="space-y-3">
-              {[
-                { title: "React Hooks Deep Dive", student: "Kavya M.", time: "6:00 PM", live: true },
-                { title: "Python Basics", student: "Rohit S.", time: "7:30 PM", live: false },
-              ].map(s => (
-                <div key={s.title} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full hero-gradient flex items-center justify-center">
-                      <span className="text-primary-foreground text-xs font-bold">{s.student[0]}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{s.title}</p>
-                      <p className="text-xs text-muted-foreground">{s.student} • {s.time}</p>
-                    </div>
-                  </div>
-                  {s.live ? (
-                    <Button size="sm" className="bg-success text-success-foreground animate-pulse-glow border-0 text-xs">Join Now</Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">{s.time}</span>
-                  )}
-                </div>
-              ))}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        {[
+          { label: "Active Students", value: loading ? "-" : String(data.activeStudents), icon: Users },
+          { label: "This Month Earnings", value: loading ? "-" : formatINR(data.monthEarnings), icon: DollarSign },
+          { label: "Total Sessions", value: loading ? "-" : String(data.totalSessions), icon: Calendar },
+          { label: "Avg. Rating", value: loading ? "-" : data.avgRating > 0 ? `${data.avgRating}★` : "No ratings yet", icon: Star },
+        ].map(card => (
+          <div key={card.label} className="bg-card rounded-xl border p-5">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+              <card.icon className="w-5 h-5 text-primary" />
             </div>
+            <p className="text-2xl font-bold text-foreground">{card.value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{card.label}</p>
           </div>
-
-          {/* Recent Reviews */}
-          <div className="mt-6 bg-card rounded-xl border p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Recent Reviews</h2>
-            <div className="space-y-3">
-              {[
-                { student: "Kavya M.", rating: 5, text: "Excellent session on React hooks! Very clear explanations." },
-                { student: "Meera K.", rating: 5, text: "Best teacher I've had. Patient and thorough." },
-              ].map(r => (
-                <div key={r.student} className="p-3 rounded-lg bg-secondary/30">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-foreground">{r.student}</span>
-                    <span className="text-accent text-xs">{"★".repeat(r.rating)}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{r.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </main>
+        ))}
       </div>
 
-      {sidebarOpen && <div className="fixed inset-0 bg-foreground/20 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
-    </div>
+      {/* Today's Sessions */}
+      <div className="mt-8 bg-card rounded-xl border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Today's Sessions</h2>
+        {loading ? <div className="h-16 skeleton rounded-lg" /> :
+          data.todaySessions.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No sessions scheduled for today. Enjoy your day! ☀️</p>
+          ) : data.todaySessions.map((s: any) => (
+            <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 mb-2 last:mb-0">
+              <div>
+                <p className="text-sm font-medium text-foreground">{s.title || `Session #${s.session_number}`}</p>
+                <p className="text-xs text-muted-foreground">{s.scheduled_at ? new Date(s.scheduled_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      {/* Recent Reviews */}
+      <div className="mt-6 bg-card rounded-xl border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Recent Reviews</h2>
+        {loading ? <div className="h-16 skeleton rounded-lg" /> :
+          data.reviews.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No reviews yet. Complete your first session to receive reviews.</p>
+          ) : data.reviews.map((r: any) => (
+            <div key={r.id} className="p-3 rounded-lg bg-secondary/30 mb-2 last:mb-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-medium text-foreground">{r.students?.profiles?.full_name || "Student"}</span>
+                <span className="text-accent text-xs">{"★".repeat(r.student_to_trainer_rating || 0)}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">{r.student_to_trainer_review || "No comment"}</p>
+            </div>
+          ))
+        }
+      </div>
+    </TrainerLayout>
   );
 };
 

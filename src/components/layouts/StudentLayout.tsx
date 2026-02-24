@@ -9,7 +9,9 @@ const sidebarItems = [
   { label: "My Courses", icon: BookOpen, path: "/student/courses" },
   { label: "AI Interview", icon: Brain, path: "/student/interview" },
   { label: "Resume Builder", icon: FileText, path: "/student/resume" },
+  { label: "Certificates", icon: Award, path: "/student/certificates" },
   { label: "Referrals", icon: Users, path: "/student/referrals" },
+  { label: "Profile", icon: User, path: "/student/profile" },
 ];
 
 const StudentLayout = ({ children }: { children: React.ReactNode }) => {

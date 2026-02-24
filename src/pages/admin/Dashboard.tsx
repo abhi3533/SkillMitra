@@ -1,140 +1,118 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, BookOpen, Calendar, DollarSign, Award, CreditCard, Settings, LogOut, Menu, X, Bell, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Users, DollarSign, BookOpen, Award, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-
-const sidebarItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
-  { label: "Trainers", icon: Users, path: "/admin/trainers" },
-  { label: "Students", icon: Users, path: "/admin/students" },
-  { label: "Courses", icon: BookOpen, path: "/admin/courses" },
-  { label: "Sessions", icon: Calendar, path: "/admin" },
-  { label: "Payments", icon: DollarSign, path: "/admin" },
-  { label: "Certificates", icon: Award, path: "/admin" },
-  { label: "Subscriptions", icon: CreditCard, path: "/admin" },
-  { label: "Settings", icon: Settings, path: "/admin" },
-];
+import AdminLayout from "@/components/layouts/AdminLayout";
 
 const AdminDashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ trainers: 0, pending: 0, students: 0, revenue: 0, activeSessions: 0, certificates: 0 });
+  const [recentTrainers, setRecentTrainers] = useState<any[]>([]);
+  const [recentEnrollments, setRecentEnrollments] = useState<any[]>([]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
+  useEffect(() => {
+    (async () => {
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
+      const [t, p, s, rev, sess, cert, rTrainers, rEnroll] = await Promise.all([
+        supabase.from("trainers").select("id", { count: "exact", head: true }),
+        supabase.from("trainers").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
+        supabase.from("students").select("id", { count: "exact", head: true }),
+        supabase.from("payments").select("amount").eq("status", "completed"),
+        supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("status", "upcoming").gte("scheduled_at", todayStart).lt("scheduled_at", todayEnd),
+        supabase.from("certificates").select("id", { count: "exact", head: true }),
+        supabase.from("trainers").select("*, profiles(full_name)").eq("approval_status", "pending").order("created_at", { ascending: false }).limit(5),
+        supabase.from("enrollments").select("*, students(*, profiles(full_name)), trainers(*, profiles(full_name)), courses(title)").order("enrollment_date", { ascending: false }).limit(5),
+      ]);
+
+      const totalRevenue = (rev.data || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
+
+      setStats({
+        trainers: t.count || 0,
+        pending: p.count || 0,
+        students: s.count || 0,
+        revenue: totalRevenue,
+        activeSessions: sess.count || 0,
+        certificates: cert.count || 0,
+      });
+      setRecentTrainers(rTrainers.data || []);
+      setRecentEnrollments(rEnroll.data || []);
+      setLoading(false);
+    })();
+  }, []);
+
+  const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-40 bg-card border-b h-16 flex items-center px-4 lg:px-8">
-        <button className="lg:hidden mr-4" onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">S</span>
-          </div>
-          <span className="text-lg font-bold text-foreground">Skill<span className="text-accent">Mitra</span></span>
-        </Link>
-        <span className="ml-3 text-xs font-bold px-2 py-1 rounded bg-destructive text-destructive-foreground">ADMIN</span>
-        <div className="flex-1" />
-        <button className="relative p-2 rounded-lg hover:bg-muted mr-2">
-          <Bell className="w-5 h-5 text-muted-foreground" />
-        </button>
-        <div className="w-8 h-8 rounded-full bg-destructive flex items-center justify-center">
-          <Shield className="w-4 h-4 text-destructive-foreground" />
-        </div>
-      </header>
+    <AdminLayout>
+      <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+      <p className="mt-1 text-muted-foreground">Platform overview and management</p>
 
-      <div className="flex pt-16">
-        <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:sticky top-16 left-0 z-30 h-[calc(100vh-4rem)] w-64 bg-card border-r transition-transform duration-300 flex flex-col`}>
-          <nav className="flex-1 p-4 space-y-1">
-            {sidebarItems.map(item => (
-              <Link key={item.label} to={item.path} onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === item.path ? "hero-gradient text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-                <item.icon className="w-5 h-5" />{item.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="p-4 border-t">
-            <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors">
-              <LogOut className="w-5 h-5" /> Sign Out
-            </button>
-          </div>
-        </aside>
-
-        <main className="flex-1 p-6 lg:p-8 min-h-[calc(100vh-4rem)]">
-          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="mt-1 text-muted-foreground">Platform overview and management</p>
-
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-6">
-            {[
-              { label: "Total Trainers", value: "856" },
-              { label: "Pending Approvals", value: "12" },
-              { label: "Total Students", value: "12,543" },
-              { label: "Total Revenue", value: "₹48.2L" },
-              { label: "Active Sessions", value: "89" },
-              { label: "Certificates", value: "3,241" },
-            ].map(card => (
-              <div key={card.label} className="bg-card rounded-xl border p-4">
-                <p className="text-2xl font-bold text-foreground">{card.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{card.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-6 mt-8">
-            <div className="bg-card rounded-xl border p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Recent Trainer Applications</h2>
-              <div className="space-y-3">
-                {[
-                  { name: "Arjun Mehta", skill: "React Developer", date: "2 hours ago" },
-                  { name: "Pooja Gupta", skill: "Data Analyst", date: "5 hours ago" },
-                  { name: "Kiran Das", skill: "UI/UX Designer", date: "1 day ago" },
-                ].map(app => (
-                  <div key={app.name} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full hero-gradient flex items-center justify-center">
-                        <span className="text-primary-foreground text-xs font-bold">{app.name[0]}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{app.name}</p>
-                        <p className="text-xs text-muted-foreground">{app.skill} • {app.date}</p>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline" className="text-xs">Review</Button>
-                  </div>
-                ))}
-              </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-6">
+        {[
+          { label: "Total Trainers", value: loading ? "-" : String(stats.trainers), icon: Users },
+          { label: "Pending Approvals", value: loading ? "-" : String(stats.pending), icon: AlertTriangle },
+          { label: "Total Students", value: loading ? "-" : String(stats.students), icon: Users },
+          { label: "Total Revenue", value: loading ? "-" : formatINR(stats.revenue), icon: DollarSign },
+          { label: "Active Sessions", value: loading ? "-" : String(stats.activeSessions), icon: Clock },
+          { label: "Certificates", value: loading ? "-" : String(stats.certificates), icon: Award },
+        ].map(card => (
+          <div key={card.label} className="bg-card rounded-xl border p-4">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+              <card.icon className="w-4 h-4 text-primary" />
             </div>
-
-            <div className="bg-card rounded-xl border p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Recent Enrollments</h2>
-              <div className="space-y-3">
-                {[
-                  { student: "Kavya M.", course: "Full Stack Dev", trainer: "Rajesh K.", amount: "₹14,999" },
-                  { student: "Rohit S.", course: "Data Science", trainer: "Priya S.", amount: "₹12,999" },
-                  { student: "Meera K.", course: "Digital Marketing", trainer: "Sneha I.", amount: "₹8,999" },
-                ].map(e => (
-                  <div key={e.student} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{e.student} → {e.course}</p>
-                      <p className="text-xs text-muted-foreground">Trainer: {e.trainer}</p>
-                    </div>
-                    <span className="text-sm font-semibold text-foreground">{e.amount}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className="text-2xl font-bold text-foreground">{card.value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{card.label}</p>
           </div>
-        </main>
+        ))}
       </div>
 
-      {sidebarOpen && <div className="fixed inset-0 bg-foreground/20 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
-    </div>
+      <div className="grid lg:grid-cols-2 gap-6 mt-8">
+        {/* Recent Trainer Applications */}
+        <div className="bg-card rounded-xl border p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Recent Trainer Applications</h2>
+          {loading ? <div className="h-16 skeleton rounded-lg" /> :
+            recentTrainers.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No pending trainer applications</p>
+            ) : recentTrainers.map((t: any) => (
+              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 mb-2 last:mb-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary text-xs font-bold">{t.profiles?.full_name?.[0] || "T"}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{t.profiles?.full_name || "Unknown"}</p>
+                    <p className="text-xs text-muted-foreground">{(t.skills || []).slice(0, 2).join(", ")} • {new Date(t.created_at).toLocaleDateString("en-IN")}</p>
+                  </div>
+                </div>
+                <Link to="/admin/trainers"><Button size="sm" variant="outline" className="text-xs">Review</Button></Link>
+              </div>
+            ))
+          }
+        </div>
+
+        {/* Recent Enrollments */}
+        <div className="bg-card rounded-xl border p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Recent Enrollments</h2>
+          {loading ? <div className="h-16 skeleton rounded-lg" /> :
+            recentEnrollments.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No enrollments yet</p>
+            ) : recentEnrollments.map((e: any) => (
+              <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 mb-2 last:mb-0">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{e.students?.profiles?.full_name || "Student"} → {e.courses?.title || "Course"}</p>
+                  <p className="text-xs text-muted-foreground">Trainer: {e.trainers?.profiles?.full_name || "-"}</p>
+                </div>
+                <span className="text-sm font-semibold text-foreground">{formatINR(Number(e.amount_paid || 0))}</span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </AdminLayout>
   );
 };
 

@@ -5,9 +5,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+
+// Public pages
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import BrowseTrainers from "./pages/BrowseTrainers";
+import Contact from "./pages/Contact";
+import About from "./pages/About";
+import HowItWorks from "./pages/HowItWorks";
+import Pricing from "./pages/Pricing";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Standards from "./pages/Standards";
+import CertificateVerify from "./pages/CertificateVerify";
+import Notifications from "./pages/Notifications";
+
+// Student
 import StudentLogin from "./pages/student/Login";
 import StudentSignup from "./pages/student/Signup";
 import StudentDashboard from "./pages/student/Dashboard";
@@ -15,6 +28,10 @@ import StudentCourses from "./pages/student/Courses";
 import StudentReferrals from "./pages/student/Referrals";
 import AIInterview from "./pages/student/AIInterview";
 import ResumeBuilder from "./pages/student/ResumeBuilder";
+import StudentCertificates from "./pages/student/StudentCertificates";
+import StudentProfile from "./pages/student/StudentProfile";
+
+// Trainer
 import TrainerLogin from "./pages/trainer/Login";
 import TrainerSignup from "./pages/trainer/Signup";
 import TrainerThankYou from "./pages/trainer/ThankYou";
@@ -25,14 +42,24 @@ import TrainerCourses from "./pages/trainer/Courses";
 import TrainerStudents from "./pages/trainer/Students";
 import TrainerEarnings from "./pages/trainer/Earnings";
 import TrainerCertificates from "./pages/trainer/Certificates";
+import TrainerSchedule from "./pages/trainer/Schedule";
+
+// Admin
+import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminTrainers from "./pages/admin/Trainers";
 import AdminStudents from "./pages/admin/Students";
 import AdminPayments from "./pages/admin/Payments";
 import AdminPayouts from "./pages/admin/Payouts";
 import AdminAnalytics from "./pages/admin/Analytics";
-import CertificateVerify from "./pages/CertificateVerify";
-import Notifications from "./pages/Notifications";
+import AdminCourses from "./pages/admin/AdminCourses";
+import AdminDisputes from "./pages/admin/Disputes";
+import AdminCertificates from "./pages/admin/AdminCertificates";
+import AdminMessages from "./pages/admin/Messages";
+
+// Parent
+import ParentLogin from "./pages/parent/Login";
+import ParentDashboard from "./pages/parent/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -47,14 +74,26 @@ const App = () => (
             {/* Public */}
             <Route path="/" element={<Index />} />
             <Route path="/browse" element={<BrowseTrainers />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/standards" element={<Standards />} />
+            <Route path="/verify/:certificateId" element={<CertificateVerify />} />
+            <Route path="/verify" element={<CertificateVerify />} />
+            <Route path="/trainer/:id" element={<TrainerProfile />} />
+
+            {/* Auth pages */}
             <Route path="/student/login" element={<StudentLogin />} />
             <Route path="/student/signup" element={<StudentSignup />} />
             <Route path="/trainer/login" element={<TrainerLogin />} />
             <Route path="/trainer/signup" element={<TrainerSignup />} />
             <Route path="/trainer/signup/thankyou" element={<TrainerThankYou />} />
-            <Route path="/trainer/:id" element={<TrainerProfile />} />
-            <Route path="/verify/:certificateId" element={<CertificateVerify />} />
-            <Route path="/verify" element={<CertificateVerify />} />
+            <Route path="/trainer/signup/success" element={<TrainerThankYou />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/parent/login" element={<ParentLogin />} />
 
             {/* Student Protected */}
             <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />
@@ -62,6 +101,9 @@ const App = () => (
             <Route path="/student/referrals" element={<ProtectedRoute allowedRoles={["student"]}><StudentReferrals /></ProtectedRoute>} />
             <Route path="/student/interview" element={<ProtectedRoute allowedRoles={["student"]}><AIInterview /></ProtectedRoute>} />
             <Route path="/student/resume" element={<ProtectedRoute allowedRoles={["student"]}><ResumeBuilder /></ProtectedRoute>} />
+            <Route path="/student/certificates" element={<ProtectedRoute allowedRoles={["student"]}><StudentCertificates /></ProtectedRoute>} />
+            <Route path="/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
+            <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Notifications /></ProtectedRoute>} />
 
             {/* Trainer Protected */}
             <Route path="/trainer/dashboard" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerDashboard /></ProtectedRoute>} />
@@ -70,15 +112,25 @@ const App = () => (
             <Route path="/trainer/earnings" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerEarnings /></ProtectedRoute>} />
             <Route path="/trainer/certificates" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerCertificates /></ProtectedRoute>} />
             <Route path="/trainer/subscription" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSubscription /></ProtectedRoute>} />
+            <Route path="/trainer/schedule" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSchedule /></ProtectedRoute>} />
+            <Route path="/trainer/profile" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerProfile /></ProtectedRoute>} />
+            <Route path="/trainer/notifications" element={<ProtectedRoute allowedRoles={["trainer"]}><Notifications /></ProtectedRoute>} />
 
             {/* Admin Protected */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/trainers" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTrainers /></ProtectedRoute>} />
             <Route path="/admin/students" element={<ProtectedRoute allowedRoles={["admin"]}><AdminStudents /></ProtectedRoute>} />
-            <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCourses /></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPayments /></ProtectedRoute>} />
             <Route path="/admin/payouts" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPayouts /></ProtectedRoute>} />
             <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAnalytics /></ProtectedRoute>} />
+            <Route path="/admin/disputes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDisputes /></ProtectedRoute>} />
+            <Route path="/admin/certificates" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCertificates /></ProtectedRoute>} />
+            <Route path="/admin/messages" element={<ProtectedRoute allowedRoles={["admin"]}><AdminMessages /></ProtectedRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><Notifications /></ProtectedRoute>} />
+
+            {/* Parent Protected */}
+            <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><ParentDashboard /></ProtectedRoute>} />
 
             {/* Notifications (any authenticated) */}
             <Route path="/notifications" element={<ProtectedRoute allowedRoles={["student", "trainer", "admin"]}><Notifications /></ProtectedRoute>} />

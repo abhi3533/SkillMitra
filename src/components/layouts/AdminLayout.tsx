@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, Settings, LogOut, Menu, X, Bell, Shield } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const sidebarItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
   { label: "Trainers", icon: Users, path: "/admin/trainers" },
   { label: "Students", icon: Users, path: "/admin/students" },
+  { label: "Courses", icon: BookOpen, path: "/admin/courses" },
   { label: "Payments", icon: DollarSign, path: "/admin/payments" },
   { label: "Payouts", icon: CreditCard, path: "/admin/payouts" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
+  { label: "Disputes", icon: AlertTriangle, path: "/admin/disputes" },
+  { label: "Certificates", icon: Award, path: "/admin/certificates" },
+  { label: "Messages", icon: Mail, path: "/admin/messages" },
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {

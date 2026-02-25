@@ -1,31 +1,37 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, Star, BadgeCheck, SlidersHorizontal, X } from "lucide-react";
+import { Search, Star, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchProfilesMap } from "@/lib/profileHelpers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const BrowseTrainers = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("popular");
-  const [showFilters, setShowFilters] = useState(false);
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.from("trainers").select("*, profiles(*)").eq("approval_status", "approved").then(({ data }) => {
-      setTrainers(data || []);
+    (async () => {
+      const { data } = await supabase.from("trainers").select("*").eq("approval_status", "approved");
+      const trainerData = data || [];
+      if (trainerData.length > 0) {
+        const userIds = trainerData.map(t => t.user_id);
+        const profileMap = await fetchProfilesMap(userIds);
+        setTrainers(trainerData.map(t => ({ ...t, profile: profileMap[t.user_id] })));
+      }
       setLoading(false);
-    });
+    })();
   }, []);
 
   const filtered = trainers.filter(t => {
     const q = search.toLowerCase();
-    const name = t.profiles?.full_name?.toLowerCase() || "";
+    const name = t.profile?.full_name?.toLowerCase() || "";
     const role = t.current_role?.toLowerCase() || "";
     const skills = (t.skills || []).join(" ").toLowerCase();
     return name.includes(q) || role.includes(q) || skills.includes(q);
@@ -75,11 +81,11 @@ const BrowseTrainers = () => {
                     <div className="p-5">
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-primary font-bold">{t.profiles?.full_name?.[0] || "T"}</span>
+                          <span className="text-primary font-bold">{t.profile?.full_name?.[0] || "T"}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <h3 className="font-semibold text-foreground text-sm truncate">{t.profiles?.full_name}</h3>
+                            <h3 className="font-semibold text-foreground text-sm truncate">{t.profile?.full_name || "Trainer"}</h3>
                             <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
                           </div>
                           <p className="text-xs text-muted-foreground">{t.current_role || "Trainer"}</p>

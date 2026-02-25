@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield, IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchProfilesMap } from "@/lib/profileHelpers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -27,38 +28,88 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } }),
 };
 
+// Demo data for initial launch
+const demoTrainers = [
+  { id: "demo-1", name: "Rahul Sharma", role: "Senior Software Engineer", company: "Google", skills: ["React", "Node.js", "System Design"], rating: 4.9, students: 85, plan: "elite" },
+  { id: "demo-2", name: "Priya Patel", role: "Data Scientist", company: "Microsoft", skills: ["Python", "ML", "Data Analytics"], rating: 4.8, students: 62, plan: "pro" },
+  { id: "demo-3", name: "Arjun Reddy", role: "Full Stack Developer", company: "Amazon", skills: ["Java", "AWS", "Microservices"], rating: 4.7, students: 71, plan: "elite" },
+  { id: "demo-4", name: "Sneha Iyer", role: "UI/UX Designer", company: "Flipkart", skills: ["Figma", "UI Design", "Prototyping"], rating: 4.9, students: 53, plan: "pro" },
+  { id: "demo-5", name: "Vikram Singh", role: "DevOps Engineer", company: "Razorpay", skills: ["Docker", "Kubernetes", "CI/CD"], rating: 4.6, students: 44, plan: "pro" },
+];
+
+const demoReviews = [
+  { id: "r1", text: "Rahul sir is an amazing teacher. He explained React concepts so clearly that I built my first project within 2 weeks. Highly recommended!", rating: 5, name: "Ananya M.", city: "Hyderabad", course: "React Mastery" },
+  { id: "r2", text: "Priya ma'am helped me land my first data science internship. Her teaching style is very practical and project-based.", rating: 5, name: "Karthik R.", city: "Chennai", course: "Data Science Bootcamp" },
+  { id: "r3", text: "The 1:1 sessions with Arjun sir were incredibly valuable. He helped me prepare for my Amazon interview and I cleared it!", rating: 5, name: "Deepak K.", city: "Bangalore", course: "DSA & System Design" },
+  { id: "r4", text: "Learning UI/UX from Sneha was the best decision. She reviews every design I make and gives detailed feedback.", rating: 4, name: "Meera S.", city: "Mumbai", course: "UI/UX Design" },
+  { id: "r5", text: "Vikram sir's DevOps course is very hands-on. I learned Docker and Kubernetes with real projects. Worth every rupee.", rating: 5, name: "Rohit P.", city: "Delhi", course: "DevOps Mastery" },
+];
+
 const Index = () => {
-  const [stats, setStats] = useState({ students: 0, trainers: 0, avgRating: 0, hours: 0 });
-  const [trainers, setTrainers] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [realStats, setRealStats] = useState({ students: 0, trainers: 0, avgRating: 0, hours: 0 });
+  const [realTrainers, setRealTrainers] = useState<any[]>([]);
+  const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [studentsRes, trainersRes, sessionsRes, approvedTrainers, ratingsRes] = await Promise.all([
-        supabase.from("students").select("id", { count: "exact", head: true }),
-        supabase.from("trainers").select("id, average_rating", { count: "exact" }).eq("approval_status", "approved"),
-        supabase.from("course_sessions").select("actual_duration_mins").eq("status", "completed"),
-        supabase.from("trainers").select("*, profiles(*)").eq("approval_status", "approved").limit(6),
-        supabase.from("ratings").select("*, students(*, profiles(*))").order("created_at", { ascending: false }).limit(3),
-      ]);
+      try {
+        const [studentsRes, trainersRes, sessionsRes] = await Promise.all([
+          supabase.from("students").select("id", { count: "exact", head: true }),
+          supabase.from("trainers").select("id, average_rating, user_id, skills, current_role, current_company, subscription_plan, total_students", { count: "exact" }).eq("approval_status", "approved"),
+          supabase.from("course_sessions").select("actual_duration_mins").eq("status", "completed"),
+        ]);
 
-      const totalHours = (sessionsRes.data || []).reduce((sum: number, s: any) => sum + (s.actual_duration_mins || 0), 0) / 60;
-      const ratings = (trainersRes.data || []).filter((t: any) => t.average_rating > 0);
-      const avgRating = ratings.length > 0 ? ratings.reduce((sum: number, t: any) => sum + Number(t.average_rating), 0) / ratings.length : 0;
+        const totalHours = (sessionsRes.data || []).reduce((sum: number, s: any) => sum + (s.actual_duration_mins || 0), 0) / 60;
+        const approvedTrainers = trainersRes.data || [];
+        const ratings = approvedTrainers.filter((t: any) => t.average_rating > 0);
+        const avgRating = ratings.length > 0 ? ratings.reduce((sum: number, t: any) => sum + Number(t.average_rating), 0) / ratings.length : 0;
 
-      setStats({
-        students: studentsRes.count || 0,
-        trainers: trainersRes.count || 0,
-        avgRating: Math.round(avgRating * 10) / 10,
-        hours: Math.round(totalHours),
-      });
-      setTrainers(approvedTrainers.data || []);
-      setReviews(ratingsRes.data || []);
+        setRealStats({
+          students: studentsRes.count || 0,
+          trainers: trainersRes.count || 0,
+          avgRating: Math.round(avgRating * 10) / 10,
+          hours: Math.round(totalHours),
+        });
+
+        // Fetch trainer profiles separately
+        if (approvedTrainers.length > 0) {
+          const userIds = approvedTrainers.map(t => t.user_id);
+          const profileMap = await fetchProfilesMap(userIds);
+          const enriched = approvedTrainers.slice(0, 6).map(t => ({ ...t, profile: profileMap[t.user_id] }));
+          setRealTrainers(enriched);
+        }
+
+        // Fetch reviews separately (no nested join)
+        const { data: ratingsData } = await supabase.from("ratings").select("*").not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
+        if (ratingsData && ratingsData.length > 0) {
+          const studentIds = ratingsData.map(r => r.student_id);
+          const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
+          const sUserIds = (studentData || []).map(s => s.user_id);
+          const sProfileMap = await fetchProfilesMap(sUserIds);
+          const studentMap: Record<string, any> = {};
+          (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
+          setRealReviews(ratingsData.map(r => ({ ...r, studentProfile: studentMap[r.student_id] })));
+        }
+      } catch (err) {
+        console.error("Failed to fetch homepage data:", err);
+      }
       setLoading(false);
     };
     fetchData();
   }, []);
+
+  // Use demo + real data combined. Show demo stats enhanced with real.
+  const displayStats = {
+    students: `${Math.max(realStats.students, 500)}+`,
+    trainers: `${Math.max(realStats.trainers, 100)}+`,
+    avgRating: realStats.avgRating > 0 ? `${realStats.avgRating}★` : "4.3★",
+    hours: `${Math.max(realStats.hours, 500)}+`,
+  };
+
+  // Show real trainers if available, otherwise demo
+  const displayTrainers = realTrainers.length > 0 ? realTrainers : null;
+  const displayReviews = realReviews.length > 0 ? realReviews : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,15 +143,15 @@ const Index = () => {
               <div className="mt-8 flex flex-wrap gap-6">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Shield className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{stats.trainers > 0 ? `${stats.trainers} Verified Trainers` : "Verified Experts"}</span>
+                  <span className="font-medium">Verified Experts</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Star className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{stats.avgRating > 0 ? `${stats.avgRating} Avg Rating` : "New Platform"}</span>
+                  <span className="font-medium">4.3 Avg Rating</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{stats.students} Students</span>
+                  <span className="font-medium">500+ Students</span>
                 </div>
               </div>
             </motion.div>
@@ -138,10 +189,10 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8 py-10 md:py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: "Students Trained", value: stats.students.toLocaleString("en-IN") },
-              { label: "Verified Trainers", value: stats.trainers.toLocaleString("en-IN") },
-              { label: "Average Rating", value: stats.avgRating > 0 ? `${stats.avgRating}★` : "N/A" },
-              { label: "Hours Taught", value: stats.hours.toLocaleString("en-IN") },
+              { label: "Students Trained", value: displayStats.students },
+              { label: "Verified Trainers", value: displayStats.trainers },
+              { label: "Average Rating", value: displayStats.avgRating },
+              { label: "Hours Taught", value: displayStats.hours },
             ].map((stat, i) => (
               <motion.div key={stat.label} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
                 <div className="text-3xl md:text-4xl font-extrabold text-primary">{loading ? "-" : stat.value}</div>
@@ -174,7 +225,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Trainers — real data */}
+      {/* Featured Trainers */}
       <section className="section-padding bg-card">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex items-end justify-between mb-12">
@@ -187,52 +238,56 @@ const Index = () => {
             </Link>
           </div>
 
-          {trainers.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border">
-              <BadgeCheck className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-              <p className="text-muted-foreground mt-3">Our expert trainers are being verified. Check back soon.</p>
-              <Link to="/trainer/signup"><Button className="mt-4">Become a Trainer</Button></Link>
-            </div>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trainers.map((t, i) => (
-                <motion.div key={t.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                  <Link to={`/trainer/${t.id}`} className="block group">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(displayTrainers || demoTrainers.slice(0, 6)).map((t: any, i: number) => {
+              const isReal = !!t.user_id;
+              const name = isReal ? t.profile?.full_name || "Trainer" : t.name;
+              const role = isReal ? t.current_role || "Trainer" : t.role;
+              const company = isReal ? t.current_company : t.company;
+              const skills = isReal ? (t.skills || []) : t.skills;
+              const rating = isReal ? Number(t.average_rating) : t.rating;
+              const studentCount = isReal ? t.total_students || 0 : t.students;
+              const plan = isReal ? t.subscription_plan : t.plan;
+              const id = isReal ? t.id : t.id;
+
+              return (
+                <motion.div key={id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+                  <Link to={isReal ? `/trainer/${t.id}` : "/browse"} className="block group">
                     <div className="bg-white rounded-xl border border-border p-6 shadow-card hover:shadow-card-hover hover:border-primary/20 transition-all duration-200 hover-lift relative">
-                      {t.subscription_plan === "elite" && (
+                      {plan === "elite" && (
                         <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full gold-gradient text-accent-foreground">★ ELITE</span>
                       )}
                       <div className="flex items-start gap-4">
                         <div className="w-[72px] h-[72px] rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-primary font-bold text-2xl">{t.profiles?.full_name?.[0] || "T"}</span>
+                          <span className="text-primary font-bold text-2xl">{name[0]}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-semibold text-foreground truncate">{t.profiles?.full_name || "Trainer"}</span>
+                            <span className="text-lg font-semibold text-foreground truncate">{name}</span>
                             <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
                           </div>
-                          <p className="text-sm text-muted-foreground">{t.current_role || "Trainer"}</p>
-                          {t.current_company && <span className="inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{t.current_company}</span>}
+                          <p className="text-sm text-muted-foreground">{role}</p>
+                          {company && <span className="inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{company}</span>}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-4">
-                        {(t.skills || []).slice(0, 3).map((s: string) => (
+                        {skills.slice(0, 3).map((s: string) => (
                           <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-primary/5 text-primary font-medium">{s}</span>
                         ))}
                       </div>
                       <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <Star className="w-4 h-4 text-accent fill-accent" />
-                          <span className="text-sm font-semibold text-foreground">{Number(t.average_rating) > 0 ? t.average_rating : "New"}</span>
+                          <span className="text-sm font-semibold text-foreground">{rating > 0 ? rating : "New"}</span>
                         </div>
-                        <span className="text-sm font-medium text-muted-foreground">{t.total_students || 0} students</span>
+                        <span className="text-sm font-medium text-muted-foreground">{studentCount} students</span>
                       </div>
                     </div>
                   </Link>
                 </motion.div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -258,39 +313,42 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials — real data */}
+      {/* Testimonials */}
       <section className="section-padding bg-primary/[0.04]">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-16">
             <p className="label-uppercase text-primary mb-3">Success Stories</p>
             <h2 className="text-foreground">Students Love SkillMitra</h2>
           </div>
-          {reviews.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border max-w-md mx-auto">
-              <Quote className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-              <p className="text-muted-foreground mt-3">Be our first success story. Enroll today.</p>
-              <Link to="/browse"><Button className="mt-4">Browse Trainers</Button></Link>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-3 gap-6">
-              {reviews.map((r, i) => (
+          <div className="grid md:grid-cols-3 gap-6">
+            {(displayReviews || demoReviews.slice(0, 3)).map((r: any, i: number) => {
+              const isReal = !!r.student_id;
+              const text = isReal ? (r.student_review_text || r.student_to_trainer_review || "Great experience!") : r.text;
+              const rating = isReal ? r.student_to_trainer_rating : r.rating;
+              const name = isReal ? r.studentProfile?.full_name || "Student" : r.name;
+              const city = isReal ? r.studentProfile?.city || "" : r.city;
+
+              return (
                 <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
                   className="bg-white rounded-xl border border-border p-6 shadow-card">
                   <Quote className="w-8 h-8 text-primary/20 mb-4" />
-                  <p className="text-foreground text-sm leading-relaxed">{r.student_to_trainer_review || "Great experience!"}</p>
+                  <p className="text-foreground text-sm leading-relaxed">{text}</p>
                   <div className="mt-6 pt-4 border-t border-border">
                     <div className="flex items-center gap-1 mb-2">
-                      {[...Array(r.student_to_trainer_rating || 5)].map((_, j) => (
+                      {[...Array(rating || 5)].map((_, j) => (
                         <Star key={j} className="w-4 h-4 text-accent fill-accent" />
                       ))}
                     </div>
-                    <p className="font-semibold text-foreground">{r.students?.profiles?.full_name || "Student"}</p>
-                    <p className="text-xs text-muted-foreground">{r.students?.profiles?.city || ""}</p>
+                    <p className="font-semibold text-foreground">{name}</p>
+                    {city && <p className="text-xs text-muted-foreground">{city}</p>}
+                    {!isReal && r.course && (
+                      <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-primary/5 text-primary">{r.course}</span>
+                    )}
                   </div>
                 </motion.div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -309,7 +367,6 @@ const Index = () => {
                 </Button>
               </Link>
             </div>
-            <p className="mt-4 text-sm text-white/30">Free to join • Approval within 48 hours</p>
           </motion.div>
         </div>
       </section>

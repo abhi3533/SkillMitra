@@ -14,6 +14,7 @@ const sidebarItems = [
   { label: "Disputes", icon: AlertTriangle, path: "/admin/disputes" },
   { label: "Certificates", icon: Award, path: "/admin/certificates" },
   { label: "Messages", icon: Mail, path: "/admin/messages" },
+  { label: "Ratings", icon: BarChart3, path: "/admin/ratings" },
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {

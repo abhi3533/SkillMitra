@@ -56,6 +56,7 @@ import AdminCourses from "./pages/admin/AdminCourses";
 import AdminDisputes from "./pages/admin/Disputes";
 import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminMessages from "./pages/admin/Messages";
+import AdminRatings from "./pages/admin/Ratings";
 
 // Parent
 import ParentLogin from "./pages/parent/Login";
@@ -127,6 +128,7 @@ const App = () => (
             <Route path="/admin/disputes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDisputes /></ProtectedRoute>} />
             <Route path="/admin/certificates" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCertificates /></ProtectedRoute>} />
             <Route path="/admin/messages" element={<ProtectedRoute allowedRoles={["admin"]}><AdminMessages /></ProtectedRoute>} />
+            <Route path="/admin/ratings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRatings /></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><Notifications /></ProtectedRoute>} />
 
             {/* Parent Protected */}

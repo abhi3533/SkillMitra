@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Users, DollarSign, Calendar, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 
@@ -25,10 +26,22 @@ const TrainerDashboard = () => {
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
         supabase.from("enrollments").select("trainer_payout").eq("trainer_id", trainer.id).gte("enrollment_date", startOfMonth),
         supabase.from("course_sessions").select("*").eq("trainer_id", trainer.id).gte("scheduled_at", todayStart).lt("scheduled_at", todayEnd),
-        supabase.from("ratings").select("*, students(*, profiles(full_name))").eq("trainer_id", trainer.id).order("created_at", { ascending: false }).limit(5),
+        supabase.from("ratings").select("*").eq("trainer_id", trainer.id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
       ]);
 
       const monthTotal = (earningsRes.data || []).reduce((s: number, e: any) => s + Number(e.trainer_payout || 0), 0);
+
+      // Enrich reviews with student names
+      let enrichedReviews: any[] = [];
+      if (reviewsRes.data && reviewsRes.data.length > 0) {
+        const studentIds = reviewsRes.data.map(r => r.student_id);
+        const { data: students } = await supabase.from("students").select("id, user_id").in("id", studentIds);
+        const userIds = (students || []).map(s => s.user_id);
+        const profileMap = await fetchProfilesMap(userIds);
+        const nameMap: Record<string, string> = {};
+        (students || []).forEach(s => { nameMap[s.id] = profileMap[s.user_id]?.full_name || "Student"; });
+        enrichedReviews = reviewsRes.data.map(r => ({ ...r, studentName: nameMap[r.student_id] || "Student" }));
+      }
 
       setData({
         activeStudents: enrollRes.count || 0,
@@ -36,7 +49,7 @@ const TrainerDashboard = () => {
         totalSessions: sessRes.count || 0,
         avgRating: Number(trainer.average_rating) || 0,
         todaySessions: todayRes.data || [],
-        reviews: reviewsRes.data || [],
+        reviews: enrichedReviews,
       });
       setLoading(false);
     })();
@@ -66,7 +79,6 @@ const TrainerDashboard = () => {
         ))}
       </div>
 
-      {/* Today's Sessions */}
       <div className="mt-8 bg-card rounded-xl border p-6">
         <h2 className="text-lg font-semibold text-foreground mb-4">Today's Sessions</h2>
         {loading ? <div className="h-16 skeleton rounded-lg" /> :
@@ -83,7 +95,6 @@ const TrainerDashboard = () => {
         }
       </div>
 
-      {/* Recent Reviews */}
       <div className="mt-6 bg-card rounded-xl border p-6">
         <h2 className="text-lg font-semibold text-foreground mb-4">Recent Reviews</h2>
         {loading ? <div className="h-16 skeleton rounded-lg" /> :
@@ -92,10 +103,10 @@ const TrainerDashboard = () => {
           ) : data.reviews.map((r: any) => (
             <div key={r.id} className="p-3 rounded-lg bg-secondary/30 mb-2 last:mb-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium text-foreground">{r.students?.profiles?.full_name || "Student"}</span>
+                <span className="text-sm font-medium text-foreground">{r.studentName}</span>
                 <span className="text-accent text-xs">{"★".repeat(r.student_to_trainer_rating || 0)}</span>
               </div>
-              <p className="text-sm text-muted-foreground">{r.student_to_trainer_review || "No comment"}</p>
+              <p className="text-sm text-muted-foreground">{r.student_review_text || r.student_to_trainer_review || "No comment"}</p>
             </div>
           ))
         }

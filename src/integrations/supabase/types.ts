@@ -822,11 +822,23 @@ export type Database = {
           enrollment_id: string
           id: string
           punctuality_score: number | null
+          session_id: string | null
+          student_communication_rating: number | null
           student_id: string
+          student_punctuality_rating: number | null
+          student_rated_at: string | null
+          student_review_text: string | null
+          student_teaching_quality: number | null
           student_to_trainer_rating: number | null
           student_to_trainer_review: string | null
           technical_score: number | null
           trainer_id: string
+          trainer_private_notes: string | null
+          trainer_rated_at: string | null
+          trainer_to_student_communication: number | null
+          trainer_to_student_engagement: number | null
+          trainer_to_student_preparation: number | null
+          trainer_to_student_punctuality: number | null
           trainer_to_student_rating: number | null
           trainer_to_student_review: string | null
         }
@@ -836,11 +848,23 @@ export type Database = {
           enrollment_id: string
           id?: string
           punctuality_score?: number | null
+          session_id?: string | null
+          student_communication_rating?: number | null
           student_id: string
+          student_punctuality_rating?: number | null
+          student_rated_at?: string | null
+          student_review_text?: string | null
+          student_teaching_quality?: number | null
           student_to_trainer_rating?: number | null
           student_to_trainer_review?: string | null
           technical_score?: number | null
           trainer_id: string
+          trainer_private_notes?: string | null
+          trainer_rated_at?: string | null
+          trainer_to_student_communication?: number | null
+          trainer_to_student_engagement?: number | null
+          trainer_to_student_preparation?: number | null
+          trainer_to_student_punctuality?: number | null
           trainer_to_student_rating?: number | null
           trainer_to_student_review?: string | null
         }
@@ -850,11 +874,23 @@ export type Database = {
           enrollment_id?: string
           id?: string
           punctuality_score?: number | null
+          session_id?: string | null
+          student_communication_rating?: number | null
           student_id?: string
+          student_punctuality_rating?: number | null
+          student_rated_at?: string | null
+          student_review_text?: string | null
+          student_teaching_quality?: number | null
           student_to_trainer_rating?: number | null
           student_to_trainer_review?: string | null
           technical_score?: number | null
           trainer_id?: string
+          trainer_private_notes?: string | null
+          trainer_rated_at?: string | null
+          trainer_to_student_communication?: number | null
+          trainer_to_student_engagement?: number | null
+          trainer_to_student_preparation?: number | null
+          trainer_to_student_punctuality?: number | null
           trainer_to_student_rating?: number | null
           trainer_to_student_review?: string | null
         }
@@ -864,6 +900,13 @@ export type Database = {
             columns: ["enrollment_id"]
             isOneToOne: false
             referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "course_sessions"
             referencedColumns: ["id"]
           },
           {

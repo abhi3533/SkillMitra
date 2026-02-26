@@ -314,43 +314,43 @@ const Index = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="section-padding bg-primary/[0.04]">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <p className="label-uppercase text-primary mb-3">Success Stories</p>
-            <h2 className="text-foreground">Students Love SkillMitra</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {(displayReviews || demoReviews.slice(0, 3)).map((r: any, i: number) => {
-              const isReal = !!r.student_id;
-              const text = isReal ? r.student_review_text || r.student_to_trainer_review || "Great experience!" : r.text;
-              const rating = isReal ? r.student_to_trainer_rating : r.rating;
-              const name = isReal ? r.studentProfile?.full_name || "Student" : r.name;
-              const city = isReal ? r.studentProfile?.city || "" : r.city;
+      
 
-              return (
-                <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="bg-white rounded-xl border border-border p-6 shadow-card">
-                  <Quote className="w-8 h-8 text-primary/20 mb-4" />
-                  <p className="text-foreground text-sm leading-relaxed">{text}</p>
-                  <div className="mt-6 pt-4 border-t border-border">
-                    <div className="flex items-center gap-1 mb-2">
-                      {[...Array(rating || 5)].map((_, j) =>
-                      <Star key={j} className="w-4 h-4 text-accent fill-accent" />
-                      )}
-                    </div>
-                    <p className="font-semibold text-foreground">{name}</p>
-                    {city && <p className="text-xs text-muted-foreground">{city}</p>}
-                    {!isReal && r.course &&
-                    <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-primary/5 text-primary">{r.course}</span>
-                    }
-                  </div>
-                </motion.div>);
 
-            })}
-          </div>
-        </div>
-      </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       {/* Trainer CTA */}
       <section className="bg-primary section-padding">

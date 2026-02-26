@@ -9,41 +9,41 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const steps = [
-  { step: "01", title: "Browse & Choose", description: "Explore verified trainers by skill, language, and budget. Read reviews and check credentials.", icon: BookOpen },
-  { step: "02", title: "Book a Free Trial", description: "Schedule a free trial session to meet your trainer and experience the teaching style.", icon: Video },
-  { step: "03", title: "Learn & Grow", description: "Attend 1:1 sessions from home, build projects, earn certificates, and land your dream job.", icon: Sparkles },
-];
+{ step: "01", title: "Browse & Choose", description: "Explore verified trainers by skill, language, and budget. Read reviews and check credentials.", icon: BookOpen },
+{ step: "02", title: "Book a Free Trial", description: "Schedule a free trial session to meet your trainer and experience the teaching style.", icon: Video },
+{ step: "03", title: "Learn & Grow", description: "Attend 1:1 sessions from home, build projects, earn certificates, and land your dream job.", icon: Sparkles }];
+
 
 const benefits = [
-  { title: "1:1 Personal Training", description: "Not group classes. Your trainer focuses only on you, tailoring every session to your pace.", icon: Users },
-  { title: "In Your Language", description: "Learn in Telugu, Hindi, Tamil, English, or any language you're comfortable in.", icon: Globe },
-  { title: "From Home", description: "No commuting. Attend live sessions from your room via Google Meet.", icon: Home },
-  { title: "Verified Experts", description: "Every trainer is ID-verified with checked credentials and work experience.", icon: Shield },
-  { title: "Affordable Pricing", description: "Starting from ₹999. Get industry-expert training at a fraction of coaching institute costs.", icon: IndianRupee },
-  { title: "Earn Certificates", description: "Get SkillMitra certificates verified by QR code. Showcase on LinkedIn.", icon: Award },
-];
+{ title: "1:1 Personal Training", description: "Not group classes. Your trainer focuses only on you, tailoring every session to your pace.", icon: Users },
+{ title: "In Your Language", description: "Learn in Telugu, Hindi, Tamil, English, or any language you're comfortable in.", icon: Globe },
+{ title: "From Home", description: "No commuting. Attend live sessions from your room via Google Meet.", icon: Home },
+{ title: "Verified Experts", description: "Every trainer is ID-verified with checked credentials and work experience.", icon: Shield },
+{ title: "Affordable Pricing", description: "Starting from ₹999. Get industry-expert training at a fraction of coaching institute costs.", icon: IndianRupee },
+{ title: "Earn Certificates", description: "Get SkillMitra certificates verified by QR code. Showcase on LinkedIn.", icon: Award }];
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } }),
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } })
 };
 
 // Demo data for initial launch
 const demoTrainers = [
-  { id: "demo-1", name: "Rahul Sharma", role: "Senior Software Engineer", company: "Google", skills: ["React", "Node.js", "System Design"], rating: 4.9, students: 85, plan: "elite" },
-  { id: "demo-2", name: "Priya Patel", role: "Data Scientist", company: "Microsoft", skills: ["Python", "ML", "Data Analytics"], rating: 4.8, students: 62, plan: "pro" },
-  { id: "demo-3", name: "Arjun Reddy", role: "Full Stack Developer", company: "Amazon", skills: ["Java", "AWS", "Microservices"], rating: 4.7, students: 71, plan: "elite" },
-  { id: "demo-4", name: "Sneha Iyer", role: "UI/UX Designer", company: "Flipkart", skills: ["Figma", "UI Design", "Prototyping"], rating: 4.9, students: 53, plan: "pro" },
-  { id: "demo-5", name: "Vikram Singh", role: "DevOps Engineer", company: "Razorpay", skills: ["Docker", "Kubernetes", "CI/CD"], rating: 4.6, students: 44, plan: "pro" },
-];
+{ id: "demo-1", name: "Rahul Sharma", role: "Senior Software Engineer", company: "Google", skills: ["React", "Node.js", "System Design"], rating: 4.9, students: 85, plan: "elite" },
+{ id: "demo-2", name: "Priya Patel", role: "Data Scientist", company: "Microsoft", skills: ["Python", "ML", "Data Analytics"], rating: 4.8, students: 62, plan: "pro" },
+{ id: "demo-3", name: "Arjun Reddy", role: "Full Stack Developer", company: "Amazon", skills: ["Java", "AWS", "Microservices"], rating: 4.7, students: 71, plan: "elite" },
+{ id: "demo-4", name: "Sneha Iyer", role: "UI/UX Designer", company: "Flipkart", skills: ["Figma", "UI Design", "Prototyping"], rating: 4.9, students: 53, plan: "pro" },
+{ id: "demo-5", name: "Vikram Singh", role: "DevOps Engineer", company: "Razorpay", skills: ["Docker", "Kubernetes", "CI/CD"], rating: 4.6, students: 44, plan: "pro" }];
+
 
 const demoReviews = [
-  { id: "r1", text: "Rahul sir is an amazing teacher. He explained React concepts so clearly that I built my first project within 2 weeks. Highly recommended!", rating: 5, name: "Ananya M.", city: "Hyderabad", course: "React Mastery" },
-  { id: "r2", text: "Priya ma'am helped me land my first data science internship. Her teaching style is very practical and project-based.", rating: 5, name: "Karthik R.", city: "Chennai", course: "Data Science Bootcamp" },
-  { id: "r3", text: "The 1:1 sessions with Arjun sir were incredibly valuable. He helped me prepare for my Amazon interview and I cleared it!", rating: 5, name: "Deepak K.", city: "Bangalore", course: "DSA & System Design" },
-  { id: "r4", text: "Learning UI/UX from Sneha was the best decision. She reviews every design I make and gives detailed feedback.", rating: 4, name: "Meera S.", city: "Mumbai", course: "UI/UX Design" },
-  { id: "r5", text: "Vikram sir's DevOps course is very hands-on. I learned Docker and Kubernetes with real projects. Worth every rupee.", rating: 5, name: "Rohit P.", city: "Delhi", course: "DevOps Mastery" },
-];
+{ id: "r1", text: "Rahul sir is an amazing teacher. He explained React concepts so clearly that I built my first project within 2 weeks. Highly recommended!", rating: 5, name: "Ananya M.", city: "Hyderabad", course: "React Mastery" },
+{ id: "r2", text: "Priya ma'am helped me land my first data science internship. Her teaching style is very practical and project-based.", rating: 5, name: "Karthik R.", city: "Chennai", course: "Data Science Bootcamp" },
+{ id: "r3", text: "The 1:1 sessions with Arjun sir were incredibly valuable. He helped me prepare for my Amazon interview and I cleared it!", rating: 5, name: "Deepak K.", city: "Bangalore", course: "DSA & System Design" },
+{ id: "r4", text: "Learning UI/UX from Sneha was the best decision. She reviews every design I make and gives detailed feedback.", rating: 4, name: "Meera S.", city: "Mumbai", course: "UI/UX Design" },
+{ id: "r5", text: "Vikram sir's DevOps course is very hands-on. I learned Docker and Kubernetes with real projects. Worth every rupee.", rating: 5, name: "Rohit P.", city: "Delhi", course: "DevOps Mastery" }];
+
 
 const Index = () => {
   const [realStats, setRealStats] = useState({ students: 0, trainers: 0, avgRating: 0, hours: 0 });
@@ -55,10 +55,10 @@ const Index = () => {
     const fetchData = async () => {
       try {
         const [studentsRes, trainersRes, sessionsRes] = await Promise.all([
-          supabase.from("students").select("id", { count: "exact", head: true }),
-          supabase.from("trainers").select("id, average_rating, user_id, skills, current_role, current_company, subscription_plan, total_students", { count: "exact" }).eq("approval_status", "approved"),
-          supabase.from("course_sessions").select("actual_duration_mins").eq("status", "completed"),
-        ]);
+        supabase.from("students").select("id", { count: "exact", head: true }),
+        supabase.from("trainers").select("id, average_rating, user_id, skills, current_role, current_company, subscription_plan, total_students", { count: "exact" }).eq("approval_status", "approved"),
+        supabase.from("course_sessions").select("actual_duration_mins").eq("status", "completed")]
+        );
 
         const totalHours = (sessionsRes.data || []).reduce((sum: number, s: any) => sum + (s.actual_duration_mins || 0), 0) / 60;
         const approvedTrainers = trainersRes.data || [];
@@ -69,27 +69,27 @@ const Index = () => {
           students: studentsRes.count || 0,
           trainers: trainersRes.count || 0,
           avgRating: Math.round(avgRating * 10) / 10,
-          hours: Math.round(totalHours),
+          hours: Math.round(totalHours)
         });
 
         // Fetch trainer profiles separately
         if (approvedTrainers.length > 0) {
-          const userIds = approvedTrainers.map(t => t.user_id);
+          const userIds = approvedTrainers.map((t) => t.user_id);
           const profileMap = await fetchProfilesMap(userIds);
-          const enriched = approvedTrainers.slice(0, 6).map(t => ({ ...t, profile: profileMap[t.user_id] }));
+          const enriched = approvedTrainers.slice(0, 6).map((t) => ({ ...t, profile: profileMap[t.user_id] }));
           setRealTrainers(enriched);
         }
 
         // Fetch reviews separately (no nested join)
         const { data: ratingsData } = await supabase.from("ratings").select("*").not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
         if (ratingsData && ratingsData.length > 0) {
-          const studentIds = ratingsData.map(r => r.student_id);
+          const studentIds = ratingsData.map((r) => r.student_id);
           const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
-          const sUserIds = (studentData || []).map(s => s.user_id);
+          const sUserIds = (studentData || []).map((s) => s.user_id);
           const sProfileMap = await fetchProfilesMap(sUserIds);
           const studentMap: Record<string, any> = {};
-          (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
-          setRealReviews(ratingsData.map(r => ({ ...r, studentProfile: studentMap[r.student_id] })));
+          (studentData || []).forEach((s) => {studentMap[s.id] = sProfileMap[s.user_id];});
+          setRealReviews(ratingsData.map((r) => ({ ...r, studentProfile: studentMap[r.student_id] })));
         }
       } catch (err) {
         console.error("Failed to fetch homepage data:", err);
@@ -104,7 +104,7 @@ const Index = () => {
     students: `${Math.max(realStats.students, 500)}+`,
     trainers: `${Math.max(realStats.trainers, 100)}+`,
     avgRating: realStats.avgRating > 0 ? `${realStats.avgRating}★` : "4.3★",
-    hours: `${Math.max(realStats.hours, 500)}+`,
+    hours: `${Math.max(realStats.hours, 500)}+`
   };
 
   // Show real trainers if available, otherwise demo
@@ -169,9 +169,9 @@ const Index = () => {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {["Python", "React", "Data Science"].map(s => (
-                      <span key={s} className="text-xs px-3 py-1 rounded-full bg-primary/5 text-primary font-medium">{s}</span>
-                    ))}
+                    {["Python", "React", "Data Science"].map((s) =>
+                    <span key={s} className="text-xs px-3 py-1 rounded-full bg-primary/5 text-primary font-medium">{s}</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-border">
                     <span className="text-sm text-muted-foreground">From ₹999/mo</span>
@@ -189,41 +189,41 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8 py-10 md:py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: "Students Trained", value: displayStats.students },
-              { label: "Verified Trainers", value: displayStats.trainers },
-              { label: "Average Rating", value: displayStats.avgRating },
-              { label: "Hours Taught", value: displayStats.hours },
-            ].map((stat, i) => (
-              <motion.div key={stat.label} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
+            { label: "Students Trained", value: displayStats.students },
+            { label: "Verified Trainers", value: displayStats.trainers },
+            { label: "Average Rating", value: displayStats.avgRating },
+            { label: "Hours Taught", value: displayStats.hours }].
+            map((stat, i) =>
+            <motion.div key={stat.label} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
                 <div className="text-3xl md:text-4xl font-extrabold text-primary">{loading ? "-" : stat.value}</div>
                 <div className="mt-1 text-sm text-muted-foreground font-medium">{stat.label}</div>
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="section-padding bg-background">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <p className="label-uppercase text-primary mb-3">Simple Process</p>
-            <h2 className="text-foreground">How SkillMitra Works</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-16">
-            {steps.map((s, i) => (
-              <motion.div key={s.step} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-6">
-                  <s.icon className="w-7 h-7 text-primary-foreground" />
-                </div>
-                <p className="label-uppercase text-primary mb-2">Step {s.step}</p>
-                <h3 className="text-foreground">{s.title}</h3>
-                <p className="mt-3 text-muted-foreground">{s.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       {/* Featured Trainers */}
       <section className="section-padding bg-card">
@@ -244,7 +244,7 @@ const Index = () => {
               const name = isReal ? t.profile?.full_name || "Trainer" : t.name;
               const role = isReal ? t.current_role || "Trainer" : t.role;
               const company = isReal ? t.current_company : t.company;
-              const skills = isReal ? (t.skills || []) : t.skills;
+              const skills = isReal ? t.skills || [] : t.skills;
               const rating = isReal ? Number(t.average_rating) : t.rating;
               const studentCount = isReal ? t.total_students || 0 : t.students;
               const plan = isReal ? t.subscription_plan : t.plan;
@@ -254,9 +254,9 @@ const Index = () => {
                 <motion.div key={id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
                   <Link to={isReal ? `/trainer/${t.id}` : "/browse"} className="block group">
                     <div className="bg-white rounded-xl border border-border p-6 shadow-card hover:shadow-card-hover hover:border-primary/20 transition-all duration-200 hover-lift relative">
-                      {plan === "elite" && (
-                        <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full gold-gradient text-accent-foreground">★ ELITE</span>
-                      )}
+                      {plan === "elite" &&
+                      <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full gold-gradient text-accent-foreground">★ ELITE</span>
+                      }
                       <div className="flex items-start gap-4">
                         <div className="w-[72px] h-[72px] rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-primary font-bold text-2xl">{name[0]}</span>
@@ -271,9 +271,9 @@ const Index = () => {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-4">
-                        {skills.slice(0, 3).map((s: string) => (
-                          <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-primary/5 text-primary font-medium">{s}</span>
-                        ))}
+                        {skills.slice(0, 3).map((s: string) =>
+                        <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-primary/5 text-primary font-medium">{s}</span>
+                        )}
                       </div>
                       <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
@@ -284,8 +284,8 @@ const Index = () => {
                       </div>
                     </div>
                   </Link>
-                </motion.div>
-              );
+                </motion.div>);
+
             })}
           </div>
         </div>
@@ -299,16 +299,16 @@ const Index = () => {
             <h2 className="text-foreground">Why Students Trust SkillMitra</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {benefits.map((b, i) => (
-              <motion.div key={b.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="bg-white rounded-xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover-lift">
+            {benefits.map((b, i) =>
+            <motion.div key={b.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+            className="bg-white rounded-xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover-lift">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                   <b.icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-foreground">{b.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{b.description}</p>
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -323,30 +323,30 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-6">
             {(displayReviews || demoReviews.slice(0, 3)).map((r: any, i: number) => {
               const isReal = !!r.student_id;
-              const text = isReal ? (r.student_review_text || r.student_to_trainer_review || "Great experience!") : r.text;
+              const text = isReal ? r.student_review_text || r.student_to_trainer_review || "Great experience!" : r.text;
               const rating = isReal ? r.student_to_trainer_rating : r.rating;
               const name = isReal ? r.studentProfile?.full_name || "Student" : r.name;
               const city = isReal ? r.studentProfile?.city || "" : r.city;
 
               return (
                 <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                  className="bg-white rounded-xl border border-border p-6 shadow-card">
+                className="bg-white rounded-xl border border-border p-6 shadow-card">
                   <Quote className="w-8 h-8 text-primary/20 mb-4" />
                   <p className="text-foreground text-sm leading-relaxed">{text}</p>
                   <div className="mt-6 pt-4 border-t border-border">
                     <div className="flex items-center gap-1 mb-2">
-                      {[...Array(rating || 5)].map((_, j) => (
-                        <Star key={j} className="w-4 h-4 text-accent fill-accent" />
-                      ))}
+                      {[...Array(rating || 5)].map((_, j) =>
+                      <Star key={j} className="w-4 h-4 text-accent fill-accent" />
+                      )}
                     </div>
                     <p className="font-semibold text-foreground">{name}</p>
                     {city && <p className="text-xs text-muted-foreground">{city}</p>}
-                    {!isReal && r.course && (
-                      <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-primary/5 text-primary">{r.course}</span>
-                    )}
+                    {!isReal && r.course &&
+                    <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-primary/5 text-primary">{r.course}</span>
+                    }
                   </div>
-                </motion.div>
-              );
+                </motion.div>);
+
             })}
           </div>
         </div>
@@ -372,8 +372,8 @@ const Index = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;

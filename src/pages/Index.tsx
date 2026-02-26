@@ -1,95 +1,59 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield, IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video } from "lucide-react";
+import { ArrowRight, Users, Star, BadgeCheck, Zap, Globe, BookOpen, MessageSquare, Briefcase, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const steps = [
-  { step: "01", title: "Browse & Choose", description: "Explore verified trainers by skill, language, and budget. Read reviews and check credentials.", icon: BookOpen },
-  { step: "02", title: "Book a Free Trial", description: "Schedule a free trial session to meet your trainer and experience the teaching style.", icon: Video },
-  { step: "03", title: "Learn & Grow", description: "Attend 1:1 sessions from home, build projects, earn certificates, and land your dream job.", icon: Sparkles },
-];
-
-const benefits = [
-  { title: "1:1 Personal Training", description: "Not group classes. Your trainer focuses only on you, tailoring every session to your pace.", icon: Users },
-  { title: "In Your Language", description: "Learn in Telugu, Hindi, Tamil, English, or any language you're comfortable in.", icon: Globe },
-  { title: "From Home", description: "No commuting. Attend live sessions from your room via Google Meet.", icon: Home },
-  { title: "Verified Experts", description: "Every trainer is ID-verified with checked credentials and work experience.", icon: Shield },
-  { title: "Affordable Pricing", description: "Starting from ₹999. Get industry-expert training at a fraction of coaching institute costs.", icon: IndianRupee },
-  { title: "Earn Certificates", description: "Get SkillMitra certificates verified by QR code. Showcase on LinkedIn.", icon: Award },
-];
-
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } }),
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.6 } }),
 };
 
-// Demo data for initial launch
 const demoTrainers = [
   { id: "demo-1", name: "Rahul Sharma", role: "Senior Software Engineer", company: "Google", skills: ["React", "Node.js", "System Design"], rating: 4.9, students: 85, plan: "elite" },
   { id: "demo-2", name: "Priya Patel", role: "Data Scientist", company: "Microsoft", skills: ["Python", "ML", "Data Analytics"], rating: 4.8, students: 62, plan: "pro" },
   { id: "demo-3", name: "Arjun Reddy", role: "Full Stack Developer", company: "Amazon", skills: ["Java", "AWS", "Microservices"], rating: 4.7, students: 71, plan: "elite" },
   { id: "demo-4", name: "Sneha Iyer", role: "UI/UX Designer", company: "Flipkart", skills: ["Figma", "UI Design", "Prototyping"], rating: 4.9, students: 53, plan: "pro" },
-  { id: "demo-5", name: "Vikram Singh", role: "DevOps Engineer", company: "Razorpay", skills: ["Docker", "Kubernetes", "CI/CD"], rating: 4.6, students: 44, plan: "pro" },
 ];
 
-const demoReviews = [
-  { id: "r1", text: "Rahul sir is an amazing teacher. He explained React concepts so clearly that I built my first project within 2 weeks. Highly recommended!", rating: 5, name: "Ananya M.", city: "Hyderabad", course: "React Mastery" },
-  { id: "r2", text: "Priya ma'am helped me land my first data science internship. Her teaching style is very practical and project-based.", rating: 5, name: "Karthik R.", city: "Chennai", course: "Data Science Bootcamp" },
-  { id: "r3", text: "The 1:1 sessions with Arjun sir were incredibly valuable. He helped me prepare for my Amazon interview and I cleared it!", rating: 5, name: "Deepak K.", city: "Bangalore", course: "DSA & System Design" },
-  { id: "r4", text: "Learning UI/UX from Sneha was the best decision. She reviews every design I make and gives detailed feedback.", rating: 4, name: "Meera S.", city: "Mumbai", course: "UI/UX Design" },
-  { id: "r5", text: "Vikram sir's DevOps course is very hands-on. I learned Docker and Kubernetes with real projects. Worth every rupee.", rating: 5, name: "Rohit P.", city: "Delhi", course: "DevOps Mastery" },
+const features = [
+  { icon: Zap, title: "AI Learning Paths", description: "Personalized learning trajectories powered by AI that adapt to your pace, strengths, and career goals." },
+  { icon: MessageSquare, title: "1-on-1 Mentorship", description: "Live sessions with real engineers from top companies. Not pre-recorded videos — real human interaction." },
+  { icon: Globe, title: "Native Language Learning", description: "Learn in Telugu, Hindi, Tamil, or English. Your language, your comfort, your growth." },
+  { icon: Briefcase, title: "Placement Support", description: "Resume building, mock interviews, and direct referrals from your trainer's professional network." },
 ];
 
 const Index = () => {
-  const [realStats, setRealStats] = useState({ students: 0, trainers: 0, avgRating: 0, hours: 0 });
+  const [realStats, setRealStats] = useState({ students: 0, trainers: 0, technologies: 0 });
   const [realTrainers, setRealTrainers] = useState<any[]>([]);
-  const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [studentsRes, trainersRes, sessionsRes] = await Promise.all([
+        const [studentsRes, trainersRes] = await Promise.all([
           supabase.from("students").select("id", { count: "exact", head: true }),
           supabase.from("trainers").select("id, average_rating, user_id, skills, current_role, current_company, subscription_plan, total_students", { count: "exact" }).eq("approval_status", "approved"),
-          supabase.from("course_sessions").select("actual_duration_mins").eq("status", "completed"),
         ]);
 
-        const totalHours = (sessionsRes.data || []).reduce((sum: number, s: any) => sum + (s.actual_duration_mins || 0), 0) / 60;
         const approvedTrainers = trainersRes.data || [];
-        const ratings = approvedTrainers.filter((t: any) => t.average_rating > 0);
-        const avgRating = ratings.length > 0 ? ratings.reduce((sum: number, t: any) => sum + Number(t.average_rating), 0) / ratings.length : 0;
+        const allSkills = new Set(approvedTrainers.flatMap((t: any) => t.skills || []));
 
         setRealStats({
           students: studentsRes.count || 0,
           trainers: trainersRes.count || 0,
-          avgRating: Math.round(avgRating * 10) / 10,
-          hours: Math.round(totalHours),
+          technologies: allSkills.size,
         });
 
-        // Fetch trainer profiles separately
         if (approvedTrainers.length > 0) {
           const userIds = approvedTrainers.map(t => t.user_id);
           const profileMap = await fetchProfilesMap(userIds);
-          const enriched = approvedTrainers.slice(0, 6).map(t => ({ ...t, profile: profileMap[t.user_id] }));
+          const enriched = approvedTrainers.slice(0, 4).map(t => ({ ...t, profile: profileMap[t.user_id] }));
           setRealTrainers(enriched);
-        }
-
-        // Fetch reviews separately (no nested join)
-        const { data: ratingsData } = await supabase.from("ratings").select("*").not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
-        if (ratingsData && ratingsData.length > 0) {
-          const studentIds = ratingsData.map(r => r.student_id);
-          const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
-          const sUserIds = (studentData || []).map(s => s.user_id);
-          const sProfileMap = await fetchProfilesMap(sUserIds);
-          const studentMap: Record<string, any> = {};
-          (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
-          setRealReviews(ratingsData.map(r => ({ ...r, studentProfile: studentMap[r.student_id] })));
         }
       } catch (err) {
         console.error("Failed to fetch homepage data:", err);
@@ -99,84 +63,83 @@ const Index = () => {
     fetchData();
   }, []);
 
-  // Use demo + real data combined. Show demo stats enhanced with real.
   const displayStats = {
-    students: `${Math.max(realStats.students, 500)}+`,
+    students: `${Math.max(realStats.students, 1000)}+`,
     trainers: `${Math.max(realStats.trainers, 100)}+`,
-    avgRating: realStats.avgRating > 0 ? `${realStats.avgRating}★` : "4.3★",
-    hours: `${Math.max(realStats.hours, 500)}+`,
+    technologies: `${Math.max(realStats.technologies, 25)}+`,
   };
 
-  // Show real trainers if available, otherwise demo
   const displayTrainers = realTrainers.length > 0 ? realTrainers : null;
-  const displayReviews = realReviews.length > 0 ? realReviews : null;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 md:pt-36 md:pb-24 lg:pt-40 lg:pb-28 bg-background relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/[0.03] to-transparent pointer-events-none" />
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <section className="pt-32 pb-20 md:pt-40 md:pb-28 lg:pt-48 lg:pb-36 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,hsl(221_83%_53%/0.08),transparent)]" />
+        <div className="container mx-auto px-4 lg:px-8 relative">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}>
               <h1 className="text-foreground text-balance">
-                Learn Any Skill From{" "}
-                <span className="text-primary">India's Best Experts</span>
+                Personalized software training.{" "}
+                <span className="text-gradient">Built for real careers.</span>
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Personal 1:1 training in your language from verified industry experts. From home. At your pace.
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-lg leading-[1.7]">
+                Learn directly from industry engineers with AI-guided learning paths and 1-on-1 mentorship.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <div className="mt-10 flex flex-col sm:flex-row gap-3">
+                <Link to="/student/signup">
+                  <Button className="hero-gradient text-white font-semibold text-[16px] px-8 h-13 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 w-full sm:w-auto">
+                    Get Started <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
                 <Link to="/browse">
-                  <Button className="bg-primary hover:bg-primary-dark text-primary-foreground font-semibold text-[15px] px-8 h-12 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 w-full sm:w-auto">
-                    Browse Trainers <ArrowRight className="ml-2 w-4 h-4" />
+                  <Button variant="outline" className="border border-border text-foreground hover:bg-muted font-semibold text-[16px] px-8 h-13 rounded-xl w-full sm:w-auto">
+                    Browse Trainers
                   </Button>
                 </Link>
-                <Link to="/trainer/signup">
-                  <Button variant="outline" className="border-[1.5px] border-primary text-primary hover:bg-primary/5 font-semibold text-[15px] px-8 h-12 rounded-lg w-full sm:w-auto">
-                    Become a Trainer
-                  </Button>
-                </Link>
-              </div>
-              <div className="mt-8 flex flex-wrap gap-6">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Shield className="w-4 h-4 text-primary" />
-                  <span className="font-medium">Verified Experts</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Star className="w-4 h-4 text-primary" />
-                  <span className="font-medium">4.3 Avg Rating</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span className="font-medium">500+ Students</span>
-                </div>
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="hidden lg:block">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="hidden lg:block">
               <div className="relative">
-                <div className="card-elevated p-8 max-w-sm mx-auto">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center">
-                      <GraduationCap className="w-8 h-8 text-primary-foreground" />
+                {/* Dashboard Mockup */}
+                <div className="bg-white rounded-2xl border border-border shadow-[0_20px_60px_rgba(0,0,0,0.06)] p-6 max-w-md mx-auto">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent/60" />
+                    <div className="w-3 h-3 rounded-full bg-success/60" />
+                    <div className="flex-1" />
+                    <span className="text-[11px] text-muted-foreground font-medium">SkillMitra Dashboard</span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card">
+                      <div className="w-10 h-10 rounded-xl hero-gradient flex items-center justify-center"><BookOpen className="w-5 h-5 text-white" /></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-foreground">Next Session</p>
+                        <p className="text-xs text-muted-foreground">React Advanced — Today 4:00 PM</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">Find Your Mentor</h3>
-                      <p className="text-sm text-muted-foreground">1:1 Personal Training</p>
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card">
+                      <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center"><Zap className="w-5 h-5 text-success" /></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-foreground">AI Score</p>
+                        <p className="text-xs text-muted-foreground">87% — Ready for interviews</p>
+                      </div>
+                    </div>
+                    <div className="h-24 rounded-xl bg-card flex items-end px-4 pb-3 gap-1.5">
+                      {[40, 55, 45, 65, 70, 85, 90].map((h, i) => (
+                        <div key={i} className="flex-1 rounded-t-md hero-gradient" style={{ height: `${h}%`, opacity: 0.15 + (i * 0.12) }} />
+                      ))}
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {["Python", "React", "Data Science"].map(s => (
-                      <span key={s} className="text-xs px-3 py-1 rounded-full bg-primary/5 text-primary font-medium">{s}</span>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <span className="text-sm text-muted-foreground">From ₹999/mo</span>
-                    <span className="text-sm font-semibold text-primary">Explore →</span>
-                  </div>
+                </div>
+                {/* Floating badge */}
+                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl border border-border shadow-lg px-4 py-3 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-gold fill-gold" />
+                  <span className="text-sm font-semibold text-foreground">4.9</span>
+                  <span className="text-xs text-muted-foreground">avg rating</span>
                 </div>
               </div>
             </motion.div>
@@ -185,18 +148,18 @@ const Index = () => {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-primary/[0.04] border-y border-border">
-        <div className="container mx-auto px-4 lg:px-8 py-10 md:py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="border-y border-border/50">
+        <div className="container mx-auto px-4 lg:px-8 py-14">
+          <p className="text-center text-[15px] text-muted-foreground font-medium mb-10">Trusted by India's next generation of engineers</p>
+          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             {[
-              { label: "Students Trained", value: displayStats.students },
-              { label: "Verified Trainers", value: displayStats.trainers },
-              { label: "Average Rating", value: displayStats.avgRating },
-              { label: "Hours Taught", value: displayStats.hours },
+              { label: "Students", value: displayStats.students },
+              { label: "Trainers", value: displayStats.trainers },
+              { label: "Technologies", value: displayStats.technologies },
             ].map((stat, i) => (
               <motion.div key={stat.label} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
-                <div className="text-3xl md:text-4xl font-extrabold text-primary">{loading ? "-" : stat.value}</div>
-                <div className="mt-1 text-sm text-muted-foreground font-medium">{stat.label}</div>
+                <div className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">{loading ? "—" : stat.value}</div>
+                <div className="mt-2 text-[14px] text-muted-foreground">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -206,81 +169,75 @@ const Index = () => {
       {/* How It Works */}
       <section className="section-padding bg-background">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <p className="label-uppercase text-primary mb-3">Simple Process</p>
-            <h2 className="text-foreground">How SkillMitra Works</h2>
+          <div className="text-center mb-16 lg:mb-20">
+            <p className="label-uppercase text-primary mb-3">How It Works</p>
+            <h2 className="text-foreground">Three steps to career growth</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-16">
-            {steps.map((s, i) => (
-              <motion.div key={s.step} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-6">
-                  <s.icon className="w-7 h-7 text-primary-foreground" />
-                </div>
-                <p className="label-uppercase text-primary mb-2">Step {s.step}</p>
-                <h3 className="text-foreground">{s.title}</h3>
-                <p className="mt-3 text-muted-foreground">{s.description}</p>
+          <div className="grid md:grid-cols-3 gap-8 lg:gap-12 max-w-4xl mx-auto">
+            {[
+              { step: "01", title: "Choose your trainer", desc: "Browse verified engineers by skill, experience, and language. Book a free trial." },
+              { step: "02", title: "Learn live 1-on-1", desc: "Attend personalized live sessions. Build real projects with expert guidance." },
+              { step: "03", title: "Become job ready", desc: "Ace AI mock interviews, build your resume, and earn verified certificates." },
+            ].map((s, i) => (
+              <motion.div key={s.step} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+                className="text-center p-8 rounded-2xl border border-transparent hover:border-border hover:bg-card transition-all duration-300">
+                <span className="text-5xl font-extrabold text-gradient">{s.step}</span>
+                <h3 className="mt-4 text-foreground">{s.title}</h3>
+                <p className="mt-3 text-[15px] text-muted-foreground leading-relaxed">{s.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Trainers */}
+      {/* Trainer Showcase */}
       <section className="section-padding bg-card">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
+          <div className="flex items-end justify-between mb-12 lg:mb-16">
             <div>
-              <p className="label-uppercase text-primary mb-3">Top Trainers</p>
-              <h2 className="text-foreground">Meet Our Expert Trainers</h2>
+              <p className="label-uppercase text-primary mb-3">Expert Trainers</p>
+              <h2 className="text-foreground">Learn from the best</h2>
             </div>
-            <Link to="/browse" className="hidden md:flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
+            <Link to="/browse" className="hidden md:flex items-center gap-1 text-[15px] font-semibold text-primary hover:underline transition-colors">
               View all <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(displayTrainers || demoTrainers.slice(0, 6)).map((t: any, i: number) => {
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {(displayTrainers || demoTrainers).map((t: any, i: number) => {
               const isReal = !!t.user_id;
               const name = isReal ? t.profile?.full_name || "Trainer" : t.name;
               const role = isReal ? t.current_role || "Trainer" : t.role;
               const company = isReal ? t.current_company : t.company;
               const skills = isReal ? (t.skills || []) : t.skills;
               const rating = isReal ? Number(t.average_rating) : t.rating;
-              const studentCount = isReal ? t.total_students || 0 : t.students;
-              const plan = isReal ? t.subscription_plan : t.plan;
-              const id = isReal ? t.id : t.id;
 
               return (
-                <motion.div key={id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+                <motion.div key={t.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
                   <Link to={isReal ? `/trainer/${t.id}` : "/browse"} className="block group">
-                    <div className="bg-white rounded-xl border border-border p-6 shadow-card hover:shadow-card-hover hover:border-primary/20 transition-all duration-200 hover-lift relative">
-                      {plan === "elite" && (
-                        <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full gold-gradient text-accent-foreground">★ ELITE</span>
-                      )}
-                      <div className="flex items-start gap-4">
-                        <div className="w-[72px] h-[72px] rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-primary font-bold text-2xl">{name[0]}</span>
+                    <div className="bg-white rounded-2xl border border-border p-5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover-lift">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-xl hero-gradient flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-lg">{name[0]}</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-semibold text-foreground truncate">{name}</span>
-                            <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[15px] font-semibold text-foreground truncate">{name}</span>
+                            <BadgeCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                           </div>
-                          <p className="text-sm text-muted-foreground">{role}</p>
-                          {company && <span className="inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{company}</span>}
+                          <p className="text-[13px] text-muted-foreground truncate">{role}</p>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-1.5 mt-4">
-                        {skills.slice(0, 3).map((s: string) => (
-                          <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-primary/5 text-primary font-medium">{s}</span>
+                      {company && <span className="inline-block text-[12px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-medium mb-3">{company}</span>}
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {skills.slice(0, 2).map((s: string) => (
+                          <span key={s} className="text-[11px] px-2 py-0.5 rounded-md bg-primary/5 text-primary font-medium">{s}</span>
                         ))}
+                        {skills.length > 2 && <span className="text-[11px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground">+{skills.length - 2}</span>}
                       </div>
-                      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Star className="w-4 h-4 text-accent fill-accent" />
-                          <span className="text-sm font-semibold text-foreground">{rating > 0 ? rating : "New"}</span>
-                        </div>
-                        <span className="text-sm font-medium text-muted-foreground">{studentCount} students</span>
+                      <div className="pt-3 border-t border-border flex items-center gap-1.5">
+                        <Star className="w-3.5 h-3.5 text-gold fill-gold" />
+                        <span className="text-[13px] font-semibold text-foreground">{rating > 0 ? rating : "New"}</span>
                       </div>
                     </div>
                   </Link>
@@ -291,79 +248,41 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Why SkillMitra */}
+      {/* Features */}
       <section className="section-padding bg-background">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <p className="label-uppercase text-primary mb-3">Why Choose Us</p>
-            <h2 className="text-foreground">Why Students Trust SkillMitra</h2>
+          <div className="text-center mb-16 lg:mb-20">
+            <p className="label-uppercase text-primary mb-3">Platform Features</p>
+            <h2 className="text-foreground">Everything you need to grow</h2>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {benefits.map((b, i) => (
-              <motion.div key={b.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="bg-white rounded-xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover-lift">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
-                  <b.icon className="w-6 h-6 text-primary" />
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
+            {features.map((f, i) => (
+              <motion.div key={f.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+                className="p-7 rounded-2xl border border-border hover:border-primary/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] transition-all duration-300 group">
+                <div className="w-11 h-11 rounded-xl hero-gradient flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <f.icon className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-foreground">{b.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{b.description}</p>
+                <h3 className="text-foreground">{f.title}</h3>
+                <p className="mt-2 text-[15px] text-muted-foreground leading-relaxed">{f.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="section-padding bg-primary/[0.04]">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <p className="label-uppercase text-primary mb-3">Success Stories</p>
-            <h2 className="text-foreground">Students Love SkillMitra</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {(displayReviews || demoReviews.slice(0, 3)).map((r: any, i: number) => {
-              const isReal = !!r.student_id;
-              const text = isReal ? (r.student_review_text || r.student_to_trainer_review || "Great experience!") : r.text;
-              const rating = isReal ? r.student_to_trainer_rating : r.rating;
-              const name = isReal ? r.studentProfile?.full_name || "Student" : r.name;
-              const city = isReal ? r.studentProfile?.city || "" : r.city;
-
-              return (
-                <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                  className="bg-white rounded-xl border border-border p-6 shadow-card">
-                  <Quote className="w-8 h-8 text-primary/20 mb-4" />
-                  <p className="text-foreground text-sm leading-relaxed">{text}</p>
-                  <div className="mt-6 pt-4 border-t border-border">
-                    <div className="flex items-center gap-1 mb-2">
-                      {[...Array(rating || 5)].map((_, j) => (
-                        <Star key={j} className="w-4 h-4 text-accent fill-accent" />
-                      ))}
-                    </div>
-                    <p className="font-semibold text-foreground">{name}</p>
-                    {city && <p className="text-xs text-muted-foreground">{city}</p>}
-                    {!isReal && r.course && (
-                      <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-primary/5 text-primary">{r.course}</span>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Trainer CTA */}
-      <section className="bg-primary section-padding">
-        <div className="container mx-auto px-4 lg:px-8 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-white">Start Teaching. Start Earning.</h2>
-            <p className="mt-4 text-lg text-white/60 max-w-2xl mx-auto">
-              Join our growing community of verified trainers. Teach from home in your own schedule.
+      {/* Final CTA */}
+      <section className="section-padding relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_120%,hsl(221_83%_53%/0.06),transparent)]" />
+        <div className="container mx-auto px-4 lg:px-8 text-center relative">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+            <h2 className="text-foreground text-balance">Start building your future today</h2>
+            <p className="mt-5 text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              Join thousands of students already learning from India's best engineers.
             </p>
-            <div className="mt-8">
-              <Link to="/trainer/signup">
-                <Button className="bg-white text-primary hover:bg-white/90 font-semibold text-[15px] px-8 h-12 rounded-lg shadow-lg">
-                  Apply as Trainer <ArrowRight className="ml-2 w-4 h-4" />
+            <div className="mt-10">
+              <Link to="/student/signup">
+                <Button className="hero-gradient text-white font-semibold text-[16px] px-10 h-14 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300">
+                  Create Free Account <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
             </div>

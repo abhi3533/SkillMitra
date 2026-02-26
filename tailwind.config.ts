@@ -84,10 +84,13 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      height: {
+        '13': '3.25rem',
+      },
       boxShadow: {
-        'card': '0 1px 3px rgba(0,0,0,0.08)',
-        'card-hover': '0 8px 24px rgba(26,86,219,0.12)',
-        'elevated': '0 4px 12px rgba(0,0,0,0.06)',
+        'card': '0 1px 3px rgba(0,0,0,0.04)',
+        'card-hover': '0 12px 40px rgba(0,0,0,0.08)',
+        'elevated': '0 4px 12px rgba(0,0,0,0.04)',
       },
       keyframes: {
         "accordion-down": {

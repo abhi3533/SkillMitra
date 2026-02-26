@@ -2,67 +2,59 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-[hsl(210,50%,14%)]">
-      <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-20">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">
+    <footer className="border-t border-border">
+      <div className="container mx-auto px-4 lg:px-8 py-12 lg:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="col-span-2">
-            <span className="text-[22px] font-bold tracking-tight text-white">
-              Skill<span className="text-gradient">Mitra</span>
+            <span className="text-[18px] font-bold tracking-[-0.02em] text-foreground">
+              skill<span className="font-extrabold text-primary">mitra</span>
             </span>
-            <p className="mt-4 text-white/40 text-[15px] leading-relaxed max-w-sm">
-              AI-powered 1-on-1 software training platform connecting students with real engineers for personalized career training.
+            <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed max-w-xs">
+              AI-powered 1-on-1 training platform connecting students with real engineers.
             </p>
           </div>
 
           {/* Product */}
           <div>
-            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-white/30 mb-5">Product</h4>
-            <ul className="space-y-3">
+            <h4 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">Product</h4>
+            <ul className="space-y-2.5">
               {[
-                { label: "Browse Trainers", path: "/browse" },
+                { label: "Trainers", path: "/browse" },
                 { label: "How It Works", path: "/how-it-works" },
                 { label: "Pricing", path: "/pricing" },
-                { label: "Verify Certificate", path: "/verify" },
-              ].map(link => (
-                <li key={link.path}>
-                  <Link to={link.path} className="text-[14px] text-white/40 hover:text-white transition-colors">{link.label}</Link>
-                </li>
+              ].map(l => (
+                <li key={l.path}><Link to={l.path} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">{l.label}</Link></li>
               ))}
             </ul>
           </div>
 
           {/* Company */}
           <div>
-            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-white/30 mb-5">Company</h4>
-            <ul className="space-y-3">
+            <h4 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">Company</h4>
+            <ul className="space-y-2.5">
               {[
                 { label: "About", path: "/about" },
                 { label: "Contact", path: "/contact" },
                 { label: "Become a Trainer", path: "/trainer/signup" },
-                { label: "Standards", path: "/standards" },
-              ].map(link => (
-                <li key={link.path}>
-                  <Link to={link.path} className="text-[14px] text-white/40 hover:text-white transition-colors">{link.label}</Link>
-                </li>
+              ].map(l => (
+                <li key={l.path}><Link to={l.path} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">{l.label}</Link></li>
               ))}
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-white/30 mb-5">Legal</h4>
-            <ul className="space-y-3">
+            <h4 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">Legal</h4>
+            <ul className="space-y-2.5">
               {[
-                { label: "Privacy Policy", path: "/privacy" },
-                { label: "Terms of Service", path: "/terms" },
-              ].map(link => (
-                <li key={link.path}>
-                  <Link to={link.path} className="text-[14px] text-white/40 hover:text-white transition-colors">{link.label}</Link>
-                </li>
+                { label: "Privacy", path: "/privacy" },
+                { label: "Terms", path: "/terms" },
+              ].map(l => (
+                <li key={l.path}><Link to={l.path} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">{l.label}</Link></li>
               ))}
               <li>
-                <a href="mailto:Contact@skillmitra.online" className="text-[14px] text-white/40 hover:text-white transition-colors">
+                <a href="mailto:Contact@skillmitra.online" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
                   Contact@skillmitra.online
                 </a>
               </li>
@@ -70,9 +62,8 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[13px] text-white/25">© 2026 SkillMitra. All rights reserved.</p>
-          <p className="text-[13px] text-white/15">Built in India 🇮🇳</p>
+        <div className="mt-12 pt-6 border-t border-border/60 flex items-center justify-between">
+          <p className="text-[12px] text-muted-foreground/60">© 2026 SkillMitra</p>
         </div>
       </div>
     </footer>

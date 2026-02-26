@@ -8,7 +8,6 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const isHome = location.pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -16,45 +15,44 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navBg = scrolled
-    ? "bg-white/80 backdrop-blur-xl border-b border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-    : "bg-transparent";
-
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navBg}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      scrolled
+        ? "bg-white/70 backdrop-blur-2xl border-b border-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+        : "bg-transparent"
+    }`}>
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between h-[72px]">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-1">
-            <span className="text-[22px] font-bold tracking-tight text-foreground">
-              Skill<span className="text-gradient">Mitra</span>
+          <Link to="/" className="flex items-center">
+            <span className="text-[20px] font-bold tracking-[-0.02em] text-foreground">
+              skill<span className="font-extrabold text-primary">mitra</span>
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-0.5">
             {[
-              { label: "Explore Trainers", path: "/browse" },
-              { label: "Become Trainer", path: "/trainer/signup" },
+              { label: "Trainers", path: "/browse" },
               { label: "How It Works", path: "/how-it-works" },
+              { label: "Pricing", path: "/pricing" },
             ].map(item => (
               <Link key={item.path} to={item.path}
-                className="px-4 py-2 rounded-lg text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors duration-200">
+                className="px-3.5 py-2 rounded-lg text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors duration-200">
                 {item.label}
               </Link>
             ))}
           </div>
 
           {/* Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2">
             <Link to="/student/login">
-              <Button variant="ghost" size="sm"
-                className="text-[15px] font-medium text-muted-foreground hover:text-foreground">
-                Login
+              <Button variant="ghost" size="sm" className="text-[14px] font-medium text-muted-foreground hover:text-foreground h-9 px-3">
+                Log in
               </Button>
             </Link>
             <Link to="/student/signup">
-              <Button size="sm" className="hero-gradient text-white font-semibold rounded-xl px-6 h-10 text-[15px] shadow-sm hover:shadow-lg transition-all duration-300">
+              <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 font-medium rounded-lg px-4 h-9 text-[14px] transition-all duration-200 hover:shadow-md hover:-translate-y-[1px]">
                 Get Started
               </Button>
             </Link>
@@ -62,8 +60,8 @@ const Navbar = () => {
 
           {/* Mobile Toggle */}
           <button onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 rounded-lg transition-colors text-foreground">
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            className="lg:hidden p-2 rounded-lg text-foreground">
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
@@ -72,30 +70,30 @@ const Navbar = () => {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="lg:hidden fixed inset-0 top-[72px] bg-white/95 backdrop-blur-xl z-40"
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="lg:hidden fixed inset-0 top-16 bg-white/95 backdrop-blur-2xl z-40"
           >
             <div className="flex flex-col p-6 gap-1">
               {[
-                { label: "Explore Trainers", path: "/browse" },
-                { label: "Become Trainer", path: "/trainer/signup" },
+                { label: "Trainers", path: "/browse" },
                 { label: "How It Works", path: "/how-it-works" },
+                { label: "Pricing", path: "/pricing" },
               ].map(item => (
                 <Link key={item.path} to={item.path}
-                  className="px-4 py-3.5 rounded-xl text-[17px] font-medium text-foreground hover:bg-muted transition-colors"
+                  className="px-3 py-3 rounded-lg text-[16px] font-medium text-foreground hover:bg-muted transition-colors"
                   onClick={() => setMobileOpen(false)}>
                   {item.label}
                 </Link>
               ))}
-              <hr className="border-border my-4" />
+              <hr className="border-border/50 my-4" />
               <Link to="/student/login" onClick={() => setMobileOpen(false)}>
-                <Button variant="outline" className="w-full h-12 font-medium rounded-xl text-[15px]">Login</Button>
+                <Button variant="outline" className="w-full h-11 font-medium rounded-lg text-[14px] border-border">Log in</Button>
               </Link>
               <Link to="/student/signup" onClick={() => setMobileOpen(false)} className="mt-2">
-                <Button className="w-full h-12 hero-gradient text-white font-semibold rounded-xl text-[15px]">
+                <Button className="w-full h-11 bg-foreground text-background font-medium rounded-lg text-[14px]">
                   Get Started
                 </Button>
               </Link>

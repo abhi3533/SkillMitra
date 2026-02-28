@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield, IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,46 +42,8 @@ const demoReviews = [
   { id: "r3", text: "The 1:1 sessions with Arjun sir were incredibly valuable. Cleared my Amazon interview!", rating: 5, name: "Deepak K.", city: "Bangalore", course: "DSA & System Design" },
 ];
 
-// Animated counter hook
-function useCountUp(target: number, duration = 1500) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true;
-          const start = performance.now();
-          const animate = (now: number) => {
-            const progress = Math.min((now - start) / duration, 1);
-            setCount(Math.round(progress * target));
-            if (progress < 1) requestAnimationFrame(animate);
-          };
-          requestAnimationFrame(animate);
-        }
-      },
-      { threshold: 0.3 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [target, duration]);
 
-  return { count, ref };
-}
-
-const StatCounter = ({ value, suffix, label }: { value: number; suffix: string; label: string }) => {
-  const { count, ref } = useCountUp(value);
-  return (
-    <div ref={ref} className="text-center">
-      <div className="text-2xl md:text-3xl font-extrabold text-primary">{count}{suffix}</div>
-      <div className="mt-1 text-xs text-muted-foreground font-medium">{label}</div>
-    </div>
-  );
-};
 
 const Index = () => {
   const [realStats, setRealStats] = useState({ students: 0, trainers: 0, avgRating: 0, hours: 0 });
@@ -217,24 +179,17 @@ const Index = () => {
       <section className="border-y border-border bg-primary/[0.03]">
         <div className="container mx-auto px-4 lg:px-8 py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {!loading ? (
-              <>
-                <StatCounter value={stats.students} suffix="+" label="Students Trained" />
-                <StatCounter value={stats.trainers} suffix="+" label="Verified Trainers" />
-                <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-extrabold text-primary">{stats.avgRating}★</div>
-                  <div className="mt-1 text-xs text-muted-foreground font-medium">Average Rating</div>
-                </div>
-                <StatCounter value={stats.hours} suffix="+" label="Hours Taught" />
-              </>
-            ) : (
-              [1, 2, 3, 4].map((i) => (
-                <div key={i} className="text-center">
-                  <div className="h-8 w-16 mx-auto skeleton rounded" />
-                  <div className="h-4 w-24 mx-auto mt-2 skeleton rounded" />
-                </div>
-              ))
-            )}
+            {[
+              { value: `${stats.students}+`, label: "Students Trained" },
+              { value: `${stats.trainers}+`, label: "Verified Trainers" },
+              { value: `${stats.avgRating}★`, label: "Average Rating" },
+              { value: `${stats.hours}+`, label: "Hours Taught" },
+            ].map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-2xl md:text-3xl font-extrabold text-primary">{s.value}</div>
+                <div className="mt-1 text-xs text-muted-foreground font-medium">{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

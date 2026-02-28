@@ -33,11 +33,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <button className="lg:hidden mr-4 p-1" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">S</span>
-          </div>
-          <span className="text-lg font-bold text-foreground">Skill<span className="text-accent">Mitra</span></span>
+        <Link to="/" className="flex items-center">
+          <span className="text-[22px] font-bold text-foreground">Skill<span className="text-primary">Mitra</span></span>
         </Link>
         <span className="ml-3 text-[10px] font-bold px-2 py-1 rounded-md bg-primary/10 text-primary uppercase tracking-wider">Admin</span>
         <div className="flex-1" />

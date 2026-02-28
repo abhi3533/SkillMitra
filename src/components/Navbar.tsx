@@ -30,12 +30,9 @@ const Navbar = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">S</span>
-            </div>
-            <span className={`text-[22px] font-bold ${textColor}`}>
-              Skill<span className="text-accent">Mitra</span>
+          <Link to="/" className="flex items-center">
+            <span className={`text-[22px] font-bold ${scrolled || !isHome ? "text-foreground" : "text-primary-foreground"}`}>
+              Skill<span className="text-primary">Mitra</span>
             </span>
           </Link>
 

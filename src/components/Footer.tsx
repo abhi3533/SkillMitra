@@ -3,16 +3,13 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer className="bg-foreground">
-      <div className="container mx-auto px-4 lg:px-8 py-16">
+      <div className="container mx-auto px-4 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="font-bold text-sm text-primary-foreground">S</span>
-              </div>
-              <span className="text-xl font-bold text-white">
-                Skill<span className="text-accent">Mitra</span>
+            <div className="flex items-center mb-5">
+              <span className="text-[22px] font-bold text-white">
+                Skill<span className="text-primary">Mitra</span>
               </span>
             </div>
             <p className="text-white/50 text-sm leading-relaxed">

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthErrorMessage } from "@/lib/authErrors";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -27,7 +28,7 @@ const AdminLogin = () => {
       navigate("/admin");
       toast({ title: "Welcome, Admin!" });
     } catch (err: any) {
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
+      toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }

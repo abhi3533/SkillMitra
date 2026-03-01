@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,8 +14,29 @@ const StudentLogin = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [connStatus, setConnStatus] = useState<"checking" | "connected" | "failed">("checking");
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Test Supabase connectivity on mount
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        const { error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("[SkillMitra] Supabase auth error:", error.message);
+          setConnStatus("failed");
+        } else {
+          console.log("[SkillMitra] Supabase connection OK — URL:", import.meta.env.VITE_SUPABASE_URL);
+          setConnStatus("connected");
+        }
+      } catch (err) {
+        console.error("[SkillMitra] Supabase unreachable:", err);
+        setConnStatus("failed");
+      }
+    };
+    testConnection();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +109,20 @@ const StudentLogin = () => {
             <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
               {loading ? "Signing in..." : "Sign In"} {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
             </Button>
+
+            {/* Connection status indicator */}
+            <div className="flex items-center justify-center gap-2 text-xs">
+              {connStatus === "checking" && <span className="text-muted-foreground">Checking connection...</span>}
+              {connStatus === "connected" && (
+                <span className="text-green-600 flex items-center gap-1"><Wifi className="w-3 h-3" /> Connected to server</span>
+              )}
+              {connStatus === "failed" && (
+                <button type="button" onClick={() => { setConnStatus("checking"); supabase.auth.getSession().then(({ error }) => setConnStatus(error ? "failed" : "connected")).catch(() => setConnStatus("failed")); }}
+                  className="text-destructive flex items-center gap-1 hover:underline">
+                  <WifiOff className="w-3 h-3" /> Connection failed — tap to retry
+                </button>
+              )}
+            </div>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">

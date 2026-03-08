@@ -16,14 +16,11 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navBg = scrolled || !isHome
+  const navBg = scrolled
     ? "bg-white/95 backdrop-blur-md border-b border-border shadow-sm"
     : "bg-transparent";
 
-  const textColor = scrolled || !isHome ? "text-foreground" : "text-primary-foreground";
-  const linkColor = scrolled || !isHome
-    ? "text-muted-foreground hover:text-foreground"
-    : "text-primary-foreground/70 hover:text-primary-foreground";
+  const linkColor = "text-muted-foreground hover:text-foreground";
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}>

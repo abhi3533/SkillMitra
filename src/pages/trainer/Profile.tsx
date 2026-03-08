@@ -178,7 +178,12 @@ const TrainerProfile = () => {
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl lg:text-3xl font-bold text-primary-foreground">{name}</h1>
-                <BadgeCheck className="w-6 h-6 text-accent" />
+                {isVerified && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-semibold">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Verified Expert
+                  </span>
+                )}
+                {!isVerified && <BadgeCheck className="w-6 h-6 text-accent" />}
                 {trainer.subscription_plan === "elite" && <span className="text-xs font-bold px-2 py-1 rounded gold-gradient text-accent-foreground">ELITE</span>}
               </div>
               <p className="text-primary-foreground/70 mt-1">

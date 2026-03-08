@@ -401,6 +401,13 @@ const TrainerProfile = () => {
       </div>
 
       <Footer />
+      {showReport && (
+        <ReportTrainerModal
+          trainerId={resolvedId || ""}
+          trainerName={name}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 };

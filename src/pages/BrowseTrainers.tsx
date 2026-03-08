@@ -118,32 +118,50 @@ const BrowseTrainers = () => {
         if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
       }
 
-      // Time slot and schedule filtering (only for real trainers with availability data)
-      if ((selectedTimeSlots.length > 0 || selectedSchedule.length > 0) && !t.id?.startsWith("demo-")) {
-        const trainerAvail = availabilityMap[t.id] || [];
-        if (trainerAvail.length === 0) return false;
-
-        if (selectedTimeSlots.length > 0) {
-          const matchesTimeSlot = selectedTimeSlots.some(slotLabel => {
-            const slot = TIME_SLOTS.find(s => s.label === slotLabel);
-            if (!slot) return false;
-            return trainerAvail.some(a => {
-              if (!a.is_available || !a.start_time || !a.end_time) return false;
-              const startH = parseInt(a.start_time.split(":")[0]);
-              const endH = parseInt(a.end_time.split(":")[0]);
-              return startH < slot.endHour && endH > slot.startHour;
+      // Time slot and schedule filtering
+      if (selectedTimeSlots.length > 0 || selectedSchedule.length > 0) {
+        if (t.id?.startsWith("demo-")) {
+          // Demo trainers: available Evening (17-20) weekdays, Morning (9-12) weekends
+          if (selectedTimeSlots.length > 0) {
+            const matchesTimeSlot = selectedTimeSlots.some(slotLabel => {
+              const slot = TIME_SLOTS.find(s => s.label === slotLabel);
+              if (!slot) return false;
+              // Demo: evening 17-20 and morning 9-12
+              return (slot.startHour < 20 && slot.endHour > 17) || (slot.startHour < 12 && slot.endHour > 9);
             });
-          });
-          if (!matchesTimeSlot) return false;
-        }
+            if (!matchesTimeSlot) return false;
+          }
+          if (selectedSchedule.length > 0) {
+            // Demo trainers available weekdays (evening) and weekends (morning)
+            // So they match both Weekend Only and Weekday Only
+            // Always pass schedule filter for demo trainers
+          }
+        } else {
+          const trainerAvail = availabilityMap[t.id] || [];
+          if (trainerAvail.length === 0) return false;
 
-        if (selectedSchedule.length > 0) {
-          const matchesSchedule = selectedSchedule.some(schedLabel => {
-            const sched = SCHEDULE_PREFS.find(s => s.label === schedLabel);
-            if (!sched) return false;
-            return trainerAvail.some(a => a.is_available && sched.days.includes(a.day_of_week));
-          });
-          if (!matchesSchedule) return false;
+          if (selectedTimeSlots.length > 0) {
+            const matchesTimeSlot = selectedTimeSlots.some(slotLabel => {
+              const slot = TIME_SLOTS.find(s => s.label === slotLabel);
+              if (!slot) return false;
+              return trainerAvail.some(a => {
+                if (!a.is_available || !a.start_time || !a.end_time) return false;
+                const startH = parseInt(a.start_time.split(":")[0]);
+                const endH = parseInt(a.end_time.split(":")[0]);
+                return startH < slot.endHour && endH > slot.startHour;
+              });
+            });
+            if (!matchesTimeSlot) return false;
+          }
+
+          if (selectedSchedule.length > 0) {
+            const matchesSchedule = selectedSchedule.some(schedLabel => {
+              const sched = SCHEDULE_PREFS.find(s => s.label === schedLabel);
+              if (!sched) return false;
+              return trainerAvail.some(a => a.is_available && sched.days.includes(a.day_of_week));
+            });
+            if (!matchesSchedule) return false;
+          }
         }
       }
 

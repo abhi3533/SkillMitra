@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_communications: {
+        Row: {
+          body: string
+          channel: string | null
+          id: string
+          recipient_count: number | null
+          sent_at: string | null
+          sent_by: string
+          subject: string
+          target_audience: string
+        }
+        Insert: {
+          body: string
+          channel?: string | null
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          sent_by: string
+          subject: string
+          target_audience?: string
+        }
+        Update: {
+          body?: string
+          channel?: string | null
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          sent_by?: string
+          subject?: string
+          target_audience?: string
+        }
+        Relationships: []
+      }
       admins: {
         Row: {
           created_at: string | null
@@ -799,6 +832,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          commission_percent: number
+          custom_rating: number | null
+          custom_student_count: number | null
+          custom_trainer_count: number | null
+          homepage_stats_override: boolean
+          id: string
+          maintenance_mode: boolean
+          min_payout_amount: number
+          session_reminder_hours: number
+          student_referral_reward: number
+          trainer_referral_reward: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          commission_percent?: number
+          custom_rating?: number | null
+          custom_student_count?: number | null
+          custom_trainer_count?: number | null
+          homepage_stats_override?: boolean
+          id?: string
+          maintenance_mode?: boolean
+          min_payout_amount?: number
+          session_reminder_hours?: number
+          student_referral_reward?: number
+          trainer_referral_reward?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          commission_percent?: number
+          custom_rating?: number | null
+          custom_student_count?: number | null
+          custom_trainer_count?: number | null
+          homepage_stats_override?: boolean
+          id?: string
+          maintenance_mode?: boolean
+          min_payout_amount?: number
+          session_reminder_hours?: number
+          student_referral_reward?: number
+          trainer_referral_reward?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

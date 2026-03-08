@@ -123,6 +123,7 @@ const AppContent = () => {
         <Route path="/join/:code" element={<JoinRedirect />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/refer" element={<ReferPage />} />
 
         {/* Auth pages */}
         <Route path="/student/login" element={<StudentLogin />} />

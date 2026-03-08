@@ -51,6 +51,7 @@ const Footer = () => {
               {[
                 { label: "Browse Trainers", path: "/browse" },
                 { label: "How It Works", path: "/how-it-works" },
+                { label: "Refer & Earn ₹200", path: "/refer" },
                 { label: "About Us", path: "/about" },
                 { label: "Blog", path: "/blog" },
                 { label: "Pricing", path: "/pricing" },

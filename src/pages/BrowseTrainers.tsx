@@ -82,7 +82,7 @@ const BrowseTrainers = () => {
         const trainerIds = trainerData.map(t => t.id);
         const [{ data: avail }, { data: courses }] = await Promise.all([
           supabase.from("trainer_availability").select("*").in("trainer_id", trainerIds),
-          supabase.from("courses").select("id, title, trainer_id, course_fee").in("trainer_id", trainerIds).eq("is_active", true),
+          supabase.from("courses").select("id, title, trainer_id, course_fee").in("trainer_id", trainerIds).eq("is_active", true).eq("approval_status", "approved"),
         ]);
         if (avail) {
           const map: Record<string, any[]> = {};
@@ -138,7 +138,7 @@ const BrowseTrainers = () => {
       const company = t.current_company?.toLowerCase() || "";
       if (q && !name.includes(q) && !role.includes(q) && !skills.includes(q) && !company.includes(q)) return false;
 
-      if (selectedSkill && !(t.skills || []).some((s: string) => s.toLowerCase().includes(selectedSkill.toLowerCase()))) return false;
+      if (selectedSkill && selectedSkill !== "all" && !(t.skills || []).some((s: string) => s.toLowerCase().includes(selectedSkill.toLowerCase()))) return false;
       if (selectedLanguages.length > 0 && !selectedLanguages.some(l => (t.teaching_languages || []).includes(l))) return false;
       if (minRating > 0 && (Number(t.average_rating) || 0) < minRating) return false;
 
@@ -155,9 +155,9 @@ const BrowseTrainers = () => {
           if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
         } else {
           const minFee = courseFeeMap[t.id];
-          if (minFee !== undefined) {
-            if (minFee < priceRange[0] || minFee > priceRange[1]) return false;
-          }
+          // If trainer has no courses, check all their course fees; if no courses at all, hide them when price filter is active
+          if (minFee === undefined) return false;
+          if (minFee < priceRange[0] || minFee > priceRange[1]) return false;
         }
       }
 

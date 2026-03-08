@@ -13,8 +13,6 @@ import RoleSelectionModal from "@/components/auth/RoleSelectionModal";
 import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 
-const AdminRedirect = () => <Navigate to="/admin/login" replace />;
-
 // Critical: load eagerly
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";

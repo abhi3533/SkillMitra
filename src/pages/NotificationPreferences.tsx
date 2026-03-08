@@ -35,11 +35,11 @@ const NotificationPreferences = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("notification_preferences")
+      const { data } = await (supabase
+        .from("notification_preferences" as any)
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .single() as any);
 
       if (data) {
         setPrefs({

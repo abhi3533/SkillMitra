@@ -28,7 +28,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className={`text-[22px] font-bold ${scrolled || !isHome ? "text-foreground" : "text-primary-foreground"}`}>
+            <span className="text-[22px] font-bold text-foreground">
               Skill<span className="text-primary">Mitra</span>
             </span>
           </Link>

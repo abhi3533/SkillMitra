@@ -10,6 +10,7 @@ import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
 import StudentProgressSection from "@/components/StudentProgressSection";
+import ReferralLeaderboardWidget from "@/components/ReferralLeaderboardWidget";
 import RatingModal from "@/components/RatingModal";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useLoadingTitle } from "@/hooks/useLoadingTitle";

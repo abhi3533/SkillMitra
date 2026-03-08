@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, allowedRoles }: Props) => {
     // Redirect to correct dashboard
     if (role === "student") return <Navigate to="/student/dashboard" replace />;
     if (role === "trainer") return <Navigate to="/trainer/dashboard" replace />;
-    if (role === "admin") return <Navigate to="/admin" replace />;
+    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <>{children}</>;

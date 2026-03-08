@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const sidebarItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+  { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
   { label: "Trainers", icon: Users, path: "/admin/trainers" },
   { label: "Students", icon: Users, path: "/admin/students" },
   { label: "Courses", icon: BookOpen, path: "/admin/courses" },

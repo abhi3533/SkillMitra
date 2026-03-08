@@ -148,6 +148,22 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
         `)
       }
 
+    case 'new_enrollment_trainer':
+      return {
+        subject: `🎉 New Student Enrolled in ${data.course_name || 'Your Course'}!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Enrollment! 🎉</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name}, a student has enrolled in your course:</p>
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 16px; font-weight: 600; color: ${BRAND_COLOR}; margin: 0 0 4px;">${data.course_name || 'Course'}</p>
+            <p style="font-size: 13px; color: #444; margin: 0;">Student: ${data.student_name || 'New Student'}</p>
+            ${data.start_date ? `<p style="font-size: 13px; color: #444; margin: 4px 0 0;">First session: ${data.start_date}</p>` : ''}
+          </div>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Check your sessions page to review the schedule and prepare for the session.</p>
+          ${btn('View Sessions', `${APP_URL}/trainer/sessions`)}
+        `)
+      }
+
     case 'student_trainer_match':
       return {
         subject: `🎯 ${data.trainer_count || ''} Trainers matched for you, ${name}!`,

@@ -62,6 +62,11 @@ const StudentSignup = () => {
       });
       if (error) throw error;
 
+      // Send welcome email (fire-and-forget)
+      supabase.functions.invoke("send-email", {
+        body: { type: "student_welcome", to: form.email, data: { name: form.fullName } },
+      }).then(({ error: fnErr }) => { if (fnErr) console.error("Welcome email error:", fnErr); });
+
       toast({ title: "Account created!", description: "Please check your email to verify your account." });
       navigate("/student/login");
     } catch (err: any) {

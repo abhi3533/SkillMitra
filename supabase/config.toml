@@ -2,3 +2,6 @@ project_id = "huszmetnqxrividclgad"
 
 [functions.notify-trainer-status]
 verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false

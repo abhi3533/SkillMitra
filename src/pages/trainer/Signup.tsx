@@ -153,6 +153,10 @@ const TrainerSignup = () => {
       allKeys.forEach(k => newTouched[k] = true);
       setTouched(newTouched);
 
+      if (!profilePhoto) {
+        toast({ title: "Profile photo is required", variant: "destructive" });
+        return false;
+      }
       if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.city.trim() || !form.state || !form.gender) {
         toast({ title: "Please fill all required fields", variant: "destructive" });
         return false;

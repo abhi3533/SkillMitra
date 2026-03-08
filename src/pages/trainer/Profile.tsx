@@ -8,25 +8,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { isDemo, getDemoTrainer, getDemoCourse, demoTestimonials } from "@/lib/demoData";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const TrainerProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [trainer, setTrainer] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resolvedId, setResolvedId] = useState<string | undefined>(id);
+
+  // If no id param (trainer viewing own profile), resolve from auth
+  useEffect(() => {
+    if (id) {
+      setResolvedId(id);
+      return;
+    }
+    if (!user) return;
+    (async () => {
+      const { data: t } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
+      if (t) setResolvedId(t.id);
+      else setLoading(false);
+    })();
+  }, [id, user]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!resolvedId) return;
 
-    if (isDemo(id)) {
-      const demo = getDemoTrainer(id);
+    if (isDemo(resolvedId)) {
+      const demo = getDemoTrainer(resolvedId);
       if (demo) {
         setTrainer(demo);
-        setCourses(getDemoCourse(id));
-        // Pick 2 demo testimonials as reviews
+        setCourses(getDemoCourse(resolvedId));
         setReviews(demoTestimonials.slice(0, 2));
       }
       setLoading(false);
@@ -35,15 +51,15 @@ const TrainerProfile = () => {
 
     (async () => {
       try {
-        const { data: t } = await supabase.from("trainers").select("*").eq("id", id).single();
+        const { data: t } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
         if (t) {
           const profileMap = await fetchProfilesMap([t.user_id]);
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
-          const { data: coursesData } = await supabase.from("courses").select("*").eq("trainer_id", id).eq("approval_status", "approved");
+          const { data: coursesData } = await supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved");
           setCourses(coursesData || []);
 
-          const { data: ratingsData } = await supabase.from("ratings").select("*").eq("trainer_id", id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
+          const { data: ratingsData } = await supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
           if (ratingsData && ratingsData.length > 0) {
             const studentIds = ratingsData.map(r => r.student_id);
             const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
@@ -64,7 +80,7 @@ const TrainerProfile = () => {
       }
       setLoading(false);
     })();
-  }, [id]);
+  }, [resolvedId]);
 
   const name = trainer?.profile?.full_name || "Trainer";
   const avatarColor = trainer?.avatarColor || "#1A56DB";

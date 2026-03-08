@@ -1696,6 +1696,18 @@ export type Database = {
           p_state: string
         }[]
       }
+      get_public_profiles_bulk: {
+        Args: { profile_ids: string[] }
+        Returns: {
+          p_city: string
+          p_full_name: string
+          p_gender: string
+          p_id: string
+          p_is_verified: boolean
+          p_profile_picture_url: string
+          p_state: string
+        }[]
+      }
       get_public_ratings: {
         Args: { p_trainer_id: string }
         Returns: {

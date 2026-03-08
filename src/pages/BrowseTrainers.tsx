@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { demoTrainers, getDemoCourse } from "@/lib/demoData";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -73,12 +72,24 @@ const BrowseTrainers = () => {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("trainers").select("id, user_id, bio, skills, experience_years, current_company, current_role, teaching_languages, average_rating, total_students, approval_status, subscription_plan, is_job_seeker, boost_score").eq("approval_status", "approved");
-      const trainerData = data || [];
+      const { data } = await supabase.rpc("get_approved_trainers_list");
+      const trainerData = (data || []).map((t: any) => ({
+        id: t.trainer_id, user_id: t.trainer_user_id, bio: t.trainer_bio,
+        skills: t.trainer_skills, experience_years: t.trainer_experience_years,
+        current_company: t.trainer_current_company, current_role: t.trainer_current_role,
+        teaching_languages: t.trainer_teaching_languages, average_rating: t.trainer_average_rating,
+        total_students: t.trainer_total_students, approval_status: t.trainer_approval_status,
+        subscription_plan: t.trainer_subscription_plan, is_job_seeker: t.trainer_is_job_seeker,
+        boost_score: t.trainer_boost_score,
+      }));
       let realTrainers: any[] = [];
       if (trainerData.length > 0) {
-        const userIds = trainerData.map(t => t.user_id);
-        const profileMap = await fetchProfilesMap(userIds);
+        const userIds = trainerData.map((t: any) => t.user_id);
+        const { data: profileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: userIds });
+        const profileMap: Record<string, any> = {};
+        (profileData || []).forEach((p: any) => {
+          profileMap[p.p_id] = { id: p.p_id, full_name: p.p_full_name, city: p.p_city, state: p.p_state, profile_picture_url: p.p_profile_picture_url, is_verified: p.p_is_verified, gender: p.p_gender };
+        });
         realTrainers = trainerData.map(t => ({ ...t, profile: profileMap[t.user_id] }));
 
         // Fetch availability and courses for real trainers

@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { demoTrainers, demoTestimonials, demoStats } from "@/lib/demoData";
 import { blogPosts as recentBlogPosts, categoryIcons as blogCategoryIcons } from "@/lib/blogData";
 import Navbar from "@/components/Navbar";
@@ -174,19 +173,32 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const trainersRes = await supabase.from("trainers").select("id, average_rating, user_id, skills, current_role, current_company, subscription_plan, total_students").eq("approval_status", "approved");
-        const approvedTrainers = trainersRes.data || [];
+        const { data: rpcTrainers } = await supabase.rpc("get_approved_trainers_list");
+        const approvedTrainers = (rpcTrainers || []).map((t: any) => ({
+          id: t.trainer_id, user_id: t.trainer_user_id, average_rating: t.trainer_average_rating,
+          skills: t.trainer_skills, current_role: t.trainer_current_role,
+          current_company: t.trainer_current_company, subscription_plan: t.trainer_subscription_plan,
+          total_students: t.trainer_total_students,
+        }));
         if (approvedTrainers.length > 0) {
-          const userIds = approvedTrainers.map(t => t.user_id);
-          const profileMap = await fetchProfilesMap(userIds);
-          setRealTrainers(approvedTrainers.slice(0, 6).map(t => ({ ...t, profile: profileMap[t.user_id] })));
+          const userIds = approvedTrainers.map((t: any) => t.user_id);
+          const { data: profileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: userIds });
+          const profileMap: Record<string, any> = {};
+          (profileData || []).forEach((p: any) => {
+            profileMap[p.p_id] = { id: p.p_id, full_name: p.p_full_name, city: p.p_city, state: p.p_state, profile_picture_url: p.p_profile_picture_url, is_verified: p.p_is_verified, gender: p.p_gender };
+          });
+          setRealTrainers(approvedTrainers.slice(0, 6).map((t: any) => ({ ...t, profile: profileMap[t.user_id] })));
         }
         const { data: ratingsData } = await supabase.from("ratings").select("id, student_id, trainer_id, student_to_trainer_rating, student_to_trainer_review, student_review_text, student_rated_at, created_at, enrollment_id").not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
         if (ratingsData && ratingsData.length > 0) {
           const studentIds = ratingsData.map(r => r.student_id);
           const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
           const sUserIds = (studentData || []).map(s => s.user_id);
-          const sProfileMap = await fetchProfilesMap(sUserIds);
+          const { data: sProfileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: sUserIds });
+          const sProfileMap: Record<string, any> = {};
+          (sProfileData || []).forEach((p: any) => {
+            sProfileMap[p.p_id] = { id: p.p_id, full_name: p.p_full_name, city: p.p_city, profile_picture_url: p.p_profile_picture_url };
+          });
           const studentMap: Record<string, any> = {};
           (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
           setRealReviews(ratingsData.map(r => ({ ...r, studentProfile: studentMap[r.student_id] })));

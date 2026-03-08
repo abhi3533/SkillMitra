@@ -110,6 +110,42 @@ const TrainerDashboard = () => {
         pendingAttendance: enrichedToday.filter((s: any) => s.status !== "completed").length,
       });
       setLoading(false);
+
+      // Fetch students interested in trainer's skills
+      const trainerSkills = (await supabase.from("trainers").select("skills").eq("user_id", user.id).single()).data?.skills as string[] | null;
+      if (trainerSkills?.length) {
+        const { data: allStudents } = await supabase
+          .from("students")
+          .select("id, user_id, course_interests")
+          .not("course_interests", "is", null)
+          .limit(50);
+
+        if (allStudents?.length) {
+          const matched = allStudents
+            .map(s => {
+              const interests = (s.course_interests as string[]) || [];
+              const overlap = interests.filter(i =>
+                trainerSkills.some(sk => sk.toLowerCase() === i.toLowerCase())
+              );
+              return { ...s, matchedSkills: overlap, score: overlap.length };
+            })
+            .filter(s => s.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6);
+
+          if (matched.length > 0) {
+            const sUserIds = matched.map(s => s.user_id);
+            const sProfileMap = await fetchProfilesMap(sUserIds);
+            const enriched = matched.map(s => ({
+              ...s,
+              studentName: sProfileMap[s.user_id]?.full_name || "Student",
+              studentCity: sProfileMap[s.user_id]?.city || "",
+              profilePicture: sProfileMap[s.user_id]?.profile_picture_url || "",
+            }));
+            setInterestedStudents(enriched);
+          }
+        }
+      }
     })();
   }, [user]);
 

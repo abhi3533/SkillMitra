@@ -155,18 +155,6 @@ const StudentLogin = () => {
               {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
             </Button>
 
-            <div className="flex items-center justify-center gap-2 text-xs">
-              {connStatus === "checking" && <span className="text-muted-foreground">Checking connection...</span>}
-              {connStatus === "connected" && (
-                <span className="text-green-600 flex items-center gap-1"><Wifi className="w-3 h-3" /> Connected to server</span>
-              )}
-              {connStatus === "failed" && (
-                <button type="button" onClick={() => { setConnStatus("checking"); supabase.auth.getSession().then(({ error }) => setConnStatus(error ? "failed" : "connected")).catch(() => setConnStatus("failed")); }}
-                  className="text-destructive flex items-center gap-1 hover:underline">
-                  <WifiOff className="w-3 h-3" /> Connection failed — tap to retry
-                </button>
-              )}
-            </div>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">

@@ -15,9 +15,9 @@ const SkillMitraLogo = ({
   className = "",
   showTagline = false,
 }: SkillMitraLogoProps) => {
-  const capColor = "#1A56DB";
+  const capColor = darkText ? "#1A56DB" : "#FFFFFF";
   const skillColor = darkText ? "#0F172A" : "#FFFFFF";
-  const mitraColor = "#1A56DB";
+  const mitraColor = darkText ? "#1A56DB" : "#BFDBFE";
   const taglineColor = darkText ? "#64748B" : "rgba(255,255,255,0.5)";
 
   const fontSize = height * 0.55;

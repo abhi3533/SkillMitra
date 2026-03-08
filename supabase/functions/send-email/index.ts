@@ -16,6 +16,8 @@ type EmailType =
   | 'trainer_welcome'
   | 'enrollment_confirmation' 
   | 'session_reminder'
+  | 'student_trainer_match'
+  | 'trainer_student_match'
 
 interface EmailPayload {
   type: EmailType

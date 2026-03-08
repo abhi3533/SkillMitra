@@ -98,10 +98,10 @@ const Index = () => {
   }, []);
 
   const stats = {
-    students: Math.max(realStats.students, 500),
-    trainers: Math.max(realStats.trainers, 100),
-    avgRating: realStats.avgRating > 0 ? realStats.avgRating : 4.3,
-    hours: Math.max(realStats.hours, 500),
+    students: realStats.students,
+    trainers: realStats.trainers,
+    avgRating: realStats.avgRating,
+    hours: realStats.hours,
   };
 
   const displayTrainers = realTrainers.length > 0 ? realTrainers : null;

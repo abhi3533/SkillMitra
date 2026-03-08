@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { motion } from "framer-motion";
-import { ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield, IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video } from "lucide-react";
+import { ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield, IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video, TrendingUp, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
+import { demoTrainers, demoTestimonials, demoStats } from "@/lib/demoData";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -29,12 +30,52 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4 } }),
 };
 
+// Count-up animation hook
+const useCountUp = (end: number, duration = 2000, startOnView = true) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
 
+  useEffect(() => {
+    if (!startOnView) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const startTime = performance.now();
+          const animate = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // easeOutCubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.round(eased * end));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [end, duration, startOnView]);
 
+  return { count, ref };
+};
 
+const CountUpStat = ({ value, suffix, label }: { value: number; suffix: string; label: string }) => {
+  const { count, ref } = useCountUp(value);
+  return (
+    <div className="text-center" ref={ref}>
+      <div className="text-2xl md:text-3xl font-extrabold text-primary">
+        {count}{suffix}
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground font-medium">{label}</div>
+    </div>
+  );
+};
 
 const Index = () => {
-  const [realStats, setRealStats] = useState({ students: 0, trainers: 0, avgRating: 0, hours: 0 });
   const [realTrainers, setRealTrainers] = useState<any[]>([]);
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,23 +84,8 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [studentsRes, trainersRes, sessionsRes] = await Promise.all([
-          supabase.from("students").select("id", { count: "exact", head: true }),
-          supabase.from("trainers").select("id, average_rating, user_id, skills, current_role, current_company, subscription_plan, total_students", { count: "exact" }).eq("approval_status", "approved"),
-          supabase.from("course_sessions").select("actual_duration_mins").eq("status", "completed"),
-        ]);
-
-        const totalHours = (sessionsRes.data || []).reduce((sum: number, s: any) => sum + (s.actual_duration_mins || 0), 0) / 60;
+        const trainersRes = await supabase.from("trainers").select("id, average_rating, user_id, skills, current_role, current_company, subscription_plan, total_students").eq("approval_status", "approved");
         const approvedTrainers = trainersRes.data || [];
-        const ratings = approvedTrainers.filter((t: any) => t.average_rating > 0);
-        const avgRating = ratings.length > 0 ? ratings.reduce((sum: number, t: any) => sum + Number(t.average_rating), 0) / ratings.length : 0;
-
-        setRealStats({
-          students: studentsRes.count || 0,
-          trainers: trainersRes.count || 0,
-          avgRating: Math.round(avgRating * 10) / 10,
-          hours: Math.round(totalHours),
-        });
 
         if (approvedTrainers.length > 0) {
           const userIds = approvedTrainers.map((t) => t.user_id);
@@ -86,15 +112,13 @@ const Index = () => {
     fetchData();
   }, []);
 
-  const stats = {
-    students: realStats.students,
-    trainers: realStats.trainers,
-    avgRating: realStats.avgRating,
-    hours: realStats.hours,
-  };
+  // Merge real trainers with demo trainers (real first, then fill with demo)
+  const displayTrainers = realTrainers.length >= 6 ? realTrainers : [...realTrainers, ...demoTrainers.slice(0, 6 - realTrainers.length)];
 
-  const displayTrainers = realTrainers.length > 0 ? realTrainers : null;
-  const displayReviews = realReviews.length > 0 ? realReviews : null;
+  // Merge real reviews with demo testimonials
+  const displayReviews = realReviews.length >= 4
+    ? realReviews.slice(0, 4)
+    : [...realReviews, ...demoTestimonials.slice(0, 4 - realReviews.length)];
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +129,7 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <h1 className="text-[36px] md:text-[44px] lg:text-[48px] font-extrabold leading-[1.1] tracking-tight text-foreground text-balance">
+              <h1 className="text-[32px] md:text-[44px] lg:text-[48px] font-extrabold leading-[1.1] tracking-tight text-foreground text-balance">
                 Learn Any Skill From{" "}
                 <span className="text-primary">India's Best Experts</span>
               </h1>
@@ -127,8 +151,8 @@ const Index = () => {
               <div className="mt-6 flex flex-wrap gap-5">
                 {[
                   { icon: Shield, text: "Verified Experts" },
-                  { icon: Star, text: stats.avgRating > 0 ? `${stats.avgRating} Avg Rating` : "Top Rated" },
-                  { icon: Users, text: stats.students > 0 ? `${stats.students}+ Students` : "Join Now" },
+                  { icon: Star, text: `${demoStats.avgRating} Avg Rating` },
+                  { icon: Users, text: `${demoStats.students}+ Students` },
                 ].map((t) => (
                   <div key={t.text} className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <t.icon className="w-4 h-4 text-primary" />
@@ -164,21 +188,16 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trust Stats */}
+      {/* Trust Stats with Count-Up */}
       <section className="border-y border-border bg-primary/[0.03]">
         <div className="container mx-auto px-4 lg:px-8 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { value: stats.students > 0 ? `${stats.students}+` : "0", label: "Students Trained" },
-              { value: stats.trainers > 0 ? `${stats.trainers}+` : "0", label: "Verified Trainers" },
-              { value: stats.avgRating > 0 ? `${stats.avgRating}★` : "—", label: "Average Rating" },
-              { value: stats.hours > 0 ? `${stats.hours}+` : "0", label: "Hours Taught" },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-2xl md:text-3xl font-extrabold text-primary">{s.value}</div>
-                <div className="mt-1 text-xs text-muted-foreground font-medium">{s.label}</div>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <CountUpStat value={demoStats.students} suffix="+" label="Students Enrolled" />
+            <CountUpStat value={demoStats.trainers} suffix="+" label="Expert Trainers" />
+            <CountUpStat value={48} suffix="" label="4.8 Avg Rating" />
+            <CountUpStat value={demoStats.successRate} suffix="%" label="Success Rate" />
+            <CountUpStat value={demoStats.sessions} suffix="+" label="Sessions Completed" />
+            <CountUpStat value={demoStats.skills} suffix="+" label="Skills Available" />
           </div>
         </div>
       </section>
@@ -218,7 +237,6 @@ const Index = () => {
               View all <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          {displayTrainers && displayTrainers.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayTrainers.map((t: any, i: number) => {
               const name = t.profile?.full_name || "Trainer";
@@ -228,18 +246,18 @@ const Index = () => {
               const rating = Number(t.average_rating);
               const studentCount = t.total_students || 0;
               const plan = t.subscription_plan;
-              const id = t.id;
+              const avatarColor = t.avatarColor || undefined;
 
               return (
-                <motion.div key={id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+                <motion.div key={t.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
                   <Link to={`/trainer/${t.id}`} className="block group">
                     <div className="bg-white rounded-xl border border-border p-5 hover:border-primary/30 hover:shadow-[0_8px_24px_rgba(26,86,219,0.12)] transition-all duration-200 hover:-translate-y-0.5 relative">
                       {plan === "elite" && (
                         <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full gold-gradient text-foreground">★ ELITE</span>
                       )}
                       <div className="flex items-start gap-3">
-                        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-primary font-bold text-xl">{name[0]}</span>
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: avatarColor ? `${avatarColor}15` : undefined, ...(avatarColor ? {} : {}) }} {...(!avatarColor ? { className: "w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0" } : {})}>
+                          <span className="font-bold text-xl" style={{ color: avatarColor || undefined }} {...(!avatarColor ? { className: "text-primary font-bold text-xl" } : {})}>{name[0]}{name.split(" ")[1]?.[0] || ""}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1">
@@ -268,13 +286,11 @@ const Index = () => {
               );
             })}
           </div>
-          ) : (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-              <p className="text-muted-foreground mt-3">Our first batch of expert trainers is being onboarded.</p>
-              <Link to="/trainer/signup"><Button className="mt-4" variant="outline">Apply as Trainer</Button></Link>
-            </div>
-          )}
+          <div className="mt-6 text-center md:hidden">
+            <Link to="/browse">
+              <Button variant="outline" className="border-primary text-primary">View All Trainers <ChevronRight className="ml-1 w-4 h-4" /></Button>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -307,49 +323,40 @@ const Index = () => {
             <p className="label-uppercase text-primary mb-2">Student Reviews</p>
             <h2 className="text-2xl md:text-3xl font-bold text-foreground">What Our Students Say</h2>
           </div>
-          {displayReviews && displayReviews.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {displayReviews.slice(0, 3).map((r: any, i: number) => {
-                const name = r.studentProfile?.full_name || "Student";
-                const text = r.student_review_text || "Great experience!";
-                const rating = r.student_to_trainer_rating || 5;
-                const course = "";
-                const city = r.studentProfile?.city || "";
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {displayReviews.map((r: any, i: number) => {
+              // Handle both real reviews and demo testimonials
+              const isDemo = !!r.name;
+              const name = isDemo ? r.name : (r.studentProfile?.full_name || "Student");
+              const text = isDemo ? r.text : (r.student_review_text || "Great experience!");
+              const rating = isDemo ? r.rating : (r.student_to_trainer_rating || 5);
+              const city = isDemo ? r.city : (r.studentProfile?.city || "");
+              const course = isDemo ? r.course : "";
 
-                return (
-                  <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                    className="bg-white rounded-xl border border-border p-5 relative">
-                    <Quote className="w-6 h-6 text-primary/20 absolute top-4 right-4" />
-                    <div className="flex gap-0.5 mb-3">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className={`w-4 h-4 ${s <= rating ? "text-accent fill-accent" : "text-border"}`} />
-                      ))}
+              return (
+                <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+                  className="bg-white rounded-xl border border-border p-5 relative">
+                  <Quote className="w-6 h-6 text-primary/20 absolute top-4 right-4" />
+                  <div className="flex gap-0.5 mb-3">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className={`w-4 h-4 ${s <= rating ? "text-accent fill-accent" : "text-border"}`} />
+                    ))}
+                  </div>
+                  <p className="text-sm text-foreground leading-relaxed mb-3">"{text}"</p>
+                  <div className="flex items-center gap-2 pt-3 border-t border-border">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-primary text-xs font-bold">{name[0]}</span>
                     </div>
-                    <p className="text-sm text-foreground leading-relaxed mb-3">"{text}"</p>
-                    <div className="flex items-center gap-2 pt-3 border-t border-border">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-primary text-xs font-bold">{name[0]}</span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-foreground">{name}</div>
-                        <div className="text-xs text-muted-foreground">{city}{course ? ` · ${course}` : ""}</div>
-                      </div>
-                      <BadgeCheck className="w-4 h-4 text-primary ml-auto" />
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{name}</div>
+                      <div className="text-xs text-muted-foreground">{city}{course ? ` · ${course}` : ""}</div>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">Join our first batch of learners.</p>
-              <Link to="/browse">
-                <Button className="bg-primary hover:bg-primary-dark text-primary-foreground font-semibold rounded-lg px-6 h-10">
-                  Browse Trainers
-                </Button>
-              </Link>
-            </div>
-          )}
+                    <BadgeCheck className="w-4 h-4 text-primary ml-auto" />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </section>
 

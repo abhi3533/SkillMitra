@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Users, DollarSign, Award, TrendingUp, User, LogOut, Menu, X, Bell, Calendar } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, DollarSign, Award, TrendingUp, User, LogOut, Menu, X, Bell, Calendar, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 

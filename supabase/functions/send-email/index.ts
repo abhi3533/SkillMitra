@@ -15,6 +15,7 @@ type EmailType =
   | 'student_welcome' 
   | 'trainer_welcome'
   | 'enrollment_confirmation' 
+  | 'new_enrollment_trainer'
   | 'session_reminder'
   | 'student_trainer_match'
   | 'trainer_student_match'

@@ -94,6 +94,7 @@ const StudentSessions = () => {
   }, [user]);
 
   const filtered = sessions.filter(s => tab === "all" || s.status === tab);
+  const paginatedSessions = filtered.slice(0, visibleCount);
 
   const isJoinable = (s: any) => {
     if (!s.scheduled_at || !s.meet_link) return false;

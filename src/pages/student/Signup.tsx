@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check, Gift } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Check, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
+import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
 const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Kerala"];
@@ -16,6 +17,8 @@ const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", 
 const StudentSignup = () => {
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", city: "", state: "", gender: "", password: "", trainerPref: "no_preference" });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [languages, setLanguages] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -29,14 +32,41 @@ const StudentSignup = () => {
     setLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
   };
 
+  // Check for duplicate email
+  const checkDuplicateEmail = async (email: string) => {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) { setEmailError(""); return; }
+    try {
+      const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
+      if (profile) {
+        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: profile.id });
+        if (roleData === "trainer") setEmailError("This email is registered as a trainer. Please use trainer login.");
+        else if (roleData === "admin") setEmailError("This email is registered as admin.");
+        else setEmailError("An account with this email already exists. Please login instead.");
+      } else {
+        setEmailError("");
+      }
+    } catch { setEmailError(""); }
+  };
+
+  const validatePhone = (phone: string) => /^[6-9]\d{9}$/.test(phone.replace(/\D/g, "").slice(-10));
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim()) {
       toast({ title: "Please fill all required fields", variant: "destructive" });
       return;
     }
-    if (form.password.length < 8) {
-      toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+    if (emailError) return;
+    if (!isPasswordValid(form.password)) {
+      toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+      return;
+    }
+    if (form.password !== confirmPassword) {
+      toast({ title: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (!validatePhone(form.phone)) {
+      toast({ title: "Please enter a valid 10-digit Indian phone number", variant: "destructive" });
       return;
     }
     if (languages.length === 0) {
@@ -145,7 +175,14 @@ const StudentSignup = () => {
               </div>
               <div>
                 <Label>Email *</Label>
-                <Input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="you@email.com" className="mt-1.5 h-11" required />
+                <Input type="email" value={form.email} onChange={e => { update("email", e.target.value); }} onBlur={() => checkDuplicateEmail(form.email)} placeholder="you@email.com" className={`mt-1.5 h-11 ${emailError ? "border-destructive" : ""}`} required />
+                {emailError && (
+                  <p className="text-xs text-destructive mt-1">
+                    {emailError}{" "}
+                    {emailError.includes("login instead") && <Link to="/student/login" className="font-semibold underline">Login here</Link>}
+                    {emailError.includes("trainer login") && <Link to="/trainer/login" className="font-semibold underline">Trainer Login</Link>}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -231,15 +268,21 @@ const StudentSignup = () => {
             <div>
               <Label>Password *</Label>
               <div className="relative mt-1.5">
-                <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" required minLength={8} />
+                <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
-              {loading ? "Creating account..." : "Create Account"} {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
+            <div>
+              <Label>Confirm Password *</Label>
+              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" required />
+            </div>
+
+            <Button type="submit" disabled={loading || !!emailError || !isPasswordValid(form.password) || form.password !== confirmPassword} className="w-full h-11 hero-gradient font-semibold border-0">
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : <>Create Account <ArrowRight className="ml-2 w-4 h-4" /></>}
             </Button>
           </form>
 

@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 
 const TrainerLogin = () => {
@@ -14,25 +16,49 @@ const TrainerLogin = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, role } = useAuth();
+
+  useEffect(() => {
+    if (user && role) {
+      if (role === "admin") navigate("/admin", { replace: true });
+      else if (role === "trainer") navigate("/trainer/dashboard", { replace: true });
+      else navigate("/student/dashboard", { replace: true });
+    }
+  }, [user, role]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes("Email not confirmed")) {
+          toast({
+            title: "Email not verified",
+            description: "Please verify your email first.",
+            variant: "destructive",
+            action: (
+              <Button variant="outline" size="sm" onClick={async () => {
+                await supabase.auth.resend({ type: "signup", email });
+                toast({ title: "Verification email resent!" });
+              }}>
+                Resend
+              </Button>
+            ),
+          });
+          setLoading(false);
+          return;
+        }
+        throw error;
+      }
 
       const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
-
-      if (roleData === "student") {
-        navigate("/student/dashboard");
-      } else if (roleData === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/trainer/dashboard");
-      }
+      if (roleData === "student") navigate("/student/dashboard");
+      else if (roleData === "admin") navigate("/admin");
+      else navigate("/trainer/dashboard");
       toast({ title: "Welcome back!" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
@@ -82,8 +108,17 @@ const TrainerLogin = () => {
                 </button>
               </div>
             </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
+                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
+              </div>
+              <Link to="/forgot-password?role=trainer" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
+            </div>
+
             <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
-              {loading ? "Signing in..." : "Sign In"} {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
             </Button>
           </form>
 

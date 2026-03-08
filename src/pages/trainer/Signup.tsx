@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
+import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 
 const skillOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
 const langOptions = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"];
@@ -52,6 +53,8 @@ const TrainerSignup = () => {
     bio: "", previousCompanies: "",
     bankAccount: "", ifsc: "", upiId: "", panNumber: "",
   });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [teachLangs, setTeachLangs] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -78,14 +81,32 @@ const TrainerSignup = () => {
     setAvailability(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
   };
 
+  const checkDuplicateEmail = async (email: string) => {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) { setEmailError(""); return; }
+    try {
+      const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
+      if (profile) {
+        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: profile.id });
+        if (roleData === "student") setEmailError("This email is registered as a student. Please use student login.");
+        else if (roleData === "admin") setEmailError("This email is registered as admin.");
+        else setEmailError("An account with this email already exists. Please login instead.");
+      } else { setEmailError(""); }
+    } catch { setEmailError(""); }
+  };
+
   const validateStep = (s: number): boolean => {
     if (s === 0) {
       if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.gender || !form.experience || !form.currentRole.trim() || !form.currentCompany.trim()) {
         toast({ title: "Please fill all required fields", variant: "destructive" });
         return false;
       }
-      if (form.password.length < 8) {
-        toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+      if (emailError) return false;
+      if (!isPasswordValid(form.password)) {
+        toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+        return false;
+      }
+      if (form.password !== confirmPassword) {
+        toast({ title: "Passwords do not match", variant: "destructive" });
         return false;
       }
     }
@@ -263,7 +284,17 @@ const TrainerSignup = () => {
             <div className="mt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><Label>Full Name *</Label><Input value={form.fullName} onChange={e => update("fullName", e.target.value)} placeholder="Your full name" className="mt-1.5 h-11" /></div>
-                <div><Label>Email *</Label><Input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="you@email.com" className="mt-1.5 h-11" /></div>
+                <div>
+                  <Label>Email *</Label>
+                  <Input type="email" value={form.email} onChange={e => update("email", e.target.value)} onBlur={() => checkDuplicateEmail(form.email)} placeholder="you@email.com" className={`mt-1.5 h-11 ${emailError ? "border-destructive" : ""}`} />
+                  {emailError && (
+                    <p className="text-xs text-destructive mt-1">
+                      {emailError}{" "}
+                      {emailError.includes("student login") && <Link to="/student/login" className="font-semibold underline">Student Login</Link>}
+                      {emailError.includes("login instead") && <Link to="/trainer/login" className="font-semibold underline">Login here</Link>}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><Label>Phone *</Label><Input value={form.phone} onChange={e => update("phone", e.target.value)} placeholder="+91 98765 43210" className="mt-1.5 h-11" /></div>
@@ -292,6 +323,11 @@ const TrainerSignup = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
+              </div>
+              <div>
+                <Label>Confirm Password *</Label>
+                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
               </div>
               <div>
                 <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>

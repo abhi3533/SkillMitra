@@ -21,6 +21,8 @@ import CertificateVerify from "./pages/CertificateVerify";
 import JoinRedirect from "./pages/JoinRedirect";
 import Notifications from "./pages/Notifications";
 import NotificationPreferences from "./pages/NotificationPreferences";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Student
 import StudentLogin from "./pages/student/Login";
@@ -111,6 +113,8 @@ const App = () => (
             <Route path="/trainer/signup/success" element={<TrainerThankYou />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/parent/login" element={<ParentLogin />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Student Protected */}
             <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />

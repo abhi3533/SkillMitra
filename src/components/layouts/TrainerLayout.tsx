@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Users, DollarSign, Award, TrendingUp, User, LogOut, Menu, X, Bell, Calendar, Wallet, Gift } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, DollarSign, Award, TrendingUp, User, LogOut, Menu, X, Bell, Calendar, Wallet, Gift, ClipboardCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -9,6 +9,7 @@ const sidebarItems = [
   { label: "My Courses", icon: BookOpen, path: "/trainer/courses" },
   { label: "My Students", icon: Users, path: "/trainer/students" },
   { label: "Schedule", icon: Calendar, path: "/trainer/schedule" },
+  { label: "Attendance", icon: ClipboardCheck, path: "/trainer/attendance" },
   { label: "Earnings", icon: DollarSign, path: "/trainer/earnings" },
   { label: "Certificates", icon: Award, path: "/trainer/certificates" },
   { label: "Subscription", icon: TrendingUp, path: "/trainer/subscription" },

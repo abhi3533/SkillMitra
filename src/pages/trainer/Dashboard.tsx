@@ -9,6 +9,7 @@ import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useLoadingTitle } from "@/hooks/useLoadingTitle";
 import { RefreshCw } from "lucide-react";
 
 const TrainerDashboard = () => {

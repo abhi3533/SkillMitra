@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
 import RatingModal from "@/components/RatingModal";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useLoadingTitle } from "@/hooks/useLoadingTitle";
 import { RefreshCw } from "lucide-react";
 
 const StudentDashboard = () => {

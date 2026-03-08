@@ -54,7 +54,7 @@ const Footer = () => {
                 { label: "Refer & Earn ₹200", path: "/refer" },
                 { label: "About Us", path: "/about" },
                 { label: "Blog", path: "/blog" },
-                { label: "Pricing", path: "/pricing" },
+                
                 { label: "Verify Certificate", path: "/verify" },
               ].map(link => (
                 <li key={link.path}>
@@ -71,7 +71,7 @@ const Footer = () => {
               {[
                 { label: "Become a Trainer", path: "/trainer/signup" },
                 { label: "Trainer Login", path: "/trainer/login" },
-                { label: "Subscription Plans", path: "/pricing" },
+                
               ].map(link => (
                 <li key={link.path}>
                   <Link to={link.path} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{link.label}</Link>

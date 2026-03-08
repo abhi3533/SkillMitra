@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck } from "lucide-react";
+import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck, Sparkles, GraduationCap, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +22,7 @@ const TrainerDashboard = () => {
     todaySessions: [] as any[], reviews: [] as any[], recentEnrollments: [] as any[],
     unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
+  const [interestedStudents, setInterestedStudents] = useState<any[]>([]);
   useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {
@@ -109,6 +110,42 @@ const TrainerDashboard = () => {
         pendingAttendance: enrichedToday.filter((s: any) => s.status !== "completed").length,
       });
       setLoading(false);
+
+      // Fetch students interested in trainer's skills
+      const trainerSkills = (await supabase.from("trainers").select("skills").eq("user_id", user.id).single()).data?.skills as string[] | null;
+      if (trainerSkills?.length) {
+        const { data: allStudents } = await supabase
+          .from("students")
+          .select("id, user_id, course_interests")
+          .not("course_interests", "is", null)
+          .limit(50);
+
+        if (allStudents?.length) {
+          const matched = allStudents
+            .map(s => {
+              const interests = (s.course_interests as string[]) || [];
+              const overlap = interests.filter(i =>
+                trainerSkills.some(sk => sk.toLowerCase() === i.toLowerCase())
+              );
+              return { ...s, matchedSkills: overlap, score: overlap.length };
+            })
+            .filter(s => s.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6);
+
+          if (matched.length > 0) {
+            const sUserIds = matched.map(s => s.user_id);
+            const sProfileMap = await fetchProfilesMap(sUserIds);
+            const enriched = matched.map(s => ({
+              ...s,
+              studentName: sProfileMap[s.user_id]?.full_name || "Student",
+              studentCity: sProfileMap[s.user_id]?.city || "",
+              profilePicture: sProfileMap[s.user_id]?.profile_picture_url || "",
+            }));
+            setInterestedStudents(enriched);
+          }
+        }
+      }
     })();
   }, [user]);
 
@@ -302,6 +339,55 @@ const TrainerDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Students Interested in You */}
+      {interestedStudents.length > 0 && (
+        <div className="mt-6 bg-card rounded-xl border">
+          <div className="flex items-center justify-between p-5 pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Students Interested in You</h2>
+            </div>
+            <Link to="/trainer/students" className="text-xs font-medium text-primary hover:underline">View all</Link>
+          </div>
+          <div className="px-5 pb-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {interestedStudents.map((s: any) => (
+              <div key={s.id} className="p-4 rounded-xl border bg-muted/20 hover:border-primary/30 hover:bg-muted/40 transition-all">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                    {s.profilePicture ? (
+                      <img src={s.profilePicture} alt={s.studentName} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-primary font-bold">{s.studentName?.[0] || "S"}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{s.studentName}</p>
+                    {s.studentCity && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                        <MapPin className="w-3 h-3" />{s.studentCity}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {s.matchedSkills?.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <span className="text-[11px] text-muted-foreground mr-0.5">Wants to learn:</span>
+                    {s.matchedSkills.slice(0, 3).map((skill: string) => (
+                      <span key={skill} className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary">
+                        {skill}
+                      </span>
+                    ))}
+                    {s.matchedSkills.length > 3 && (
+                      <span className="px-2 py-0.5 rounded-full text-[11px] text-muted-foreground bg-secondary">+{s.matchedSkills.length - 3}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="mt-6 bg-card rounded-xl border p-5">

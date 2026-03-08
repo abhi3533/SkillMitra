@@ -138,10 +138,28 @@ Deno.serve(async (req) => {
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
     if (!RESEND_API_KEY) throw new Error('RESEND_API_KEY not configured')
 
-    const { type, to, data } = await req.json() as EmailPayload
-    if (!type || !to) throw new Error('type and to are required')
+    const body = await req.json()
+    
+    let subject: string
+    let html: string
+    let to: string
 
-    const { subject, html } = buildEmail(type, data || {})
+    if (body.type) {
+      // Typed template email
+      const payload = body as EmailPayload
+      if (!payload.type || !payload.to) throw new Error('type and to are required')
+      to = payload.to
+      const built = buildEmail(payload.type, payload.data || {})
+      subject = built.subject
+      html = built.html
+    } else if (body.to && body.subject && body.html) {
+      // Direct email (for admin replies etc.)
+      to = body.to
+      subject = body.subject
+      html = body.html
+    } else {
+      throw new Error('Provide either {type, to, data} or {to, subject, html}')
+    }
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

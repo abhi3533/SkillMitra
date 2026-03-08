@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");

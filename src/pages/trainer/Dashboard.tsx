@@ -145,14 +145,35 @@ const TrainerDashboard = () => {
         </div>
       )}
 
+      {/* Quick Stats */}
+      {!loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6">
+          {[
+            { label: "Today Sessions", value: String(data.todayCount), icon: Calendar, color: "text-primary", bg: "bg-primary/10", link: "/trainer/sessions" },
+            { label: "Pending Attendance", value: String(data.pendingAttendance), icon: ClipboardCheck, color: "text-amber-600", bg: "bg-amber-50", link: "/trainer/attendance" },
+            { label: "Wallet Balance", value: formatINR(data.walletBalance), icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/wallet" },
+            { label: "Unread Notifs", value: String(data.unreadNotifs), icon: Bell, color: "text-primary", bg: "bg-primary/10", link: "/notifications" },
+            { label: "Avg. Rating", value: data.avgRating > 0 ? `${data.avgRating.toFixed(1)} ★` : "—", icon: Star, color: "text-amber-600", bg: "bg-amber-50", link: "/trainer/reviews" },
+          ].map(card => (
+            <Link key={card.label} to={card.link}>
+              <div className="bg-card rounded-xl border p-4 hover:border-primary/20 transition-colors text-center">
+                <div className={`w-8 h-8 rounded-lg ${card.bg} flex items-center justify-center mx-auto mb-2`}>
+                  <card.icon className={`w-4 h-4 ${card.color}`} />
+                </div>
+                <p className="text-lg font-bold text-foreground">{card.value}</p>
+                <p className="text-[11px] text-muted-foreground">{card.label}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
         {[
           { label: "Active Students", value: loading ? "–" : String(data.activeStudents), icon: Users, color: "text-primary", bg: "bg-primary/10", link: "/trainer/students" },
           { label: "This Month", value: loading ? "–" : formatINR(data.monthEarnings), icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/earnings" },
           { label: "Available Balance", value: loading ? "–" : formatINR(data.availableBalance), icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/earnings" },
-          { label: "Avg. Rating", value: loading ? "–" : data.avgRating > 0 ? `${data.avgRating.toFixed(1)} ★` : "—", icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: "Total Courses", value: loading ? "–" : String(data.totalCourses), icon: BookOpen, color: "text-primary", bg: "bg-primary/10", link: "/trainer/courses" },
           { label: "Upcoming Sessions", value: loading ? "–" : String(data.upcomingSessions), icon: Clock, color: "text-primary", bg: "bg-primary/10", link: "/trainer/schedule" },
           { label: "Completed Sessions", value: loading ? "–" : String(data.completedSessions), icon: Calendar, color: "text-primary", bg: "bg-primary/10" },
           { label: "Total Earnings", value: loading ? "–" : formatINR(data.totalEarnings), icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/earnings" },

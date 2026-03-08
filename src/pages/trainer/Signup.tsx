@@ -57,6 +57,7 @@ const TrainerSignup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [availability, setAvailability] = useState<Record<string, AvailDay>>(defaultAvail);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});

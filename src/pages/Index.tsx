@@ -117,7 +117,21 @@ const statItems = [
   { value: demoStats.skills, suffix: "+", label: "Skills Available", icon: Zap },
 ];
 
-const Index = () => {
+const StatItem = ({ item }: { item: typeof statItems[number] }) => {
+  const { count, ref } = useCountUp(item.isRating ? 48 : item.value);
+  return (
+    <div className="text-center" ref={ref}>
+      <div className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-2">
+        <item.icon className="w-5 h-5 text-primary" />
+      </div>
+      <div className="text-2xl md:text-3xl font-extrabold text-foreground">
+        {item.isRating ? `${(count / 10).toFixed(1)}★` : `${count}${item.suffix}`}
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground font-medium">{item.label}</div>
+    </div>
+  );
+};
+
   const [realTrainers, setRealTrainers] = useState<any[]>([]);
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

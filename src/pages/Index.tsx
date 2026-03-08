@@ -606,44 +606,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ════════════════════ RECENT BLOG POSTS ════════════════════ */}
-      <section className="py-16 md:py-20 bg-muted/30">
-        <div className="container mx-auto px-4 lg:px-8">
-          <ScrollReveal>
-            <div className="text-center mb-10">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">Latest from Our Blog</h2>
-              <p className="mt-2 text-muted-foreground">Career tips, learning guides, and industry insights</p>
-            </div>
-          </ScrollReveal>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {recentBlogPosts.slice(0, 3).map((post, i) => {
-              const CatIcon = blogCategoryIcons[post.category] || BookOpen;
-              return (
-                <ScrollReveal key={post.slug} delay={i * 0.1}>
-                  <Link to={`/blog/${post.slug}`} className="group">
-                    <div className="rounded-xl border border-border bg-background overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                      <div className="aspect-[16/9] bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center">
-                        <CatIcon className="w-10 h-10 text-primary-foreground/60" />
-                      </div>
-                      <div className="p-5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary">{post.category}</span>
-                        <h3 className="mt-1 font-bold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">{post.title}</h3>
-                        <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{post.excerpt}</p>
-                        <p className="mt-3 text-xs text-muted-foreground">{post.readTime}</p>
-                      </div>
-                    </div>
-                  </Link>
-                </ScrollReveal>
-              );
-            })}
-          </div>
-          <div className="text-center mt-8">
-            <Link to="/blog">
-              <Button variant="outline" className="font-semibold">View All Articles <ChevronRight className="ml-1 w-4 h-4" /></Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       <section className="relative py-20 md:py-28 overflow-hidden" style={{
         background: "linear-gradient(135deg, hsl(221 79% 49%) 0%, hsl(221 79% 30%) 100%)"

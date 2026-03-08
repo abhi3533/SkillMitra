@@ -38,9 +38,7 @@ const Navbar = () => {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center">
-              <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-                <span className="text-foreground">Skill</span><span className="text-primary">Mitra</span>
-              </span>
+              <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10" />
             </Link>
 
             <div className="hidden lg:flex items-center gap-1">

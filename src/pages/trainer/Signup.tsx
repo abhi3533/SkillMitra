@@ -239,9 +239,7 @@ const TrainerSignup = () => {
       <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
           <Link to="/" className="flex items-center mb-12">
-            <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-              <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
-            </span>
+            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10 brightness-0 invert" />
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Share your expertise. Earn from home.</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join verified trainers earning from home teaching skills they love.</p>
@@ -265,9 +263,7 @@ const TrainerSignup = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-6">
             <Link to="/" className="flex items-center">
-              <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-                <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
-              </span>
+              <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10" />
             </Link>
             <div className="flex items-center gap-1 mt-4">
               {steps.map((_, i) => (

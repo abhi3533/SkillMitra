@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "icons/icon-192x192.png", "icons/icon-512x512.png"],
+      includeAssets: ["favicon-32.png", "icons/icon-192x192.png", "icons/icon-512x512.png", "skillmitra-logo.png", "skillmitra-logo-tagline.png"],
       manifest: {
         name: "SkillMitra",
         short_name: "SkillMitra",

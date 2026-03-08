@@ -1,6 +1,26 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
 
+// Helper to send email via the send-email edge function
+async function sendEmail(supabaseUrl: string, serviceKey: string, payload: { type: string; to: string; data: Record<string, any> }) {
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const err = await res.text()
+      console.error(`Email send failed for ${payload.type} → ${payload.to}:`, err)
+    }
+  } catch (e) {
+    console.error(`Email send error for ${payload.type}:`, e)
+  }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield, IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,19 +29,6 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4 } }),
 };
 
-const demoTrainers = [
-  { id: "demo-1", name: "Rahul Sharma", role: "Senior Software Engineer", company: "Google", skills: ["React", "Node.js", "System Design"], rating: 4.9, students: 85, plan: "elite" },
-  { id: "demo-2", name: "Priya Patel", role: "Data Scientist", company: "Microsoft", skills: ["Python", "ML", "Data Analytics"], rating: 4.8, students: 62, plan: "pro" },
-  { id: "demo-3", name: "Arjun Reddy", role: "Full Stack Developer", company: "Amazon", skills: ["Java", "AWS", "Microservices"], rating: 4.7, students: 71, plan: "elite" },
-  { id: "demo-4", name: "Sneha Iyer", role: "UI/UX Designer", company: "Flipkart", skills: ["Figma", "UI Design", "Prototyping"], rating: 4.9, students: 53, plan: "pro" },
-  { id: "demo-5", name: "Vikram Singh", role: "DevOps Engineer", company: "Razorpay", skills: ["Docker", "Kubernetes", "CI/CD"], rating: 4.6, students: 44, plan: "pro" },
-];
-
-const demoReviews = [
-  { id: "r1", text: "Rahul sir explained React concepts so clearly that I built my first project within 2 weeks!", rating: 5, name: "Ananya M.", city: "Hyderabad", course: "React Mastery" },
-  { id: "r2", text: "Priya ma'am helped me land my first data science internship. Very practical teaching.", rating: 5, name: "Karthik R.", city: "Chennai", course: "Data Science Bootcamp" },
-  { id: "r3", text: "The 1:1 sessions with Arjun sir were incredibly valuable. Cleared my Amazon interview!", rating: 5, name: "Deepak K.", city: "Bangalore", course: "DSA & System Design" },
-];
 
 
 
@@ -50,6 +38,7 @@ const Index = () => {
   const [realTrainers, setRealTrainers] = useState<any[]>([]);
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  usePageMeta("SkillMitra — Learn Any Skill From India's Best Experts", "Personal 1:1 skill training from verified industry experts. Learn React, Python, Data Science and more in your language from home.");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,10 +87,10 @@ const Index = () => {
   }, []);
 
   const stats = {
-    students: Math.max(realStats.students, 500),
-    trainers: Math.max(realStats.trainers, 100),
-    avgRating: realStats.avgRating > 0 ? realStats.avgRating : 4.3,
-    hours: Math.max(realStats.hours, 500),
+    students: realStats.students,
+    trainers: realStats.trainers,
+    avgRating: realStats.avgRating,
+    hours: realStats.hours,
   };
 
   const displayTrainers = realTrainers.length > 0 ? realTrainers : null;
@@ -138,8 +127,8 @@ const Index = () => {
               <div className="mt-6 flex flex-wrap gap-5">
                 {[
                   { icon: Shield, text: "Verified Experts" },
-                  { icon: Star, text: "4.3 Avg Rating" },
-                  { icon: Users, text: "500+ Students" },
+                  { icon: Star, text: stats.avgRating > 0 ? `${stats.avgRating} Avg Rating` : "Top Rated" },
+                  { icon: Users, text: stats.students > 0 ? `${stats.students}+ Students` : "Join Now" },
                 ].map((t) => (
                   <div key={t.text} className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <t.icon className="w-4 h-4 text-primary" />
@@ -180,10 +169,10 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8 py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { value: `${stats.students}+`, label: "Students Trained" },
-              { value: `${stats.trainers}+`, label: "Verified Trainers" },
-              { value: `${stats.avgRating}★`, label: "Average Rating" },
-              { value: `${stats.hours}+`, label: "Hours Taught" },
+              { value: stats.students > 0 ? `${stats.students}+` : "0", label: "Students Trained" },
+              { value: stats.trainers > 0 ? `${stats.trainers}+` : "0", label: "Verified Trainers" },
+              { value: stats.avgRating > 0 ? `${stats.avgRating}★` : "—", label: "Average Rating" },
+              { value: stats.hours > 0 ? `${stats.hours}+` : "0", label: "Hours Taught" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-2xl md:text-3xl font-extrabold text-primary">{s.value}</div>
@@ -229,21 +218,21 @@ const Index = () => {
               View all <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
+          {displayTrainers && displayTrainers.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(displayTrainers || demoTrainers.slice(0, 6)).map((t: any, i: number) => {
-              const isReal = !!t.user_id;
-              const name = isReal ? t.profile?.full_name || "Trainer" : t.name;
-              const role = isReal ? t.current_role || "Trainer" : t.role;
-              const company = isReal ? t.current_company : t.company;
-              const skills = isReal ? t.skills || [] : t.skills;
-              const rating = isReal ? Number(t.average_rating) : t.rating;
-              const studentCount = isReal ? t.total_students || 0 : t.students;
-              const plan = isReal ? t.subscription_plan : t.plan;
-              const id = isReal ? t.id : t.id;
+            {displayTrainers.map((t: any, i: number) => {
+              const name = t.profile?.full_name || "Trainer";
+              const role = t.current_role || "Trainer";
+              const company = t.current_company;
+              const skills = t.skills || [];
+              const rating = Number(t.average_rating);
+              const studentCount = t.total_students || 0;
+              const plan = t.subscription_plan;
+              const id = t.id;
 
               return (
                 <motion.div key={id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                  <Link to={isReal ? `/trainer/${t.id}` : "/browse"} className="block group">
+                  <Link to={`/trainer/${t.id}`} className="block group">
                     <div className="bg-white rounded-xl border border-border p-5 hover:border-primary/30 hover:shadow-[0_8px_24px_rgba(26,86,219,0.12)] transition-all duration-200 hover:-translate-y-0.5 relative">
                       {plan === "elite" && (
                         <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full gold-gradient text-foreground">★ ELITE</span>
@@ -279,6 +268,13 @@ const Index = () => {
               );
             })}
           </div>
+          ) : (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+              <p className="text-muted-foreground mt-3">Our first batch of expert trainers is being onboarded.</p>
+              <Link to="/trainer/signup"><Button className="mt-4" variant="outline">Apply as Trainer</Button></Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -311,15 +307,14 @@ const Index = () => {
             <p className="label-uppercase text-primary mb-2">Student Reviews</p>
             <h2 className="text-2xl md:text-3xl font-bold text-foreground">What Our Students Say</h2>
           </div>
-          {(displayReviews || demoReviews).length > 0 ? (
+          {displayReviews && displayReviews.length > 0 ? (
             <div className="grid md:grid-cols-3 gap-6">
-              {(displayReviews || demoReviews).slice(0, 3).map((r: any, i: number) => {
-                const isReal = !!r.student_id;
-                const name = isReal ? r.studentProfile?.full_name || "Student" : r.name;
-                const text = isReal ? r.student_review_text || "Great experience!" : r.text;
-                const rating = isReal ? r.student_to_trainer_rating : r.rating;
-                const course = isReal ? "" : r.course;
-                const city = isReal ? r.studentProfile?.city || "" : r.city;
+              {displayReviews.slice(0, 3).map((r: any, i: number) => {
+                const name = r.studentProfile?.full_name || "Student";
+                const text = r.student_review_text || "Great experience!";
+                const rating = r.student_to_trainer_rating || 5;
+                const course = "";
+                const city = r.studentProfile?.city || "";
 
                 return (
                   <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}

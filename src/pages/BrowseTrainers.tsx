@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { motion } from "framer-motion";
 import { Search, Star, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ const BrowseTrainers = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  usePageMeta("Browse Expert Trainers — SkillMitra", "Find verified industry experts for 1:1 personal training. Filter by skill, language, and budget.");
 
   useEffect(() => {
     (async () => {

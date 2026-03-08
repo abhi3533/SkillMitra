@@ -38,7 +38,9 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center mb-8">
-          <span className="text-[22px] font-bold text-foreground">Skill<span className="text-primary">Mitra</span></span>
+          <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+            <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
+          </span>
           <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold">Admin</span>
         </Link>
         <form onSubmit={handleLogin} className="bg-card rounded-xl border p-6 space-y-4">

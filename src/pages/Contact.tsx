@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Mail, Clock, Calendar, MapPin, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ const Contact = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
+  usePageMeta("Contact SkillMitra — Get Help", "Reach out to SkillMitra for support, partnerships, or general inquiries. We respond within 24 hours.");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

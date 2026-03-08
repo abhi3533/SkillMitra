@@ -1,7 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
-const Pricing = () => (
+const Pricing = () => {
+  usePageMeta("SkillMitra Pricing — Affordable 1:1 Training", "Course fees starting ₹999/month. Trainer plans: Basic (Free), Pro (₹999), Elite (₹2,499).");
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
     <div className="pt-24 pb-16 container mx-auto px-4 lg:px-8 max-w-3xl">
@@ -28,6 +31,7 @@ const Pricing = () => (
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default Pricing;

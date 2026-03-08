@@ -93,14 +93,13 @@ const StudentSignup = () => {
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
-          <Link to="/" className="flex items-center gap-2 mb-12">
-            <div className="w-10 h-10 rounded-lg gold-gradient flex items-center justify-center">
-              <span className="font-bold text-lg text-accent-foreground">S</span>
-            </div>
-            <span className="text-2xl font-bold text-primary-foreground">Skill<span className="text-accent">Mitra</span></span>
+          <Link to="/" className="flex items-center mb-12">
+            <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+              <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
+            </span>
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>
-          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join 12,500+ students learning from verified industry experts in their own language.</p>
+          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join students learning from verified industry experts in their own language.</p>
           <div className="mt-8 space-y-3">
             {["1:1 Personal training", "Learn in your language", "Verified expert trainers", "Earn certificates"].map(b => (
               <div key={b} className="flex items-center gap-3">
@@ -118,11 +117,10 @@ const StudentSignup = () => {
       <div className="flex-1 flex items-start justify-center p-6 lg:p-12 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-8">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg hero-gradient flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">S</span>
-              </div>
-              <span className="text-xl font-bold text-foreground">Skill<span className="text-accent">Mitra</span></span>
+            <Link to="/" className="flex items-center">
+              <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+                <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
+              </span>
             </Link>
           </div>
 

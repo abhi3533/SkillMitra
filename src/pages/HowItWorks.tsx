@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BookOpen, Video, Sparkles } from "lucide-react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const steps = [
   { icon: BookOpen, title: "Browse & Choose", desc: "Explore verified trainers by skill, language, and budget." },
@@ -8,7 +9,9 @@ const steps = [
   { icon: Sparkles, title: "Learn & Grow", desc: "Attend 1:1 sessions, build projects, earn certificates." },
 ];
 
-const HowItWorks = () => (
+const HowItWorks = () => {
+  usePageMeta("How SkillMitra Works — 3 Simple Steps", "Browse trainers, book a free trial, and learn 1:1 from verified experts in your language.");
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
     <div className="pt-24 pb-16 container mx-auto px-4 lg:px-8 max-w-3xl">
@@ -29,6 +32,7 @@ const HowItWorks = () => (
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default HowItWorks;

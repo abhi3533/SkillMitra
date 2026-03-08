@@ -276,7 +276,7 @@ const Index = () => {
                       <GraduationCap className="w-8 h-8 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-foreground">Find Your Mentor</h3>
+                      <h3 className="text-lg font-bold text-foreground">Find Your Trainer</h3>
                       <p className="text-sm text-muted-foreground">1:1 Personal Training</p>
                     </div>
                   </div>
@@ -516,7 +516,7 @@ const Index = () => {
             {displayReviews.map((r: any, i: number) => {
               const isDemo = !!r.name;
               const name = isDemo ? r.name : (r.studentProfile?.full_name || "Student");
-              const text = isDemo ? r.text : (r.student_review_text || "Great experience!");
+              const text = isDemo ? r.text : (r.student_review_text || "Excellent training experience!");
               const rating = isDemo ? r.rating : (r.student_to_trainer_rating || 5);
               const city = isDemo ? r.city : (r.studentProfile?.city || "");
               const course = isDemo ? r.course : "";

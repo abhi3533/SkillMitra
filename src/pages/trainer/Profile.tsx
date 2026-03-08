@@ -94,7 +94,7 @@ const TrainerProfile = () => {
             setReviews(ratingsRes.data.map(r => ({
               student: studentMap[r.student_id]?.full_name || "Student",
               rating: r.student_to_trainer_rating || 5,
-              text: r.student_to_trainer_review || r.student_review_text || "Great experience!",
+              text: r.student_to_trainer_review || r.student_review_text || "Excellent training experience!",
               date: new Date(r.created_at || "").toLocaleDateString(),
             })));
           }

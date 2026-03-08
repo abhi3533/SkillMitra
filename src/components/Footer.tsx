@@ -84,11 +84,11 @@ const Footer = () => {
             <h4 className="text-[11px] uppercase tracking-widest text-white/30 mb-5 font-semibold">Contact</h4>
             <ul className="space-y-3">
               <li>
-                <a href="mailto:Contact@skillmitra.online" className="text-sm text-white/50 hover:text-white transition-colors duration-200">
-                  Contact@skillmitra.online
+                <a href="mailto:contact@skillmitra.online" className="text-sm text-white/50 hover:text-white transition-colors duration-200">
+                  contact@skillmitra.online
                 </a>
               </li>
-              <li className="text-sm text-white/50">Mon – Sat, 9am – 6pm IST</li>
+              <li className="text-sm text-white/50">Mon–Sat, 9:00 AM–6:00 PM IST</li>
               <li>
                 <Link to="/contact" className="text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200">
                   Contact Form →

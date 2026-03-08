@@ -90,7 +90,7 @@ const StudentLogin = () => {
       if (roleData === "trainer") navigate("/trainer/dashboard");
       else if (roleData === "admin") navigate("/admin");
       else navigate("/student/dashboard");
-      toast({ title: "Welcome back!" });
+      toast({ title: "Signed in successfully" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
     } finally {
@@ -107,8 +107,8 @@ const StudentLogin = () => {
               <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
             </span>
           </Link>
-          <h2 className="text-3xl font-bold text-primary-foreground">Welcome back, learner!</h2>
-          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Continue your learning journey with India's best trainers.</p>
+          <h2 className="text-3xl font-bold text-primary-foreground">Welcome Back, Student!</h2>
+          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Continue your training journey with India's best trainers.</p>
         </div>
       </div>
 

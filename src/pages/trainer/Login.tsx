@@ -76,7 +76,7 @@ const TrainerLogin = () => {
       if (roleData === "student") navigate("/student/dashboard");
       else if (roleData === "admin") navigate("/admin");
       else navigate("/trainer/dashboard");
-      toast({ title: "Signed in successfully" });
+      toast({ title: "Signed in successfully", variant: "success" as any });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
     } finally {

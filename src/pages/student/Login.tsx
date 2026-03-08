@@ -122,7 +122,7 @@ const StudentLogin = () => {
         else if (roleData === "trainer") navigate("/trainer/dashboard");
         else if (roleData === "admin") navigate("/admin");
         else navigate("/student/dashboard");
-        toast({ title: "Signed in successfully" });
+        toast({ title: "Signed in successfully", variant: "success" as any });
         return;
       } catch (err: any) {
         lastError = err;

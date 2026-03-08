@@ -61,7 +61,7 @@ const AdminMessages = () => {
         },
       });
       if (error) throw error;
-      toast({ title: "Reply sent successfully" });
+      toast({ title: "Reply sent successfully", variant: "success" as any });
       setReplyOpen(false);
       setReplyText("");
       await supabase.from("contact_messages").update({ status: "replied" }).eq("id", selectedMessage.id);

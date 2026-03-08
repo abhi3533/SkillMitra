@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Clock, Video, ExternalLink, FileText, CheckCircle, Upload, Plus, Loader2, Link2 } from "lucide-react";
+import { Calendar, Clock, Video, ExternalLink, FileText, CheckCircle, Upload, Plus, Loader2, Link2, CalendarClock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,11 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
+import RatingModal from "@/components/RatingModal";
 
 const TrainerSessions = () => {
   const { user } = useAuth();
@@ -29,6 +31,7 @@ const TrainerSessions = () => {
   const [recordingUrl, setRecordingUrl] = useState("");
   const [editingMeetLink, setEditingMeetLink] = useState<string | null>(null);
   const [meetLinkText, setMeetLinkText] = useState("");
+  const [joiningId, setJoiningId] = useState<string | null>(null);
 
   // New session sheet
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -37,6 +40,18 @@ const TrainerSessions = () => {
   const [newSession, setNewSession] = useState({
     enrollmentId: "", title: "", date: "", time: "", durationMins: "60", meetLink: "", notes: "",
   });
+
+  // Postpone
+  const [postponeModal, setPostponeModal] = useState<any>(null);
+  const [postponeData, setPostponeData] = useState({ date: "", time: "", reason: "" });
+  const [postponing, setPostponing] = useState(false);
+
+  // Rating
+  const [ratingModal, setRatingModal] = useState<any>(null);
+  const [ratedSessionIds, setRatedSessionIds] = useState<Set<string>>(new Set());
+
+  // Curriculum
+  const [curriculumMap, setCurriculumMap] = useState<Record<string, any[]>>({});
 
   const fetchSessions = async () => {
     if (!user) return;
@@ -71,6 +86,10 @@ const TrainerSessions = () => {
     const { data: attData } = await supabase.from("attendance").select("session_id").in("session_id", sessionIds.length > 0 ? sessionIds : ["none"]);
     const attSet = new Set((attData || []).map(a => a.session_id));
 
+    // Check trainer ratings
+    const { data: trainerRatings } = await supabase.from("ratings").select("session_id").eq("trainer_id", trainer.id).not("trainer_rated_at", "is", null);
+    setRatedSessionIds(new Set((trainerRatings || []).map(r => r.session_id)));
+
     const enriched = sessions.map(s => ({
       ...s,
       studentName: nameMap[s.enrollments?.student_id] || "Student",
@@ -93,6 +112,20 @@ const TrainerSessions = () => {
     setTodaySessions(today);
     setUpcomingSessions(upcoming);
     setPastSessions(past.reverse());
+
+    // Fetch curriculum
+    const courseIds = [...new Set(sessions.map(s => s.enrollments?.course_id).filter(Boolean))];
+    if (courseIds.length > 0) {
+      const { data: currData } = await supabase.from("course_curriculum")
+        .select("*").in("course_id", courseIds).order("week_number", { ascending: true });
+      const cMap: Record<string, any[]> = {};
+      (currData || []).forEach(c => {
+        if (!cMap[c.course_id]) cMap[c.course_id] = [];
+        cMap[c.course_id].push(c);
+      });
+      setCurriculumMap(cMap);
+    }
+
     setLoading(false);
   };
 
@@ -130,8 +163,6 @@ const TrainerSessions = () => {
     setCreating(true);
     try {
       const scheduledAt = new Date(`${newSession.date}T${newSession.time}`);
-      
-      // Get next session number for this enrollment
       const { count } = await supabase.from("course_sessions")
         .select("id", { count: "exact", head: true })
         .eq("enrollment_id", newSession.enrollmentId);
@@ -152,7 +183,6 @@ const TrainerSessions = () => {
 
       if (error) throw error;
 
-      // Notify student
       if (enrollment?.students?.user_id) {
         await supabase.from("notifications").insert({
           user_id: enrollment.students.user_id,
@@ -202,84 +232,177 @@ const TrainerSessions = () => {
     return diff <= 15 * 60 * 1000 && diff > -2 * 60 * 60 * 1000;
   };
 
-  const SessionCard = ({ s, showJoin = false, showRecording = false }: { s: any; showJoin?: boolean; showRecording?: boolean }) => (
-    <div className="bg-card border rounded-lg p-4">
-      <div className="flex items-center justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground truncate">{s.title || s.courseName || `Session #${s.session_number}`}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{s.studentName} • {s.courseName}</p>
-          <p className="text-[11px] text-muted-foreground">
-            {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Not scheduled"}
-          </p>
-          {s.meet_link && (
-            <p className="text-[10px] text-primary mt-0.5 flex items-center gap-1">
-              <Link2 className="w-3 h-3" /> Meet link added
+  const handleTrainerJoin = async (s: any) => {
+    if (!trainerId) return;
+    setJoiningId(s.id);
+    try {
+      await supabase.from("course_sessions").update({
+        joined_by_trainer: true,
+        trainer_join_time: new Date().toISOString(),
+      }).eq("id", s.id);
+      window.open(s.meet_link, "_blank");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setJoiningId(null);
+    }
+  };
+
+  const handlePostpone = async () => {
+    if (!postponeData.date || !postponeData.time) {
+      toast({ title: "Please select date and time", variant: "destructive" });
+      return;
+    }
+    setPostponing(true);
+    try {
+      const newDate = new Date(`${postponeData.date}T${postponeData.time}`);
+      await supabase.from("course_sessions").update({
+        scheduled_at: newDate.toISOString(),
+        notes: postponeModal.notes ? `${postponeModal.notes}\n[Rescheduled by trainer: ${postponeData.reason || "No reason"}]` : `[Rescheduled by trainer: ${postponeData.reason || "No reason"}]`,
+      }).eq("id", postponeModal.id);
+
+      // Notify student
+      const { data: student } = await supabase.from("students").select("user_id").eq("id", postponeModal.enrollments?.student_id).single();
+      if (student) {
+        await supabase.from("notifications").insert({
+          user_id: student.user_id,
+          title: "Session Rescheduled",
+          body: `Your trainer has rescheduled a session to ${newDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} at ${postponeData.time}. Reason: ${postponeData.reason || "Not specified"}`,
+          type: "session_rescheduled",
+          action_url: "/student/sessions",
+        });
+      }
+
+      toast({ title: "Session rescheduled ✅", description: "Student has been notified." });
+      setPostponeModal(null);
+      await fetchSessions();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setPostponing(false);
+    }
+  };
+
+  const getCurriculumTopic = (s: any) => {
+    const courseId = s.enrollments?.course_id;
+    if (!courseId || !curriculumMap[courseId]) return null;
+    const curriculum = curriculumMap[courseId];
+    const sessionNum = s.session_number || 0;
+    let cumSessions = 0;
+    for (const week of curriculum) {
+      cumSessions += week.session_count || 1;
+      if (sessionNum <= cumSessions) return week;
+    }
+    return null;
+  };
+
+  const SessionCard = ({ s, showJoin = false, showRecording = false }: { s: any; showJoin?: boolean; showRecording?: boolean }) => {
+    const currTopic = getCurriculumTopic(s);
+    const isPast = showRecording;
+    return (
+      <div className="bg-card border rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground truncate">{s.title || s.courseName || `Session #${s.session_number}`}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{s.studentName} • {s.courseName}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Not scheduled"}
             </p>
+            {currTopic && (
+              <p className="text-[11px] text-primary mt-0.5">
+                📚 Week {currTopic.week_number}: {currTopic.week_title}
+                {currTopic.topics?.length > 0 && ` — ${currTopic.topics.slice(0, 2).join(", ")}`}
+              </p>
+            )}
+            {s.meet_link && (
+              <p className="text-[10px] text-primary mt-0.5 flex items-center gap-1">
+                <Link2 className="w-3 h-3" /> Meet link added
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            {s.attendanceMarked && <Badge className="bg-emerald-50 text-emerald-700 text-[10px]"><CheckCircle className="w-3 h-3 mr-1" />Attended</Badge>}
+            {s.is_trial && <Badge variant="secondary" className="text-[10px]">Trial</Badge>}
+            <Badge variant="outline" className="text-[10px]">{s.status}</Badge>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {showJoin && s.meet_link && canJoin(s.scheduled_at) && (
+            <Button size="sm" className="text-xs gap-1.5 h-8" disabled={joiningId === s.id}
+              onClick={() => handleTrainerJoin(s)}>
+              {joiningId === s.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5" />} Join Now
+            </Button>
+          )}
+          {showJoin && s.meet_link && !canJoin(s.scheduled_at) && (
+            <a href={s.meet_link} target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8"><ExternalLink className="w-3.5 h-3.5" /> Meet Link</Button>
+            </a>
+          )}
+          {!s.meet_link && s.status === "upcoming" && (
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8 border-primary/30 text-primary" onClick={() => { setEditingMeetLink(s.id); setMeetLinkText(""); }}>
+              <Video className="w-3.5 h-3.5" /> Add Meet Link
+            </Button>
+          )}
+          {s.status === "upcoming" && s.scheduled_at && (
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => { setPostponeModal(s); setPostponeData({ date: "", time: "", reason: "" }); }}>
+              <CalendarClock className="w-3.5 h-3.5" /> Reschedule
+            </Button>
+          )}
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => { setEditingNotes(s.id); setNoteText(s.notes || ""); }}>
+            <FileText className="w-3.5 h-3.5" /> Notes
+          </Button>
+          {showRecording && (
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => { setEditingRecording(s.id); setRecordingUrl(s.recording_url || ""); }}>
+              <Upload className="w-3.5 h-3.5" /> Recording
+            </Button>
+          )}
+          {/* Trainer rate student for completed sessions */}
+          {isPast && s.status === "completed" && !ratedSessionIds.has(s.id) && (
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setRatingModal({
+              sessionId: s.id, enrollmentId: s.enrollment_id,
+              studentId: s.enrollments?.student_id, trainerId: trainerId,
+              studentName: s.studentName,
+            })}>
+              <Star className="w-3.5 h-3.5" /> Rate Student
+            </Button>
+          )}
+          {isPast && s.status === "completed" && ratedSessionIds.has(s.id) && (
+            <span className="text-[10px] text-emerald-600 flex items-center gap-1 self-center"><Star className="w-3 h-3 fill-emerald-600" /> Rated</span>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-3">
-          {s.attendanceMarked && <Badge className="bg-emerald-50 text-emerald-700 text-[10px]"><CheckCircle className="w-3 h-3 mr-1" />Attended</Badge>}
-          {s.is_trial && <Badge variant="secondary" className="text-[10px]">Trial</Badge>}
-          <Badge variant="outline" className="text-[10px]">{s.status}</Badge>
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-2 mt-3">
-        {showJoin && s.meet_link && canJoin(s.scheduled_at) && (
-          <a href={s.meet_link} target="_blank" rel="noopener noreferrer">
-            <Button size="sm" className="text-xs gap-1.5 h-8"><Video className="w-3.5 h-3.5" /> Join Now</Button>
-          </a>
-        )}
-        {showJoin && s.meet_link && !canJoin(s.scheduled_at) && (
-          <a href={s.meet_link} target="_blank" rel="noopener noreferrer">
-            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8"><ExternalLink className="w-3.5 h-3.5" /> Meet Link</Button>
-          </a>
-        )}
-        {!s.meet_link && s.status === "upcoming" && (
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8 border-primary/30 text-primary" onClick={() => { setEditingMeetLink(s.id); setMeetLinkText(""); }}>
-            <Video className="w-3.5 h-3.5" /> Add Meet Link
-          </Button>
-        )}
-        <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => { setEditingNotes(s.id); setNoteText(s.notes || ""); }}>
-          <FileText className="w-3.5 h-3.5" /> Notes
-        </Button>
-        {showRecording && (
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => { setEditingRecording(s.id); setRecordingUrl(s.recording_url || ""); }}>
-            <Upload className="w-3.5 h-3.5" /> Recording
-          </Button>
-        )}
-      </div>
 
-      {/* Inline meet link editor */}
-      {editingMeetLink === s.id && (
-        <div className="mt-3 space-y-2">
-          <Input value={meetLinkText} onChange={e => setMeetLinkText(e.target.value)} placeholder="https://meet.google.com/abc-defg-hij" className="text-xs h-8" />
-          <div className="flex gap-2">
-            <Button size="sm" className="text-xs h-7" onClick={() => saveMeetLink(s.id)} disabled={!meetLinkText.trim()}>Save</Button>
-            <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setEditingMeetLink(null)}>Cancel</Button>
+        {/* Inline meet link editor */}
+        {editingMeetLink === s.id && (
+          <div className="mt-3 space-y-2">
+            <Input value={meetLinkText} onChange={e => setMeetLinkText(e.target.value)} placeholder="https://meet.google.com/abc-defg-hij" className="text-xs h-8" />
+            <div className="flex gap-2">
+              <Button size="sm" className="text-xs h-7" onClick={() => saveMeetLink(s.id)} disabled={!meetLinkText.trim()}>Save</Button>
+              <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setEditingMeetLink(null)}>Cancel</Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {editingNotes === s.id && (
-        <div className="mt-3 space-y-2">
-          <Textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Session notes..." className="text-xs min-h-[60px]" />
-          <div className="flex gap-2">
-            <Button size="sm" className="text-xs h-7" onClick={() => saveNotes(s.id)}>Save</Button>
-            <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setEditingNotes(null)}>Cancel</Button>
+        {editingNotes === s.id && (
+          <div className="mt-3 space-y-2">
+            <Textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Session notes..." className="text-xs min-h-[60px]" />
+            <div className="flex gap-2">
+              <Button size="sm" className="text-xs h-7" onClick={() => saveNotes(s.id)}>Save</Button>
+              <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setEditingNotes(null)}>Cancel</Button>
+            </div>
           </div>
-        </div>
-      )}
-      {editingRecording === s.id && (
-        <div className="mt-3 space-y-2">
-          <Input value={recordingUrl} onChange={e => setRecordingUrl(e.target.value)} placeholder="https://drive.google.com/..." className="text-xs h-8" />
-          <div className="flex gap-2">
-            <Button size="sm" className="text-xs h-7" onClick={() => saveRecording(s.id)}>Save</Button>
-            <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setEditingRecording(null)}>Cancel</Button>
+        )}
+        {editingRecording === s.id && (
+          <div className="mt-3 space-y-2">
+            <Input value={recordingUrl} onChange={e => setRecordingUrl(e.target.value)} placeholder="https://drive.google.com/..." className="text-xs h-8" />
+            <div className="flex gap-2">
+              <Button size="sm" className="text-xs h-7" onClick={() => saveRecording(s.id)}>Save</Button>
+              <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setEditingRecording(null)}>Cancel</Button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
+  };
 
   return (
     <TrainerLayout>
@@ -416,6 +539,53 @@ const TrainerSessions = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Postpone/Reschedule Dialog */}
+      <Dialog open={!!postponeModal} onOpenChange={open => !open && setPostponeModal(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reschedule Session</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-sm text-muted-foreground">{postponeModal?.title || postponeModal?.courseName} — {postponeModal?.studentName}</p>
+            <div>
+              <Label>New Date *</Label>
+              <Input type="date" value={postponeData.date} onChange={e => setPostponeData(p => ({ ...p, date: e.target.value }))}
+                className="mt-1.5" min={new Date().toISOString().split("T")[0]} />
+            </div>
+            <div>
+              <Label>New Time *</Label>
+              <Input type="time" value={postponeData.time} onChange={e => setPostponeData(p => ({ ...p, time: e.target.value }))}
+                className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Reason (optional)</Label>
+              <Textarea value={postponeData.reason} onChange={e => setPostponeData(p => ({ ...p, reason: e.target.value }))}
+                className="mt-1.5" placeholder="Why do you need to reschedule?" rows={2} />
+            </div>
+            <Button onClick={handlePostpone} disabled={postponing} className="w-full">
+              {postponing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Rescheduling...</> : "Confirm Reschedule"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Trainer rates student */}
+      {ratingModal && (
+        <RatingModal
+          type="trainer_rates_student"
+          sessionId={ratingModal.sessionId}
+          enrollmentId={ratingModal.enrollmentId}
+          studentId={ratingModal.studentId}
+          trainerId={ratingModal.trainerId}
+          targetName={ratingModal.studentName || "Student"}
+          onClose={() => setRatingModal(null)}
+          onSubmitted={() => {
+            setRatedSessionIds(prev => new Set([...prev, ratingModal.sessionId]));
+            setRatingModal(null);
+          }}
+        />
+      )}
     </TrainerLayout>
   );
 };

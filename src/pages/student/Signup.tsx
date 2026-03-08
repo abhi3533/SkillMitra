@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Check, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,9 @@ const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Mala
 const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Kerala"];
 
 const StudentSignup = () => {
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", city: "", state: "", gender: "", password: "", trainerPref: "no_preference" });
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [languages, setLanguages] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ const StudentSignup = () => {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: signupData, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
@@ -61,6 +63,16 @@ const StudentSignup = () => {
         },
       });
       if (error) throw error;
+
+      // Process referral if code provided (fire-and-forget)
+      const trimmedCode = referralCode.trim().toUpperCase();
+      if (trimmedCode && signupData?.user?.id) {
+        supabase.functions.invoke("process-referral", {
+          body: { referral_code: trimmedCode, new_user_id: signupData.user.id },
+        }).then(({ error: fnErr }) => {
+          if (fnErr) console.error("Referral processing error:", fnErr);
+        });
+      }
 
       // Send welcome email (fire-and-forget)
       supabase.functions.invoke("send-email", {
@@ -117,7 +129,17 @@ const StudentSignup = () => {
           <h1 className="text-2xl font-bold text-foreground">Create Student Account</h1>
           <p className="mt-2 text-muted-foreground">Fill in your details to get started</p>
 
-          <form onSubmit={handleSignup} className="mt-8 space-y-5">
+          {/* Referral banner */}
+          {referralCode && (
+            <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+              <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
+              <p className="text-sm text-emerald-700">
+                Referral code <span className="font-bold">{referralCode.toUpperCase()}</span> applied — you'll get ₹200 wallet credit!
+              </p>
+            </div>
+          )}
+
+          <form onSubmit={handleSignup} className="mt-6 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Full Name *</Label>
@@ -193,6 +215,19 @@ const StudentSignup = () => {
                   <SelectItem value="no_preference">No Preference</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Referral Code Field */}
+            <div>
+              <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input
+                value={referralCode}
+                onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="e.g. SM-A1B2C3"
+                className="mt-1.5 h-11 font-mono uppercase"
+                maxLength={10}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Have a friend's code? Both of you get ₹200 wallet credit!</p>
             </div>
 
             <div>

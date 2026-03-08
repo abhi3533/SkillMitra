@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Video, Clock, Star, RotateCcw } from "lucide-react";
+import { Calendar, Video, Clock, Star, RotateCcw, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +9,7 @@ import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
 import RatingModal from "@/components/RatingModal";
+import SessionReflectionModal from "@/components/SessionReflectionModal";
 
 const StudentSessions = () => {
   const { user } = useAuth();

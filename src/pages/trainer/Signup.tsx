@@ -223,7 +223,7 @@ const TrainerSignup = () => {
             </span>
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Share your expertise. Earn from home.</h2>
-          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join 850+ verified trainers earning ₹50,000 – ₹2,00,000/month teaching skills they love.</p>
+          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join verified trainers earning from home teaching skills they love.</p>
           <div className="mt-10 space-y-4">
             {steps.map((s, i) => (
               <div key={s} className="flex items-center gap-3">

@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import CookieConsent from "@/components/CookieConsent";
 import ScrollToTop from "@/components/ScrollToTop";
+import AIChatBot from "@/components/AIChatBot";
 
 // Public pages
 import Index from "./pages/Index";
@@ -183,6 +184,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AIChatBot />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

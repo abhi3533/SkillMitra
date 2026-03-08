@@ -13,6 +13,13 @@ const HowItWorks = () => {
   usePageMeta({
     title: "How SkillMitra Works — Personal 1:1 Skill Training",
     description: "Browse verified trainers, book a free trial session, and learn 1:1 from industry experts in your language. 3 simple steps to start learning.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      name: "How to Learn on SkillMitra",
+      description: "3 simple steps to start personal 1:1 skill training with verified experts",
+      step: steps.map((s, i) => ({ "@type": "HowToStep", position: i + 1, name: s.title, text: s.desc })),
+    },
   });
   return (
   <div className="min-h-screen bg-background">

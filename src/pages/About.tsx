@@ -26,6 +26,22 @@ const About = () => {
   usePageMeta({
     title: "About SkillMitra — India's #1 Personal 1:1 Skill Training Platform",
     description: "SkillMitra by Learnvate Solutions connects students with verified industry experts for affordable 1:1 personal skill training across India.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      name: "About SkillMitra",
+      url: "https://skillmitra.online/about",
+      mainEntity: {
+        "@type": "Organization",
+        name: "SkillMitra",
+        legalName: "Learnvate Solutions Private Limited",
+        url: "https://skillmitra.online",
+        logo: "https://skillmitra.online/icons/icon-512x512.png",
+        founder: { "@type": "Person", name: "Abhilash" },
+        foundingLocation: { "@type": "Place", name: "Karimnagar, Telangana, India" },
+        description: "India's first personal 1:1 skill training platform connecting students with verified expert trainers.",
+      },
+    },
   });
 
   return (

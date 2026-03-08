@@ -6,6 +6,13 @@ const Standards = () => {
   usePageMeta({
     title: "Certification Standards — SkillMitra",
     description: "Learn about SkillMitra's rigorous certification standards covering technical proficiency, communication, punctuality, and AI interview scoring.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Certification Standards",
+      url: "https://skillmitra.online/standards",
+      isPartOf: { "@type": "WebSite", name: "SkillMitra", url: "https://skillmitra.online" },
+    },
   });
   return (
   <div className="min-h-screen bg-background">

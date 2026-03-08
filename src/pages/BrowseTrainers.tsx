@@ -55,6 +55,14 @@ const BrowseTrainers = () => {
   usePageMeta({
     title: "Find Expert Trainers — SkillMitra",
     description: "Browse 50+ verified trainers for personal 1:1 skill training. Filter by skill, language, budget. Start with a free trial session today.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Browse Expert Trainers",
+      url: "https://skillmitra.online/browse",
+      description: "Find verified expert trainers for 1:1 personal skill training across 50+ skills",
+      isPartOf: { "@type": "WebSite", name: "SkillMitra", url: "https://skillmitra.online" },
+    },
   });
 
   useEffect(() => {

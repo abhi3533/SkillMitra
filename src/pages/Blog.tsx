@@ -15,6 +15,14 @@ const Blog = () => {
   usePageMeta({
     title: "SkillMitra Blog — Career Tips, Learning Guides & Industry Insights",
     description: "Read expert articles on technology, career growth, learning strategies, and skill development. Free guides from India's top trainers.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: "SkillMitra Blog",
+      url: "https://skillmitra.online/blog",
+      description: "Expert articles on technology, career growth, and skill development",
+      publisher: { "@type": "Organization", name: "SkillMitra", url: "https://skillmitra.online", logo: { "@type": "ImageObject", url: "https://skillmitra.online/icons/icon-512x512.png" } },
+    },
   });
 
   const filtered = useMemo(() => {

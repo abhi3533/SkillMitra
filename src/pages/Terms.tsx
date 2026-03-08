@@ -26,6 +26,13 @@ const Terms = () => {
   usePageMeta({
     title: "Terms of Service — SkillMitra",
     description: "SkillMitra terms of service covering platform rules, payment terms, refund policy, and user obligations by Learnvate Solutions Private Limited.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Terms of Service",
+      url: "https://skillmitra.online/terms",
+      isPartOf: { "@type": "WebSite", name: "SkillMitra", url: "https://skillmitra.online" },
+    },
   });
 
   return (

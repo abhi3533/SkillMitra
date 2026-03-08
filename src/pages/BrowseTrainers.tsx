@@ -137,29 +137,35 @@ const BrowseTrainers = () => {
       if (selectedLanguages.length > 0 && !selectedLanguages.some(l => (t.teaching_languages || []).includes(l))) return false;
       if (minRating > 0 && (Number(t.average_rating) || 0) < minRating) return false;
 
-      // Price filter via demo courses
-      const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
-      if (demoCourse) {
-        if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
+      // Gender filter
+      if (genderPref && genderPref !== "any") {
+        const trainerGender = t.profile?.gender?.toLowerCase() || "";
+        if (trainerGender !== genderPref.toLowerCase()) return false;
+      }
+
+      // Price filter for both demo and real trainers
+      if (priceRange[0] !== 500 || priceRange[1] !== 10000) {
+        const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
+        if (demoCourse) {
+          if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
+        } else {
+          const minFee = courseFeeMap[t.id];
+          if (minFee !== undefined) {
+            if (minFee < priceRange[0] || minFee > priceRange[1]) return false;
+          }
+        }
       }
 
       // Time slot and schedule filtering
       if (selectedTimeSlots.length > 0 || selectedSchedule.length > 0) {
         if (t.id?.startsWith("demo-")) {
-          // Demo trainers: available Evening (17-20) weekdays, Morning (9-12) weekends
           if (selectedTimeSlots.length > 0) {
             const matchesTimeSlot = selectedTimeSlots.some(slotLabel => {
               const slot = TIME_SLOTS.find(s => s.label === slotLabel);
               if (!slot) return false;
-              // Demo: evening 17-20 and morning 9-12
               return (slot.startHour < 20 && slot.endHour > 17) || (slot.startHour < 12 && slot.endHour > 9);
             });
             if (!matchesTimeSlot) return false;
-          }
-          if (selectedSchedule.length > 0) {
-            // Demo trainers available weekdays (evening) and weekends (morning)
-            // So they match both Weekend Only and Weekday Only
-            // Always pass schedule filter for demo trainers
           }
         } else {
           const trainerAvail = availabilityMap[t.id] || [];
@@ -192,7 +198,7 @@ const BrowseTrainers = () => {
 
       return true;
     });
-  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, availabilityMap]);
+  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, availabilityMap, courseFeeMap]);
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {

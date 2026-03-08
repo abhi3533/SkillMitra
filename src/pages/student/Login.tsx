@@ -72,7 +72,6 @@ const StudentLogin = () => {
               <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
             </span>
           </Link>
-          </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Welcome back, learner!</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Continue your learning journey with India's best trainers.</p>
         </div>

@@ -228,11 +228,11 @@ const Index = () => {
               const rating = Number(t.average_rating);
               const studentCount = t.total_students || 0;
               const plan = t.subscription_plan;
-              const id = isReal ? t.id : t.id;
+              const id = t.id;
 
               return (
                 <motion.div key={id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                  <Link to={isReal ? `/trainer/${t.id}` : "/browse"} className="block group">
+                  <Link to={`/trainer/${t.id}`} className="block group">
                     <div className="bg-white rounded-xl border border-border p-5 hover:border-primary/30 hover:shadow-[0_8px_24px_rgba(26,86,219,0.12)] transition-all duration-200 hover:-translate-y-0.5 relative">
                       {plan === "elite" && (
                         <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full gold-gradient text-foreground">★ ELITE</span>

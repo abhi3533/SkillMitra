@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp, Settings, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const sidebarItems = [
@@ -19,6 +19,8 @@ const sidebarItems = [
   { label: "Certificates", icon: Award, path: "/admin/certificates" },
   { label: "Ratings", icon: Star, path: "/admin/ratings" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
+  { label: "Communications", icon: Megaphone, path: "/admin/communications" },
+  { label: "Settings", icon: Settings, path: "/admin/settings" },
   { label: "Messages", icon: Mail, path: "/admin/messages" },
 ];
 

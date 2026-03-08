@@ -74,6 +74,8 @@ import AdminWallets from "./pages/admin/AdminWallets";
 import AdminAttendance from "./pages/admin/AdminAttendance";
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminSettings from "./pages/admin/Settings";
+import AdminCommunications from "./pages/admin/Communications";
 
 // Parent
 import ParentLogin from "./pages/parent/Login";
@@ -163,6 +165,8 @@ const App = () => (
             <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAttendance /></ProtectedRoute>} />
             <Route path="/admin/sessions" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSessions /></ProtectedRoute>} />
             <Route path="/admin/subscriptions" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSubscriptions /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/communications" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCommunications /></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><Notifications /></ProtectedRoute>} />
 
             {/* Parent Protected */}

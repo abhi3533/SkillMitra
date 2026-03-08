@@ -41,6 +41,9 @@ const StudentSignup = () => {
   const toggleLang = (lang: string) => {
     setLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
   };
+  const toggleInterest = (interest: string) => {
+    setCourseInterests(prev => prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]);
+  };
 
   // Phone auto-clean
   const handlePhoneChange = (val: string) => {

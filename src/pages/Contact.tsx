@@ -17,6 +17,7 @@ const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
 const Contact = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [emailTypo, setEmailTypo] = useState<string | null>(null);

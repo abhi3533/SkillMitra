@@ -213,4 +213,27 @@
   .trust-blue {
     @apply bg-primary/5 text-primary;
   }
+
+  /* Mobile touch targets */
+  @media (max-width: 767px) {
+    button, a[role="button"], [role="tab"], input[type="submit"] {
+      min-height: 44px;
+    }
+  }
+
+  /* Prevent horizontal overflow */
+  body, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Safe area for bottom nav */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Pull to refresh indicator */
+  .pull-refresh-indicator {
+    @apply flex items-center justify-center py-3 text-sm text-muted-foreground;
+  }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle } from "lucide-react";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
@@ -10,6 +10,8 @@ import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
 import RatingModal from "@/components/RatingModal";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { RefreshCw } from "lucide-react";
 
 const StudentDashboard = () => {
   const { user, profile } = useAuth();
@@ -93,10 +95,19 @@ const StudentDashboard = () => {
 
   useEffect(() => { fetchDashboard(); }, [user]);
 
+  const handleRefresh = useCallback(async () => { await fetchDashboard(); }, [user]);
+  const { pulling, refreshing } = usePullToRefresh(handleRefresh);
+
   const firstName = profile?.full_name?.split(" ")[0] || "Student";
 
   return (
     <StudentLayout>
+      {(pulling || refreshing) && (
+        <div className="pull-refresh-indicator">
+          <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing…" : "Pull to refresh"}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}! 👋</h1>

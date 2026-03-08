@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { RefreshCw } from "lucide-react";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();
@@ -20,9 +22,9 @@ const TrainerDashboard = () => {
     unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!user) return;
-    (async () => {
+    await (async () => {
       const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status").eq("user_id", user.id).single();
       if (!trainer) { setLoading(false); return; }
 
@@ -108,11 +110,21 @@ const TrainerDashboard = () => {
     })();
   }, [user]);
 
+  useEffect(() => { fetchData(); }, [user, fetchData]);
+
+  const { pulling, refreshing } = usePullToRefresh(fetchData);
+
   const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
   const firstName = profile?.full_name?.split(" ")[0] || "Trainer";
 
   return (
     <TrainerLayout>
+      {(pulling || refreshing) && (
+        <div className="pull-refresh-indicator">
+          <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing…" : "Pull to refresh"}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome, {firstName}! 👋</h1>

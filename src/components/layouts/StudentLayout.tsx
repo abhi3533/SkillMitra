@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell, Wallet, Calendar, ClipboardCheck } from "lucide-react";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -94,10 +95,11 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </aside>
 
-        <main className="flex-1 p-6 lg:p-8 min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 p-4 lg:p-8 pb-20 lg:pb-8 min-h-[calc(100vh-4rem)]">
           {children}
         </main>
       </div>
+      <MobileBottomNav role="student" />
       {sidebarOpen && <div className="fixed inset-0 bg-foreground/20 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
     </div>
   );

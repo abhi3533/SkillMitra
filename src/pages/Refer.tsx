@@ -87,7 +87,7 @@ const ReferPage = () => {
   }, [user, role]);
 
   const referralCode = student?.referral_code || "";
-  const referralLink = referralCode ? `https://${APP_DOMAIN}/join/${referralCode}` : "";
+  const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);

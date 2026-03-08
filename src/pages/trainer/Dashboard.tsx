@@ -31,7 +31,7 @@ const TrainerDashboard = () => {
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
 
-      const [enrollActive, enrollAll, sessAll, sessCompleted, sessUpcoming, earningsRes, todayRes, reviewsRes, coursesRes] = await Promise.all([
+      const [enrollActive, enrollAll, sessAll, sessCompleted, sessUpcoming, earningsRes, todayRes, reviewsRes, coursesRes, notifRes, walletRes] = await Promise.all([
         supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "active"),
         supabase.from("enrollments").select("*, courses(title), students(id, user_id)").eq("trainer_id", trainer.id).order("enrollment_date", { ascending: false }).limit(5),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
@@ -41,6 +41,8 @@ const TrainerDashboard = () => {
         supabase.from("course_sessions").select("*, enrollments!inner(student_id, courses(title))").eq("trainer_id", trainer.id).gte("scheduled_at", todayStart).lt("scheduled_at", todayEnd).order("scheduled_at", { ascending: true }),
         supabase.from("ratings").select("*").eq("trainer_id", trainer.id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
         supabase.from("courses").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
+        supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_read", false),
+        supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
       ]);
 
       const monthTotal = (earningsRes.data || []).reduce((s: number, e: any) => s + Number(e.trainer_payout || 0), 0);

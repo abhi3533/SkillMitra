@@ -62,7 +62,8 @@ const StudentReferrals = () => {
 
   const referralCode = student?.referral_code || "";
   const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";
-  const totalEarned = referrals.filter(r => r.status === "paid").length * 200;
+  const totalEarned = referrals.filter(r => r.status === "paid").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
+  const totalPending = referrals.filter(r => r.status === "pending").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -70,7 +71,7 @@ const StudentReferrals = () => {
   };
 
   const shareWhatsApp = () => {
-    const msg = `Hey! Join SkillMitra and learn from India's best trainers 🚀 Use my referral link and we both get ₹200 wallet credit!\n\n${referralLink}`;
+    const msg = `Hey! I use SkillMitra for personal 1:1 skill training. Use my referral code ${referralCode} and we both get ₹200 credit! Sign up at ${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 

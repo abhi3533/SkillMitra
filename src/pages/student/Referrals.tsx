@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Copy, Share2, Gift, Users, Wallet, MessageCircle, Link2 } from "lucide-react";
+import { Copy, Share2, Gift, Users, Wallet, MessageCircle, Link2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,8 +61,9 @@ const StudentReferrals = () => {
   }, [user]);
 
   const referralCode = student?.referral_code || "";
-  const referralLink = referralCode ? `https://${APP_DOMAIN}/join/${referralCode}` : "";
-  const totalEarned = referrals.filter(r => r.status === "paid").length * 200;
+  const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";
+  const totalEarned = referrals.filter(r => r.status === "paid").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
+  const totalPending = referrals.filter(r => r.status === "pending").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -70,7 +71,7 @@ const StudentReferrals = () => {
   };
 
   const shareWhatsApp = () => {
-    const msg = `Hey! Join SkillMitra and learn from India's best trainers 🚀 Use my referral link and we both get ₹200 wallet credit!\n\n${referralLink}`;
+    const msg = `Hey! I use SkillMitra for personal 1:1 skill training. Use my referral code ${referralCode} and we both get ₹200 credit! Sign up at ${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -132,11 +133,12 @@ const StudentReferrals = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             {[
-              { label: "Total Referrals", value: String(referrals.length), icon: Users, color: "bg-primary/10 text-primary" },
-              { label: "Total Earned", value: `₹${totalEarned.toLocaleString("en-IN")}`, icon: Gift, color: "bg-emerald-50 text-emerald-600" },
-              { label: "Wallet Balance", value: `₹${walletBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-amber-50 text-amber-600" },
+              { label: "Total Referred", value: String(referrals.length), icon: Users, color: "bg-primary/10 text-primary" },
+              { label: "Pending", value: String(referrals.filter(r => r.status === "pending").length), icon: Clock, color: "bg-amber-50 text-amber-600" },
+              { label: "Rewards Earned", value: `₹${totalEarned.toLocaleString("en-IN")}`, icon: Gift, color: "bg-emerald-50 text-emerald-600" },
+              { label: "Wallet Balance", value: `₹${walletBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-primary/10 text-primary" },
             ].map(s => (
               <div key={s.label} className="bg-card rounded-xl border p-4 text-center">
                 <div className={`w-10 h-10 rounded-lg ${s.color} flex items-center justify-center mx-auto mb-2`}>

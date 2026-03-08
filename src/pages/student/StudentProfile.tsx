@@ -103,9 +103,12 @@ const StudentProfile = () => {
       <div className="bg-card rounded-xl border p-6 space-y-6">
         {/* Basic Info */}
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-primary font-bold text-2xl">{profile?.full_name?.[0] || "U"}</span>
-          </div>
+          <ProfilePictureUpload
+            userId={user?.id || ""}
+            currentUrl={profile?.profile_picture_url}
+            fullName={profile?.full_name || "User"}
+            size="lg"
+          />
           <div>
             <p className="text-lg font-semibold text-foreground">{profile?.full_name || "User"}</p>
             <p className="text-sm text-muted-foreground">{profile?.email}</p>

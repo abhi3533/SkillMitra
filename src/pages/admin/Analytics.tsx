@@ -120,10 +120,38 @@ const AdminAnalytics = () => {
     })();
   }, []);
 
+  const exportCSV = (data: any[], filename: string) => {
+    if (!data.length) return;
+    const keys = Object.keys(data[0]);
+    const csv = [keys.join(","), ...data.map(row => keys.map(k => `"${row[k] ?? ""}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
-      <p className="mt-1 text-muted-foreground">Platform metrics, revenue, and insights</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+          <p className="mt-1 text-muted-foreground">Platform metrics, revenue, and insights</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportCSV(revenueData, "revenue")} disabled={!revenueData.length}>
+            <Download className="w-4 h-4 mr-1" /> Revenue
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportCSV(signupData, "signups")} disabled={!signupData.length}>
+            <Download className="w-4 h-4 mr-1" /> Signups
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportCSV(topTrainers, "trainers")} disabled={!topTrainers.length}>
+            <Download className="w-4 h-4 mr-1" /> Trainers
+          </Button>
+        </div>
+      </div>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">

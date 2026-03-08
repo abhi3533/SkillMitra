@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell, Wallet, Calendar, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell, Wallet, Calendar, ClipboardCheck, Gift } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ const sidebarItems = [
   { label: "Resume Builder", icon: FileText, path: "/student/resume" },
   { label: "Certificates", icon: Award, path: "/student/certificates" },
   { label: "Referrals", icon: Users, path: "/student/referrals" },
+  { label: "Refer & Earn", icon: Gift, path: "/refer" },
   { label: "Wallet", icon: Wallet, path: "/student/wallet" },
   { label: "Profile", icon: User, path: "/student/profile" },
 ];

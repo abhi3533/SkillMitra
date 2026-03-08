@@ -23,6 +23,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Standards from "./pages/Standards";
 import CertificateVerify from "./pages/CertificateVerify";
+import ReferPage from "./pages/Refer";
 import JoinRedirect from "./pages/JoinRedirect";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
@@ -122,6 +123,7 @@ const AppContent = () => {
         <Route path="/join/:code" element={<JoinRedirect />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/refer" element={<ReferPage />} />
 
         {/* Auth pages */}
         <Route path="/student/login" element={<StudentLogin />} />

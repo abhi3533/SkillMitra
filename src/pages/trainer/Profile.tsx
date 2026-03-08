@@ -162,12 +162,24 @@ const TrainerProfile = () => {
 
   const requireAuth = (action: string): boolean => {
     if (!user) {
-      toast({ title: `Please login to ${action}`, variant: "destructive" });
-      navigate(`/student/login?redirect=/trainer/${resolvedId}`);
+      toast({ 
+        title: `Please log in as a student to ${action}`,
+        description: "You need a student account to continue.",
+        variant: "info" as any,
+        action: (
+          <ToastAction altText="Login" onClick={() => navigate(`/student/login?redirect=/trainer/${resolvedId}`)}>
+            Login as Student
+          </ToastAction>
+        ),
+      });
       return false;
     }
     if (role !== "student") {
-      toast({ title: "Only students can enroll or book trials", variant: "destructive" });
+      toast({ 
+        title: "Please log in as a student to enroll or book a free trial",
+        description: "This feature is available for student accounts only.",
+        variant: "info" as any,
+      });
       return false;
     }
     return true;

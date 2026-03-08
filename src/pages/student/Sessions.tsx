@@ -159,6 +159,19 @@ const StudentSessions = () => {
           }}
         />
       )}
+
+      {reflectionModal && (
+        <SessionReflectionModal
+          sessionId={reflectionModal.sessionId}
+          studentId={reflectionModal.studentId}
+          sessionTitle={reflectionModal.title}
+          onClose={() => setReflectionModal(null)}
+          onSubmitted={() => {
+            setReflectedIds(prev => new Set([...prev, reflectionModal.sessionId]));
+            setReflectionModal(null);
+          }}
+        />
+      )}
     </StudentLayout>
   );
 };

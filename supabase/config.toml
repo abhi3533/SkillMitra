@@ -17,3 +17,11 @@ project_id = "huszmetnqxrividclgad"
     verify_jwt = false
   [functions.smart-reminders]
     verify_jwt = false
+  [functions.complete-signup]
+    verify_jwt = false
+  [functions.complete-referral]
+    verify_jwt = false
+  [functions.profile-matching]
+    verify_jwt = false
+  [functions.check-email-exists]
+    verify_jwt = false

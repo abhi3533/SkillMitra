@@ -18,7 +18,6 @@ const navLinks = [
   { label: "Browse Trainers", path: "/browse" },
   { label: "How It Works", path: "/how-it-works" },
   { label: "Become a Trainer", path: "/trainer/signup" },
-  { label: "Blog", path: "/blog" },
   { label: "Contact", path: "/contact" },
 ];
 

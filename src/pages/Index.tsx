@@ -314,22 +314,11 @@ const Index = () => {
       <section className="relative py-8 md:py-10" style={{ background: "linear-gradient(135deg, hsl(210 50% 96%) 0%, hsl(221 79% 97%) 100%)" }}>
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
-            {statItems.map((s, i) => {
-              const { count, ref } = useCountUp(s.isRating ? 48 : s.value);
-              return (
-                <ScrollReveal key={s.label} delay={i * 0.05}>
-                  <div className="text-center" ref={ref}>
-                    <div className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-2">
-                      <s.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="text-2xl md:text-3xl font-extrabold text-foreground">
-                      {s.isRating ? `${(count / 10).toFixed(1)}★` : `${count}${s.suffix}`}
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground font-medium">{s.label}</div>
-                  </div>
-                </ScrollReveal>
-              );
-            })}
+            {statItems.map((s, i) => (
+              <ScrollReveal key={s.label} delay={i * 0.05}>
+                <StatItem item={s} />
+              </ScrollReveal>
+            ))}
           </div>
         </div>
       </section>

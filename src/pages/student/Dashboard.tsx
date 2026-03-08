@@ -115,6 +115,11 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      {/* Getting Started Checklist */}
+      <div className="mt-6">
+        <GettingStartedChecklist />
+      </div>
+
       {/* Rating Prompts */}
       {data.unratedSessions.length > 0 && (
         <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">

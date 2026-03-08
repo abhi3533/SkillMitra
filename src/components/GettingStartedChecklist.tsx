@@ -35,10 +35,10 @@ const GettingStartedChecklist = () => {
       }
 
       setSteps([
-        { id: "profile", label: "Complete your profile", description: "Add name, phone, and city", link: "/student/profile", icon: User, done: profileDone },
-        { id: "browse", label: "Browse trainers", description: "Find your perfect mentor", link: "/browse", icon: Search, done: true }, // Always marked — they signed up
-        { id: "trial", label: "Book a free trial", description: "Try before you commit", link: "/browse", icon: Calendar, done: hasTrial },
-        { id: "enroll", label: "Enroll in a course", description: "Start your learning journey", link: "/browse", icon: BookOpen, done: hasEnrollment },
+        { id: "profile", label: "Complete Your Profile", description: "Add name, phone, and city", link: "/student/profile", icon: User, done: profileDone },
+        { id: "browse", label: "Browse Trainers", description: "Find your ideal trainer", link: "/browse", icon: Search, done: true },
+        { id: "trial", label: "Book a Free Trial", description: "Try before you enroll", link: "/browse", icon: Calendar, done: hasTrial },
+        { id: "enroll", label: "Enroll in a Course", description: "Start your training journey", link: "/browse", icon: BookOpen, done: hasEnrollment },
       ]);
       setLoading(false);
     })();

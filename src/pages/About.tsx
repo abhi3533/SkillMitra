@@ -16,7 +16,7 @@ const About = () => {
         SkillMitra is India's premier 1:1 personal skill training platform. We connect students with verified industry experts for personalized training sessions — in their own language, from the comfort of home.
       </p>
       <p className="mt-4 text-muted-foreground leading-relaxed">
-        Our mission is to democratize access to quality skill training across India, making expert mentorship affordable and accessible to every student regardless of their location.
+         Our mission is to democratize access to quality skill training across India, making expert mentorship affordable and accessible to every student regardless of their location.
       </p>
       <h2 className="text-xl font-semibold text-foreground mt-8">Why We Exist</h2>
       <p className="mt-2 text-muted-foreground leading-relaxed">

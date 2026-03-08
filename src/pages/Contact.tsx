@@ -71,7 +71,7 @@ const Contact = () => {
                   <Calendar className="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p className="font-semibold text-foreground">Office Hours</p>
-                    <p className="text-sm text-muted-foreground">Monday to Saturday, 9am–6pm IST</p>
+                    <p className="text-sm text-muted-foreground">Monday–Saturday, 9:00 AM–6:00 PM IST</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

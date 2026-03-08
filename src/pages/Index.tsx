@@ -516,7 +516,7 @@ const Index = () => {
             {displayReviews.map((r: any, i: number) => {
               const isDemo = !!r.name;
               const name = isDemo ? r.name : (r.studentProfile?.full_name || "Student");
-              const text = isDemo ? r.text : (r.student_review_text || "Great experience!");
+              const text = isDemo ? r.text : (r.student_review_text || "Excellent training experience!");
               const rating = isDemo ? r.rating : (r.student_to_trainer_rating || 5);
               const city = isDemo ? r.city : (r.studentProfile?.city || "");
               const course = isDemo ? r.course : "";

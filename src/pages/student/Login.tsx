@@ -90,7 +90,7 @@ const StudentLogin = () => {
       if (roleData === "trainer") navigate("/trainer/dashboard");
       else if (roleData === "admin") navigate("/admin");
       else navigate("/student/dashboard");
-      toast({ title: "Welcome back!" });
+      toast({ title: "Signed in successfully" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
     } finally {

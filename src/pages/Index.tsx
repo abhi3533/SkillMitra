@@ -268,6 +268,13 @@ const Index = () => {
               );
             })}
           </div>
+          ) : (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+              <p className="text-muted-foreground mt-3">Our first batch of expert trainers is being onboarded.</p>
+              <Link to="/trainer/signup"><Button className="mt-4" variant="outline">Apply as Trainer</Button></Link>
+            </div>
+          )}
         </div>
       </section>
 

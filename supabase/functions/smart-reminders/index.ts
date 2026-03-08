@@ -37,53 +37,31 @@ Deno.serve(async (req) => {
       const courseTitle = enrollment?.courses?.title || s.title || `Session #${s.session_number}`
       const time = new Date(s.scheduled_at!).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
       
-      // Get trainer user_id
       const { data: trainer } = await supabase.from('trainers').select('user_id').eq('id', s.trainer_id).single()
 
-      // Check preferences & notify student
       if (studentUserId) {
-        const { data: pref } = await supabase.from('notification_preferences').select('session_24h_inapp, session_24h_email').eq('user_id', studentUserId).single()
-        const sendInApp = pref?.session_24h_inapp !== false
-        const sendEmail = pref?.session_24h_email !== false
-
-        if (sendInApp) {
-          // Check if already notified
-          const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', studentUserId).eq('type', 'session_24h').eq('action_url', s.id).limit(1)
-          if (!existing?.length) {
-            await supabase.from('notifications').insert({
-              user_id: studentUserId, type: 'session_24h',
-              title: '📅 Session Tomorrow',
-              body: `Your "${courseTitle}" session is scheduled for ${time}`,
-              action_url: s.id, icon: 'calendar',
-            })
-            results.push(`24h notification → student ${studentUserId}`)
-          }
-        }
-
-        if (sendEmail) {
-          const { data: profile } = await supabase.from('profiles').select('email, full_name').eq('id', studentUserId).single()
-          if (profile?.email) {
-            await supabase.functions.invoke('send-email', {
-              body: { type: 'session_reminder', to: profile.email, data: { name: profile.full_name, session_title: courseTitle, scheduled_time: time, meet_link: s.meet_link } },
-            }).catch(() => {})
-          }
+        const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', studentUserId).eq('type', 'session_24h').eq('action_url', s.id).limit(1)
+        if (!existing?.length) {
+          await supabase.from('notifications').insert({
+            user_id: studentUserId, type: 'session_24h',
+            title: '📅 Session Tomorrow',
+            body: `Your "${courseTitle}" session is scheduled for ${time}`,
+            action_url: s.id, icon: 'calendar',
+          })
+          results.push(`24h notification → student ${studentUserId}`)
         }
       }
 
-      // Notify trainer
       if (trainer?.user_id) {
-        const { data: pref } = await supabase.from('notification_preferences').select('session_24h_inapp').eq('user_id', trainer.user_id).single()
-        if (pref?.session_24h_inapp !== false) {
-          const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', trainer.user_id).eq('type', 'session_24h').eq('action_url', s.id).limit(1)
-          if (!existing?.length) {
-            await supabase.from('notifications').insert({
-              user_id: trainer.user_id, type: 'session_24h',
-              title: '📅 Session Tomorrow',
-              body: `Your "${courseTitle}" session is scheduled for ${time}`,
-              action_url: s.id, icon: 'calendar',
-            })
-            results.push(`24h notification → trainer ${trainer.user_id}`)
-          }
+        const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', trainer.user_id).eq('type', 'session_24h').eq('action_url', s.id).limit(1)
+        if (!existing?.length) {
+          await supabase.from('notifications').insert({
+            user_id: trainer.user_id, type: 'session_24h',
+            title: '📅 Session Tomorrow',
+            body: `Your "${courseTitle}" session is scheduled for ${time}`,
+            action_url: s.id, icon: 'calendar',
+          })
+          results.push(`24h notification → trainer ${trainer.user_id}`)
         }
       }
     }
@@ -118,39 +96,75 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 15min reminders
-    const in15m = new Date(now.getTime() + 15 * 60 * 1000)
-    const in15mEnd = new Date(in15m.getTime() + 60 * 60 * 1000)
-    const { data: sessions15m } = await supabase
+    // 10min reminders
+    const in10m = new Date(now.getTime() + 10 * 60 * 1000)
+    const in10mEnd = new Date(in10m.getTime() + 60 * 60 * 1000)
+    const { data: sessions10m } = await supabase
       .from('course_sessions')
       .select('id, title, session_number, scheduled_at, meet_link, trainer_id, enrollment_id, enrollments(student_id, students(user_id), courses(title))')
       .eq('status', 'upcoming')
-      .gte('scheduled_at', in15m.toISOString())
-      .lt('scheduled_at', in15mEnd.toISOString())
+      .gte('scheduled_at', in10m.toISOString())
+      .lt('scheduled_at', in10mEnd.toISOString())
 
-    for (const s of sessions15m || []) {
+    for (const s of sessions10m || []) {
       const enrollment = s.enrollments as any
       const studentUserId = enrollment?.students?.user_id
       const courseTitle = enrollment?.courses?.title || s.title || `Session #${s.session_number}`
       const { data: trainer } = await supabase.from('trainers').select('user_id').eq('id', s.trainer_id).single()
 
       for (const userId of [studentUserId, trainer?.user_id].filter(Boolean)) {
-        const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', userId!).eq('type', 'session_15m').eq('action_url', s.id).limit(1)
+        const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', userId!).eq('type', 'session_10m').eq('action_url', s.id).limit(1)
         if (!existing?.length) {
           await supabase.from('notifications').insert({
-            user_id: userId!, type: 'session_15m',
-            title: '🚀 Session Starting Now!',
-            body: `"${courseTitle}" starts in 15 minutes. Join now!`,
-            action_url: s.meet_link || s.id, icon: 'zap',
+            user_id: userId!, type: 'session_10m',
+            title: '🔔 Session in 10 Minutes!',
+            body: `"${courseTitle}" starts in 10 minutes. Get ready to join!`,
+            action_url: s.meet_link || s.id, icon: 'bell',
           })
-          results.push(`15m notification → ${userId}`)
+          results.push(`10m notification → ${userId}`)
         }
       }
     }
 
+    // ============ AUTO-COMPLETE SESSIONS ============
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000)
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    
+    const { data: expiredSessions } = await supabase
+      .from('course_sessions')
+      .select('id, title, session_number, trainer_id, enrollment_id, duration_mins, scheduled_at, enrollments(student_id, courses(title))')
+      .eq('status', 'upcoming')
+      .lt('scheduled_at', twoHoursAgo.toISOString())
+      .gte('scheduled_at', oneDayAgo.toISOString())
+
+    for (const s of expiredSessions || []) {
+      // Mark session as completed
+      await supabase.from('course_sessions').update({ status: 'completed' }).eq('id', s.id)
+
+      // Update enrollment progress
+      const enrollment = s.enrollments as any
+      if (enrollment) {
+        const { data: enrollData } = await supabase.from('enrollments')
+          .select('sessions_completed, sessions_total')
+          .eq('id', s.enrollment_id).single()
+        
+        if (enrollData) {
+          const newCompleted = (enrollData.sessions_completed || 0) + 1
+          const total = enrollData.sessions_total || 1
+          const progress = Math.min(100, Math.round((newCompleted / total) * 100))
+          await supabase.from('enrollments').update({
+            sessions_completed: newCompleted,
+            progress_percent: progress,
+            last_session_date: now.toISOString(),
+          }).eq('id', s.enrollment_id)
+        }
+      }
+
+      results.push(`auto-completed session ${s.id}`)
+    }
+
     // ============ MISSED SESSION CHECK ============
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000)
     const { data: missedSessions } = await supabase
       .from('course_sessions')
       .select('id, title, session_number, trainer_id, enrollment_id, enrollments(student_id, students(user_id), courses(title))')
@@ -164,7 +178,6 @@ Deno.serve(async (req) => {
       const studentUserId = enrollment?.students?.user_id
       const courseTitle = enrollment?.courses?.title || s.title
 
-      // Notify student
       if (studentUserId) {
         const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', studentUserId).eq('type', 'missed_session').eq('action_url', s.id).limit(1)
         if (!existing?.length) {
@@ -178,7 +191,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Notify admins
       const { data: admins } = await supabase.from('admins').select('user_id')
       for (const admin of admins || []) {
         const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', admin.user_id).eq('type', 'missed_session').eq('action_url', s.id).limit(1)
@@ -199,29 +211,25 @@ Deno.serve(async (req) => {
     for (const student of allStudents || []) {
       const { data: attData } = await supabase.from('attendance').select('status').eq('student_id', student.id)
       const total = (attData || []).length
-      if (total < 5) continue // Need enough data points
+      if (total < 5) continue
       const present = (attData || []).filter(a => a.status === 'present').length
       const pct = Math.round((present / total) * 100)
       if (pct < 75) {
-        // Check if already warned recently (within 7 days)
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
         const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', student.user_id).eq('type', 'low_attendance').gte('created_at', weekAgo).limit(1)
         if (!existing?.length) {
-          const { data: pref } = await supabase.from('notification_preferences').select('low_attendance_inapp').eq('user_id', student.user_id).single()
-          if (pref?.low_attendance_inapp !== false) {
-            await supabase.from('notifications').insert({
-              user_id: student.user_id, type: 'low_attendance',
-              title: '📉 Low Attendance Warning',
-              body: `Your attendance is at ${pct}%. Minimum 90% is required for certificate eligibility.`,
-              icon: 'alert-circle',
-            })
-            results.push(`low attendance warning → ${student.user_id} (${pct}%)`)
-          }
+          await supabase.from('notifications').insert({
+            user_id: student.user_id, type: 'low_attendance',
+            title: '📉 Low Attendance Warning',
+            body: `Your attendance is at ${pct}%. Minimum 90% is required for certificate eligibility.`,
+            icon: 'alert-circle',
+          })
+          results.push(`low attendance warning → ${student.user_id} (${pct}%)`)
         }
       }
     }
 
-    // ============ PAYMENT DUE (Trainer subscriptions expiring in 3 days) ============
+    // ============ PAYMENT DUE ============
     const in3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
     const in3dStr = in3d.toISOString().split('T')[0]
     const { data: expiringSubs } = await supabase
@@ -243,6 +251,48 @@ Deno.serve(async (req) => {
         })
         results.push(`payment due → trainer ${userId}`)
       }
+    }
+
+    // ============ RATING PROMPT AFTER COMPLETION ============
+    // Find recently completed sessions without ratings
+    const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000)
+    const { data: recentCompleted } = await supabase
+      .from('course_sessions')
+      .select('id, title, session_number, trainer_id, enrollment_id, enrollments(student_id, students(user_id), courses(title))')
+      .eq('status', 'completed')
+      .gte('scheduled_at', sixHoursAgo.toISOString())
+      .lt('scheduled_at', twoHoursAgo.toISOString())
+
+    for (const s of recentCompleted || []) {
+      const enrollment = s.enrollments as any
+      const studentUserId = enrollment?.students?.user_id
+      const studentId = enrollment?.student_id
+      const courseTitle = enrollment?.courses?.title || s.title || `Session #${s.session_number}`
+
+      if (!studentUserId || !studentId) continue
+
+      // Check if already rated
+      const { data: existingRating } = await supabase.from('ratings')
+        .select('id').eq('session_id', s.id).eq('student_id', studentId)
+        .not('student_rated_at', 'is', null).limit(1)
+      if (existingRating?.length) continue
+
+      // Check if already prompted
+      const { data: existingNotif } = await supabase.from('notifications')
+        .select('id').eq('user_id', studentUserId).eq('type', 'rate_session').eq('action_url', `/student/sessions`).limit(1)
+      // Use session id in body to deduplicate
+      const { data: existingNotif2 } = await supabase.from('notifications')
+        .select('id').eq('user_id', studentUserId).eq('type', 'rate_session')
+        .ilike('body', `%${s.id.slice(0, 8)}%`).limit(1)
+      if (existingNotif2?.length) continue
+
+      await supabase.from('notifications').insert({
+        user_id: studentUserId, type: 'rate_session',
+        title: '⭐ Rate Your Session',
+        body: `How was your "${courseTitle}" session? Share your feedback to help other students. [${s.id.slice(0, 8)}]`,
+        action_url: `/student/sessions`, icon: 'star',
+      })
+      results.push(`rate prompt → student ${studentUserId} for session ${s.id}`)
     }
 
     console.log(`✅ Smart reminders processed: ${results.length} actions`, results)

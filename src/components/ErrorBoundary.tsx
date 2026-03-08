@@ -27,7 +27,12 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, State
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="text-center max-w-md px-6">
             <div className="flex items-center justify-center mb-8">
-              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
+              <span className="inline-flex items-center gap-1.5">
+                <svg width={24} height={24} viewBox="0 0 24 24" fill="none"><path d="M12 3L1 9L5 11.18V17.18L12 21L19 17.18V11.18L21 10.09V17H23V9L12 3ZM18.82 9L12 12.72L5.18 9L12 5.28L18.82 9ZM17 15.99L12 18.72L7 15.99V12.27L12 15L17 12.27V15.99Z" fill="#1A56DB"/></svg>
+                <span style={{ fontSize: 20, fontWeight: 800, fontFamily: "Inter, system-ui, sans-serif" }}>
+                  <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
+                </span>
+              </span>
             </div>
             <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl">⚠️</span>

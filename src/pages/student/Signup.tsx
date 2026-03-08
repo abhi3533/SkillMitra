@@ -144,9 +144,7 @@ const StudentSignup = () => {
       <div className="flex-1 flex items-start justify-center p-6 lg:p-12 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-8">
-            <Link to="/" className="flex items-center">
-              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-            </Link>
+            <SkillMitraLogo darkText height={32} />
           </div>
 
           <h1 className="text-2xl font-bold text-foreground">Create Student Account</h1>

@@ -261,9 +261,7 @@ const TrainerSignup = () => {
       <div className="flex-1 flex items-start justify-center p-6 lg:p-12 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-6">
-            <Link to="/" className="flex items-center">
-              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-            </Link>
+            <SkillMitraLogo darkText height={32} />
             <div className="flex items-center gap-1 mt-4">
               {steps.map((_, i) => (
                 <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= step ? "hero-gradient" : "bg-secondary"}`} />

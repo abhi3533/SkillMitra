@@ -11,6 +11,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import AIChatBot from "@/components/AIChatBot";
 import RoleSelectionModal from "@/components/auth/RoleSelectionModal";
 import { lazy, Suspense } from "react";
+import { Navigate } from "react-router-dom";
 
 // Critical: load eagerly
 import Index from "./pages/Index";
@@ -180,7 +181,8 @@ const AppContent = () => {
           <Route path="/trainer/notifications" element={<ProtectedRoute allowedRoles={["trainer"]}><Notifications /></ProtectedRoute>} />
 
           {/* Admin Protected */}
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/trainers" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTrainers /></ProtectedRoute>} />
           <Route path="/admin/students" element={<ProtectedRoute allowedRoles={["admin"]}><AdminStudents /></ProtectedRoute>} />
           <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCourses /></ProtectedRoute>} />

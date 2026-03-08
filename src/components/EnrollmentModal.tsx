@@ -113,13 +113,28 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
       if (sessionError) throw sessionError;
 
       // Create notification for trainer
+      const scheduledTimeStr = scheduledDate.toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
       await supabase.from("notifications").insert({
         user_id: trainer.user_id,
         title: bookingType === "trial" ? "New Trial Booking!" : "New Enrollment!",
-        body: `A student has ${bookingType === "trial" ? "booked a free trial" : "enrolled"} in "${course.title}"`,
+        body: `A student has ${bookingType === "trial" ? "booked a free trial" : "enrolled"} in "${course.title}". Session scheduled on ${scheduledTimeStr}.`,
         type: bookingType === "trial" ? "trial_booking" : "enrollment",
         action_url: "/trainer/sessions",
       });
+
+      // Create notification for student
+      const { data: trainerProfile2 } = await supabase.from("profiles").select("full_name").eq("id", trainer.user_id).single();
+      const trainerDisplayName = trainerProfile2?.full_name || "your trainer";
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        await supabase.from("notifications").insert({
+          user_id: currentUser.id,
+          title: bookingType === "trial" ? "Trial Session Booked! 🎉" : "Enrollment Confirmed! 🎉",
+          body: `Your ${bookingType === "trial" ? "trial" : "enrollment"} is confirmed. Trainer: ${trainerDisplayName}. Session scheduled on ${scheduledTimeStr}.`,
+          type: bookingType === "trial" ? "trial_booking" : "enrollment",
+          action_url: "/student/sessions",
+        });
+      }
 
       toast({
         title: bookingType === "trial" ? "Trial Booked!" : "Enrolled Successfully!",

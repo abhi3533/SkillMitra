@@ -41,7 +41,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>
         <Link to="/" className="flex items-center">
-          <img src="/skillmitra-logo.png?v=2" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
+          <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
         </Link>
         <span className="ml-3 text-[10px] font-bold px-2 py-1 rounded-md bg-primary/10 text-primary uppercase tracking-wider">Admin</span>
         <div className="flex-1" />

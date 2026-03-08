@@ -99,7 +99,7 @@ const TrainerLogin = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="lg:hidden mb-8">
             <Link to="/" className="flex items-center">
-              <img src="/skillmitra-logo.png?v=2" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
+              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
             </Link>
           </div>
 

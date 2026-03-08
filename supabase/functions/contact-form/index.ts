@@ -59,7 +59,22 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const { error: dbError } = await supabase
+    // Rate limiting: max 3 submissions per email per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: recentCount, error: countError } = await supabase
+      .from("contact_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("email", email)
+      .gte("created_at", oneHourAgo);
+
+    if (countError) {
+      console.error("Rate limit check error:", countError);
+    } else if (recentCount !== null && recentCount >= 3) {
+      return new Response(JSON.stringify({ error: "Too many submissions. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
       .from("contact_messages")
       .insert({ name, email, phone: phone || null, subject, message });
 

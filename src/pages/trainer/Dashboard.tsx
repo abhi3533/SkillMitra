@@ -22,6 +22,7 @@ const TrainerDashboard = () => {
     todaySessions: [] as any[], reviews: [] as any[], recentEnrollments: [] as any[],
     unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
+  useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {
     if (!user) return;

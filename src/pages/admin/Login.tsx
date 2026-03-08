@@ -35,7 +35,7 @@ const AdminLogin = () => {
         await supabase.auth.signOut();
         throw new Error("You do not have admin access.");
       }
-      navigate("/admin");
+      navigate("/admin/dashboard");
       toast({ title: "Welcome, Admin!", variant: "success" as any });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });

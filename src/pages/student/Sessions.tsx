@@ -17,6 +17,8 @@ const StudentSessions = () => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [tab, setTab] = useState("upcoming");
   const [ratingModal, setRatingModal] = useState<any>(null);
+  const [reflectionModal, setReflectionModal] = useState<any>(null);
+  const [reflectedIds, setReflectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;

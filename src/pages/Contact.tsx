@@ -48,14 +48,22 @@ const Contact = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.from("contact_messages").insert(form);
-    setLoading(false);
-    if (error) {
-      toast({ title: "Failed to send", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Thank you! We will reply within 24 hours." });
+    try {
+      const { data, error } = await supabase.functions.invoke("contact-form", {
+        body: form,
+      });
+      if (error) throw error;
+      toast({
+        title: "Your message has been sent successfully!",
+        description: "We will get back to you within 24 hours.",
+      });
       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
       setTouched({});
+      setEmailTypo(null);
+    } catch (err: any) {
+      toast({ title: "Failed to send", description: err.message || "Something went wrong", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 

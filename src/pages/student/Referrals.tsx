@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Copy, Share2, Gift, Users, Wallet, MessageCircle, Link2 } from "lucide-react";
+import { Copy, Share2, Gift, Users, Wallet, MessageCircle, Link2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";

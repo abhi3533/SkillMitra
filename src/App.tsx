@@ -74,6 +74,8 @@ import AdminWallets from "./pages/admin/AdminWallets";
 import AdminAttendance from "./pages/admin/AdminAttendance";
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminSettings from "./pages/admin/Settings";
+import AdminCommunications from "./pages/admin/Communications";
 
 // Parent
 import ParentLogin from "./pages/parent/Login";

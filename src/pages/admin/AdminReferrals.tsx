@@ -42,7 +42,7 @@ const AdminReferrals = () => {
       // Enrich trainer referrals
       const tData = tRefs || [];
       const tTrainerIds = [...new Set([...tData.map(r => r.referrer_id), ...tData.map(r => r.referred_id).filter(Boolean)])];
-      let enrichedT = tData;
+      let enrichedT: any[] = tData;
       if (tTrainerIds.length > 0) {
         const { data: trainers } = await supabase.from("trainers").select("id, user_id").in("id", tTrainerIds);
         const userIds = (trainers || []).map(t => t.user_id);

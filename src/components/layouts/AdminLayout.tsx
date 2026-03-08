@@ -19,6 +19,8 @@ const sidebarItems = [
   { label: "Certificates", icon: Award, path: "/admin/certificates" },
   { label: "Ratings", icon: Star, path: "/admin/ratings" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
+  { label: "Communications", icon: Megaphone, path: "/admin/communications" },
+  { label: "Settings", icon: Settings, path: "/admin/settings" },
   { label: "Messages", icon: Mail, path: "/admin/messages" },
 ];
 

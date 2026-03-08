@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Wifi, WifiOff } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Wifi, WifiOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 
 const StudentLogin = () => {
@@ -14,24 +16,27 @@ const StudentLogin = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [connStatus, setConnStatus] = useState<"checking" | "connected" | "failed">("checking");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, role } = useAuth();
 
-  // Test Supabase connectivity on mount
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (user && role) {
+      if (role === "admin") navigate("/admin", { replace: true });
+      else if (role === "trainer") navigate("/trainer/dashboard", { replace: true });
+      else navigate("/student/dashboard", { replace: true });
+    }
+  }, [user, role]);
+
   useEffect(() => {
     const testConnection = async () => {
       try {
         const { error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("[SkillMitra] Supabase auth error:", error.message);
-          setConnStatus("failed");
-        } else {
-          console.log("[SkillMitra] Supabase connection OK — URL:", import.meta.env.VITE_SUPABASE_URL);
-          setConnStatus("connected");
-        }
-      } catch (err) {
-        console.error("[SkillMitra] Supabase unreachable:", err);
+        setConnStatus(error ? "failed" : "connected");
+      } catch {
         setConnStatus("failed");
       }
     };
@@ -43,18 +48,31 @@ const StudentLogin = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      // Check role and redirect accordingly
-      const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
-      
-      if (roleData === "trainer") {
-        navigate("/trainer/dashboard");
-      } else if (roleData === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/student/dashboard");
+      if (error) {
+        if (error.message?.includes("Email not confirmed")) {
+          toast({
+            title: "Email not verified",
+            description: "Please verify your email first. Check your inbox for the confirmation link.",
+            variant: "destructive",
+            action: (
+              <Button variant="outline" size="sm" onClick={async () => {
+                await supabase.auth.resend({ type: "signup", email });
+                toast({ title: "Verification email resent!" });
+              }}>
+                Resend
+              </Button>
+            ),
+          });
+          setLoading(false);
+          return;
+        }
+        throw error;
       }
+
+      const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
+      if (roleData === "trainer") navigate("/trainer/dashboard");
+      else if (roleData === "admin") navigate("/admin");
+      else navigate("/student/dashboard");
       toast({ title: "Welcome back!" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
@@ -104,11 +122,19 @@ const StudentLogin = () => {
                 </button>
               </div>
             </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
+                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
+              </div>
+              <Link to="/forgot-password?role=student" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
+            </div>
+
             <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
-              {loading ? "Signing in..." : "Sign In"} {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
             </Button>
 
-            {/* Connection status indicator */}
             <div className="flex items-center justify-center gap-2 text-xs">
               {connStatus === "checking" && <span className="text-muted-foreground">Checking connection...</span>}
               {connStatus === "connected" && (

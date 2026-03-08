@@ -1,22 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { motion } from "framer-motion";
-import { Search, Star, BadgeCheck } from "lucide-react";
+import { Search, Star, BadgeCheck, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { demoTrainers, getDemoCourse } from "@/lib/demoData";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+const ALL_SKILLS = [
+  "Python", "Data Science", "Machine Learning", "React", "Node.js", "JavaScript",
+  "Figma", "UI Design", "SEO", "Digital Marketing", "Accounting", "Tally",
+  "Public Speaking", "Interview Prep", "MongoDB", "Web Design", "GST",
+];
+const ALL_LANGUAGES = ["English", "Hindi", "Telugu", "Tamil", "Malayalam", "Marathi", "Urdu", "Kannada"];
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 const BrowseTrainers = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("popular");
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filters
+  const [selectedSkill, setSelectedSkill] = useState<string>("");
+  const [priceRange, setPriceRange] = useState<[number, number]>([500, 10000]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [genderPref, setGenderPref] = useState<string>("");
+  const [minRating, setMinRating] = useState<number>(0);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
   usePageMeta("Browse Expert Trainers — SkillMitra", "Find verified industry experts for 1:1 personal training. Filter by skill, language, and budget.");
 
   useEffect(() => {
@@ -29,116 +49,291 @@ const BrowseTrainers = () => {
         const profileMap = await fetchProfilesMap(userIds);
         realTrainers = trainerData.map(t => ({ ...t, profile: profileMap[t.user_id] }));
       }
-      // Merge with demo trainers (avoid duplicates if real data exists)
-      const allTrainers = [...realTrainers, ...demoTrainers];
-      setTrainers(allTrainers);
+      setTrainers([...realTrainers, ...demoTrainers]);
       setLoading(false);
     })();
   }, []);
 
-  const filtered = trainers.filter(t => {
-    const q = search.toLowerCase();
-    const name = t.profile?.full_name?.toLowerCase() || "";
-    const role = t.current_role?.toLowerCase() || "";
-    const skills = (t.skills || []).join(" ").toLowerCase();
-    const company = t.current_company?.toLowerCase() || "";
-    return name.includes(q) || role.includes(q) || skills.includes(q) || company.includes(q);
-  });
+  const toggleLang = (lang: string) => setSelectedLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
+  const toggleDay = (day: string) => setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "rating") return (Number(b.average_rating) || 0) - (Number(a.average_rating) || 0);
-    return (b.total_students || 0) - (a.total_students || 0);
-  });
+  const activeFilterCount = [
+    selectedSkill, selectedLanguages.length > 0, genderPref, minRating > 0, selectedDays.length > 0,
+    priceRange[0] !== 500 || priceRange[1] !== 10000,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setSelectedSkill(""); setPriceRange([500, 10000]); setSelectedLanguages([]);
+    setGenderPref(""); setMinRating(0); setSelectedDays([]);
+  };
+
+  const filtered = useMemo(() => {
+    return trainers.filter(t => {
+      const q = search.toLowerCase();
+      const name = t.profile?.full_name?.toLowerCase() || "";
+      const role = t.current_role?.toLowerCase() || "";
+      const skills = (t.skills || []).join(" ").toLowerCase();
+      const company = t.current_company?.toLowerCase() || "";
+      if (q && !name.includes(q) && !role.includes(q) && !skills.includes(q) && !company.includes(q)) return false;
+
+      if (selectedSkill && !(t.skills || []).some((s: string) => s.toLowerCase().includes(selectedSkill.toLowerCase()))) return false;
+      if (selectedLanguages.length > 0 && !selectedLanguages.some(l => (t.teaching_languages || []).includes(l))) return false;
+      if (minRating > 0 && (Number(t.average_rating) || 0) < minRating) return false;
+
+      // Price filter via demo courses
+      const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
+      if (demoCourse) {
+        if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
+      }
+
+      return true;
+    });
+  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedDays]);
+
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "rating") return (Number(b.average_rating) || 0) - (Number(a.average_rating) || 0);
+      if (sortBy === "price_low") {
+        const aFee = a.id?.startsWith("demo-") ? (getDemoCourse(a.id)?.[0]?.fee || 0) : 0;
+        const bFee = b.id?.startsWith("demo-") ? (getDemoCourse(b.id)?.[0]?.fee || 0) : 0;
+        return aFee - bFee;
+      }
+      if (sortBy === "newest") return (b.experience_years || 0) - (a.experience_years || 0);
+      return (b.total_students || 0) - (a.total_students || 0);
+    });
+  }, [filtered, sortBy]);
+
+  const FilterSidebar = () => (
+    <div className="space-y-6">
+      {/* Skill */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Skill</label>
+        <Select value={selectedSkill} onValueChange={setSelectedSkill}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="All Skills" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Skills</SelectItem>
+            {ALL_SKILLS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Price Range */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Price Range</label>
+        <div className="mt-3 px-1">
+          <Slider
+            min={500} max={10000} step={500}
+            value={priceRange}
+            onValueChange={(v) => setPriceRange(v as [number, number])}
+          />
+          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+            <span>₹{priceRange[0].toLocaleString()}</span>
+            <span>₹{priceRange[1].toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Language */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Language</label>
+        <div className="mt-2 space-y-2">
+          {ALL_LANGUAGES.map(lang => (
+            <label key={lang} className="flex items-center gap-2 cursor-pointer">
+              <Checkbox checked={selectedLanguages.includes(lang)} onCheckedChange={() => toggleLang(lang)} />
+              <span className="text-sm text-foreground">{lang}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Gender Preference */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Gender Preference</label>
+        <Select value={genderPref} onValueChange={setGenderPref}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="No Preference" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">No Preference</SelectItem>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Min Rating */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Minimum Rating</label>
+        <div className="flex gap-1.5 mt-2">
+          {[0, 3, 4, 4.5].map(r => (
+            <button key={r} onClick={() => setMinRating(r)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${minRating === r ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:border-primary/30'}`}>
+              {r === 0 ? "All" : <><Star className="w-3 h-3 fill-current" />{r}+</>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Availability */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Availability</label>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {DAYS.map(day => (
+            <button key={day} onClick={() => toggleDay(day)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${selectedDays.includes(day) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:border-primary/30'}`}>
+              {day}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {activeFilterCount > 0 && (
+        <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full text-xs text-muted-foreground">
+          Clear all filters
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="bg-white border-b border-border pt-24 pb-10 lg:pt-28 lg:pb-14">
+      <div className="bg-card border-b border-border pt-24 pb-10 lg:pt-28 lg:pb-14">
         <div className="container mx-auto px-4 lg:px-8">
-          <h1 className="text-2xl lg:text-3xl font-bold" style={{ color: "#0F172A" }}>Browse Expert Trainers</h1>
-          <p className="mt-2" style={{ color: "#64748B" }}>Find your perfect mentor from our verified industry experts</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Browse Expert Trainers</h1>
+          <p className="mt-2 text-muted-foreground">Find your perfect mentor from our verified industry experts</p>
           <div className="mt-6 relative max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by skill, trainer name, or role..." className="pl-12 h-12 bg-white border border-border text-foreground text-base rounded-xl shadow-sm" />
+            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by skill, trainer name, or role..."
+              className="pl-12 h-12 bg-background border border-border text-foreground text-base rounded-xl shadow-sm" />
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground">Showing <span className="font-semibold text-foreground">{sorted.length}</span> trainers</p>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px] h-9 text-sm"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="popular">Most Popular</SelectItem>
-              <SelectItem value="rating">Top Rated</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="flex gap-8">
+          {/* Desktop Filter Sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-24 bg-card rounded-xl border border-border p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <SlidersHorizontal className="w-4 h-4" /> Filters
+                  {activeFilterCount > 0 && <span className="ml-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">{activeFilterCount}</span>}
+                </h3>
+              </div>
+              <FilterSidebar />
+            </div>
+          </aside>
 
-        {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-52 animate-pulse rounded-xl bg-muted" />)}
-          </div>
-        ) : sorted.length === 0 ? (
-          <div className="text-center py-16">
-            <BadgeCheck className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-            <p className="text-muted-foreground mt-3">No trainers match your search.</p>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {sorted.map((t, i) => {
-              const name = t.profile?.full_name || "Trainer";
-              const avatarColor = t.avatarColor;
-              const initials = name.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
-              const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{sorted.length}</span> trainers found
+              </p>
+              <div className="flex items-center gap-2">
+                {/* Mobile filter toggle */}
+                <Button variant="outline" size="sm" className="lg:hidden text-xs gap-1.5" onClick={() => setShowFilters(true)}>
+                  <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
+                  {activeFilterCount > 0 && <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">{activeFilterCount}</span>}
+                </Button>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="popular">Most Popular</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="price_low">Lowest Price</SelectItem>
+                    <SelectItem value="newest">Most Experienced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-              return (
-                <motion.div key={t.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                  <Link to={`/trainer/${t.id}`} className="block group">
-                    <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300">
-                      <div className="p-5">
-                        <div className="flex items-start gap-3">
-                          <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: avatarColor ? `${avatarColor}15` : 'hsl(var(--primary) / 0.1)' }}
-                          >
-                            <span className="font-bold" style={{ color: avatarColor || 'hsl(var(--primary))' }}>{initials}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="font-semibold text-foreground text-sm truncate">{name}</h3>
-                              <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+            {loading ? (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-52 animate-pulse rounded-xl bg-muted" />)}
+              </div>
+            ) : sorted.length === 0 ? (
+              <div className="text-center py-16">
+                <BadgeCheck className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+                <p className="text-muted-foreground mt-3">No trainers match your filters.</p>
+                {activeFilterCount > 0 && <Button variant="outline" size="sm" className="mt-3" onClick={clearFilters}>Clear Filters</Button>}
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {sorted.map((t, i) => {
+                  const name = t.profile?.full_name || "Trainer";
+                  const avatarColor = t.avatarColor;
+                  const initials = name.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
+                  const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
+
+                  return (
+                    <motion.div key={t.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                      <Link to={`/trainer/${t.id}`} className="block group">
+                        <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+                          <div className="p-5">
+                            <div className="flex items-start gap-3">
+                              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: avatarColor ? `${avatarColor}15` : 'hsl(var(--primary) / 0.1)' }}>
+                                <span className="font-bold" style={{ color: avatarColor || 'hsl(var(--primary))' }}>{initials}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <h3 className="font-semibold text-foreground text-sm truncate">{name}</h3>
+                                  <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                                </div>
+                                <p className="text-xs text-muted-foreground">{t.current_role || "Trainer"}</p>
+                              </div>
+                              {t.subscription_plan === "elite" && <span className="text-[9px] font-bold px-2 py-0.5 rounded gold-gradient text-accent-foreground">ELITE</span>}
                             </div>
-                            <p className="text-xs text-muted-foreground">{t.current_role || "Trainer"}</p>
+                            {t.current_company && <p className="mt-1 text-xs text-accent font-medium">{t.current_company}</p>}
+                            <div className="flex flex-wrap gap-1 mt-3">
+                              {(t.skills || []).slice(0, 3).map((s: string) => (
+                                <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
+                              ))}
+                            </div>
+                            {demoCourse && (
+                              <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{demoCourse.fee.toLocaleString()}</span></p>
+                            )}
                           </div>
-                          {t.subscription_plan === "elite" && <span className="text-[9px] font-bold px-2 py-0.5 rounded gold-gradient text-accent-foreground">ELITE</span>}
+                          <div className="px-5 py-3 border-t border-border flex items-center justify-between bg-secondary/30">
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 text-accent fill-accent" />
+                              <span className="text-sm font-semibold text-foreground">{Number(t.average_rating) > 0 ? t.average_rating : "New"}</span>
+                            </div>
+                            <Button size="sm" variant="outline" className="text-[11px] h-7 px-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              Book Free Trial
+                            </Button>
+                            <span className="text-sm text-muted-foreground">{t.total_students || 0} students</span>
+                          </div>
                         </div>
-                        {t.current_company && <p className="mt-1 text-xs text-accent font-medium">{t.current_company}</p>}
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {(t.skills || []).slice(0, 3).map((s: string) => (
-                            <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
-                          ))}
-                        </div>
-                        {demoCourse && (
-                          <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{demoCourse.fee.toLocaleString()}</span></p>
-                        )}
-                      </div>
-                      <div className="px-5 py-3 border-t border-border flex items-center justify-between bg-secondary/30">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-accent fill-accent" />
-                          <span className="text-sm font-semibold text-foreground">{Number(t.average_rating) > 0 ? t.average_rating : "New"}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">{t.total_students || 0} students</span>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Mobile Filter Drawer */}
+      {showFilters && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => setShowFilters(false)} />
+          <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+            className="absolute right-0 top-0 bottom-0 w-80 bg-background border-l border-border overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="font-semibold text-foreground">Filters</h3>
+              <button onClick={() => setShowFilters(false)}><X className="w-5 h-5 text-muted-foreground" /></button>
+            </div>
+            <div className="p-4">
+              <FilterSidebar />
+            </div>
+            <div className="p-4 border-t border-border">
+              <Button className="w-full" onClick={() => setShowFilters(false)}>Apply Filters</Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
       <Footer />
     </div>
   );

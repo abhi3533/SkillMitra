@@ -46,6 +46,7 @@ import TrainerEarnings from "./pages/trainer/Earnings";
 import TrainerCertificates from "./pages/trainer/Certificates";
 import TrainerSchedule from "./pages/trainer/Schedule";
 import TrainerWallet from "./pages/trainer/Wallet";
+import TrainerReferrals from "./pages/trainer/Referrals";
 
 // Admin
 import AdminLogin from "./pages/admin/Login";

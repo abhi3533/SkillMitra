@@ -45,10 +45,27 @@ const StudentLogin = () => {
     testConnection();
   }, []);
 
+  const signInWithTimeout = async (email: string, password: string, timeoutMs = 10000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const result = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out. Please try again.")), timeoutMs)
+        ),
+      ]);
+      clearTimeout(timer);
+      return result;
+    } catch (err) {
+      clearTimeout(timer);
+      throw err;
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check lockout
     const lockStatus = checkLoginLocked(email);
     if (lockStatus.locked) {
       setLocked(lockStatus);
@@ -56,48 +73,74 @@ const StudentLogin = () => {
     }
 
     setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        if (error.message?.includes("Email not confirmed")) {
-          toast({
-            title: "Email not verified",
-            description: "Please verify your email first. Check your inbox for the confirmation link.",
-            variant: "destructive",
-            action: (
-              <Button variant="outline" size="sm" onClick={async () => {
-                await supabase.auth.resend({ type: "signup", email });
-                toast({ title: "Verification email resent!" });
-              }}>
-                Resend
-              </Button>
-            ),
-          });
-          setLoading(false);
-          return;
-        }
-        // Record failed attempt
-        const result = recordFailedAttempt(email);
-        if (result.locked) {
-          setLocked(result);
-          setLoading(false);
-          return;
-        }
-        throw error;
-      }
+    const maxRetries = 3;
+    let lastError: any = null;
 
-      clearLoginAttempts(email);
-      const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
-      if (roleData === "trainer") navigate("/trainer/dashboard");
-      else if (roleData === "admin") navigate("/admin");
-      else navigate("/student/dashboard");
-      toast({ title: "Signed in successfully" });
-    } catch (err: any) {
-      toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
-    } finally {
-      setLoading(false);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const { data, error } = await signInWithTimeout(email, password, 10000);
+        if (error) {
+          if (error.message?.includes("Email not confirmed")) {
+            toast({
+              title: "Email not verified",
+              description: "Please verify your email first. Check your inbox for the confirmation link.",
+              variant: "destructive",
+              action: (
+                <Button variant="outline" size="sm" onClick={async () => {
+                  await supabase.auth.resend({ type: "signup", email });
+                  toast({ title: "Verification email resent!" });
+                }}>
+                  Resend
+                </Button>
+              ),
+            });
+            setLoading(false);
+            return;
+          }
+          // Auth errors (wrong password etc) — don't retry
+          if (error.message?.includes("Invalid login") || error.message?.includes("invalid_credentials")) {
+            const result = recordFailedAttempt(email);
+            if (result.locked) {
+              setLocked(result);
+              setLoading(false);
+              return;
+            }
+            throw error;
+          }
+          // Network/server errors — retry
+          lastError = error;
+          if (attempt < maxRetries) continue;
+          throw error;
+        }
+
+        clearLoginAttempts(email);
+        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
+        if (roleData === "trainer") navigate("/trainer/dashboard");
+        else if (roleData === "admin") navigate("/admin");
+        else navigate("/student/dashboard");
+        toast({ title: "Signed in successfully" });
+        return;
+      } catch (err: any) {
+        lastError = err;
+        if (attempt < maxRetries && (err.message?.includes("timed out") || err.message?.includes("fetch"))) {
+          continue; // retry on timeout/network errors
+        }
+      }
     }
+
+    toast({ title: "Login failed", description: getAuthErrorMessage(lastError), variant: "destructive" });
+    setLoading(false);
   };
+
+  // Safety timeout — never block spinner for more than 15s
+  useEffect(() => {
+    if (!loading) return;
+    const safety = setTimeout(() => {
+      setLoading(false);
+      toast({ title: "Something went wrong", description: "Server is taking too long. Please try again.", variant: "destructive" });
+    }, 15000);
+    return () => clearTimeout(safety);
+  }, [loading]);
 
   return (
     <div className="min-h-screen bg-background flex">

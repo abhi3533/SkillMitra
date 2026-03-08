@@ -16,6 +16,8 @@ type EmailType =
   | 'trainer_welcome'
   | 'enrollment_confirmation' 
   | 'session_reminder'
+  | 'student_trainer_match'
+  | 'trainer_student_match'
 
 interface EmailPayload {
   type: EmailType
@@ -141,6 +143,39 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
             ${data.meet_link ? `<p style="font-size: 13px; margin: 4px 0 0;"><a href="${data.meet_link}" style="color: ${BRAND_COLOR};">Join Meeting</a></p>` : ''}
           </div>
           ${data.meet_link ? btn('Join Session', data.meet_link) : ''}
+        `)
+      }
+
+    case 'student_trainer_match':
+      return {
+        subject: `🎯 ${data.trainer_count || ''} Trainers matched for you, ${name}!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Great news, ${name}! 🎯</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">We've found <strong>${data.trainer_count || 'some'} trainer(s)</strong> on SkillMitra who match your profile and preferences.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 16px;">Here are your top matches:</p>
+          ${data.trainer_cards_html || ''}
+          <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 16px;">Book a <strong>free trial session</strong> to find your perfect trainer!</p>
+          ${btn('Browse All Trainers', `${APP_URL}/browse-trainers`)}
+        `)
+      }
+
+    case 'trainer_student_match':
+      const reasons = data.match_reasons?.length
+        ? `<p style="font-size: 14px; color: #444; margin-top: 8px;"><strong>Why you matched:</strong> ${data.match_reasons.join(' · ')}</p>`
+        : ''
+      return {
+        subject: `🆕 New student ${data.student_name || ''} just joined SkillMitra!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Student Match! 🆕</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A new student just signed up who matches your profile:</p>
+          <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 16px 0; background: #f9fafb;">
+            <p style="font-size: 16px; font-weight: 600; color: #111; margin: 0;">📚 ${data.student_name || 'New Student'}</p>
+            ${data.student_city || data.student_state ? `<p style="font-size: 13px; color: #666; margin: 4px 0 0;">📍 ${[data.student_city, data.student_state].filter(Boolean).join(', ')}</p>` : ''}
+            ${reasons}
+          </div>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Make sure your courses are up-to-date and your availability is set so students can find and book you easily!</p>
+          ${btn('View Your Dashboard', `${APP_URL}/trainer/dashboard`)}
         `)
       }
 

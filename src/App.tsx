@@ -30,6 +30,7 @@ import AIInterview from "./pages/student/AIInterview";
 import ResumeBuilder from "./pages/student/ResumeBuilder";
 import StudentCertificates from "./pages/student/StudentCertificates";
 import StudentProfile from "./pages/student/StudentProfile";
+import StudentWallet from "./pages/student/Wallet";
 
 // Trainer
 import TrainerLogin from "./pages/trainer/Login";

@@ -235,10 +235,22 @@ const TrainerSignup = () => {
 
       const userId = authData.user.id;
 
+      // Upload profile photo
+      let profilePictureUrl: string | null = null;
+      if (profilePhoto) {
+        const ext = profilePhoto.name.split('.').pop();
+        const photoPath = `${userId}/profile.${ext}`;
+        const { error: photoErr } = await supabase.storage.from("profile-pictures").upload(photoPath, profilePhoto, { upsert: true });
+        if (photoErr) throw new Error(`Profile photo upload failed: ${photoErr.message}`);
+        const { data: photoUrl } = supabase.storage.from("profile-pictures").getPublicUrl(photoPath);
+        profilePictureUrl = photoUrl.publicUrl;
+      }
+
       await supabase.from("profiles").update({
         city: form.city || null,
         state: form.state || null,
         gender: form.gender || null,
+        profile_picture_url: profilePictureUrl,
       }).eq("id", userId);
 
       const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", userId).single();

@@ -17,7 +17,7 @@ const Navbar = () => {
 
   const navBg = scrolled
     ? "bg-white/95 backdrop-blur-md border-b border-border shadow-sm"
-    : "bg-transparent";
+    : "bg-white border-b border-transparent";
 
   const linkColor = "text-muted-foreground hover:text-foreground";
 

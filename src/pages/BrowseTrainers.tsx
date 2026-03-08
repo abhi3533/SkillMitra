@@ -204,14 +204,14 @@ const BrowseTrainers = () => {
     return [...filtered].sort((a, b) => {
       if (sortBy === "rating") return (Number(b.average_rating) || 0) - (Number(a.average_rating) || 0);
       if (sortBy === "price_low") {
-        const aFee = a.id?.startsWith("demo-") ? (getDemoCourse(a.id)?.[0]?.fee || 0) : 0;
-        const bFee = b.id?.startsWith("demo-") ? (getDemoCourse(b.id)?.[0]?.fee || 0) : 0;
+        const aFee = a.id?.startsWith("demo-") ? (getDemoCourse(a.id)?.[0]?.fee || 0) : (courseFeeMap[a.id] || 0);
+        const bFee = b.id?.startsWith("demo-") ? (getDemoCourse(b.id)?.[0]?.fee || 0) : (courseFeeMap[b.id] || 0);
         return aFee - bFee;
       }
       if (sortBy === "newest") return (b.experience_years || 0) - (a.experience_years || 0);
       return (b.total_students || 0) - (a.total_students || 0);
     });
-  }, [filtered, sortBy]);
+  }, [filtered, sortBy, courseFeeMap]);
 
   const FilterSidebar = () => (
     <div className="space-y-6">

@@ -41,7 +41,7 @@ const StudentDashboard = () => {
       supabase.from("enrollments").select("*, courses(title, total_sessions)").eq("student_id", student.id).eq("status", "active"),
       supabase.from("ai_interviews").select("overall_score").eq("student_id", student.id).order("completed_at", { ascending: false }).limit(1),
       supabase.from("student_resumes").select("ats_score").eq("student_id", student.id).limit(1),
-      supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("status", "completed"),
+      supabase.from("course_sessions").select("id, enrollments!inner(student_id)", { count: "exact", head: true }).eq("status", "completed").eq("enrollments.student_id", student.id),
       supabase.from("certificates").select("id", { count: "exact", head: true }).eq("student_id", student.id),
       supabase.from("course_sessions").select("*, enrollments!inner(student_id, trainer_id, courses(title))").eq("enrollments.student_id", student.id).eq("status", "upcoming").order("scheduled_at", { ascending: true }).limit(5),
       supabase.from("wallets").select("balance").eq("user_id", user.id).single(),

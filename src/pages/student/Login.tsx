@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 import { checkLoginLocked, recordFailedAttempt, clearLoginAttempts } from "@/lib/loginProtection";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 const StudentLogin = () => {
   const [email, setEmail] = useState("");

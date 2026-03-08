@@ -35,6 +35,18 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Check 50 referral cap
+    const { count: refCount } = await supabase
+      .from('referrals')
+      .select('id', { count: 'exact', head: true })
+      .eq('referrer_id', referrer.id)
+
+    if ((refCount || 0) >= 50) {
+      return new Response(JSON.stringify({ success: false, error: 'Referrer has reached the maximum of 50 referrals' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // Find new student
     const { data: newStudent, error: nsErr } = await supabase
       .from('students')
@@ -70,86 +82,30 @@ Deno.serve(async (req) => {
 
     const REWARD = 200
 
-    // Create referral record
+    // Create referral record — status PENDING until first paid session
     await supabase.from('referrals').insert({
       referrer_id: referrer.id,
       referred_id: newStudent.id,
       referral_code: referral_code.toUpperCase().trim(),
       reward_amount: REWARD,
-      status: 'paid',
+      status: 'pending',
     })
 
     // Update referred_by on new student
     await supabase.from('students').update({ referred_by: referral_code.toUpperCase().trim() }).eq('id', newStudent.id)
 
-    // Credit referrer wallet
-    const { data: referrerWallet } = await supabase
-      .from('wallets')
-      .select('id, balance, total_earned')
-      .eq('user_id', referrer.user_id)
-      .single()
-
-    if (referrerWallet) {
-      await supabase.from('wallets').update({
-        balance: Number(referrerWallet.balance) + REWARD,
-        total_earned: Number(referrerWallet.total_earned) + REWARD,
-        last_updated: new Date().toISOString(),
-      }).eq('id', referrerWallet.id)
-
-      await supabase.from('wallet_transactions').insert({
-        wallet_id: referrerWallet.id,
-        user_id: referrer.user_id,
-        type: 'credit',
-        amount: REWARD,
-        description: 'Referral reward — new student signed up',
-        reference_id: newStudent.id,
-      })
-    }
-
-    // Credit new student wallet
-    const { data: newWallet } = await supabase
-      .from('wallets')
-      .select('id, balance, total_earned')
-      .eq('user_id', new_user_id)
-      .single()
-
-    if (newWallet) {
-      await supabase.from('wallets').update({
-        balance: Number(newWallet.balance) + REWARD,
-        total_earned: Number(newWallet.total_earned) + REWARD,
-        last_updated: new Date().toISOString(),
-      }).eq('id', newWallet.id)
-
-      await supabase.from('wallet_transactions').insert({
-        wallet_id: newWallet.id,
-        user_id: new_user_id,
-        type: 'credit',
-        amount: REWARD,
-        description: 'Welcome bonus — signed up with referral code',
-        reference_id: referrer.id,
-      })
-    }
-
-    // Update referrer credits on students table
-    await supabase.rpc('increment_referral_credits' as any, { student_id: referrer.id, amount: REWARD }).catch(() => {
-      // fallback: direct update
-      supabase.from('students').update({
-        referral_credits: Number(referrer.referral_code ? REWARD : 0),
-      }).eq('id', referrer.id)
-    })
-
     // Notify referrer
     await supabase.from('notifications').insert({
       user_id: referrer.user_id,
-      title: 'Referral Reward! 🎉',
-      body: `Someone signed up using your referral code! ₹${REWARD} has been added to your wallet.`,
+      title: 'New Referral! 🎉',
+      body: `Someone signed up using your referral code! You'll earn ₹${REWARD} when they complete their first paid session.`,
       type: 'referral',
-      action_url: '/student/wallet',
+      action_url: '/student/referrals',
     })
 
-    console.log(`✅ Referral processed: ${referral_code} → ₹${REWARD} each`)
+    console.log(`✅ Student referral created: ${referral_code} (pending)`)
 
-    return new Response(JSON.stringify({ success: true, reward: REWARD }), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error: unknown) {

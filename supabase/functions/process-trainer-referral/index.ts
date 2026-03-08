@@ -33,6 +33,18 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Check 50 referral cap
+    const { count: refCount } = await supabase
+      .from('trainer_referrals')
+      .select('id', { count: 'exact', head: true })
+      .eq('referrer_id', referrer.id)
+
+    if ((refCount || 0) >= 50) {
+      return new Response(JSON.stringify({ success: false, error: 'Referrer has reached the maximum of 50 referrals' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // Find new trainer
     const { data: newTrainer, error: ntErr } = await supabase
       .from('trainers')

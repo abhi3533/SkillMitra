@@ -103,7 +103,7 @@ const StudentLogin = () => {
       <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
           <Link to="/" className="flex items-center mb-12">
-            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10 brightness-0 invert" />
+            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block brightness-0 invert" style={{ background: 'transparent' }} />
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Welcome Back, Student!</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Continue your training journey with India's best trainers.</p>

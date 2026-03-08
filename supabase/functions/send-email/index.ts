@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
 const BRAND_COLOR = '#1A56DB'
@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
     const resData = await res.json()
     if (!res.ok) throw new Error(`Resend error [${res.status}]: ${JSON.stringify(resData)}`)
 
-    console.log(`✅ Email sent: ${type} → ${to}`, resData.id)
+    console.log(`✅ Email sent: ${body.type || 'direct'} → ${to}`, resData.id)
 
     return new Response(JSON.stringify({ success: true, email_id: resData.id }), {
       status: 200,

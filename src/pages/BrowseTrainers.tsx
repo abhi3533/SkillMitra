@@ -16,6 +16,7 @@ const BrowseTrainers = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  usePageMeta("Browse Expert Trainers — SkillMitra", "Find verified industry experts for 1:1 personal training. Filter by skill, language, and budget.");
 
   useEffect(() => {
     (async () => {

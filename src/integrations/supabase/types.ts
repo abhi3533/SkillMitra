@@ -97,6 +97,68 @@ export type Database = {
           },
         ]
       }
+      attendance: {
+        Row: {
+          enrollment_id: string
+          id: string
+          marked_at: string | null
+          marked_by: string
+          notes: string | null
+          session_id: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          enrollment_id: string
+          id?: string
+          marked_at?: string | null
+          marked_by: string
+          notes?: string | null
+          session_id: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          enrollment_id?: string
+          id?: string
+          marked_at?: string | null
+          marked_by?: string
+          notes?: string | null
+          session_id?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "course_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           certificate_id: string

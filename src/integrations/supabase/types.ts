@@ -1662,56 +1662,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_public_profile: {
-        Args: { profile_id: string }
-        Returns: {
-          p_city: string
-          p_full_name: string
-          p_gender: string
-          p_id: string
-          p_is_verified: boolean
-          p_profile_picture_url: string
-          p_state: string
-        }[]
-      }
-      get_public_ratings: {
-        Args: { p_trainer_id: string }
-        Returns: {
-          r_created_at: string
-          r_enrollment_id: string
-          r_id: string
-          r_student_communication_rating: number
-          r_student_id: string
-          r_student_punctuality_rating: number
-          r_student_rated_at: string
-          r_student_teaching_quality: number
-          r_student_to_trainer_rating: number
-          r_student_to_trainer_review: string
-          r_trainer_id: string
-        }[]
-      }
-      get_public_trainer_profile: {
-        Args: { trainer_row_id: string }
-        Returns: {
-          trainer_approval_status: string
-          trainer_average_rating: number
-          trainer_bio: string
-          trainer_boost_score: number
-          trainer_current_company: string
-          trainer_current_role: string
-          trainer_experience_years: number
-          trainer_id: string
-          trainer_intro_video_url: string
-          trainer_is_job_seeker: boolean
-          trainer_linkedin_url: string
-          trainer_previous_companies: string[]
-          trainer_skills: string[]
-          trainer_subscription_plan: string
-          trainer_teaching_languages: string[]
-          trainer_total_students: number
-          trainer_user_id: string
-        }[]
-      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1722,17 +1672,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      verify_certificate: {
-        Args: { cert_id: string }
-        Returns: {
-          c_certificate_id: string
-          c_course_name: string
-          c_is_valid: boolean
-          c_issue_date: string
-          c_student_id: string
-          c_trainer_id: string
-        }[]
       }
     }
     Enums: {

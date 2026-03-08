@@ -1,0 +1,1 @@
+ALTER TABLE public.students ADD COLUMN course_interests text[] DEFAULT '{}'::text[];

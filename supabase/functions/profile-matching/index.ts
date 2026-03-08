@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
       const { data: student } = await supabase
         .from('students')
-        .select('trainer_gender_preference, skills_learning')
+        .select('trainer_gender_preference, skills_learning, course_interests')
         .eq('user_id', new_user_id)
         .single()
 
@@ -87,6 +87,14 @@ Deno.serve(async (req) => {
           if (tProfile?.gender && tProfile.gender.toLowerCase() === student.trainer_gender_preference.toLowerCase()) {
             score += 4
           }
+        }
+
+        // Course interests match with trainer skills
+        if (student?.course_interests?.length && trainer.skills?.length) {
+          const skillOverlap = student.course_interests.filter((interest: string) =>
+            trainer.skills!.some((skill: string) => skill.toLowerCase() === interest.toLowerCase())
+          )
+          score += skillOverlap.length * 4 // Strong signal
         }
 
         // Rating bonus

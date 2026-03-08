@@ -15,6 +15,7 @@ import SkillMitraLogo from "@/components/SkillMitraLogo";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
+const courseInterestOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
 const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Kerala"];
 
 const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
@@ -27,6 +28,7 @@ const StudentSignup = () => {
   const [emailTypo, setEmailTypo] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [languages, setLanguages] = useState<string[]>([]);
+  const [courseInterests, setCourseInterests] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -38,6 +40,9 @@ const StudentSignup = () => {
 
   const toggleLang = (lang: string) => {
     setLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
+  };
+  const toggleInterest = (interest: string) => {
+    setCourseInterests(prev => prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]);
   };
 
   // Phone auto-clean
@@ -136,6 +141,13 @@ const StudentSignup = () => {
         },
       });
       if (error) throw error;
+
+      // Save course interests to students table
+      if (signupData?.user?.id && courseInterests.length > 0) {
+        supabase.from('students').update({ course_interests: courseInterests })
+          .eq('user_id', signupData.user.id)
+          .then(({ error: updErr }) => { if (updErr) console.error("Course interests save error:", updErr); });
+      }
 
       const trimmedCode = referralCode.trim().toUpperCase();
       if (trimmedCode && signupData?.user?.id) {
@@ -302,6 +314,27 @@ const StudentSignup = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <Label>Courses You're Interested In</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {courseInterestOptions.map(interest => (
+                  <button
+                    key={interest}
+                    type="button"
+                    onClick={() => toggleInterest(interest)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      courseInterests.includes(interest)
+                        ? "hero-gradient text-primary-foreground"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    {interest}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Select skills you want to learn — helps us match you with the right trainers</p>
             </div>
 
             <div>

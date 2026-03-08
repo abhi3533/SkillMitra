@@ -19,6 +19,7 @@ const StudentSignup = () => {
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", city: "", state: "", gender: "", password: "", trainerPref: "no_preference" });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [languages, setLanguages] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

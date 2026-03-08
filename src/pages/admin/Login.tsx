@@ -21,7 +21,7 @@ const AdminLogin = () => {
   const { user, role } = useAuth();
 
   useEffect(() => {
-    if (user && role === "admin") navigate("/admin", { replace: true });
+    if (user && role === "admin") navigate("/admin/dashboard", { replace: true });
   }, [user, role]);
 
   const handleLogin = async (e: React.FormEvent) => {

@@ -32,6 +32,7 @@ const HowItWorks = () => {
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default HowItWorks;

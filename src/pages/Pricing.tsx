@@ -31,6 +31,7 @@ const Pricing = () => {
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default Pricing;

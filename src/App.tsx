@@ -10,7 +10,7 @@ import CookieConsent from "@/components/CookieConsent";
 import ScrollToTop from "@/components/ScrollToTop";
 import AIChatBot from "@/components/AIChatBot";
 import RoleSelectionModal from "@/components/auth/RoleSelectionModal";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 
 // Critical: load eagerly

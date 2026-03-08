@@ -1,16 +1,47 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Search } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Search, LayoutDashboard, User, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import GlobalSearch from "@/components/GlobalSearch";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import { useAuth } from "@/hooks/useAuth";
+
+const navLinks = [
+  { label: "Browse Trainers", path: "/browse" },
+  { label: "How It Works", path: "/how-it-works" },
+  { label: "Become a Trainer", path: "/trainer/signup" },
+  { label: "Blog", path: "/blog" },
+  { label: "Contact", path: "/contact" },
+];
+
+const getRoleConfig = (role: string | null) => {
+  switch (role) {
+    case "student":
+      return { color: "bg-primary", dashboard: "/student/dashboard", profile: "/student/profile" };
+    case "trainer":
+      return { color: "bg-orange-500", dashboard: "/trainer/dashboard", profile: "/trainer/profile" };
+    case "admin":
+      return { color: "bg-purple-600", dashboard: "/admin", profile: "/admin/settings" };
+    default:
+      return { color: "bg-primary", dashboard: "/", profile: "/" };
+  }
+};
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, role, profile, signOut, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -26,6 +57,16 @@ const Navbar = () => {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const isLoggedIn = !!user && !!role;
+  const roleConfig = getRoleConfig(role);
+  const firstName = profile?.full_name?.split(" ")[0] || user?.user_metadata?.full_name?.split(" ")[0] || "";
+  const initial = firstName?.charAt(0)?.toUpperCase() || "U";
+
   const navBg = scrolled
     ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
     : "bg-background border-b border-transparent";
@@ -40,13 +81,7 @@ const Navbar = () => {
             <SkillMitraLogo darkText height={36} />
 
             <div className="hidden lg:flex items-center gap-1">
-              {[
-                { label: "Browse Trainers", path: "/browse" },
-                { label: "How It Works", path: "/how-it-works" },
-                { label: "Become a Trainer", path: "/trainer/signup" },
-                { label: "Blog", path: "/blog" },
-                { label: "Contact", path: "/contact" },
-              ].map(item => (
+              {navLinks.map(item => (
                 <Link key={item.path} to={item.path}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${linkColor}`}>
                   {item.label}
@@ -61,20 +96,80 @@ const Navbar = () => {
                 <span>Search...</span>
                 <kbd className="hidden xl:inline text-[10px] font-mono bg-background px-1.5 py-0.5 rounded border border-border">⌘K</kbd>
               </button>
-              <Link to="/student/login">
-                <Button variant="ghost" size="sm" className="font-medium">Log in</Button>
-              </Link>
-              <Link to="/student/signup">
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg px-5 transition-colors duration-200">
-                  Sign Up Free
-                </Button>
-              </Link>
+
+              {isLoggedIn ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors focus:outline-none">
+                      <div className={`w-8 h-8 rounded-full ${roleConfig.color} flex items-center justify-center text-white text-sm font-semibold`}>
+                        {initial}
+                      </div>
+                      <span className="text-sm font-medium text-foreground">Hi, {firstName}</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => navigate(roleConfig.dashboard)} className="cursor-pointer">
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      Go to Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(roleConfig.profile)} className="cursor-pointer">
+                      <User className="w-4 h-4 mr-2" />
+                      My Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Link to="/student/login">
+                    <Button variant="ghost" size="sm" className="font-medium">Log in</Button>
+                  </Link>
+                  <Link to="/student/signup">
+                    <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg px-5 transition-colors duration-200">
+                      Sign Up Free
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
+            {/* Mobile right side */}
             <div className="flex items-center gap-2 lg:hidden">
               <button onClick={() => setSearchOpen(true)} className="p-2 rounded-lg text-foreground">
                 <Search className="w-5 h-5" />
               </button>
+              {isLoggedIn && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="focus:outline-none">
+                      <div className={`w-8 h-8 rounded-full ${roleConfig.color} flex items-center justify-center text-white text-sm font-semibold`}>
+                        {initial}
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-3 py-2 text-sm font-medium text-foreground">Hi, {firstName}</div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate(roleConfig.dashboard)} className="cursor-pointer">
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      Go to Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(roleConfig.profile)} className="cursor-pointer">
+                      <User className="w-4 h-4 mr-2" />
+                      My Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg text-foreground">
                 {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -90,13 +185,7 @@ const Navbar = () => {
               className="lg:hidden fixed inset-0 top-16 bg-background z-40"
             >
               <div className="flex flex-col p-6 gap-2">
-                {[
-                  { label: "Browse Trainers", path: "/browse" },
-                  { label: "How It Works", path: "/how-it-works" },
-                  { label: "Become a Trainer", path: "/trainer/signup" },
-                  { label: "Blog", path: "/blog" },
-                  { label: "Contact", path: "/contact" },
-                ].map(item => (
+                {navLinks.map(item => (
                   <Link key={item.path} to={item.path}
                     className="px-4 py-3.5 rounded-lg text-base font-medium text-foreground hover:bg-muted transition-colors"
                     onClick={() => setMobileOpen(false)}>
@@ -104,14 +193,27 @@ const Navbar = () => {
                   </Link>
                 ))}
                 <hr className="border-border my-3" />
-                <Link to="/student/login" onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" className="w-full h-12 font-medium">Log in</Button>
-                </Link>
-                <Link to="/student/signup" onClick={() => setMobileOpen(false)}>
-                  <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
-                    Sign Up Free
-                  </Button>
-                </Link>
+                {isLoggedIn ? (
+                  <>
+                    <Link to={roleConfig.dashboard} onClick={() => setMobileOpen(false)}>
+                      <Button variant="outline" className="w-full h-12 font-medium">Go to Dashboard</Button>
+                    </Link>
+                    <Button variant="ghost" className="w-full h-12 font-medium text-destructive" onClick={() => { setMobileOpen(false); handleLogout(); }}>
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/student/login" onClick={() => setMobileOpen(false)}>
+                      <Button variant="outline" className="w-full h-12 font-medium">Log in</Button>
+                    </Link>
+                    <Link to="/student/signup" onClick={() => setMobileOpen(false)}>
+                      <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                        Sign Up Free
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </motion.div>
           )}

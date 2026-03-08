@@ -119,6 +119,12 @@ const TrainerDashboard = () => {
 
   return (
     <TrainerLayout>
+      {(pulling || refreshing) && (
+        <div className="pull-refresh-indicator">
+          <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing…" : "Pull to refresh"}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome, {firstName}! 👋</h1>

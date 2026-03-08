@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 import { motion } from "framer-motion";
 import { ArrowLeft, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,9 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <Link to="/" className="flex items-center justify-center mb-8">
-          <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-        </Link>
+        <div className="flex items-center justify-center mb-8">
+          <SkillMitraLogo darkText height={32} />
+        </div>
 
         <div className="bg-card rounded-xl border p-6 space-y-5">
           {sent ? (

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const skillOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
 const langOptions = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"];
@@ -238,9 +239,7 @@ const TrainerSignup = () => {
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
-          <Link to="/" className="flex items-center mb-12">
-            <span className="text-[22px] font-bold text-white tracking-tight">Skill<span className="text-blue-200">Mitra</span></span>
-          </Link>
+          <SkillMitraLogo darkText={false} height={40} className="mb-12" />
           <h2 className="text-3xl font-bold text-primary-foreground">Share your expertise. Earn from home.</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join verified trainers earning from home teaching skills they love.</p>
           <div className="mt-10 space-y-4">
@@ -262,9 +261,7 @@ const TrainerSignup = () => {
       <div className="flex-1 flex items-start justify-center p-6 lg:p-12 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-6">
-            <Link to="/" className="flex items-center">
-              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-            </Link>
+            <SkillMitraLogo darkText height={32} />
             <div className="flex items-center gap-1 mt-4">
               {steps.map((_, i) => (
                 <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= step ? "hero-gradient" : "bg-secondary"}`} />

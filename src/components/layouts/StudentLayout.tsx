@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell, Wallet, Calendar, ClipboardCheck } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -52,9 +53,7 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
         <button className="lg:hidden mr-4 p-1" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>
-        <Link to="/" className="flex items-center">
-          <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-        </Link>
+        <SkillMitraLogo darkText height={32} />
         <div className="flex-1" />
         <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted mr-2 transition-colors">
           <Bell className="w-5 h-5 text-muted-foreground" />

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Shield, BadgeCheck, IndianRupee, Video } from "lucide-react";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const trustBadges = [
   { icon: Shield, label: "Secure Payments", sub: "Powered by Razorpay" },
@@ -35,8 +36,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="col-span-1 sm:col-span-2 md:col-span-1">
             <div className="mb-5">
-              <span className="text-[22px] font-bold text-white tracking-tight">Skill<span className="text-blue-300">Mitra</span></span>
-              <p className="text-[11px] text-white/40 mt-1 tracking-wide">LEARN. GROW. SUCCEED.</p>
+              <SkillMitraLogo darkText={false} height={48} showTagline />
             </div>
             <p className="text-white/50 text-sm leading-relaxed">
               India's first 1:1 personal skill training platform. Learn from verified expert trainers from home in your own language.

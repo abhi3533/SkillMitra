@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp, Settings, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const sidebarItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
@@ -40,9 +41,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <button className="lg:hidden mr-4 p-1" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>
-        <Link to="/" className="flex items-center">
-          <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-        </Link>
+        <SkillMitraLogo darkText height={32} />
         <span className="ml-3 text-[10px] font-bold px-2 py-1 rounded-md bg-primary/10 text-primary uppercase tracking-wider">Admin</span>
         <div className="flex-1" />
         <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted mr-2 transition-colors">

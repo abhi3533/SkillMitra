@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
 const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Kerala"];
@@ -123,9 +124,7 @@ const StudentSignup = () => {
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
-          <Link to="/" className="flex items-center mb-12">
-            <span className="text-[22px] font-bold text-white tracking-tight">Skill<span className="text-blue-200">Mitra</span></span>
-          </Link>
+          <SkillMitraLogo darkText={false} height={40} className="mb-12" />
           <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join students learning from verified industry experts in their own language.</p>
           <div className="mt-8 space-y-3">
@@ -145,9 +144,7 @@ const StudentSignup = () => {
       <div className="flex-1 flex items-start justify-center p-6 lg:p-12 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-8">
-            <Link to="/" className="flex items-center">
-              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-            </Link>
+            <SkillMitraLogo darkText height={32} />
           </div>
 
           <h1 className="text-2xl font-bold text-foreground">Create Student Account</h1>

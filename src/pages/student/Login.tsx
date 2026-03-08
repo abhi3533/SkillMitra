@@ -23,6 +23,8 @@ const StudentLogin = () => {
   const [locked, setLocked] = useState<{ locked: boolean; minutesLeft: number }>({ locked: false, minutesLeft: 0 });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
   const { user, role } = useAuth();
 
   useEffect(() => {

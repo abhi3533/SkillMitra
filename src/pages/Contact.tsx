@@ -57,7 +57,7 @@ const Contact = () => {
                   <Mail className="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p className="font-semibold text-foreground">Email</p>
-                    <a href="mailto:Contact@skillmitra.online" className="text-sm text-primary hover:underline">Contact@skillmitra.online</a>
+                    <a href="mailto:contact@skillmitra.online" className="text-sm text-primary hover:underline">contact@skillmitra.online</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

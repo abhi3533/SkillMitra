@@ -38,7 +38,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserData = async (session: Session | null) => {
     if (session?.user) {
       const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: session.user.id });
+      if (!roleData) {
+        // New OAuth user — no role assigned yet
+        setNeedsRoleSelection(true);
+        setRole(null);
+        setProfile(null);
+        return;
+      }
       setRole(roleData as AppRole);
+      setNeedsRoleSelection(false);
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
@@ -48,6 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setRole(null);
       setProfile(null);
+      setNeedsRoleSelection(false);
     }
   };
 

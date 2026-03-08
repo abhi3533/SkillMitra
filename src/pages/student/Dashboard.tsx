@@ -67,6 +67,12 @@ const StudentDashboard = () => {
     const ratedSessionIds = new Set((existingRatings || []).map(r => r.session_id));
     const unrated = (completedSessionsList || []).filter(s => !ratedSessionIds.has(s.id));
 
+    // Fetch attendance
+    const { data: attendanceData } = await supabase.from("attendance").select("status").eq("student_id", student.id);
+    const totalAttendance = (attendanceData || []).length;
+    const presentCount = (attendanceData || []).filter(a => a.status === "present").length;
+    const attendancePercent = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : null;
+
     setData({
       activeCourses: enrollments.length,
       sessionsDone: completedSessions.count || 0,
@@ -79,6 +85,7 @@ const StudentDashboard = () => {
       certificates: certsRes.count || 0,
       referralCredits: Number(student.referral_credits) || 0,
       walletBalance: Number(walletRes.data?.balance) || 0,
+      attendancePercent,
     });
     setLoading(false);
   };

@@ -263,7 +263,7 @@ const TrainerSignup = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-6">
             <Link to="/" className="flex items-center">
-              <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
+              <img src="/skillmitra-logo.png?v=2" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
             </Link>
             <div className="flex items-center gap-1 mt-4">
               {steps.map((_, i) => (

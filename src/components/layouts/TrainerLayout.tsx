@@ -56,7 +56,7 @@ const TrainerLayout = ({ children }: { children: React.ReactNode }) => {
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>
         <Link to="/" className="flex items-center">
-          <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
+          <img src="/skillmitra-logo.png?v=2" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
         </Link>
         <div className="flex-1" />
         <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted mr-2 transition-colors">

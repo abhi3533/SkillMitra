@@ -16,7 +16,7 @@ const NotFound = () => {
       <div className="text-center max-w-md px-6">
         <div className="flex items-center justify-center mb-8">
           <Link to="/">
-            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
+            <img src="/skillmitra-logo.png?v=2" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
           </Link>
         </div>
         <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">

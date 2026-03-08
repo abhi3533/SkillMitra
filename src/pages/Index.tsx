@@ -194,7 +194,11 @@ const Index = () => {
           const studentIds = ratingsData.map(r => r.student_id);
           const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
           const sUserIds = (studentData || []).map(s => s.user_id);
-          const sProfileMap = await fetchProfilesMap(sUserIds);
+          const { data: sProfileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: sUserIds });
+          const sProfileMap: Record<string, any> = {};
+          (sProfileData || []).forEach((p: any) => {
+            sProfileMap[p.p_id] = { id: p.p_id, full_name: p.p_full_name, city: p.p_city, profile_picture_url: p.p_profile_picture_url };
+          });
           const studentMap: Record<string, any> = {};
           (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
           setRealReviews(ratingsData.map(r => ({ ...r, studentProfile: studentMap[r.student_id] })));

@@ -100,6 +100,7 @@ Deno.serve(async (req) => {
       const enrollment = s.enrollments as any
       const studentUserId = enrollment?.students?.user_id
       const courseTitle = enrollment?.courses?.title || s.title || `Session #${s.session_number}`
+      const time = new Date(s.scheduled_at!).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
       const { data: trainer } = await supabase.from('trainers').select('user_id').eq('id', s.trainer_id).single()
 
       for (const userId of [studentUserId, trainer?.user_id].filter(Boolean)) {
@@ -111,7 +112,16 @@ Deno.serve(async (req) => {
             body: `"${courseTitle}" starts in 1 hour. ${s.meet_link ? 'Click to join!' : ''}`,
             action_url: s.meet_link || s.id, icon: 'clock',
           })
-          results.push(`1h notification → ${userId}`)
+          // Send email reminder
+          const { data: profile } = await supabase.from('profiles').select('email, full_name').eq('id', userId!).single()
+          if (profile?.email) {
+            await sendEmail(supabaseUrl, serviceKey, {
+              type: 'session_reminder',
+              to: profile.email,
+              data: { name: profile.full_name || 'there', session_title: courseTitle, scheduled_time: time, meet_link: s.meet_link },
+            })
+          }
+          results.push(`1h notification + email → ${userId}`)
         }
       }
     }

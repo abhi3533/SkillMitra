@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard } from "lucide-react";
+import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +17,7 @@ const TrainerDashboard = () => {
     availableBalance: 0, totalSessions: 0, completedSessions: 0, upcomingSessions: 0,
     avgRating: 0, totalCourses: 0, approvalStatus: "pending",
     todaySessions: [] as any[], reviews: [] as any[], recentEnrollments: [] as any[],
+    unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const TrainerDashboard = () => {
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
 
-      const [enrollActive, enrollAll, sessAll, sessCompleted, sessUpcoming, earningsRes, todayRes, reviewsRes, coursesRes] = await Promise.all([
+      const [enrollActive, enrollAll, sessAll, sessCompleted, sessUpcoming, earningsRes, todayRes, reviewsRes, coursesRes, notifRes, walletRes] = await Promise.all([
         supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "active"),
         supabase.from("enrollments").select("*, courses(title), students(id, user_id)").eq("trainer_id", trainer.id).order("enrollment_date", { ascending: false }).limit(5),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
@@ -40,6 +41,8 @@ const TrainerDashboard = () => {
         supabase.from("course_sessions").select("*, enrollments!inner(student_id, courses(title))").eq("trainer_id", trainer.id).gte("scheduled_at", todayStart).lt("scheduled_at", todayEnd).order("scheduled_at", { ascending: true }),
         supabase.from("ratings").select("*").eq("trainer_id", trainer.id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
         supabase.from("courses").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
+        supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_read", false),
+        supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
       ]);
 
       const monthTotal = (earningsRes.data || []).reduce((s: number, e: any) => s + Number(e.trainer_payout || 0), 0);
@@ -96,6 +99,10 @@ const TrainerDashboard = () => {
         todaySessions: enrichedToday,
         reviews: enrichedReviews,
         recentEnrollments: enrichedEnrollments,
+        unreadNotifs: notifRes.count || 0,
+        walletBalance: Number(walletRes.data?.balance || 0),
+        todayCount: enrichedToday.length,
+        pendingAttendance: enrichedToday.filter((s: any) => s.status !== "completed").length,
       });
       setLoading(false);
     })();
@@ -138,14 +145,35 @@ const TrainerDashboard = () => {
         </div>
       )}
 
+      {/* Quick Stats */}
+      {!loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6">
+          {[
+            { label: "Today Sessions", value: String(data.todayCount), icon: Calendar, color: "text-primary", bg: "bg-primary/10", link: "/trainer/sessions" },
+            { label: "Pending Attendance", value: String(data.pendingAttendance), icon: ClipboardCheck, color: "text-amber-600", bg: "bg-amber-50", link: "/trainer/attendance" },
+            { label: "Wallet Balance", value: formatINR(data.walletBalance), icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/wallet" },
+            { label: "Unread Notifs", value: String(data.unreadNotifs), icon: Bell, color: "text-primary", bg: "bg-primary/10", link: "/notifications" },
+            { label: "Avg. Rating", value: data.avgRating > 0 ? `${data.avgRating.toFixed(1)} ★` : "—", icon: Star, color: "text-amber-600", bg: "bg-amber-50", link: "/trainer/reviews" },
+          ].map(card => (
+            <Link key={card.label} to={card.link}>
+              <div className="bg-card rounded-xl border p-4 hover:border-primary/20 transition-colors text-center">
+                <div className={`w-8 h-8 rounded-lg ${card.bg} flex items-center justify-center mx-auto mb-2`}>
+                  <card.icon className={`w-4 h-4 ${card.color}`} />
+                </div>
+                <p className="text-lg font-bold text-foreground">{card.value}</p>
+                <p className="text-[11px] text-muted-foreground">{card.label}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
         {[
           { label: "Active Students", value: loading ? "–" : String(data.activeStudents), icon: Users, color: "text-primary", bg: "bg-primary/10", link: "/trainer/students" },
           { label: "This Month", value: loading ? "–" : formatINR(data.monthEarnings), icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/earnings" },
           { label: "Available Balance", value: loading ? "–" : formatINR(data.availableBalance), icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/earnings" },
-          { label: "Avg. Rating", value: loading ? "–" : data.avgRating > 0 ? `${data.avgRating.toFixed(1)} ★` : "—", icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: "Total Courses", value: loading ? "–" : String(data.totalCourses), icon: BookOpen, color: "text-primary", bg: "bg-primary/10", link: "/trainer/courses" },
           { label: "Upcoming Sessions", value: loading ? "–" : String(data.upcomingSessions), icon: Clock, color: "text-primary", bg: "bg-primary/10", link: "/trainer/schedule" },
           { label: "Completed Sessions", value: loading ? "–" : String(data.completedSessions), icon: Calendar, color: "text-primary", bg: "bg-primary/10" },
           { label: "Total Earnings", value: loading ? "–" : formatINR(data.totalEarnings), icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50", link: "/trainer/earnings" },

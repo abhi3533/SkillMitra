@@ -102,9 +102,7 @@ const StudentLogin = () => {
     <div className="min-h-screen bg-background flex">
       <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
-          <Link to="/" className="flex items-center mb-12">
-            <span className="text-[22px] font-bold text-white tracking-tight">Skill<span className="text-blue-200">Mitra</span></span>
-          </Link>
+          <SkillMitraLogo darkText={false} height={40} className="mb-12" />
           <h2 className="text-3xl font-bold text-primary-foreground">Welcome Back, Student!</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Continue your training journey with India's best trainers.</p>
         </div>

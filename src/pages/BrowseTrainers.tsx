@@ -359,11 +359,20 @@ const BrowseTrainers = () => {
                       <Link to={`/trainer/${t.id}`} className="block group">
                         <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300">
                           <div className="p-5">
-                            <div className="flex items-start gap-3">
-                              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                                style={{ backgroundColor: avatarColor ? `${avatarColor}15` : 'hsl(var(--primary) / 0.1)' }}>
-                                <span className="font-bold" style={{ color: avatarColor || 'hsl(var(--primary))' }}>{initials}</span>
-                              </div>
+                          <div className="flex items-start gap-3">
+                              {t.profile?.profile_picture_url ? (
+                                <img src={t.profile.profile_picture_url} alt={name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                              ) : t.avatarUrl ? (
+                                <img src={t.avatarUrl} alt={name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                              ) : (
+                                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-muted">
+                                  {avatarColor ? (
+                                    <span className="font-bold" style={{ color: avatarColor }}>{initials}</span>
+                                  ) : (
+                                    <User className="w-6 h-6 text-muted-foreground" />
+                                  )}
+                                </div>
+                              )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
                                   <h3 className="font-semibold text-foreground text-sm truncate">{name}</h3>

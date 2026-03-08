@@ -1,22 +1,19 @@
 project_id = "huszmetnqxrividclgad"
 
-[functions.notify-trainer-status]
-verify_jwt = false
-
-[functions.send-email]
-verify_jwt = false
-
-[functions.process-referral]
-verify_jwt = false
-
-[functions.process-trainer-referral]
-verify_jwt = false
-
-[functions.smart-reminders]
-verify_jwt = false
-
-[functions.contact-form]
-verify_jwt = false
-
-[functions.ai-chat]
-verify_jwt = false
+[functions]
+  [functions.ai-chat]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.contact-form]
+    verify_jwt = false
+  [functions.notify-trainer-status]
+    verify_jwt = false
+  [functions.process-referral]
+    verify_jwt = false
+  [functions.process-trainer-referral]
+    verify_jwt = false
+  [functions.send-email]
+    verify_jwt = false
+  [functions.smart-reminders]
+    verify_jwt = false

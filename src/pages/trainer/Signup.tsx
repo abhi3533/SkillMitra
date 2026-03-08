@@ -243,11 +243,10 @@ const TrainerSignup = () => {
       <div className="flex-1 flex items-start justify-center p-6 lg:p-12 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-6">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg hero-gradient flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">S</span>
-              </div>
-              <span className="text-xl font-bold text-foreground">Skill<span className="text-accent">Mitra</span></span>
+            <Link to="/" className="flex items-center">
+              <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+                <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
+              </span>
             </Link>
             <div className="flex items-center gap-1 mt-4">
               {steps.map((_, i) => (

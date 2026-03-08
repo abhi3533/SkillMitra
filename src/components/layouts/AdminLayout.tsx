@@ -39,7 +39,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>
         <Link to="/" className="flex items-center">
-          <span className="text-[22px] font-bold text-foreground">Skill<span className="text-primary">Mitra</span></span>
+          <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+            <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
+          </span>
         </Link>
         <span className="ml-3 text-[10px] font-bold px-2 py-1 rounded-md bg-primary/10 text-primary uppercase tracking-wider">Admin</span>
         <div className="flex-1" />

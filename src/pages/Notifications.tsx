@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Bell, Check, ArrowLeft } from "lucide-react";
+import { Bell, Check, ArrowLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +38,7 @@ const Notifications = () => {
   };
 
   const backPath = role === "trainer" ? "/trainer/dashboard" : role === "admin" ? "/admin" : "/student/dashboard";
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const timeAgo = (date: string) => {
     const mins = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
@@ -51,7 +52,13 @@ const Notifications = () => {
       <header className="bg-card border-b px-4 lg:px-8 h-16 flex items-center gap-4">
         <Link to={backPath}><ArrowLeft className="w-5 h-5 text-muted-foreground" /></Link>
         <h1 className="text-lg font-bold text-foreground">Notifications</h1>
+        {unreadCount > 0 && <span className="text-xs bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full">{unreadCount}</span>}
         <div className="flex-1" />
+        <Link to="/notification-preferences">
+          <Button variant="ghost" size="sm" className="text-xs gap-1">
+            <Settings className="w-3.5 h-3.5" /> Preferences
+          </Button>
+        </Link>
         <Button variant="ghost" size="sm" onClick={markAllRead} className="text-xs">
           <Check className="w-3 h-3 mr-1" />Mark all read
         </Button>

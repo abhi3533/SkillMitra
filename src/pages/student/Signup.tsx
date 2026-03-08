@@ -99,7 +99,7 @@ const StudentSignup = () => {
             </span>
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>
-          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join 12,500+ students learning from verified industry experts in their own language.</p>
+          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join students learning from verified industry experts in their own language.</p>
           <div className="mt-8 space-y-3">
             {["1:1 Personal training", "Learn in your language", "Verified expert trainers", "Earn certificates"].map(b => (
               <div key={b} className="flex items-center gap-3">

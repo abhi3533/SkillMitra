@@ -127,7 +127,6 @@ const TrainerProfile = () => {
       description: trainer?.bio || `Personal 1:1 training by ${name}`,
     } : undefined,
   });
-  );
 
   if (loading) {
     return (

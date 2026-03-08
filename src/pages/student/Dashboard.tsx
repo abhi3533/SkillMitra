@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp } from "lucide-react";
+import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";

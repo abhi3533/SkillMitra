@@ -80,7 +80,7 @@ const TrainerProfile = () => {
       }
       setLoading(false);
     })();
-  }, [id]);
+  }, [resolvedId]);
 
   const name = trainer?.profile?.full_name || "Trainer";
   const avatarColor = trainer?.avatarColor || "#1A56DB";

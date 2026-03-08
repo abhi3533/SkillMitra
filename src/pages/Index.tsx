@@ -194,7 +194,10 @@ const Index = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             <CountUpStat value={demoStats.students} suffix="+" label="Students Enrolled" />
             <CountUpStat value={demoStats.trainers} suffix="+" label="Expert Trainers" />
-            <CountUpStat value={48} suffix="" label="4.8 Avg Rating" />
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-extrabold text-primary">4.8★</div>
+              <div className="mt-1 text-xs text-muted-foreground font-medium">Average Rating</div>
+            </div>
             <CountUpStat value={demoStats.successRate} suffix="%" label="Success Rate" />
             <CountUpStat value={demoStats.sessions} suffix="+" label="Sessions Completed" />
             <CountUpStat value={demoStats.skills} suffix="+" label="Skills Available" />

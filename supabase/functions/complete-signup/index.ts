@@ -1,0 +1,134 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { user_id, role, trainer_data, student_data } = await req.json();
+
+    if (!user_id || !role) {
+      return new Response(JSON.stringify({ error: "user_id and role are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    if (role === "trainer" && trainer_data) {
+      // Get the trainer record
+      const { data: trainer, error: trainerErr } = await supabaseAdmin
+        .from("trainers")
+        .select("id")
+        .eq("user_id", user_id)
+        .single();
+
+      if (trainerErr || !trainer) {
+        console.error("Trainer lookup failed:", trainerErr);
+        return new Response(JSON.stringify({ error: "Trainer profile not found", details: trainerErr?.message }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Update trainer details
+      const { error: updateErr } = await supabaseAdmin.from("trainers").update({
+        bio: trainer_data.bio || null,
+        skills: trainer_data.skills || [],
+        teaching_languages: trainer_data.teaching_languages || [],
+        experience_years: trainer_data.experience_years || 0,
+        current_role: trainer_data.current_role || null,
+        current_company: trainer_data.current_company || null,
+        linkedin_url: trainer_data.linkedin_url || null,
+        previous_companies: trainer_data.previous_companies || [],
+        bank_account_number: trainer_data.bank_account_number || null,
+        ifsc_code: trainer_data.ifsc_code || null,
+        upi_id: trainer_data.upi_id || null,
+        pan_number: trainer_data.pan_number || null,
+        account_holder_name: trainer_data.account_holder_name || null,
+        intro_video_url: trainer_data.intro_video_url || null,
+      }).eq("id", trainer.id);
+
+      if (updateErr) {
+        console.error("Trainer update failed:", updateErr);
+        return new Response(JSON.stringify({ error: "Failed to update trainer", details: updateErr.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Insert availability if provided
+      if (trainer_data.availability && trainer_data.availability.length > 0) {
+        const availRows = trainer_data.availability.map((a: any) => ({
+          trainer_id: trainer.id,
+          day_of_week: a.day_of_week,
+          start_time: a.start_time,
+          end_time: a.end_time,
+          is_available: a.is_available,
+        }));
+        const { error: availErr } = await supabaseAdmin.from("trainer_availability").insert(availRows);
+        if (availErr) console.error("Availability insert failed:", availErr);
+      }
+
+      // Insert documents if provided
+      if (trainer_data.documents && trainer_data.documents.length > 0) {
+        for (const doc of trainer_data.documents) {
+          const { error: docErr } = await supabaseAdmin.from("trainer_documents").insert({
+            trainer_id: trainer.id,
+            document_type: doc.document_type,
+            document_name: doc.document_name,
+            document_url: doc.document_url,
+          });
+          if (docErr) console.error("Document insert failed:", docErr);
+        }
+      }
+
+      // Update profile picture if provided
+      if (trainer_data.profile_picture_url) {
+        await supabaseAdmin.from("profiles").update({
+          profile_picture_url: trainer_data.profile_picture_url,
+        }).eq("id", user_id);
+      }
+
+      return new Response(JSON.stringify({ success: true, trainer_id: trainer.id }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (role === "student" && student_data) {
+      // Update student course interests
+      if (student_data.course_interests && student_data.course_interests.length > 0) {
+        const { error: updateErr } = await supabaseAdmin
+          .from("students")
+          .update({ course_interests: student_data.course_interests })
+          .eq("user_id", user_id);
+        if (updateErr) console.error("Student update failed:", updateErr);
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("complete-signup error:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});

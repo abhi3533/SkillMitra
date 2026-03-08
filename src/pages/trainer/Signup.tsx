@@ -356,6 +356,30 @@ const TrainerSignup = () => {
           {/* Step 0: Personal Info */}
           {step === 0 && (
             <div className="mt-6 space-y-4">
+              {/* Profile Photo Upload */}
+              <div className="flex flex-col items-center gap-3">
+                <Label className="text-sm font-medium">Profile Photo<RequiredMark /></Label>
+                <div className="relative">
+                  {profilePhotoPreview ? (
+                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
+                      <img src={profilePhotoPreview} alt="Profile" className="w-full h-full object-cover" />
+                      <button type="button" onClick={removeProfilePhoto}
+                        className="absolute -top-1 -right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => profilePhotoRef.current?.click()}
+                      className={`w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${stepAttempted[0] && !profilePhoto ? 'border-destructive bg-destructive/5' : 'border-border hover:border-primary/50 bg-muted/50'}`}>
+                      <Camera className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Upload</span>
+                    </button>
+                  )}
+                  <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
+                </div>
+                {stepAttempted[0] && !profilePhoto && <p className="text-xs text-destructive">Profile photo is required</p>}
+                <p className="text-[11px] text-muted-foreground">JPG or PNG, max 5MB. This will be visible to students.</p>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Full Name<RequiredMark /></Label>

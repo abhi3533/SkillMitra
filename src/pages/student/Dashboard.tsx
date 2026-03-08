@@ -307,6 +307,67 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      {/* Recommended Trainers */}
+      {recommendedTrainers.length > 0 && (
+        <div className="mt-6 bg-card rounded-xl border">
+          <div className="flex items-center justify-between p-5 pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Recommended For You</h2>
+            </div>
+            <Link to="/browse-trainers" className="text-xs font-medium text-primary hover:underline">See all</Link>
+          </div>
+          <div className="px-5 pb-5 grid sm:grid-cols-2 gap-3">
+            {recommendedTrainers.map((t: any) => (
+              <Link key={t.id} to={`/browse-trainers`} className="block">
+                <div className="p-4 rounded-xl border bg-muted/20 hover:border-primary/30 hover:bg-muted/40 transition-all group">
+                  <div className="flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                      {t.profilePicture ? (
+                        <img src={t.profilePicture} alt={t.trainerName} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-primary font-bold text-lg">{t.trainerName?.[0] || "T"}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{t.trainerName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{t.current_role || "Trainer"}{t.current_company ? ` at ${t.current_company}` : ""}</p>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        {t.average_rating && (
+                          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />{Number(t.average_rating).toFixed(1)}
+                          </span>
+                        )}
+                        {t.experience_years && (
+                          <span className="text-xs text-muted-foreground">{t.experience_years}+ yrs</span>
+                        )}
+                        {t.trainerCity && (
+                          <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                            <MapPin className="w-3 h-3" />{t.trainerCity}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {t.matchedSkills?.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {t.matchedSkills.slice(0, 3).map((skill: string) => (
+                        <span key={skill} className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary">
+                          {skill}
+                        </span>
+                      ))}
+                      {t.matchedSkills.length > 3 && (
+                        <span className="px-2 py-0.5 rounded-full text-[11px] text-muted-foreground bg-secondary">+{t.matchedSkills.length - 3} more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Learning Progress */}
       {studentId && <StudentProgressSection studentId={studentId} />}
 

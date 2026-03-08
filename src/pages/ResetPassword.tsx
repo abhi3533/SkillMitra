@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();

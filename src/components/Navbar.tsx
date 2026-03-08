@@ -8,7 +8,6 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const isHome = location.pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -26,17 +25,16 @@ const Navbar = () => {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}>
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className="text-[22px] font-bold text-foreground">
-              Skill<span className="text-primary">Mitra</span>
+            <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+              <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
             </span>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-1">
             {[
               { label: "Browse Trainers", path: "/browse" },
+              { label: "How It Works", path: "/how-it-works" },
               { label: "Become a Trainer", path: "/trainer/signup" },
               { label: "Contact", path: "/contact" },
             ].map(item => (
@@ -47,12 +45,9 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-3">
             <Link to="/student/login">
-              <Button variant="ghost" size="sm" className="font-medium">
-                Log in
-              </Button>
+              <Button variant="ghost" size="sm" className="font-medium">Log in</Button>
             </Link>
             <Link to="/student/signup">
               <Button size="sm" className="bg-primary hover:bg-primary-dark text-primary-foreground font-semibold rounded-lg px-5 transition-colors duration-200">
@@ -61,7 +56,6 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Mobile Toggle */}
           <button onClick={() => setMobileOpen(!mobileOpen)}
             className="lg:hidden p-2 rounded-lg transition-colors text-foreground">
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -69,7 +63,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -82,6 +75,7 @@ const Navbar = () => {
             <div className="flex flex-col p-6 gap-2">
               {[
                 { label: "Browse Trainers", path: "/browse" },
+                { label: "How It Works", path: "/how-it-works" },
                 { label: "Become a Trainer", path: "/trainer/signup" },
                 { label: "Contact", path: "/contact" },
               ].map(item => (

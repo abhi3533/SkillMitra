@@ -4,36 +4,29 @@ const Footer = () => {
   return (
     <footer className="bg-foreground">
       <div className="container mx-auto px-4 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
+          <div className="col-span-1 sm:col-span-2 md:col-span-1">
             <div className="flex items-center mb-5">
-              <span className="text-[22px] font-bold text-white">
-                Skill<span className="text-primary">Mitra</span>
+              <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+                <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
               </span>
             </div>
             <p className="text-white/50 text-sm leading-relaxed">
               India's first 1:1 personal skill training platform. Learn from verified expert trainers from home in your own language.
             </p>
-            {/* Social */}
-            <div className="flex gap-3 mt-6">
-              {["LinkedIn", "Instagram", "Twitter", "YouTube"].map(s => (
-                <a key={s} href="#" className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors" aria-label={s}>
-                  <span className="text-white/40 text-xs font-medium">{s[0]}</span>
-                </a>
-              ))}
-            </div>
+            <p className="text-white/30 text-xs mt-3">A product of Learnvate Solutions Private Limited</p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-label uppercase tracking-widest text-white/30 mb-5">Quick Links</h4>
+            <h4 className="text-[11px] uppercase tracking-widest text-white/30 mb-5 font-semibold">Quick Links</h4>
             <ul className="space-y-3">
               {[
                 { label: "Browse Trainers", path: "/browse" },
-                { label: "Student Signup", path: "/student/signup" },
-                { label: "Student Login", path: "/student/login" },
-                { label: "AI Interview Prep", path: "/student/interview" },
+                { label: "How It Works", path: "/how-it-works" },
+                { label: "About Us", path: "/about" },
+                { label: "Pricing", path: "/pricing" },
                 { label: "Verify Certificate", path: "/verify" },
               ].map(link => (
                 <li key={link.path}>
@@ -45,12 +38,12 @@ const Footer = () => {
 
           {/* For Trainers */}
           <div>
-            <h4 className="text-label uppercase tracking-widest text-white/30 mb-5">For Trainers</h4>
+            <h4 className="text-[11px] uppercase tracking-widest text-white/30 mb-5 font-semibold">For Trainers</h4>
             <ul className="space-y-3">
               {[
                 { label: "Become a Trainer", path: "/trainer/signup" },
                 { label: "Trainer Login", path: "/trainer/login" },
-                { label: "Subscription Plans", path: "/trainer/subscription" },
+                { label: "Subscription Plans", path: "/pricing" },
               ].map(link => (
                 <li key={link.path}>
                   <Link to={link.path} className="text-sm text-white/50 hover:text-white transition-colors duration-200">{link.label}</Link>
@@ -61,7 +54,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h4 className="text-label uppercase tracking-widest text-white/30 mb-5">Contact</h4>
+            <h4 className="text-[11px] uppercase tracking-widest text-white/30 mb-5 font-semibold">Contact</h4>
             <ul className="space-y-3">
               <li>
                 <a href="mailto:Contact@skillmitra.online" className="text-sm text-white/50 hover:text-white transition-colors duration-200">
@@ -79,11 +72,12 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-white/30">© 2026 SkillMitra. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link to="/" className="text-xs text-white/30 hover:text-white/50 transition-colors">Privacy Policy</Link>
-            <Link to="/" className="text-xs text-white/30 hover:text-white/50 transition-colors">Terms of Service</Link>
-            <span className="text-xs text-white/20">Made with ❤️ in India</span>
+          <p className="text-sm text-white/30">© 2026 Learnvate Solutions Private Limited. All rights reserved.</p>
+          <div className="flex items-center gap-6 flex-wrap justify-center">
+            <Link to="/privacy" className="text-xs text-white/30 hover:text-white/50 transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="text-xs text-white/30 hover:text-white/50 transition-colors">Terms of Service</Link>
+            <Link to="/contact" className="text-xs text-white/30 hover:text-white/50 transition-colors">Contact</Link>
+            <Link to="/about" className="text-xs text-white/30 hover:text-white/50 transition-colors">About</Link>
           </div>
         </div>
       </div>

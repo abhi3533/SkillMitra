@@ -43,6 +43,13 @@ const AdminTrainers = () => {
     setDrawerOpen(false);
     setRejectTarget(null);
     toast({ title: `Trainer ${status}!`, description: status === "approved" ? "The trainer can now create courses." : "The trainer has been notified." });
+
+    // Send email notification (fire-and-forget)
+    supabase.functions.invoke("notify-trainer-status", {
+      body: { trainer_id: id, status, rejection_reason: rejectionReason },
+    }).then(({ error: fnErr }) => {
+      if (fnErr) console.error("Email notification error:", fnErr);
+    });
   };
 
   const handleRejectClick = (trainer: any) => {

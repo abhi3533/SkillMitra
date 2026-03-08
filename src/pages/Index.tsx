@@ -450,6 +450,11 @@ const Index = () => {
             </div>
           </ScrollReveal>
 
+          {loading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map(i => <TrainerCardSkeleton key={i} />)}
+            </div>
+          ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayTrainers.map((t: any, i: number) => {
               const name = t.profile?.full_name || "Trainer";
@@ -512,6 +517,7 @@ const Index = () => {
               );
             })}
           </div>
+          )}
 
           <div className="mt-8 text-center md:hidden">
             <Link to="/browse">

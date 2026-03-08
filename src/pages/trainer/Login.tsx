@@ -88,7 +88,7 @@ const TrainerLogin = () => {
       <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
           <Link to="/" className="flex items-center mb-12">
-            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10 brightness-0 invert" />
+            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block brightness-0 invert" style={{ background: 'transparent' }} />
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Welcome Back, Trainer!</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Manage your students, sessions, and earnings — all from one dashboard.</p>
@@ -99,7 +99,7 @@ const TrainerLogin = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="lg:hidden mb-8">
             <Link to="/" className="flex items-center">
-              <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10" />
+              <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
             </Link>
           </div>
 

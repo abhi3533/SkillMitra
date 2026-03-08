@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell } from "lucide-react";
+import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -11,6 +11,7 @@ const sidebarItems = [
   { label: "Resume Builder", icon: FileText, path: "/student/resume" },
   { label: "Certificates", icon: Award, path: "/student/certificates" },
   { label: "Referrals", icon: Users, path: "/student/referrals" },
+  { label: "Wallet", icon: Wallet, path: "/student/wallet" },
   { label: "Profile", icon: User, path: "/student/profile" },
 ];
 

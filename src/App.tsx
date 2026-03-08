@@ -30,6 +30,7 @@ import AIInterview from "./pages/student/AIInterview";
 import ResumeBuilder from "./pages/student/ResumeBuilder";
 import StudentCertificates from "./pages/student/StudentCertificates";
 import StudentProfile from "./pages/student/StudentProfile";
+import StudentWallet from "./pages/student/Wallet";
 
 // Trainer
 import TrainerLogin from "./pages/trainer/Login";
@@ -43,6 +44,7 @@ import TrainerStudents from "./pages/trainer/Students";
 import TrainerEarnings from "./pages/trainer/Earnings";
 import TrainerCertificates from "./pages/trainer/Certificates";
 import TrainerSchedule from "./pages/trainer/Schedule";
+import TrainerWallet from "./pages/trainer/Wallet";
 
 // Admin
 import AdminLogin from "./pages/admin/Login";
@@ -104,6 +106,7 @@ const App = () => (
             <Route path="/student/resume" element={<ProtectedRoute allowedRoles={["student"]}><ResumeBuilder /></ProtectedRoute>} />
             <Route path="/student/certificates" element={<ProtectedRoute allowedRoles={["student"]}><StudentCertificates /></ProtectedRoute>} />
             <Route path="/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
+            <Route path="/student/wallet" element={<ProtectedRoute allowedRoles={["student"]}><StudentWallet /></ProtectedRoute>} />
             <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Notifications /></ProtectedRoute>} />
 
             {/* Trainer Protected */}
@@ -115,6 +118,7 @@ const App = () => (
             <Route path="/trainer/subscription" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSubscription /></ProtectedRoute>} />
             <Route path="/trainer/schedule" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSchedule /></ProtectedRoute>} />
             <Route path="/trainer/profile" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerProfile /></ProtectedRoute>} />
+            <Route path="/trainer/wallet" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerWallet /></ProtectedRoute>} />
             <Route path="/trainer/notifications" element={<ProtectedRoute allowedRoles={["trainer"]}><Notifications /></ProtectedRoute>} />
 
             {/* Admin Protected */}

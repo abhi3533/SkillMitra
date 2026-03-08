@@ -61,7 +61,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               {profile?.profile_picture_url ? (
-                <img src={profile.profile_picture_url} alt="" className="w-14 h-14 rounded-full object-cover" />
+                <img src={profile.profile_picture_url} alt="" className="w-14 h-14 rounded-full object-cover" loading="lazy" />
               ) : (
                 <span className="text-primary font-bold text-xl">{profile?.full_name?.[0] || "T"}</span>
               )}

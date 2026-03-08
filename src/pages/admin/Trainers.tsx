@@ -128,7 +128,7 @@ const AdminTrainers = () => {
                 <div className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer" onClick={() => { setSelectedTrainer(t); setDrawerOpen(true); }}>
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     {t.profiles?.profile_picture_url ? (
-                      <img src={t.profiles.profile_picture_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+                      <img src={t.profiles.profile_picture_url} alt="" className="w-10 h-10 rounded-full object-cover" loading="lazy" />
                     ) : (
                       <span className="text-primary font-bold text-sm">{t.profiles?.full_name?.[0] || "T"}</span>
                     )}

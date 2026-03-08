@@ -25,6 +25,7 @@ const StudentDashboard = () => {
     attendancePercent: null as number | null,
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
+  useLoadingTitle(loading);
 
   const fetchDashboard = async () => {
     if (!user) return;

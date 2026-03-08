@@ -181,7 +181,7 @@ const Index = () => {
           const profileMap = await fetchProfilesMap(userIds);
           setRealTrainers(approvedTrainers.slice(0, 6).map(t => ({ ...t, profile: profileMap[t.user_id] })));
         }
-        const { data: ratingsData } = await supabase.from("ratings").select("*").not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
+        const { data: ratingsData } = await supabase.from("ratings").select("id, student_id, trainer_id, student_to_trainer_rating, student_to_trainer_review, student_review_text, student_rated_at, created_at, enrollment_id").not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
         if (ratingsData && ratingsData.length > 0) {
           const studentIds = ratingsData.map(r => r.student_id);
           const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);

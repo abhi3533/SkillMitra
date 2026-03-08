@@ -387,8 +387,9 @@ const BrowseTrainers = () => {
                 {activeFilterCount > 0 && <Button variant="outline" size="sm" className="mt-3" onClick={clearFilters}>Clear Filters</Button>}
               </div>
             ) : (
+              <>
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {sorted.map((t, i) => {
+                {sorted.slice(0, visibleCount).map((t, i) => {
                   const name = t.profile?.full_name || "Trainer";
                   const avatarColor = t.avatarColor;
                   const initials = name.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
@@ -468,6 +469,15 @@ const BrowseTrainers = () => {
                     </motion.div>
                   );
                 })}
+              </div>
+              {visibleCount < sorted.length && (
+                <div className="text-center mt-8">
+                  <Button variant="outline" onClick={() => setVisibleCount(v => v + ITEMS_PER_PAGE)}>
+                    Load More ({sorted.length - visibleCount} remaining)
+                  </Button>
+                </div>
+              )}
+              </>
               </div>
             )}
           </div>

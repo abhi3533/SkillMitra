@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, BadgeCheck, Globe, Clock, Users, Calendar, ArrowRight, ChevronRight } from "lucide-react";
+import { Star, BadgeCheck, Globe, Clock, Users, Calendar, ArrowRight, ChevronRight, Flag, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ReportTrainerModal from "@/components/ReportTrainerModal";
 
 const DAYS_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -25,6 +26,8 @@ const TrainerProfile = () => {
   const [similarTrainers, setSimilarTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolvedId, setResolvedId] = useState<string | undefined>(id);
+  const [isVerified, setIsVerified] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     if (id) { setResolvedId(id); return; }
@@ -67,14 +70,19 @@ const TrainerProfile = () => {
           const profileMap = await fetchProfilesMap([t.user_id]);
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
-          const [coursesRes, ratingsRes, availRes] = await Promise.all([
+          const [coursesRes, ratingsRes, availRes, docsRes] = await Promise.all([
             supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved"),
             supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
             supabase.from("trainer_availability").select("*").eq("trainer_id", resolvedId).eq("is_available", true),
+            supabase.from("trainer_documents").select("verification_status").eq("trainer_id", resolvedId),
           ]);
 
           setCourses(coursesRes.data || []);
           setAvailability(availRes.data || []);
+          // Check if all documents are approved
+          const docs = docsRes.data || [];
+          const allApproved = docs.length > 0 && docs.every(d => d.verification_status === "approved");
+          setIsVerified(allApproved);
 
           if (ratingsRes.data && ratingsRes.data.length > 0) {
             const studentIds = ratingsRes.data.map(r => r.student_id);
@@ -170,7 +178,12 @@ const TrainerProfile = () => {
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl lg:text-3xl font-bold text-primary-foreground">{name}</h1>
-                <BadgeCheck className="w-6 h-6 text-accent" />
+                {isVerified && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-semibold">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Verified Expert
+                  </span>
+                )}
+                {!isVerified && <BadgeCheck className="w-6 h-6 text-accent" />}
                 {trainer.subscription_plan === "elite" && <span className="text-xs font-bold px-2 py-1 rounded gold-gradient text-accent-foreground">ELITE</span>}
               </div>
               <p className="text-primary-foreground/70 mt-1">
@@ -181,7 +194,13 @@ const TrainerProfile = () => {
                 <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {trainer.total_students} students</span>
                 {trainer.teaching_languages && <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {trainer.teaching_languages.join(", ")}</span>}
                 <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responds &lt; 2 hours</span>
-              </div>
+            </div>
+            {user && id && (
+              <Button variant="ghost" size="sm" onClick={() => setShowReport(true)}
+                className="text-primary-foreground/50 hover:text-primary-foreground hover:bg-primary-foreground/10 mt-4 lg:mt-0">
+                <Flag className="w-4 h-4 mr-1.5" /> Report
+              </Button>
+            )}
               <div className="flex flex-wrap gap-2 mt-4">
                 {(trainer.skills || []).map((s: string) => (
                   <span key={s} className="text-xs px-3 py-1 rounded-full bg-primary-foreground/10 text-primary-foreground/80 font-medium">{s}</span>
@@ -382,6 +401,13 @@ const TrainerProfile = () => {
       </div>
 
       <Footer />
+      {showReport && (
+        <ReportTrainerModal
+          trainerId={resolvedId || ""}
+          trainerName={name}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 };

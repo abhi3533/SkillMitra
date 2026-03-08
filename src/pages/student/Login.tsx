@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Wifi, WifiOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Wifi, WifiOff, Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
+import { checkLoginLocked, recordFailedAttempt, clearLoginAttempts } from "@/lib/loginProtection";
 
 const StudentLogin = () => {
   const [email, setEmail] = useState("");
@@ -18,11 +19,11 @@ const StudentLogin = () => {
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [connStatus, setConnStatus] = useState<"checking" | "connected" | "failed">("checking");
+  const [locked, setLocked] = useState<{ locked: boolean; minutesLeft: number }>({ locked: false, minutesLeft: 0 });
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, role } = useAuth();
 
-  // Auto-redirect if already logged in
   useEffect(() => {
     if (user && role) {
       if (role === "admin") navigate("/admin", { replace: true });
@@ -45,6 +46,14 @@ const StudentLogin = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check lockout
+    const lockStatus = checkLoginLocked(email);
+    if (lockStatus.locked) {
+      setLocked(lockStatus);
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -66,9 +75,17 @@ const StudentLogin = () => {
           setLoading(false);
           return;
         }
+        // Record failed attempt
+        const result = recordFailedAttempt(email);
+        if (result.locked) {
+          setLocked(result);
+          setLoading(false);
+          return;
+        }
         throw error;
       }
 
+      clearLoginAttempts(email);
       const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
       if (roleData === "trainer") navigate("/trainer/dashboard");
       else if (roleData === "admin") navigate("/admin");
@@ -108,10 +125,20 @@ const StudentLogin = () => {
           <h1 className="text-2xl font-bold text-foreground">Student Login</h1>
           <p className="mt-2 text-muted-foreground">Enter your credentials to access your dashboard</p>
 
+          {locked.locked && (
+            <div className="mt-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+              <ShieldAlert className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-destructive">Account temporarily locked</p>
+                <p className="text-xs text-destructive/80 mt-1">Too many failed login attempts. Please try again in {locked.minutesLeft} minute{locked.minutesLeft > 1 ? "s" : ""}.</p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="mt-8 space-y-5">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1.5 h-11" required />
+              <Input id="email" type="email" value={email} onChange={e => { setEmail(e.target.value); setLocked({ locked: false, minutesLeft: 0 }); }} placeholder="you@example.com" className="mt-1.5 h-11" required />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
@@ -131,7 +158,7 @@ const StudentLogin = () => {
               <Link to="/forgot-password?role=student" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
+            <Button type="submit" disabled={loading || locked.locked} className="w-full h-11 hero-gradient font-semibold border-0">
               {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
             </Button>
 

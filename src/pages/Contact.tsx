@@ -54,6 +54,10 @@ const Contact = () => {
         body: form,
       });
       if (error) throw error;
+      if (data?.error) {
+        toast({ title: data.error, variant: "destructive" });
+        return;
+      }
       toast({
         title: "Your message has been sent successfully!",
         description: "We will get back to you within 24 hours.",
@@ -62,6 +66,14 @@ const Contact = () => {
       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
       setTouched({});
       setEmailTypo(null);
+      // 60-second cooldown after successful submission
+      setCooldown(60);
+      const interval = setInterval(() => {
+        setCooldown(prev => {
+          if (prev <= 1) { clearInterval(interval); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err: any) {
       toast({ title: "Failed to send", description: err.message || "Something went wrong", variant: "destructive" });
     } finally {

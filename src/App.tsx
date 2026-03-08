@@ -87,6 +87,29 @@ import ParentDashboard from "./pages/parent/Dashboard";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  const { user, needsRoleSelection, setNeedsRoleSelection } = useAuth();
+  return (
+    <>
+      <PWAInstallPrompt />
+      <CookieConsent />
+      {user && needsRoleSelection && (
+        <RoleSelectionModal
+          open={needsRoleSelection}
+          onClose={() => setNeedsRoleSelection(false)}
+          userId={user.id}
+          userEmail={user.email || ""}
+          userName={user.user_metadata?.full_name || user.user_metadata?.name || ""}
+        />
+      )}
+      <Routes>
+        {/* All existing routes will be placed here */}
+      </Routes>
+      <AIChatBot />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>

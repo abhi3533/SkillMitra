@@ -45,11 +45,10 @@ const TrainerLogin = () => {
     <div className="min-h-screen bg-background flex">
       <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
-          <Link to="/" className="flex items-center gap-2 mb-12">
-            <div className="w-10 h-10 rounded-lg gold-gradient flex items-center justify-center">
-              <span className="font-bold text-lg text-accent-foreground">S</span>
-            </div>
-            <span className="text-2xl font-bold text-primary-foreground">Skill<span className="text-accent">Mitra</span></span>
+          <Link to="/" className="flex items-center mb-12">
+            <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
+              <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
+            </span>
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Welcome back, trainer!</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Manage your students, sessions, and earnings — all from one dashboard.</p>

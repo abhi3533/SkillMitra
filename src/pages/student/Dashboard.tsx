@@ -28,6 +28,7 @@ const StudentDashboard = () => {
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [recommendedTrainers, setRecommendedTrainers] = useState<any[]>([]);
   useLoadingTitle(loading);
 
   const fetchDashboard = async () => {

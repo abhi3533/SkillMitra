@@ -268,15 +268,21 @@ const StudentSignup = () => {
             <div>
               <Label>Password *</Label>
               <div className="relative mt-1.5">
-                <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" required minLength={8} />
+                <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
-              {loading ? "Creating account..." : "Create Account"} {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
+            <div>
+              <Label>Confirm Password *</Label>
+              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" required />
+            </div>
+
+            <Button type="submit" disabled={loading || !!emailError || !isPasswordValid(form.password) || form.password !== confirmPassword} className="w-full h-11 hero-gradient font-semibold border-0">
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : <>Create Account <ArrowRight className="ml-2 w-4 h-4" /></>}
             </Button>
           </form>
 

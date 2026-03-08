@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, Wifi, WifiOff, Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,11 +23,14 @@ const StudentLogin = () => {
   const [locked, setLocked] = useState<{ locked: boolean; minutesLeft: number }>({ locked: false, minutesLeft: 0 });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
   const { user, role } = useAuth();
 
   useEffect(() => {
     if (user && role) {
-      if (role === "admin") navigate("/admin", { replace: true });
+      if (redirectUrl && role === "student") navigate(redirectUrl, { replace: true });
+      else if (role === "admin") navigate("/admin", { replace: true });
       else if (role === "trainer") navigate("/trainer/dashboard", { replace: true });
       else navigate("/student/dashboard", { replace: true });
     }
@@ -115,7 +118,8 @@ const StudentLogin = () => {
 
         clearLoginAttempts(email);
         const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
-        if (roleData === "trainer") navigate("/trainer/dashboard");
+        if (redirectUrl && roleData === "student") navigate(redirectUrl);
+        else if (roleData === "trainer") navigate("/trainer/dashboard");
         else if (roleData === "admin") navigate("/admin");
         else navigate("/student/dashboard");
         toast({ title: "Signed in successfully" });

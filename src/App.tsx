@@ -91,6 +91,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <PWAInstallPrompt />
           <Routes>
             {/* Public */}
             <Route path="/" element={<Index />} />

@@ -266,6 +266,9 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      {/* Learning Progress */}
+      {studentId && <StudentProgressSection studentId={studentId} />}
+
       {/* Quick Actions */}
       <div className="mt-6 bg-card rounded-xl border p-5">
         <h2 className="text-base font-semibold text-foreground mb-3">Quick Actions</h2>

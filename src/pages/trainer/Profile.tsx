@@ -447,7 +447,7 @@ const TrainerProfile = () => {
                     <div key={c.id} className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-shadow">
                       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">{c.title}</h3>
+                          <Link to={`/course/${c.id}`} className="font-semibold text-foreground hover:text-primary transition-colors">{c.title}</Link>
                           <p className="text-sm text-muted-foreground mt-1">{c.description || ""}</p>
                           <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {dur}</span>
@@ -465,7 +465,10 @@ const TrainerProfile = () => {
                         <div className="text-right flex-shrink-0">
                           <p className="text-2xl font-bold text-foreground">₹{Number(fee).toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground">{dur}</p>
-                          <Button size="sm" className="mt-3 hero-gradient border-0 text-xs" onClick={() => handleEnrollClick(c)}>Enroll Now</Button>
+                          <Link to={`/course/${c.id}`}>
+                            <Button size="sm" className="mt-3 hero-gradient border-0 text-xs">View Course</Button>
+                          </Link>
+                          <Button size="sm" variant="outline" className="mt-2 text-xs w-full" onClick={() => handleEnrollClick(c)}>Enroll Now</Button>
                           <p className="text-xs text-accent mt-2 cursor-pointer hover:underline" onClick={handleTrialClick}>Free Trial Available</p>
                         </div>
                       </div>

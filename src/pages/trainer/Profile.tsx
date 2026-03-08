@@ -194,7 +194,13 @@ const TrainerProfile = () => {
                 <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {trainer.total_students} students</span>
                 {trainer.teaching_languages && <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {trainer.teaching_languages.join(", ")}</span>}
                 <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responds &lt; 2 hours</span>
-              </div>
+            </div>
+            {user && id && (
+              <Button variant="ghost" size="sm" onClick={() => setShowReport(true)}
+                className="text-primary-foreground/50 hover:text-primary-foreground hover:bg-primary-foreground/10 mt-4 lg:mt-0">
+                <Flag className="w-4 h-4 mr-1.5" /> Report
+              </Button>
+            )}
               <div className="flex flex-wrap gap-2 mt-4">
                 {(trainer.skills || []).map((s: string) => (
                   <span key={s} className="text-xs px-3 py-1 rounded-full bg-primary-foreground/10 text-primary-foreground/80 font-medium">{s}</span>

@@ -39,6 +39,7 @@ const BrowseTrainers = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [courseFeeMap, setCourseFeeMap] = useState<Record<string, number>>({});
   const [showFilters, setShowFilters] = useState(false);
 
   // Filters
@@ -76,9 +77,12 @@ const BrowseTrainers = () => {
         const profileMap = await fetchProfilesMap(userIds);
         realTrainers = trainerData.map(t => ({ ...t, profile: profileMap[t.user_id] }));
 
-        // Fetch availability for real trainers
+        // Fetch availability and courses for real trainers
         const trainerIds = trainerData.map(t => t.id);
-        const { data: avail } = await supabase.from("trainer_availability").select("*").in("trainer_id", trainerIds);
+        const [{ data: avail }, { data: courses }] = await Promise.all([
+          supabase.from("trainer_availability").select("*").in("trainer_id", trainerIds),
+          supabase.from("courses").select("trainer_id, course_fee").in("trainer_id", trainerIds).eq("is_active", true),
+        ]);
         if (avail) {
           const map: Record<string, any[]> = {};
           avail.forEach(a => {
@@ -87,8 +91,20 @@ const BrowseTrainers = () => {
           });
           setAvailabilityMap(map);
         }
+        // Build min course fee map for real trainers
+        if (courses) {
+          const feeMap: Record<string, number> = {};
+          courses.forEach(c => {
+            const fee = Number(c.course_fee) || 0;
+            if (!feeMap[c.trainer_id] || fee < feeMap[c.trainer_id]) {
+              feeMap[c.trainer_id] = fee;
+            }
+          });
+          setCourseFeeMap(feeMap);
+        }
       }
-      setTrainers([...realTrainers, ...demoTrainers]);
+      // Only show demo trainers if no real trainers exist
+      setTrainers(realTrainers.length > 0 ? realTrainers : demoTrainers);
       setLoading(false);
     })();
   }, []);
@@ -121,29 +137,35 @@ const BrowseTrainers = () => {
       if (selectedLanguages.length > 0 && !selectedLanguages.some(l => (t.teaching_languages || []).includes(l))) return false;
       if (minRating > 0 && (Number(t.average_rating) || 0) < minRating) return false;
 
-      // Price filter via demo courses
-      const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
-      if (demoCourse) {
-        if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
+      // Gender filter
+      if (genderPref && genderPref !== "any") {
+        const trainerGender = t.profile?.gender?.toLowerCase() || "";
+        if (trainerGender !== genderPref.toLowerCase()) return false;
+      }
+
+      // Price filter for both demo and real trainers
+      if (priceRange[0] !== 500 || priceRange[1] !== 10000) {
+        const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
+        if (demoCourse) {
+          if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
+        } else {
+          const minFee = courseFeeMap[t.id];
+          if (minFee !== undefined) {
+            if (minFee < priceRange[0] || minFee > priceRange[1]) return false;
+          }
+        }
       }
 
       // Time slot and schedule filtering
       if (selectedTimeSlots.length > 0 || selectedSchedule.length > 0) {
         if (t.id?.startsWith("demo-")) {
-          // Demo trainers: available Evening (17-20) weekdays, Morning (9-12) weekends
           if (selectedTimeSlots.length > 0) {
             const matchesTimeSlot = selectedTimeSlots.some(slotLabel => {
               const slot = TIME_SLOTS.find(s => s.label === slotLabel);
               if (!slot) return false;
-              // Demo: evening 17-20 and morning 9-12
               return (slot.startHour < 20 && slot.endHour > 17) || (slot.startHour < 12 && slot.endHour > 9);
             });
             if (!matchesTimeSlot) return false;
-          }
-          if (selectedSchedule.length > 0) {
-            // Demo trainers available weekdays (evening) and weekends (morning)
-            // So they match both Weekend Only and Weekday Only
-            // Always pass schedule filter for demo trainers
           }
         } else {
           const trainerAvail = availabilityMap[t.id] || [];
@@ -176,20 +198,20 @@ const BrowseTrainers = () => {
 
       return true;
     });
-  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, availabilityMap]);
+  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, availabilityMap, courseFeeMap]);
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
       if (sortBy === "rating") return (Number(b.average_rating) || 0) - (Number(a.average_rating) || 0);
       if (sortBy === "price_low") {
-        const aFee = a.id?.startsWith("demo-") ? (getDemoCourse(a.id)?.[0]?.fee || 0) : 0;
-        const bFee = b.id?.startsWith("demo-") ? (getDemoCourse(b.id)?.[0]?.fee || 0) : 0;
+        const aFee = a.id?.startsWith("demo-") ? (getDemoCourse(a.id)?.[0]?.fee || 0) : (courseFeeMap[a.id] || 0);
+        const bFee = b.id?.startsWith("demo-") ? (getDemoCourse(b.id)?.[0]?.fee || 0) : (courseFeeMap[b.id] || 0);
         return aFee - bFee;
       }
       if (sortBy === "newest") return (b.experience_years || 0) - (a.experience_years || 0);
       return (b.total_students || 0) - (a.total_students || 0);
     });
-  }, [filtered, sortBy]);
+  }, [filtered, sortBy, courseFeeMap]);
 
   const FilterSidebar = () => (
     <div className="space-y-6">
@@ -397,8 +419,10 @@ const BrowseTrainers = () => {
                                 <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
                               ))}
                             </div>
-                            {demoCourse && (
+                            {demoCourse ? (
                               <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{demoCourse.fee.toLocaleString()}</span></p>
+                            ) : courseFeeMap[t.id] !== undefined && (
+                              <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{courseFeeMap[t.id].toLocaleString()}</span></p>
                             )}
                           </div>
                           <div className="px-5 py-3 border-t border-border flex items-center justify-between bg-secondary/30">

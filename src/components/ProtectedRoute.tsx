@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children, allowedRoles }: Props) => {
 
   if (!user) {
     // Redirect to appropriate login
-    if (allowedRoles.includes("admin")) return <Navigate to="/student/login" replace />;
+    if (allowedRoles.includes("admin")) return <Navigate to="/admin/login" replace />;
     if (allowedRoles.includes("trainer")) return <Navigate to="/trainer/login" replace />;
     return <Navigate to="/student/login" replace />;
   }

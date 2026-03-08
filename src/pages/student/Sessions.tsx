@@ -208,7 +208,7 @@ const StudentSessions = () => {
             <p className="text-sm text-muted-foreground mt-2">No {tab} sessions</p>
             <p className="text-xs text-muted-foreground mt-1">Sessions will appear once your trainer schedules them</p>
           </div>
-        ) : filtered.map(s => {
+        ) : paginatedSessions.map(s => {
           const currTopic = getCurriculumTopic(s);
           return (
             <div key={s.id} className="bg-card border rounded-xl p-4">

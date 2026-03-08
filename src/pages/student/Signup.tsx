@@ -124,9 +124,7 @@ const StudentSignup = () => {
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
-          <Link to="/" className="flex items-center mb-12">
-            <span className="text-[22px] font-bold text-white tracking-tight">Skill<span className="text-blue-200">Mitra</span></span>
-          </Link>
+          <SkillMitraLogo darkText={false} height={40} className="mb-12" />
           <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join students learning from verified industry experts in their own language.</p>
           <div className="mt-8 space-y-3">

@@ -43,7 +43,7 @@ const StudentSignup = () => {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
@@ -52,28 +52,15 @@ const StudentSignup = () => {
             full_name: form.fullName,
             phone: form.phone,
             role: "student",
+            city: form.city || undefined,
+            state: form.state || undefined,
+            gender: form.gender || undefined,
+            language_preference: languages,
+            trainer_gender_preference: form.trainerPref,
           },
         },
       });
       if (error) throw error;
-
-      // Update profile with additional fields (trigger already created base profile)
-      if (data.user) {
-        await supabase.from("profiles").update({
-          city: form.city || null,
-          state: form.state || null,
-          gender: form.gender || null,
-          language_preference: languages,
-        }).eq("id", data.user.id);
-
-        // Update student record with trainer preference
-        const { data: student } = await supabase.from("students").select("id").eq("user_id", data.user.id).single();
-        if (student) {
-          await supabase.from("students").update({
-            trainer_gender_preference: form.trainerPref,
-          }).eq("id", student.id);
-        }
-      }
 
       toast({ title: "Account created!", description: "Please check your email to verify your account." });
       navigate("/student/login");

@@ -92,7 +92,7 @@ const TrainerLogin = () => {
               <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
             </span>
           </Link>
-          <h2 className="text-3xl font-bold text-primary-foreground">Welcome back, trainer!</h2>
+          <h2 className="text-3xl font-bold text-primary-foreground">Welcome Back, Trainer!</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Manage your students, sessions, and earnings — all from one dashboard.</p>
         </div>
       </div>

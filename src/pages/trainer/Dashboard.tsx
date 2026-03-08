@@ -110,6 +110,10 @@ const TrainerDashboard = () => {
     })();
   }, [user]);
 
+  useEffect(() => { fetchData(); }, [user, fetchData]);
+
+  const { pulling, refreshing } = usePullToRefresh(fetchData);
+
   const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
   const firstName = profile?.full_name?.split(" ")[0] || "Trainer";
 

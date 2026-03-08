@@ -95,6 +95,25 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
         `)
       }
 
+    case 'trainer_welcome':
+      return {
+        subject: 'Welcome to SkillMitra, Trainer! 🎓',
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Welcome aboard, ${name}! 🎓</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Thank you for signing up as a trainer on <strong>SkillMitra</strong> — India's platform for 1-on-1 skill training.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your application is under review. Here's what happens next:</p>
+          <ul style="font-size: 15px; line-height: 1.8; color: #444; padding-left: 20px;">
+            <li>Our team will verify your profile within 48 hours</li>
+            <li>You'll receive an email once your profile is approved</li>
+            <li>After approval, you can create courses and start teaching</li>
+          </ul>
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: ${BRAND_COLOR}; margin: 0; font-weight: 600;">💡 Tip: Complete your profile fully to get approved faster!</p>
+          </div>
+          ${btn('Check Application Status', `${APP_URL}/trainer/login`)}
+        `)
+      }
+
     case 'enrollment_confirmation':
       return {
         subject: `You're enrolled in ${data.course_name || 'a course'}! 📚`,

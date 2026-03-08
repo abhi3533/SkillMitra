@@ -10,84 +10,87 @@ import CookieConsent from "@/components/CookieConsent";
 import ScrollToTop from "@/components/ScrollToTop";
 import AIChatBot from "@/components/AIChatBot";
 import RoleSelectionModal from "@/components/auth/RoleSelectionModal";
+import { lazy, Suspense } from "react";
 
-// Public pages
+// Critical: load eagerly
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import BrowseTrainers from "./pages/BrowseTrainers";
-import Contact from "./pages/Contact";
-import About from "./pages/About";
-import HowItWorks from "./pages/HowItWorks";
-import Pricing from "./pages/Pricing";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Standards from "./pages/Standards";
-import CertificateVerify from "./pages/CertificateVerify";
-import ReferPage from "./pages/Refer";
-import JoinRedirect from "./pages/JoinRedirect";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import Notifications from "./pages/Notifications";
-import NotificationPreferences from "./pages/NotificationPreferences";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
 
-// Student
-import StudentLogin from "./pages/student/Login";
-import StudentSignup from "./pages/student/Signup";
-import StudentDashboard from "./pages/student/Dashboard";
-import StudentCourses from "./pages/student/Courses";
-import StudentReferrals from "./pages/student/Referrals";
-import AIInterview from "./pages/student/AIInterview";
-import ResumeBuilder from "./pages/student/ResumeBuilder";
-import StudentCertificates from "./pages/student/StudentCertificates";
-import StudentProfile from "./pages/student/StudentProfile";
-import StudentWallet from "./pages/student/Wallet";
-import StudentAttendance from "./pages/student/StudentAttendance";
-import StudentSessions from "./pages/student/Sessions";
+// Lazy-loaded public pages
+const BrowseTrainers = lazy(() => import("./pages/BrowseTrainers"));
+const Contact = lazy(() => import("./pages/Contact"));
+const About = lazy(() => import("./pages/About"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Standards = lazy(() => import("./pages/Standards"));
+const CertificateVerify = lazy(() => import("./pages/CertificateVerify"));
+const ReferPage = lazy(() => import("./pages/Refer"));
+const JoinRedirect = lazy(() => import("./pages/JoinRedirect"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const NotificationPreferences = lazy(() => import("./pages/NotificationPreferences"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
-// Trainer
-import TrainerLogin from "./pages/trainer/Login";
-import TrainerSignup from "./pages/trainer/Signup";
-import TrainerThankYou from "./pages/trainer/ThankYou";
-import TrainerDashboard from "./pages/trainer/Dashboard";
-import TrainerProfile from "./pages/trainer/Profile";
-import TrainerSubscription from "./pages/trainer/Subscription";
-import TrainerCourses from "./pages/trainer/Courses";
-import TrainerStudents from "./pages/trainer/Students";
-import TrainerEarnings from "./pages/trainer/Earnings";
-import TrainerCertificates from "./pages/trainer/Certificates";
-import TrainerSchedule from "./pages/trainer/Schedule";
-import TrainerWallet from "./pages/trainer/Wallet";
-import TrainerReferrals from "./pages/trainer/Referrals";
-import TrainerAttendance from "./pages/trainer/Attendance";
-import TrainerSessions from "./pages/trainer/Sessions";
-import TrainerReviews from "./pages/trainer/Reviews";
+// Lazy-loaded Student pages
+const StudentLogin = lazy(() => import("./pages/student/Login"));
+const StudentSignup = lazy(() => import("./pages/student/Signup"));
+const StudentDashboard = lazy(() => import("./pages/student/Dashboard"));
+const StudentCourses = lazy(() => import("./pages/student/Courses"));
+const StudentReferrals = lazy(() => import("./pages/student/Referrals"));
+const AIInterview = lazy(() => import("./pages/student/AIInterview"));
+const ResumeBuilder = lazy(() => import("./pages/student/ResumeBuilder"));
+const StudentCertificates = lazy(() => import("./pages/student/StudentCertificates"));
+const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
+const StudentWallet = lazy(() => import("./pages/student/Wallet"));
+const StudentAttendance = lazy(() => import("./pages/student/StudentAttendance"));
+const StudentSessions = lazy(() => import("./pages/student/Sessions"));
 
-// Admin
-import AdminLogin from "./pages/admin/Login";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminTrainers from "./pages/admin/Trainers";
-import AdminStudents from "./pages/admin/Students";
-import AdminPayments from "./pages/admin/Payments";
-import AdminPayouts from "./pages/admin/Payouts";
-import AdminAnalytics from "./pages/admin/Analytics";
-import AdminCourses from "./pages/admin/AdminCourses";
-import AdminDisputes from "./pages/admin/Disputes";
-import AdminCertificates from "./pages/admin/AdminCertificates";
-import AdminMessages from "./pages/admin/Messages";
-import AdminRatings from "./pages/admin/Ratings";
-import AdminReferrals from "./pages/admin/AdminReferrals";
-import AdminWallets from "./pages/admin/AdminWallets";
-import AdminAttendance from "./pages/admin/AdminAttendance";
-import AdminSessions from "./pages/admin/AdminSessions";
-import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
-import AdminSettings from "./pages/admin/Settings";
-import AdminCommunications from "./pages/admin/Communications";
+// Lazy-loaded Trainer pages
+const TrainerLogin = lazy(() => import("./pages/trainer/Login"));
+const TrainerSignup = lazy(() => import("./pages/trainer/Signup"));
+const TrainerThankYou = lazy(() => import("./pages/trainer/ThankYou"));
+const TrainerDashboard = lazy(() => import("./pages/trainer/Dashboard"));
+const TrainerProfile = lazy(() => import("./pages/trainer/Profile"));
+const TrainerSubscription = lazy(() => import("./pages/trainer/Subscription"));
+const TrainerCourses = lazy(() => import("./pages/trainer/Courses"));
+const TrainerStudents = lazy(() => import("./pages/trainer/Students"));
+const TrainerEarnings = lazy(() => import("./pages/trainer/Earnings"));
+const TrainerCertificates = lazy(() => import("./pages/trainer/Certificates"));
+const TrainerSchedule = lazy(() => import("./pages/trainer/Schedule"));
+const TrainerWallet = lazy(() => import("./pages/trainer/Wallet"));
+const TrainerReferrals = lazy(() => import("./pages/trainer/Referrals"));
+const TrainerAttendance = lazy(() => import("./pages/trainer/Attendance"));
+const TrainerSessions = lazy(() => import("./pages/trainer/Sessions"));
+const TrainerReviews = lazy(() => import("./pages/trainer/Reviews"));
 
-// Parent
-import ParentLogin from "./pages/parent/Login";
-import ParentDashboard from "./pages/parent/Dashboard";
+// Lazy-loaded Admin pages
+const AdminLogin = lazy(() => import("./pages/admin/Login"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminTrainers = lazy(() => import("./pages/admin/Trainers"));
+const AdminStudents = lazy(() => import("./pages/admin/Students"));
+const AdminPayments = lazy(() => import("./pages/admin/Payments"));
+const AdminPayouts = lazy(() => import("./pages/admin/Payouts"));
+const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
+const AdminCourses = lazy(() => import("./pages/admin/AdminCourses"));
+const AdminDisputes = lazy(() => import("./pages/admin/Disputes"));
+const AdminCertificates = lazy(() => import("./pages/admin/AdminCertificates"));
+const AdminMessages = lazy(() => import("./pages/admin/Messages"));
+const AdminRatings = lazy(() => import("./pages/admin/Ratings"));
+const AdminReferrals = lazy(() => import("./pages/admin/AdminReferrals"));
+const AdminWallets = lazy(() => import("./pages/admin/AdminWallets"));
+const AdminAttendance = lazy(() => import("./pages/admin/AdminAttendance"));
+const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
+const AdminSubscriptions = lazy(() => import("./pages/admin/AdminSubscriptions"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const AdminCommunications = lazy(() => import("./pages/admin/Communications"));
+
+// Lazy-loaded Parent pages
+const ParentLogin = lazy(() => import("./pages/parent/Login"));
+const ParentDashboard = lazy(() => import("./pages/parent/Dashboard"));
 
 const queryClient = new QueryClient();
 

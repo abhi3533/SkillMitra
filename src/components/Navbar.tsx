@@ -50,8 +50,7 @@ const Navbar = () => {
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-3">
             <Link to="/student/login">
-              <Button variant="ghost" size="sm"
-                className={`font-medium ${scrolled || !isHome ? "" : "text-primary-foreground hover:bg-primary-foreground/10"}`}>
+              <Button variant="ghost" size="sm" className="font-medium">
                 Log in
               </Button>
             </Link>

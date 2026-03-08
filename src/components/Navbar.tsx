@@ -16,14 +16,11 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navBg = scrolled || !isHome
+  const navBg = scrolled
     ? "bg-white/95 backdrop-blur-md border-b border-border shadow-sm"
     : "bg-transparent";
 
-  const textColor = scrolled || !isHome ? "text-foreground" : "text-primary-foreground";
-  const linkColor = scrolled || !isHome
-    ? "text-muted-foreground hover:text-foreground"
-    : "text-primary-foreground/70 hover:text-primary-foreground";
+  const linkColor = "text-muted-foreground hover:text-foreground";
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}>
@@ -31,7 +28,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className={`text-[22px] font-bold ${scrolled || !isHome ? "text-foreground" : "text-primary-foreground"}`}>
+            <span className="text-[22px] font-bold text-foreground">
               Skill<span className="text-primary">Mitra</span>
             </span>
           </Link>
@@ -53,8 +50,7 @@ const Navbar = () => {
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-3">
             <Link to="/student/login">
-              <Button variant="ghost" size="sm"
-                className={`font-medium ${scrolled || !isHome ? "" : "text-primary-foreground hover:bg-primary-foreground/10"}`}>
+              <Button variant="ghost" size="sm" className="font-medium">
                 Log in
               </Button>
             </Link>
@@ -67,7 +63,7 @@ const Navbar = () => {
 
           {/* Mobile Toggle */}
           <button onClick={() => setMobileOpen(!mobileOpen)}
-            className={`lg:hidden p-2 rounded-lg transition-colors ${textColor}`}>
+            className="lg:hidden p-2 rounded-lg transition-colors text-foreground">
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>

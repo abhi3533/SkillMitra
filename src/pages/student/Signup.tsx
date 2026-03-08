@@ -310,6 +310,27 @@ const StudentSignup = () => {
             </div>
 
             <div>
+              <Label>Courses You're Interested In</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {courseInterestOptions.map(interest => (
+                  <button
+                    key={interest}
+                    type="button"
+                    onClick={() => toggleInterest(interest)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      courseInterests.includes(interest)
+                        ? "hero-gradient text-primary-foreground"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    {interest}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Select skills you want to learn — helps us match you with the right trainers</p>
+            </div>
+
+            <div>
               <Label>Trainer Gender Preference</Label>
               <Select value={form.trainerPref} onValueChange={v => update("trainerPref", v)}>
                 <SelectTrigger className="mt-1.5 h-11"><SelectValue /></SelectTrigger>

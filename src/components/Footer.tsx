@@ -34,11 +34,11 @@ const Footer = () => {
       <div className="container mx-auto px-4 lg:px-8 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
-          <div className="col-span-1 sm:col-span-2 md:col-span-1">
-            <div className="mb-5">
-              <SkillMitraLogo darkText={false} height={48} showTagline />
+          <div className="col-span-1 sm:col-span-2 md:col-span-1 min-w-0">
+            <div className="mb-5 max-w-full overflow-visible">
+              <SkillMitraLogo darkText={false} height={40} showTagline />
             </div>
-            <p className="text-white/50 text-sm leading-relaxed">
+            <p className="text-white/50 text-sm leading-relaxed break-words">
               India's first 1:1 personal skill training platform. Learn from verified expert trainers from home in your own language.
             </p>
             <p className="text-white/30 text-xs mt-3">A product of Learnvate Solutions Private Limited</p>

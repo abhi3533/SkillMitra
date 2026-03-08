@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
       const { data: student } = await supabase
         .from('students')
-        .select('trainer_gender_preference, skills_learning')
+        .select('trainer_gender_preference, skills_learning, course_interests')
         .eq('user_id', new_user_id)
         .single()
 

@@ -51,6 +51,8 @@ import TrainerSchedule from "./pages/trainer/Schedule";
 import TrainerWallet from "./pages/trainer/Wallet";
 import TrainerReferrals from "./pages/trainer/Referrals";
 import TrainerAttendance from "./pages/trainer/Attendance";
+import TrainerSessions from "./pages/trainer/Sessions";
+import TrainerReviews from "./pages/trainer/Reviews";
 
 // Admin
 import AdminLogin from "./pages/admin/Login";

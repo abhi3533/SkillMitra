@@ -1259,6 +1259,7 @@ export type Database = {
       students: {
         Row: {
           college_name: string | null
+          course_interests: string[] | null
           course_of_study: string | null
           created_at: string | null
           graduation_year: number | null
@@ -1274,6 +1275,7 @@ export type Database = {
         }
         Insert: {
           college_name?: string | null
+          course_interests?: string[] | null
           course_of_study?: string | null
           created_at?: string | null
           graduation_year?: number | null
@@ -1289,6 +1291,7 @@ export type Database = {
         }
         Update: {
           college_name?: string | null
+          course_interests?: string[] | null
           course_of_study?: string | null
           created_at?: string | null
           graduation_year?: number | null

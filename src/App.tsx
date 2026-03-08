@@ -93,6 +93,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <PWAInstallPrompt />
+          <CookieConsent />
           <Routes>
             {/* Public */}
             <Route path="/" element={<Index />} />

@@ -104,7 +104,7 @@ const benefits = [
   { title: "In Your Language", desc: "Learn in Telugu, Hindi, Tamil, English, or any language you prefer.", icon: Globe },
   { title: "From Home", desc: "No commuting. Attend live sessions via Google Meet from anywhere.", icon: Home },
   { title: "Verified Experts", desc: "Every trainer is ID-verified with checked credentials & work history.", icon: Shield },
-  { title: "Affordable Pricing", desc: "Starting from ₹999/month. Expert training at a fraction of the cost.", icon: IndianRupee },
+  { title: "Affordable Pricing", desc: "Starting from ₹999 per course. Expert training at a fraction of the cost.", icon: IndianRupee },
   { title: "Earn Certificates", desc: "Get SkillMitra certificates verified by QR code — share on LinkedIn.", icon: Award },
 ];
 

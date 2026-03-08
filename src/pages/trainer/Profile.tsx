@@ -190,7 +190,7 @@ const TrainerProfile = () => {
     if (!requireAuth("enroll")) return;
     const c = course || courses[0];
     if (!c) {
-      toast({ title: "No courses available for this trainer", variant: "destructive" });
+      toast({ title: "No courses available for this trainer", variant: "info" as any });
       return;
     }
     setEnrollCourse(c);

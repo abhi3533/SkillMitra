@@ -104,7 +104,7 @@ const benefits = [
   { title: "In Your Language", desc: "Learn in Telugu, Hindi, Tamil, English, or any language you prefer.", icon: Globe },
   { title: "From Home", desc: "No commuting. Attend live sessions via Google Meet from anywhere.", icon: Home },
   { title: "Verified Experts", desc: "Every trainer is ID-verified with checked credentials & work history.", icon: Shield },
-  { title: "Affordable Pricing", desc: "Starting from ₹999/month. Expert training at a fraction of the cost.", icon: IndianRupee },
+  { title: "Affordable Pricing", desc: "Starting from ₹999 per course. Expert training at a fraction of the cost.", icon: IndianRupee },
   { title: "Earn Certificates", desc: "Get SkillMitra certificates verified by QR code — share on LinkedIn.", icon: Award },
 ];
 
@@ -138,7 +138,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   usePageMeta({
     title: "SkillMitra — Learn Any Skill From India's Best Experts",
-    description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999/month.",
+    description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999 per course.",
     ogType: "website",
     jsonLd: {
       "@context": "https://schema.org",
@@ -220,7 +220,7 @@ const Index = () => {
                 <TypingText texts={[
                   "Personal 1:1 training from verified industry experts.",
                   "Learn in your own language, from home.",
-                  "Starting from just ₹999/month.",
+                  "Starting from just ₹999 per course.",
                   "Earn certificates. Get placed."
                 ]} />
               </p>
@@ -301,7 +301,7 @@ const Index = () => {
                   <div className="flex items-center justify-between pt-4 border-t border-border">
                     <div>
                       <span className="text-xs text-muted-foreground">Starting from</span>
-                      <div className="text-lg font-bold text-foreground">₹999<span className="text-sm font-normal text-muted-foreground"> per course</span></div>
+                      <div className="text-lg font-bold text-foreground">₹1,999<span className="text-sm font-normal text-muted-foreground"> per course</span></div>
                     </div>
                     <Link to="/browse">
                       <Button size="sm" className="hero-gradient text-primary-foreground font-semibold rounded-lg shadow-sm hover:shadow-md">

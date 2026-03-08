@@ -580,7 +580,7 @@ const Index = () => {
                 </Button>
               </Link>
               <Link to="/browse">
-                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold text-[15px] px-10 h-12 rounded-xl transition-all duration-300">
+                <Button variant="outline" className="border-white/40 text-white hover:bg-white/10 hover:border-white/60 font-semibold text-[15px] px-10 h-12 rounded-xl transition-all duration-300 bg-transparent">
                   Browse Trainers
                 </Button>
               </Link>

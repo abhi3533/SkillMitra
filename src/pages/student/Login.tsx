@@ -112,9 +112,7 @@ const StudentLogin = () => {
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="lg:hidden mb-8">
-            <Link to="/" className="flex items-center">
-              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
-            </Link>
+            <SkillMitraLogo darkText height={32} />
           </div>
 
           <h1 className="text-2xl font-bold text-foreground">Student Login</h1>

@@ -236,96 +236,100 @@ const TrainerSignup = () => {
 
       const userId = authData.user.id;
 
-      // Upload profile photo
+      // Upload files using storage (anon key works for public buckets)
       let profilePictureUrl: string | null = null;
       if (profilePhoto) {
         const ext = profilePhoto.name.split('.').pop();
         const photoPath = `${userId}/profile.${ext}`;
         const { error: photoErr } = await supabase.storage.from("profile-pictures").upload(photoPath, profilePhoto, { upsert: true });
-        if (photoErr) throw new Error(`Profile photo upload failed: ${photoErr.message}`);
-        const { data: photoUrl } = supabase.storage.from("profile-pictures").getPublicUrl(photoPath);
-        profilePictureUrl = photoUrl.publicUrl;
-      }
-
-      await supabase.from("profiles").update({
-        city: form.city || null,
-        state: form.state || null,
-        gender: form.gender || null,
-        profile_picture_url: profilePictureUrl,
-      }).eq("id", userId);
-
-      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", userId).single();
-      if (!trainer) throw new Error("Trainer profile not created");
-
-      let introVideoUrl: string | null = null;
-      for (const docType of docTypes) {
-        const docFile = docs[docType.key];
-        if (docFile?.file) {
-          const url = await uploadFile(userId, trainer.id, docType.key, docType.bucket, docFile.file);
-          if (docType.key === "intro_video") {
-            introVideoUrl = url;
-          } else {
-            await supabase.from("trainer_documents").insert({
-              trainer_id: trainer.id,
-              document_type: docType.key,
-              document_name: docFile.name,
-              document_url: url,
-            });
-          }
+        if (photoErr) console.error("Profile photo upload failed:", photoErr.message);
+        else {
+          const { data: photoUrl } = supabase.storage.from("profile-pictures").getPublicUrl(photoPath);
+          profilePictureUrl = photoUrl.publicUrl;
         }
       }
 
-      await supabase.from("trainers").update({
-        bio: form.bio,
-        skills,
-        teaching_languages: teachLangs,
-        experience_years: parseInt(form.experience) || 0,
-        current_role: form.currentRole,
-        current_company: form.currentCompany,
-        linkedin_url: form.linkedinUrl || null,
-        previous_companies: form.previousCompanies ? form.previousCompanies.split(",").map(c => c.trim()).filter(Boolean) : [],
-        bank_account_number: form.bankAccount || null,
-        ifsc_code: form.ifsc || null,
-        upi_id: form.upiId || null,
-        pan_number: form.panNumber || null,
-        account_holder_name: form.accountHolderName || null,
-        intro_video_url: introVideoUrl,
-      }).eq("id", trainer.id);
+      // Upload documents
+      let introVideoUrl: string | null = null;
+      const uploadedDocs: { document_type: string; document_name: string; document_url: string }[] = [];
+      for (const docType of docTypes) {
+        const docFile = docs[docType.key];
+        if (docFile?.file) {
+          try {
+            const ext = docFile.file.name.split('.').pop();
+            const path = `${userId}/${docType.key}.${ext}`;
+            const { error: upErr } = await supabase.storage.from(docType.bucket).upload(path, docFile.file, { upsert: true });
+            if (upErr) { console.error(`Upload failed for ${docType.key}:`, upErr); continue; }
+            const { data: urlData } = supabase.storage.from(docType.bucket).getPublicUrl(path);
+            if (docType.key === "intro_video") {
+              introVideoUrl = urlData.publicUrl;
+            } else {
+              uploadedDocs.push({ document_type: docType.key, document_name: docFile.name, document_url: urlData.publicUrl });
+            }
+          } catch (e) { console.error(`Doc upload error for ${docType.key}:`, e); }
+        }
+      }
 
+      // Build availability data
       const dayMap: Record<string, number> = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0 };
       const availRows = Object.entries(availability).map(([day, val]) => ({
-        trainer_id: trainer.id,
         day_of_week: dayMap[day],
         start_time: val.start,
         end_time: val.end,
         is_available: val.checked,
       }));
-      await supabase.from("trainer_availability").insert(availRows);
+
+      // Use edge function (service role) to complete trainer setup — bypasses RLS
+      const { error: completeErr } = await supabase.functions.invoke("complete-signup", {
+        body: {
+          user_id: userId,
+          role: "trainer",
+          trainer_data: {
+            bio: form.bio,
+            skills,
+            teaching_languages: teachLangs,
+            experience_years: parseInt(form.experience) || 0,
+            current_role: form.currentRole,
+            current_company: form.currentCompany,
+            linkedin_url: form.linkedinUrl || null,
+            previous_companies: form.previousCompanies ? form.previousCompanies.split(",").map(c => c.trim()).filter(Boolean) : [],
+            bank_account_number: form.bankAccount || null,
+            ifsc_code: form.ifsc || null,
+            upi_id: form.upiId || null,
+            pan_number: form.panNumber || null,
+            account_holder_name: form.accountHolderName || null,
+            intro_video_url: introVideoUrl,
+            profile_picture_url: profilePictureUrl,
+            availability: availRows,
+            documents: uploadedDocs,
+          },
+        },
+      });
+
+      if (completeErr) {
+        console.error("Complete signup error:", completeErr);
+        // Don't block — the basic account was created, details can be updated later
+      }
 
       const trimmedRef = referralCode.trim().toUpperCase();
-      if (trimmedRef && authData.user?.id) {
+      if (trimmedRef) {
         supabase.functions.invoke("process-trainer-referral", {
-          body: { referral_code: trimmedRef, new_user_id: authData.user.id },
-        }).then(({ error: fnErr }) => {
-          if (fnErr) console.error("Trainer referral error:", fnErr);
-        });
+          body: { referral_code: trimmedRef, new_user_id: userId },
+        }).catch(e => console.error("Trainer referral error:", e));
       }
 
-      // Send welcome email to trainer
       supabase.functions.invoke("send-email", {
         body: { type: "trainer_welcome", to: form.email, data: { name: form.fullName } },
-      }).then(({ error: fnErr }) => { if (fnErr) console.error("Trainer welcome email error:", fnErr); });
+      }).catch(e => console.error("Trainer welcome email error:", e));
 
-      // Trigger profile matching to notify students with matching interests
-      if (authData.user?.id) {
-        supabase.functions.invoke("profile-matching", {
-          body: { new_user_id: authData.user.id, role: "trainer" },
-        }).then(({ error: fnErr }) => { if (fnErr) console.error("Trainer profile matching error:", fnErr); });
-      }
+      supabase.functions.invoke("profile-matching", {
+        body: { new_user_id: userId, role: "trainer" },
+      }).catch(e => console.error("Trainer profile matching error:", e));
 
       toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message." });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {
+      console.error("Trainer signup error:", err);
       toast({ title: "Signup failed", description: getAuthErrorMessage(err), variant: "destructive" });
     } finally {
       setLoading(false);

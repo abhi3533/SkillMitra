@@ -77,9 +77,12 @@ const BrowseTrainers = () => {
         const profileMap = await fetchProfilesMap(userIds);
         realTrainers = trainerData.map(t => ({ ...t, profile: profileMap[t.user_id] }));
 
-        // Fetch availability for real trainers
+        // Fetch availability and courses for real trainers
         const trainerIds = trainerData.map(t => t.id);
-        const { data: avail } = await supabase.from("trainer_availability").select("*").in("trainer_id", trainerIds);
+        const [{ data: avail }, { data: courses }] = await Promise.all([
+          supabase.from("trainer_availability").select("*").in("trainer_id", trainerIds),
+          supabase.from("courses").select("trainer_id, course_fee").in("trainer_id", trainerIds).eq("is_active", true),
+        ]);
         if (avail) {
           const map: Record<string, any[]> = {};
           avail.forEach(a => {
@@ -88,8 +91,20 @@ const BrowseTrainers = () => {
           });
           setAvailabilityMap(map);
         }
+        // Build min course fee map for real trainers
+        if (courses) {
+          const feeMap: Record<string, number> = {};
+          courses.forEach(c => {
+            const fee = Number(c.course_fee) || 0;
+            if (!feeMap[c.trainer_id] || fee < feeMap[c.trainer_id]) {
+              feeMap[c.trainer_id] = fee;
+            }
+          });
+          setCourseFeeMap(feeMap);
+        }
       }
-      setTrainers([...realTrainers, ...demoTrainers]);
+      // Only show demo trainers if no real trainers exist
+      setTrainers(realTrainers.length > 0 ? realTrainers : demoTrainers);
       setLoading(false);
     })();
   }, []);

@@ -478,7 +478,6 @@ const BrowseTrainers = () => {
                 </div>
               )}
               </>
-              </div>
             )}
           </div>
         </div>

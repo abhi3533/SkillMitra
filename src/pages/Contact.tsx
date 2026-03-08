@@ -17,6 +17,7 @@ const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
 const Contact = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [emailTypo, setEmailTypo] = useState<string | null>(null);
@@ -53,6 +54,10 @@ const Contact = () => {
         body: form,
       });
       if (error) throw error;
+      if (data?.error) {
+        toast({ title: data.error, variant: "destructive" });
+        return;
+      }
       toast({
         title: "Your message has been sent successfully!",
         description: "We will get back to you within 24 hours.",
@@ -61,6 +66,14 @@ const Contact = () => {
       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
       setTouched({});
       setEmailTypo(null);
+      // 60-second cooldown after successful submission
+      setCooldown(60);
+      const interval = setInterval(() => {
+        setCooldown(prev => {
+          if (prev <= 1) { clearInterval(interval); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err: any) {
       toast({ title: "Failed to send", description: err.message || "Something went wrong", variant: "destructive" });
     } finally {
@@ -154,8 +167,8 @@ const Contact = () => {
                   className={`mt-1 min-h-[120px] ${touched.message ? (form.message.length >= 20 ? "border-green-500" : "border-destructive") : ""}`} required />
                 {touched.message && form.message.length > 0 && form.message.length < 20 && <p className="text-xs text-destructive mt-1">Message must be at least 20 characters</p>}
               </div>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Sending..." : "Send Message"}
+              <Button type="submit" disabled={loading || cooldown > 0} className="w-full">
+                {loading ? "Sending..." : cooldown > 0 ? `Please wait ${cooldown}s` : "Send Message"}
               </Button>
             </form>
           </div>

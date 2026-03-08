@@ -1,27 +1,112 @@
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, BadgeCheck, MapPin, Globe, Clock, Users, Briefcase, Calendar, ArrowRight, ChevronRight } from "lucide-react";
+import { Star, BadgeCheck, Globe, Clock, Users, Calendar, ArrowRight, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchProfilesMap } from "@/lib/profileHelpers";
+import { isDemo, getDemoTrainer, getDemoCourse, demoTestimonials } from "@/lib/demoData";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const trainerData: Record<string, any> = {
-  "1": { name: "Priya Sharma", role: "Senior Data Scientist", company: "Google", experience: 8, bio: "I'm a Senior Data Scientist at Google with 8 years of experience in ML and AI. I've trained 245+ students and helped many land roles at top tech companies. I believe in hands-on, project-based learning where every concept is tied to real-world applications. My teaching philosophy is simple: if you can build it, you understand it.", skills: ["Python", "Machine Learning", "Data Science", "TensorFlow", "Deep Learning", "NLP"], languages: ["English", "Hindi"], rating: 4.9, reviews: 127, students: 245, responseTime: "< 2 hours", verified: true, elite: true, courses: [
-    { id: "c1", title: "Complete Data Science Bootcamp", duration: "90 days", sessions: 36, fee: 14999, level: "Beginner to Advanced", description: "Master data science from scratch. Covers Python, statistics, ML, deep learning, and capstone project.", curriculum: ["Python & NumPy fundamentals", "Statistics & Probability", "Machine Learning algorithms", "Deep Learning with TensorFlow", "NLP & Computer Vision", "Capstone Project"] },
-    { id: "c2", title: "Machine Learning Masterclass", duration: "45 days", sessions: 18, fee: 8999, level: "Intermediate", description: "Deep dive into ML algorithms, model optimization, and deployment.", curriculum: ["Supervised Learning", "Unsupervised Learning", "Model Evaluation", "Feature Engineering", "ML Deployment"] },
-  ], reviews_list: [
-    { student: "Kavya M.", rating: 5, text: "Priya ma'am is an incredible teacher. She explained complex ML concepts in Hindi which made it so easy to understand. Got placed at Amazon!", date: "2 weeks ago" },
-    { student: "Rohit S.", rating: 5, text: "The Data Science bootcamp was worth every rupee. Real Google-level projects and amazing support.", date: "1 month ago" },
-    { student: "Ankit P.", rating: 4, text: "Very thorough teaching. Sometimes sessions run over time because she wants to explain everything properly.", date: "2 months ago" },
-  ]},
-};
-
-// Default fallback
-const defaultTrainer = trainerData["1"];
-
 const TrainerProfile = () => {
   const { id } = useParams();
-  const trainer = trainerData[id || "1"] || defaultTrainer;
+  const [trainer, setTrainer] = useState<any>(null);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+
+    if (isDemo(id)) {
+      const demo = getDemoTrainer(id);
+      if (demo) {
+        setTrainer(demo);
+        setCourses(getDemoCourse(id));
+        // Pick 2 demo testimonials as reviews
+        setReviews(demoTestimonials.slice(0, 2));
+      }
+      setLoading(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        const { data: t } = await supabase.from("trainers").select("*").eq("id", id).single();
+        if (t) {
+          const profileMap = await fetchProfilesMap([t.user_id]);
+          setTrainer({ ...t, profile: profileMap[t.user_id] });
+
+          const { data: coursesData } = await supabase.from("courses").select("*").eq("trainer_id", id).eq("approval_status", "approved");
+          setCourses(coursesData || []);
+
+          const { data: ratingsData } = await supabase.from("ratings").select("*").eq("trainer_id", id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
+          if (ratingsData && ratingsData.length > 0) {
+            const studentIds = ratingsData.map(r => r.student_id);
+            const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
+            const sUserIds = (studentData || []).map(s => s.user_id);
+            const sProfileMap = await fetchProfilesMap(sUserIds);
+            const studentMap: Record<string, any> = {};
+            (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
+            setReviews(ratingsData.map(r => ({
+              student: studentMap[r.student_id]?.full_name || "Student",
+              rating: r.student_to_trainer_rating || 5,
+              text: r.student_to_trainer_review || r.student_review_text || "Great experience!",
+              date: new Date(r.created_at || "").toLocaleDateString(),
+            })));
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setLoading(false);
+    })();
+  }, [id]);
+
+  const name = trainer?.profile?.full_name || "Trainer";
+  const avatarColor = trainer?.avatarColor || "#1A56DB";
+  const initials = name.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
+
+  usePageMeta(
+    loading ? "Trainer Profile — SkillMitra" : `${name} — SkillMitra Trainer`,
+    loading ? "View trainer profile on SkillMitra" : `Learn from ${name}, ${trainer?.current_role || "Expert Trainer"}. Book 1:1 sessions on SkillMitra.`
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-24 pb-12 bg-primary">
+          <div className="container mx-auto px-4 lg:px-8">
+            <Skeleton className="h-32 w-32 rounded-2xl" />
+            <Skeleton className="h-8 w-64 mt-4" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!trainer) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-24 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Trainer not found</h1>
+          <Link to="/browse"><Button className="mt-4">Browse Trainers</Button></Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const isDemoTrainer = isDemo(trainer.id);
+  const trainerCourses = isDemoTrainer ? courses : courses;
+  const minFee = trainerCourses.length > 0
+    ? Math.min(...trainerCourses.map((c: any) => Number(c.fee || c.course_fee || 0)))
+    : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,24 +116,33 @@ const TrainerProfile = () => {
       <div className="hero-gradient pt-24 pb-12 lg:pt-28 lg:pb-16">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl hero-gradient border-4 border-primary-foreground/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-primary-foreground font-bold text-4xl">{trainer.name[0]}</span>
+            <div
+              className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `${avatarColor}25` }}
+            >
+              <span className="text-primary-foreground font-bold text-3xl lg:text-4xl" style={{ color: avatarColor }}>
+                {initials}
+              </span>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl lg:text-3xl font-bold text-primary-foreground">{trainer.name}</h1>
-                {trainer.verified && <BadgeCheck className="w-6 h-6 text-accent" />}
-                {trainer.elite && <span className="text-xs font-bold px-2 py-1 rounded gold-gradient text-accent-foreground">ELITE</span>}
+                <h1 className="text-2xl lg:text-3xl font-bold text-primary-foreground">{name}</h1>
+                <BadgeCheck className="w-6 h-6 text-accent" />
+                {trainer.subscription_plan === "elite" && <span className="text-xs font-bold px-2 py-1 rounded gold-gradient text-accent-foreground">ELITE</span>}
               </div>
-              <p className="text-primary-foreground/70 mt-1">{trainer.role} at {trainer.company} • {trainer.experience} years experience</p>
+              <p className="text-primary-foreground/70 mt-1">
+                {trainer.current_role} {trainer.current_company ? `at ${trainer.current_company}` : ""} • {trainer.experience_years || 0} years experience
+              </p>
               <div className="flex flex-wrap gap-4 mt-4 text-sm text-primary-foreground/60">
-                <span className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent" /> {trainer.rating} ({trainer.reviews} reviews)</span>
-                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {trainer.students} students</span>
-                <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {trainer.languages.join(", ")}</span>
-                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responds {trainer.responseTime}</span>
+                <span className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent" /> {trainer.average_rating} ({reviews.length} reviews)</span>
+                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {trainer.total_students} students</span>
+                {trainer.teaching_languages && (
+                  <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {trainer.teaching_languages.join(", ")}</span>
+                )}
+                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responds &lt; 2 hours</span>
               </div>
               <div className="flex flex-wrap gap-2 mt-4">
-                {trainer.skills.map((s: string) => (
+                {(trainer.skills || []).map((s: string) => (
                   <span key={s} className="text-xs px-3 py-1 rounded-full bg-primary-foreground/10 text-primary-foreground/80 font-medium">{s}</span>
                 ))}
               </div>
@@ -62,74 +156,104 @@ const TrainerProfile = () => {
           {/* Main */}
           <div className="flex-1 space-y-8">
             {/* About */}
-            <section className="bg-card rounded-xl border p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
-              <p className="text-muted-foreground leading-relaxed">{trainer.bio}</p>
-            </section>
+            {trainer.bio && (
+              <section className="bg-card rounded-xl border p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
+                <p className="text-muted-foreground leading-relaxed">{trainer.bio}</p>
+              </section>
+            )}
 
             {/* Courses */}
-            <section>
-              <h2 className="text-lg font-semibold text-foreground mb-4">Courses Offered</h2>
-              <div className="space-y-4">
-                {trainer.courses.map((c: any) => (
-                  <div key={c.id} className="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">{c.title}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{c.description}</p>
-                        <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {c.duration}</span>
-                          <span>{c.sessions} sessions</span>
-                          <span className="px-2 py-0.5 rounded bg-secondary text-secondary-foreground">{c.level}</span>
-                        </div>
-                        <div className="mt-3">
-                          <p className="text-xs font-medium text-foreground mb-1">Curriculum Preview:</p>
-                          <ul className="space-y-1">
-                            {c.curriculum.slice(0, 4).map((topic: string) => (
-                              <li key={topic} className="text-xs text-muted-foreground flex items-center gap-1"><ChevronRight className="w-3 h-3 text-accent" />{topic}</li>
-                            ))}
-                          </ul>
+            {trainerCourses.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold text-foreground mb-4">Courses Offered</h2>
+                <div className="space-y-4">
+                  {trainerCourses.map((c: any) => {
+                    const fee = c.fee || c.course_fee || 0;
+                    const dur = c.duration || (c.duration_days ? `${c.duration_days} days` : "");
+                    const sess = c.sessions || c.total_sessions || 0;
+                    const lvl = c.level || "All Levels";
+                    const desc = c.description || "";
+                    const curriculum = c.curriculum || c.what_you_learn || [];
+
+                    return (
+                      <div key={c.id} className="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-foreground">{c.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{desc}</p>
+                            <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {dur}</span>
+                              <span>{sess} sessions</span>
+                              <span className="px-2 py-0.5 rounded bg-secondary text-secondary-foreground">{lvl}</span>
+                            </div>
+                            {curriculum.length > 0 && (
+                              <div className="mt-3">
+                                <p className="text-xs font-medium text-foreground mb-1">Curriculum Preview:</p>
+                                <ul className="space-y-1">
+                                  {curriculum.slice(0, 4).map((topic: string) => (
+                                    <li key={topic} className="text-xs text-muted-foreground flex items-center gap-1"><ChevronRight className="w-3 h-3 text-accent" />{topic}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-2xl font-bold text-foreground">₹{Number(fee).toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">{dur}</p>
+                            <Button size="sm" className="mt-3 hero-gradient border-0 text-xs">Enroll Now</Button>
+                            <p className="text-xs text-accent mt-2 cursor-pointer hover:underline">Free Trial Available</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-2xl font-bold text-foreground">₹{c.fee.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">{c.duration}</p>
-                        <Button size="sm" className="mt-3 hero-gradient border-0 text-xs">Enroll Now</Button>
-                        <p className="text-xs text-accent mt-2 cursor-pointer hover:underline">Free Trial Available</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             {/* Reviews */}
-            <section>
-              <h2 className="text-lg font-semibold text-foreground mb-4">Student Reviews</h2>
-              <div className="space-y-4">
-                {trainer.reviews_list.map((r: any) => (
-                  <div key={r.student} className="bg-card rounded-xl border p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-full hero-gradient flex items-center justify-center">
-                        <span className="text-primary-foreground text-xs font-bold">{r.student[0]}</span>
+            {reviews.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold text-foreground mb-4">Student Reviews</h2>
+                <div className="space-y-4">
+                  {reviews.map((r: any, idx: number) => {
+                    const rName = r.student || r.name || "Student";
+                    const rText = r.text || "";
+                    const rRating = r.rating || 5;
+                    const rDate = r.date || "";
+
+                    return (
+                      <div key={idx} className="bg-card rounded-xl border p-5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-8 h-8 rounded-full hero-gradient flex items-center justify-center">
+                            <span className="text-primary-foreground text-xs font-bold">{rName[0]}</span>
+                          </div>
+                          <span className="font-medium text-foreground text-sm">{rName}</span>
+                          <div className="flex gap-0.5">{[...Array(rRating)].map((_, i) => <Star key={i} className="w-3 h-3 text-accent fill-accent" />)}</div>
+                          {rDate && <span className="text-xs text-muted-foreground ml-auto">{rDate}</span>}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{rText}</p>
                       </div>
-                      <span className="font-medium text-foreground text-sm">{r.student}</span>
-                      <div className="flex gap-0.5">{[...Array(r.rating)].map((_, i) => <Star key={i} className="w-3 h-3 text-accent fill-accent" />)}</div>
-                      <span className="text-xs text-muted-foreground ml-auto">{r.date}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{r.text}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
           </div>
 
           {/* Sidebar */}
           <aside className="lg:w-80 flex-shrink-0">
             <div className="bg-card rounded-xl border p-6 sticky top-24">
               <h3 className="font-semibold text-foreground mb-4">Quick Enroll</h3>
-              <p className="text-sm text-muted-foreground mb-1">Starting from</p>
-              <p className="text-3xl font-bold text-foreground">₹{Math.min(...trainer.courses.map((c: any) => c.fee)).toLocaleString()}</p>
+              {minFee > 0 ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-1">Starting from</p>
+                  <p className="text-3xl font-bold text-foreground">₹{minFee.toLocaleString()}</p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Contact for pricing</p>
+              )}
               <Button className="w-full mt-4 hero-gradient border-0 font-semibold h-11">
                 Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
@@ -143,11 +267,11 @@ const TrainerProfile = () => {
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Response time</span>
-                  <span className="text-foreground font-medium">{trainer.responseTime}</span>
+                  <span className="text-foreground font-medium">&lt; 2 hours</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Students trained</span>
-                  <span className="text-foreground font-medium">{trainer.students}</span>
+                  <span className="text-foreground font-medium">{trainer.total_students}</span>
                 </div>
               </div>
             </div>

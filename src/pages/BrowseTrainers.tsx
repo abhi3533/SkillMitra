@@ -317,7 +317,7 @@ const BrowseTrainers = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{sorted.length}</span> trainers found
+                <span className="font-semibold text-foreground">{sorted.length} Trainers</span> Found
               </p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" className="lg:hidden text-xs gap-1.5" onClick={() => setShowFilters(true)}>

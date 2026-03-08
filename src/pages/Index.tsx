@@ -220,7 +220,7 @@ const Index = () => {
                 <TypingText texts={[
                   "Personal 1:1 training from verified industry experts.",
                   "Learn in your own language, from home.",
-                  "Starting from just ₹999/month.",
+                  "Starting from just ₹999 per course.",
                   "Earn certificates. Get placed."
                 ]} />
               </p>

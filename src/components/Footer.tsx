@@ -1,8 +1,35 @@
 import { Link } from "react-router-dom";
+import { Shield, BadgeCheck, IndianRupee, Video } from "lucide-react";
+
+const trustBadges = [
+  { icon: Shield, label: "Secure Payments", sub: "Powered by Razorpay" },
+  { icon: BadgeCheck, label: "Verified Trainers", sub: "Document verified" },
+  { icon: IndianRupee, label: "Money Back Guarantee", sub: "Within 48 hours" },
+  { icon: Video, label: "1000+ Sessions", sub: "Completed on platform" },
+];
 
 const Footer = () => {
   return (
     <footer className="bg-foreground">
+      {/* Trust Badges */}
+      <div className="border-b border-white/10">
+        <div className="container mx-auto px-4 lg:px-8 py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {trustBadges.map(badge => (
+              <div key={badge.label} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                  <badge.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white/90">{badge.label}</p>
+                  <p className="text-[11px] text-white/40">{badge.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 lg:px-8 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
@@ -76,6 +103,7 @@ const Footer = () => {
           <div className="flex items-center gap-6 flex-wrap justify-center">
             <Link to="/privacy" className="text-xs text-white/30 hover:text-white/50 transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="text-xs text-white/30 hover:text-white/50 transition-colors">Terms of Service</Link>
+            <Link to="/terms#refund-policy" className="text-xs text-white/30 hover:text-white/50 transition-colors">Refund Policy</Link>
             <Link to="/contact" className="text-xs text-white/30 hover:text-white/50 transition-colors">Contact</Link>
             <Link to="/about" className="text-xs text-white/30 hover:text-white/50 transition-colors">About</Link>
           </div>

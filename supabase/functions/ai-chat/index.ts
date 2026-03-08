@@ -22,7 +22,7 @@ If you cannot answer a question, say: "I'd love to help! Let me connect you with
 
 Keep responses short, friendly, and under 100 words. Use emojis sparingly for warmth.`;
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {

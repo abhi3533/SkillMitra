@@ -1161,6 +1161,51 @@ export type Database = {
         }
         Relationships: []
       }
+      session_reflections: {
+        Row: {
+          confidence_level: number
+          created_at: string
+          id: string
+          learned_today: string
+          questions_for_next: string | null
+          session_id: string
+          student_id: string
+        }
+        Insert: {
+          confidence_level?: number
+          created_at?: string
+          id?: string
+          learned_today?: string
+          questions_for_next?: string | null
+          session_id: string
+          student_id: string
+        }
+        Update: {
+          confidence_level?: number
+          created_at?: string
+          id?: string
+          learned_today?: string
+          questions_for_next?: string | null
+          session_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_reflections_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "course_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_reflections_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_resumes: {
         Row: {
           ai_improved_objective: string | null

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
+import StudentProgressSection from "@/components/StudentProgressSection";
 import RatingModal from "@/components/RatingModal";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useLoadingTitle } from "@/hooks/useLoadingTitle";
@@ -25,12 +26,14 @@ const StudentDashboard = () => {
     attendancePercent: null as number | null,
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
   useLoadingTitle(loading);
 
   const fetchDashboard = async () => {
     if (!user) return;
     const { data: student } = await supabase.from("students").select("id, referral_credits").eq("user_id", user.id).single();
     if (!student) { setLoading(false); return; }
+    setStudentId(student.id);
 
     const [enrollRes, aiRes, resumeRes, completedSessions, certsRes, upcomingSessions, walletRes] = await Promise.all([
       supabase.from("enrollments").select("*, courses(title, total_sessions)").eq("student_id", student.id).eq("status", "active"),
@@ -262,6 +265,9 @@ const StudentDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Learning Progress */}
+      {studentId && <StudentProgressSection studentId={studentId} />}
 
       {/* Quick Actions */}
       <div className="mt-6 bg-card rounded-xl border p-5">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Video, Clock, Star, RotateCcw } from "lucide-react";
+import { Calendar, Video, Clock, Star, RotateCcw, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +9,7 @@ import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
 import RatingModal from "@/components/RatingModal";
+import SessionReflectionModal from "@/components/SessionReflectionModal";
 
 const StudentSessions = () => {
   const { user } = useAuth();
@@ -16,6 +17,8 @@ const StudentSessions = () => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [tab, setTab] = useState("upcoming");
   const [ratingModal, setRatingModal] = useState<any>(null);
+  const [reflectionModal, setReflectionModal] = useState<any>(null);
+  const [reflectedIds, setReflectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
@@ -45,6 +48,11 @@ const StudentSessions = () => {
       const { data: ratings } = await supabase.from("ratings").select("session_id").eq("student_id", student.id).not("student_rated_at", "is", null);
       const ratedIds = new Set((ratings || []).map(r => r.session_id));
       setSessions(prev => prev.map(s => ({ ...s, isRated: ratedIds.has(s.id) })));
+
+      // Check reflected sessions
+      const { data: refs } = await supabase.from("session_reflections").select("session_id").eq("student_id", student.id);
+      setReflectedIds(new Set((refs || []).map(r => r.session_id)));
+
       setLoading(false);
     })();
   }, [user]);
@@ -117,6 +125,19 @@ const StudentSessions = () => {
                 {s.status === "completed" && s.isRated && (
                   <span className="text-[10px] text-emerald-600 flex items-center gap-1"><Star className="w-3 h-3 fill-emerald-600" /> Rated</span>
                 )}
+                {s.status === "completed" && !reflectedIds.has(s.id) && (
+                  <Button size="sm" variant="outline" className="text-xs h-7 gap-1"
+                    onClick={() => setReflectionModal({
+                      sessionId: s.id,
+                      studentId: s.enrollments?.student_id,
+                      title: s.title || s.enrollments?.courses?.title || `Session #${s.session_number}`,
+                    })}>
+                    <MessageSquare className="w-3 h-3" /> Reflect
+                  </Button>
+                )}
+                {s.status === "completed" && reflectedIds.has(s.id) && (
+                  <span className="text-[10px] text-primary flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Reflected</span>
+                )}
               </div>
             </div>
           </div>
@@ -135,6 +156,19 @@ const StudentSessions = () => {
           onSubmitted={() => {
             setRatingModal(null);
             setSessions(prev => prev.map(s => s.id === ratingModal.sessionId ? { ...s, isRated: true } : s));
+          }}
+        />
+      )}
+
+      {reflectionModal && (
+        <SessionReflectionModal
+          sessionId={reflectionModal.sessionId}
+          studentId={reflectionModal.studentId}
+          sessionTitle={reflectionModal.title}
+          onClose={() => setReflectionModal(null)}
+          onSubmitted={() => {
+            setReflectedIds(prev => new Set([...prev, reflectionModal.sessionId]));
+            setReflectionModal(null);
           }}
         />
       )}

@@ -34,6 +34,8 @@ const SCHEDULE_PREFS = [
   { label: "Weekday Only", sub: "Mon – Fri", days: [1, 2, 3, 4, 5] },
 ];
 
+const ITEMS_PER_PAGE = 12;
+
 const BrowseTrainers = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("popular");
@@ -42,6 +44,7 @@ const BrowseTrainers = () => {
   const [courseFeeMap, setCourseFeeMap] = useState<Record<string, number>>({});
   const [trainerCourseMap, setTrainerCourseMap] = useState<Record<string, { id: string; title: string; fee: number }[]>>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   // Filters
   const [selectedSkill, setSelectedSkill] = useState<string>("");
@@ -127,6 +130,7 @@ const BrowseTrainers = () => {
   const clearFilters = () => {
     setSelectedSkill(""); setPriceRange([500, 10000]); setSelectedLanguages([]);
     setGenderPref(""); setMinRating(0); setSelectedTimeSlots([]); setSelectedSchedule([]);
+    setVisibleCount(ITEMS_PER_PAGE);
   };
 
   const filtered = useMemo(() => {
@@ -383,8 +387,9 @@ const BrowseTrainers = () => {
                 {activeFilterCount > 0 && <Button variant="outline" size="sm" className="mt-3" onClick={clearFilters}>Clear Filters</Button>}
               </div>
             ) : (
+              <>
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {sorted.map((t, i) => {
+                {sorted.slice(0, visibleCount).map((t, i) => {
                   const name = t.profile?.full_name || "Trainer";
                   const avatarColor = t.avatarColor;
                   const initials = name.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
@@ -465,6 +470,14 @@ const BrowseTrainers = () => {
                   );
                 })}
               </div>
+              {visibleCount < sorted.length && (
+                <div className="text-center mt-8">
+                  <Button variant="outline" onClick={() => setVisibleCount(v => v + ITEMS_PER_PAGE)}>
+                    Load More ({sorted.length - visibleCount} remaining)
+                  </Button>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>

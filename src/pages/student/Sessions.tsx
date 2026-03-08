@@ -16,6 +16,8 @@ import StudentLayout from "@/components/layouts/StudentLayout";
 import RatingModal from "@/components/RatingModal";
 import SessionReflectionModal from "@/components/SessionReflectionModal";
 
+const SESSIONS_PER_PAGE = 15;
+
 const StudentSessions = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -27,6 +29,7 @@ const StudentSessions = () => {
   const [reflectedIds, setReflectedIds] = useState<Set<string>>(new Set());
   const [studentId, setStudentId] = useState<string | null>(null);
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(SESSIONS_PER_PAGE);
 
   // Postpone state
   const [postponeModal, setPostponeModal] = useState<any>(null);
@@ -91,6 +94,7 @@ const StudentSessions = () => {
   }, [user]);
 
   const filtered = sessions.filter(s => tab === "all" || s.status === tab);
+  const paginatedSessions = filtered.slice(0, visibleCount);
 
   const isJoinable = (s: any) => {
     if (!s.scheduled_at || !s.meet_link) return false;
@@ -187,7 +191,7 @@ const StudentSessions = () => {
       <h1 className="text-2xl font-bold text-foreground">My Sessions</h1>
       <p className="mt-1 text-sm text-muted-foreground">View and manage your learning sessions</p>
 
-      <Tabs value={tab} onValueChange={setTab} className="mt-6">
+      <Tabs value={tab} onValueChange={(v) => { setTab(v); setVisibleCount(SESSIONS_PER_PAGE); }} className="mt-6">
         <TabsList>
           <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
@@ -204,7 +208,7 @@ const StudentSessions = () => {
             <p className="text-sm text-muted-foreground mt-2">No {tab} sessions</p>
             <p className="text-xs text-muted-foreground mt-1">Sessions will appear once your trainer schedules them</p>
           </div>
-        ) : filtered.map(s => {
+        ) : paginatedSessions.map(s => {
           const currTopic = getCurriculumTopic(s);
           return (
             <div key={s.id} className="bg-card border rounded-xl p-4">
@@ -274,6 +278,13 @@ const StudentSessions = () => {
             </div>
           );
         })}
+        {visibleCount < filtered.length && (
+          <div className="text-center mt-4">
+            <Button variant="outline" size="sm" onClick={() => setVisibleCount(v => v + SESSIONS_PER_PAGE)}>
+              Load More ({filtered.length - visibleCount} remaining)
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Postpone/Reschedule Dialog */}

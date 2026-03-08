@@ -28,6 +28,7 @@ const Standards = lazy(() => import("./pages/Standards"));
 const CertificateVerify = lazy(() => import("./pages/CertificateVerify"));
 const ReferPage = lazy(() => import("./pages/Refer"));
 const JoinRedirect = lazy(() => import("./pages/JoinRedirect"));
+const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -130,6 +131,7 @@ const AppContent = () => {
           <Route path="/verify/:certificateId" element={<CertificateVerify />} />
           <Route path="/verify" element={<CertificateVerify />} />
           <Route path="/trainer/:id" element={<TrainerProfile />} />
+          <Route path="/course/:courseId" element={<CourseDetail />} />
           <Route path="/join/:code" element={<JoinRedirect />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />

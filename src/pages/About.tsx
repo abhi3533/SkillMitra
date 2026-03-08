@@ -1,7 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
-const About = () => (
+const About = () => {
+  usePageMeta("About SkillMitra — India's 1:1 Skill Training Platform", "Learn about SkillMitra's mission to democratize skill training across India with verified expert trainers.");
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
     <div className="pt-24 pb-16 container mx-auto px-4 lg:px-8 max-w-3xl">

@@ -17,6 +17,7 @@ const TrainerDashboard = () => {
     availableBalance: 0, totalSessions: 0, completedSessions: 0, upcomingSessions: 0,
     avgRating: 0, totalCourses: 0, approvalStatus: "pending",
     todaySessions: [] as any[], reviews: [] as any[], recentEnrollments: [] as any[],
+    unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
 
   useEffect(() => {

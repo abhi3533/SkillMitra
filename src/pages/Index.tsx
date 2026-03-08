@@ -132,10 +132,27 @@ const StatItem = ({ item }: { item: typeof statItems[number] }) => {
   );
 };
 
+const heroTrainers = [
+  { name: "Rajesh Kumar", role: "Senior Software Engineer", company: "TCS, Hyderabad", color: "#1A56DB", skills: ["Python", "Data Science", "Machine Learning"], rating: 4.9, students: 45, fee: 2999, elite: true },
+  { name: "Priya Sharma", role: "UI/UX Designer", company: "Infosys, Bangalore", color: "#7C3AED", skills: ["Figma", "Adobe XD", "UI Design", "Web Design"], rating: 4.8, students: 32, fee: 1999, elite: false },
+  { name: "Mohammed Irfan", role: "Full Stack Developer", company: "Wipro, Chennai", color: "#059669", skills: ["React", "Node.js", "JavaScript", "MongoDB"], rating: 4.7, students: 28, fee: 2499, elite: false },
+  { name: "Sneha Reddy", role: "Digital Marketing Expert", company: "Startup, Hyderabad", color: "#EA580C", skills: ["SEO", "Social Media", "Google Ads", "Content Marketing"], rating: 4.9, students: 51, fee: 1499, elite: true },
+  { name: "Arjun Nair", role: "CA & Finance Trainer", company: "Independent, Kerala", color: "#DC2626", skills: ["Accounting", "Tally", "GST", "Financial Planning"], rating: 4.8, students: 38, fee: 1799, elite: false },
+  { name: "Divya Menon", role: "Communication & Soft Skills Trainer", company: "Independent, Mumbai", color: "#0D9488", skills: ["Public Speaking", "Interview Prep", "Business English"], rating: 4.9, students: 62, fee: 999, elite: true },
+];
+
 const Index = () => {
   const [realTrainers, setRealTrainers] = useState<any[]>([]);
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTrainer, setActiveTrainer] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTrainer(prev => (prev + 1) % heroTrainers.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
   usePageMeta({
     title: "SkillMitra — Learn Any Skill From India's Best Experts",
     description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999 per course.",

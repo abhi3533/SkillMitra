@@ -95,10 +95,19 @@ const StudentDashboard = () => {
 
   useEffect(() => { fetchDashboard(); }, [user]);
 
+  const handleRefresh = useCallback(async () => { await fetchDashboard(); }, [user]);
+  const { pulling, refreshing } = usePullToRefresh(handleRefresh);
+
   const firstName = profile?.full_name?.split(" ")[0] || "Student";
 
   return (
     <StudentLayout>
+      {(pulling || refreshing) && (
+        <div className="pull-refresh-indicator">
+          <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing…" : "Pull to refresh"}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}! 👋</h1>

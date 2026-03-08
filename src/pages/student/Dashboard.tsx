@@ -91,11 +91,17 @@ const StudentDashboard = () => {
           <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}! 👋</h1>
           <p className="mt-1 text-sm text-muted-foreground">Here's your learning progress overview</p>
         </div>
-        <Link to="/browse">
-          <Button size="sm" className="gap-1.5 text-xs hidden sm:flex">
-            <BookOpen className="w-3.5 h-3.5" /> Browse Trainers
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/student/wallet" className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/15 transition-colors px-3 py-2 rounded-lg">
+            <Wallet className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-primary flex items-center"><IndianRupee className="w-3.5 h-3.5" />{Number(data.walletBalance || 0).toLocaleString("en-IN")}</span>
+          </Link>
+          <Link to="/browse">
+            <Button size="sm" className="gap-1.5 text-xs hidden sm:flex">
+              <BookOpen className="w-3.5 h-3.5" /> Browse Trainers
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Rating Prompts */}

@@ -18,6 +18,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Standards from "./pages/Standards";
 import CertificateVerify from "./pages/CertificateVerify";
+import JoinRedirect from "./pages/JoinRedirect";
 import Notifications from "./pages/Notifications";
 
 // Student

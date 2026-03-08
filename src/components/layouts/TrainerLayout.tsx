@@ -9,6 +9,7 @@ const sidebarItems = [
   { label: "My Courses", icon: BookOpen, path: "/trainer/courses" },
   { label: "My Students", icon: Users, path: "/trainer/students" },
   { label: "Schedule", icon: Calendar, path: "/trainer/schedule" },
+  { label: "Attendance", icon: ClipboardCheck, path: "/trainer/attendance" },
   { label: "Earnings", icon: DollarSign, path: "/trainer/earnings" },
   { label: "Certificates", icon: Award, path: "/trainer/certificates" },
   { label: "Subscription", icon: TrendingUp, path: "/trainer/subscription" },

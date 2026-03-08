@@ -259,7 +259,7 @@ const Index = () => {
               <div className="mt-8 flex flex-wrap gap-6">
                 {[
                   { icon: Shield, text: "Verified Experts" },
-                  { icon: Star, text: "4.8★ Avg Rating" },
+                  { icon: Star, text: "4.8★ Average Rating" },
                   { icon: Users, text: "500+ Students" },
                 ].map(t => (
                   <div key={t.text} className="flex items-center gap-2 text-sm text-muted-foreground">

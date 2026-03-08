@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2, Camera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,9 @@ const TrainerSignup = () => {
   const [agreed, setAgreed] = useState(false);
   const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const profilePhotoRef = useRef<HTMLInputElement | null>(null);
   const [availability, setAvailability] = useState<Record<string, AvailDay>>(defaultAvail);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [stepAttempted, setStepAttempted] = useState<Record<number, boolean>>({});
@@ -104,10 +107,28 @@ const TrainerSignup = () => {
   const isPhoneFilled = isValidPhone(form.phone);
   const isEmailFilled = isValidEmail(form.email) && !emailError;
 
+  const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Photo must be less than 5MB", variant: "destructive" });
+        return;
+      }
+      setProfilePhoto(file);
+      setProfilePhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeProfilePhoto = () => {
+    setProfilePhoto(null);
+    setProfilePhotoPreview(null);
+    if (profilePhotoRef.current) profilePhotoRef.current.value = "";
+  };
+
   // Count remaining required fields per step
   const getStepProgress = (s: number): { total: number; filled: number } => {
     if (s === 0) {
-      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim()];
+      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim(), profilePhoto ? "yes" : ""];
       return { total: fields.length, filled: fields.filter(Boolean).length };
     }
     if (s === 1) {
@@ -132,6 +153,10 @@ const TrainerSignup = () => {
       allKeys.forEach(k => newTouched[k] = true);
       setTouched(newTouched);
 
+      if (!profilePhoto) {
+        toast({ title: "Profile photo is required", variant: "destructive" });
+        return false;
+      }
       if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.city.trim() || !form.state || !form.gender) {
         toast({ title: "Please fill all required fields", variant: "destructive" });
         return false;
@@ -210,10 +235,22 @@ const TrainerSignup = () => {
 
       const userId = authData.user.id;
 
+      // Upload profile photo
+      let profilePictureUrl: string | null = null;
+      if (profilePhoto) {
+        const ext = profilePhoto.name.split('.').pop();
+        const photoPath = `${userId}/profile.${ext}`;
+        const { error: photoErr } = await supabase.storage.from("profile-pictures").upload(photoPath, profilePhoto, { upsert: true });
+        if (photoErr) throw new Error(`Profile photo upload failed: ${photoErr.message}`);
+        const { data: photoUrl } = supabase.storage.from("profile-pictures").getPublicUrl(photoPath);
+        profilePictureUrl = photoUrl.publicUrl;
+      }
+
       await supabase.from("profiles").update({
         city: form.city || null,
         state: form.state || null,
         gender: form.gender || null,
+        profile_picture_url: profilePictureUrl,
       }).eq("id", userId);
 
       const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", userId).single();
@@ -331,6 +368,30 @@ const TrainerSignup = () => {
           {/* Step 0: Personal Info */}
           {step === 0 && (
             <div className="mt-6 space-y-4">
+              {/* Profile Photo Upload */}
+              <div className="flex flex-col items-center gap-3">
+                <Label className="text-sm font-medium">Profile Photo<RequiredMark /></Label>
+                <div className="relative">
+                  {profilePhotoPreview ? (
+                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
+                      <img src={profilePhotoPreview} alt="Profile" className="w-full h-full object-cover" />
+                      <button type="button" onClick={removeProfilePhoto}
+                        className="absolute -top-1 -right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => profilePhotoRef.current?.click()}
+                      className={`w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${stepAttempted[0] && !profilePhoto ? 'border-destructive bg-destructive/5' : 'border-border hover:border-primary/50 bg-muted/50'}`}>
+                      <Camera className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Upload</span>
+                    </button>
+                  )}
+                  <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
+                </div>
+                {stepAttempted[0] && !profilePhoto && <p className="text-xs text-destructive">Profile photo is required</p>}
+                <p className="text-[11px] text-muted-foreground">JPG or PNG, max 5MB. This will be visible to students.</p>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Full Name<RequiredMark /></Label>

@@ -120,6 +120,8 @@ const AppContent = () => {
         <Route path="/verify" element={<CertificateVerify />} />
         <Route path="/trainer/:id" element={<TrainerProfile />} />
         <Route path="/join/:code" element={<JoinRedirect />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
 
         {/* Auth pages */}
         <Route path="/student/login" element={<StudentLogin />} />

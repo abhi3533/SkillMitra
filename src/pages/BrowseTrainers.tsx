@@ -13,6 +13,7 @@ import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { demoTrainers, getDemoCourse } from "@/lib/demoData";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import TrainerCardSkeleton from "@/components/TrainerCardSkeleton";
 
 const ALL_SKILLS = [
   "Python", "Data Science", "Machine Learning", "React", "Node.js", "JavaScript",

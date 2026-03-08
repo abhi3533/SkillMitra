@@ -28,6 +28,7 @@ const Standards = lazy(() => import("./pages/Standards"));
 const CertificateVerify = lazy(() => import("./pages/CertificateVerify"));
 const ReferPage = lazy(() => import("./pages/Refer"));
 const JoinRedirect = lazy(() => import("./pages/JoinRedirect"));
+const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Notifications = lazy(() => import("./pages/Notifications"));

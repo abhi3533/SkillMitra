@@ -136,6 +136,42 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         });
       }
 
+      // Send email notifications (fire-and-forget, don't block enrollment)
+      const { data: studentProfile } = await supabase.from("profiles").select("email, full_name").eq("id", currentUser?.id).single();
+      const { data: trainerProfileEmail } = await supabase.from("profiles").select("email, full_name").eq("id", trainer.user_id).single();
+
+      // Email to student
+      if (studentProfile?.email) {
+        supabase.functions.invoke("send-email", {
+          body: {
+            type: "enrollment_confirmation",
+            to: studentProfile.email,
+            data: {
+              name: studentProfile.full_name || "Student",
+              course_name: course.title,
+              trainer_name: trainerDisplayName,
+              start_date: scheduledTimeStr,
+            },
+          },
+        }).catch(() => {});
+      }
+
+      // Email to trainer
+      if (trainerProfileEmail?.email) {
+        supabase.functions.invoke("send-email", {
+          body: {
+            type: "enrollment_confirmation",
+            to: trainerProfileEmail.email,
+            data: {
+              name: trainerProfileEmail.full_name || "Trainer",
+              course_name: course.title,
+              trainer_name: "you",
+              start_date: scheduledTimeStr,
+            },
+          },
+        }).catch(() => {});
+      }
+
       toast({
         title: bookingType === "trial" ? "Trial Booked!" : "Enrolled Successfully!",
         description: bookingType === "trial"

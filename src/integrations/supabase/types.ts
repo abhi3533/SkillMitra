@@ -1168,6 +1168,51 @@ export type Database = {
           },
         ]
       }
+      trainer_referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          referral_code: string | null
+          referred_id: string | null
+          referrer_id: string
+          reward_amount: number | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referral_code?: string | null
+          referred_id?: string | null
+          referrer_id: string
+          reward_amount?: number | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referral_code?: string | null
+          referred_id?: string | null
+          referrer_id?: string
+          reward_amount?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainer_subscriptions: {
         Row: {
           amount: number | null
@@ -1235,6 +1280,9 @@ export type Database = {
           linkedin_url: string | null
           pan_number: string | null
           previous_companies: string[] | null
+          referral_code: string | null
+          referral_credits: number | null
+          referred_by: string | null
           rejection_reason: string | null
           skills: string[] | null
           subscription_plan: string | null
@@ -1264,6 +1312,9 @@ export type Database = {
           linkedin_url?: string | null
           pan_number?: string | null
           previous_companies?: string[] | null
+          referral_code?: string | null
+          referral_credits?: number | null
+          referred_by?: string | null
           rejection_reason?: string | null
           skills?: string[] | null
           subscription_plan?: string | null
@@ -1293,6 +1344,9 @@ export type Database = {
           linkedin_url?: string | null
           pan_number?: string | null
           previous_companies?: string[] | null
+          referral_code?: string | null
+          referral_credits?: number | null
+          referred_by?: string | null
           rejection_reason?: string | null
           skills?: string[] | null
           subscription_plan?: string | null

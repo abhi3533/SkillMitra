@@ -46,6 +46,7 @@ import TrainerEarnings from "./pages/trainer/Earnings";
 import TrainerCertificates from "./pages/trainer/Certificates";
 import TrainerSchedule from "./pages/trainer/Schedule";
 import TrainerWallet from "./pages/trainer/Wallet";
+import TrainerReferrals from "./pages/trainer/Referrals";
 
 // Admin
 import AdminLogin from "./pages/admin/Login";
@@ -121,6 +122,7 @@ const App = () => (
             <Route path="/trainer/schedule" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSchedule /></ProtectedRoute>} />
             <Route path="/trainer/profile" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerProfile /></ProtectedRoute>} />
             <Route path="/trainer/wallet" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerWallet /></ProtectedRoute>} />
+            <Route path="/trainer/referrals" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerReferrals /></ProtectedRoute>} />
             <Route path="/trainer/notifications" element={<ProtectedRoute allowedRoles={["trainer"]}><Notifications /></ProtectedRoute>} />
 
             {/* Admin Protected */}

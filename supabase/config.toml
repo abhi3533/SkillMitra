@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.process-referral]
 verify_jwt = false
+
+[functions.process-trainer-referral]
+verify_jwt = false

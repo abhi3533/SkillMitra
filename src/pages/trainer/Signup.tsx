@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ const docTypes = [
 ];
 
 const TrainerSignup = () => {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     fullName: "", email: "", phone: "", city: "", gender: "", currentRole: "", currentCompany: "", experience: "", linkedinUrl: "", password: "",
@@ -56,6 +57,7 @@ const TrainerSignup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [availability, setAvailability] = useState<Record<string, AvailDay>>(defaultAvail);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -191,6 +193,16 @@ const TrainerSignup = () => {
       }));
       await supabase.from("trainer_availability").insert(availRows);
 
+      // Process trainer referral if code provided (fire-and-forget)
+      const trimmedRef = referralCode.trim().toUpperCase();
+      if (trimmedRef && authData.user?.id) {
+        supabase.functions.invoke("process-trainer-referral", {
+          body: { referral_code: trimmedRef, new_user_id: authData.user.id },
+        }).then(({ error: fnErr }) => {
+          if (fnErr) console.error("Trainer referral error:", fnErr);
+        });
+      }
+
       toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours." });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {
@@ -282,6 +294,17 @@ const TrainerSignup = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
+              <div>
+                <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Input
+                  value={referralCode}
+                  onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. TM-A1B2C3"
+                  className="mt-1.5 h-11 font-mono uppercase"
+                  maxLength={10}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Got a code from another trainer? Enter it here.</p>
               </div>
             </div>
           )}

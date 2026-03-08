@@ -13,6 +13,7 @@ type EmailType =
   | 'trainer_approved' 
   | 'trainer_rejected' 
   | 'student_welcome' 
+  | 'trainer_welcome'
   | 'enrollment_confirmation' 
   | 'session_reminder'
 

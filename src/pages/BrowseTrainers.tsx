@@ -34,6 +34,8 @@ const SCHEDULE_PREFS = [
   { label: "Weekday Only", sub: "Mon – Fri", days: [1, 2, 3, 4, 5] },
 ];
 
+const ITEMS_PER_PAGE = 12;
+
 const BrowseTrainers = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("popular");
@@ -42,6 +44,7 @@ const BrowseTrainers = () => {
   const [courseFeeMap, setCourseFeeMap] = useState<Record<string, number>>({});
   const [trainerCourseMap, setTrainerCourseMap] = useState<Record<string, { id: string; title: string; fee: number }[]>>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   // Filters
   const [selectedSkill, setSelectedSkill] = useState<string>("");

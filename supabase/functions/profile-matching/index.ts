@@ -208,6 +208,113 @@ Deno.serve(async (req) => {
           action_url: '/trainer/students',
         })
       }
+    } else if (role === 'trainer') {
+      // Get trainer's profile and skills
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email, city, state, gender')
+        .eq('id', new_user_id)
+        .single()
+
+      if (!profile) throw new Error('Trainer profile not found')
+
+      const { data: trainer } = await supabase
+        .from('trainers')
+        .select('id, skills, teaching_languages, current_role, current_company, experience_years')
+        .eq('user_id', new_user_id)
+        .single()
+
+      if (!trainer?.skills?.length) {
+        return new Response(JSON.stringify({ success: true, message: 'Trainer has no skills set' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Find students whose course_interests overlap with trainer's skills
+      const { data: allStudents } = await supabase
+        .from('students')
+        .select('id, user_id, course_interests')
+        .not('course_interests', 'is', null)
+        .limit(50)
+
+      if (!allStudents || allStudents.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: 'No students with interests found' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Score students by interest overlap with trainer skills
+      const matchedStudents = allStudents
+        .map(s => {
+          const interests = (s.course_interests as string[]) || []
+          const overlap = interests.filter(i =>
+            trainer.skills!.some((sk: string) => sk.toLowerCase() === i.toLowerCase())
+          )
+          return { ...s, matchedSkills: overlap, score: overlap.length }
+        })
+        .filter(s => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10)
+
+      if (matchedStudents.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: 'No matching students' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Fetch student profiles for emails
+      const studentUserIds = matchedStudents.map(s => s.user_id)
+      const { data: studentProfiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, city, state')
+        .in('id', studentUserIds)
+
+      const profileMap: Record<string, any> = {}
+      ;(studentProfiles || []).forEach(p => { profileMap[p.id] = p })
+
+      // Send email to each matched student about the new trainer
+      for (const student of matchedStudents) {
+        const sProfile = profileMap[student.user_id]
+        if (!sProfile?.email) continue
+
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            type: 'student_new_trainer_match',
+            to: sProfile.email,
+            data: {
+              name: sProfile.full_name,
+              trainer_name: profile.full_name,
+              trainer_role: trainer.current_role,
+              trainer_company: trainer.current_company,
+              trainer_experience: trainer.experience_years,
+              matched_skills: student.matchedSkills,
+            },
+          }),
+        })
+
+        // In-app notification
+        await supabase.from('notifications').insert({
+          user_id: student.user_id,
+          title: '🎓 New trainer matches your interests!',
+          body: `${profile.full_name || 'A new trainer'} just joined with skills in ${student.matchedSkills.slice(0, 2).join(', ')}${student.matchedSkills.length > 2 ? ' and more' : ''}.`,
+          type: 'profile_match',
+          action_url: '/browse-trainers',
+        })
+      }
+
+      // Notify the trainer about matched students count
+      await supabase.from('notifications').insert({
+        user_id: new_user_id,
+        title: '🎯 Students interested in your skills!',
+        body: `${matchedStudents.length} student(s) are looking for training in skills you offer. Create courses to attract them!`,
+        type: 'profile_match',
+        action_url: '/trainer/courses',
+      })
     }
 
     return new Response(JSON.stringify({ success: true }), {

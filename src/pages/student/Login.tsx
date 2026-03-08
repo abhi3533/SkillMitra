@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 import { checkLoginLocked, recordFailedAttempt, clearLoginAttempts } from "@/lib/loginProtection";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 const StudentLogin = () => {
   const [email, setEmail] = useState("");
@@ -175,7 +176,15 @@ const StudentLogin = () => {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="mt-8 space-y-5">
+          <div className="mt-8 space-y-4">
+            <GoogleSignInButton label="Sign in with Google" />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+              <div className="relative flex justify-center text-xs"><span className="bg-background px-3 text-muted-foreground">OR</span></div>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="mt-4 space-y-5">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={email} onChange={e => { setEmail(e.target.value); setLocked({ locked: false, minutesLeft: 0 }); }} placeholder="you@example.com" className="mt-1.5 h-11" required />

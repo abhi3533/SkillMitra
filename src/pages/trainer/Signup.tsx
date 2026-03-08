@@ -311,7 +311,12 @@ const TrainerSignup = () => {
         });
       }
 
-      toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours." });
+      // Send welcome email to trainer
+      supabase.functions.invoke("send-email", {
+        body: { type: "trainer_welcome", to: form.email, data: { name: form.fullName } },
+      }).then(({ error: fnErr }) => { if (fnErr) console.error("Trainer welcome email error:", fnErr); });
+
+      toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message." });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {
       toast({ title: "Signup failed", description: getAuthErrorMessage(err), variant: "destructive" });

@@ -82,7 +82,7 @@ const BrowseTrainers = () => {
         const trainerIds = trainerData.map(t => t.id);
         const [{ data: avail }, { data: courses }] = await Promise.all([
           supabase.from("trainer_availability").select("*").in("trainer_id", trainerIds),
-          supabase.from("courses").select("id, title, trainer_id, course_fee").in("trainer_id", trainerIds).eq("is_active", true),
+          supabase.from("courses").select("id, title, trainer_id, course_fee").in("trainer_id", trainerIds).eq("is_active", true).eq("approval_status", "approved"),
         ]);
         if (avail) {
           const map: Record<string, any[]> = {};

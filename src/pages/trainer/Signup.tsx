@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,23 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
+import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const skillOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
 const langOptions = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"];
+const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Kerala"];
 const steps = ["Personal Info", "Skills & Experience", "Documents", "Availability", "Bank Details"];
 
-interface DocFile {
-  file: File | null;
-  name: string;
-}
-
-interface AvailDay {
-  checked: boolean;
-  start: string;
-  end: string;
-}
+interface DocFile { file: File | null; name: string; }
+interface AvailDay { checked: boolean; start: string; end: string; }
 
 const defaultAvail: Record<string, AvailDay> = {
   Monday: { checked: true, start: "09:00", end: "18:00" },
@@ -39,23 +33,27 @@ const defaultAvail: Record<string, AvailDay> = {
 };
 
 const docTypes = [
-  { key: "government_id", label: "Government ID (Aadhaar/PAN)", bucket: "trainer-documents", accept: ".pdf,.jpg,.jpeg,.png" },
-  { key: "resume", label: "Resume / CV", bucket: "trainer-documents", accept: ".pdf,.doc,.docx" },
-  { key: "experience_certificate", label: "Experience Certificate", bucket: "trainer-documents", accept: ".pdf,.jpg,.jpeg,.png" },
-  { key: "skill_certificates", label: "Skill Certificates", bucket: "trainer-documents", accept: ".pdf,.jpg,.jpeg,.png" },
-  { key: "intro_video", label: "Intro Video (2 min max)", bucket: "intro-videos", accept: "video/*" },
+  { key: "government_id", label: "Government ID (Aadhaar/PAN)", bucket: "trainer-documents", accept: ".pdf,.jpg,.jpeg,.png", required: true },
+  { key: "resume", label: "Resume / CV", bucket: "trainer-documents", accept: ".pdf,.doc,.docx", required: false },
+  { key: "experience_certificate", label: "Experience Certificate", bucket: "trainer-documents", accept: ".pdf,.jpg,.jpeg,.png", required: false },
+  { key: "skill_certificates", label: "Skill Certificates", bucket: "trainer-documents", accept: ".pdf,.jpg,.jpeg,.png", required: false },
+  { key: "intro_video", label: "Intro Video (2 min max)", bucket: "intro-videos", accept: "video/*", required: false },
 ];
+
+const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
 
 const TrainerSignup = () => {
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    fullName: "", email: "", phone: "", city: "", gender: "", currentRole: "", currentCompany: "", experience: "", linkedinUrl: "", password: "",
+    fullName: "", email: "", phone: "", city: "", state: "", gender: "", password: "",
+    currentRole: "", currentCompany: "", experience: "", linkedinUrl: "",
     bio: "", previousCompanies: "",
-    bankAccount: "", ifsc: "", upiId: "", panNumber: "",
+    bankAccount: "", ifsc: "", upiId: "", panNumber: "", accountHolderName: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [emailTypo, setEmailTypo] = useState<string | null>(null);
   const [skills, setSkills] = useState<string[]>([]);
   const [teachLangs, setTeachLangs] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -64,18 +62,26 @@ const TrainerSignup = () => {
   const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [availability, setAvailability] = useState<Record<string, AvailDay>>(defaultAvail);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [stepAttempted, setStepAttempted] = useState<Record<number, boolean>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const update = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
+  const markTouched = (key: string) => setTouched(t => ({ ...t, [key]: true }));
   const toggleSkill = (s: string) => setSkills(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
   const toggleLang = (l: string) => setTeachLangs(p => p.includes(l) ? p.filter(x => x !== l) : [...p, l]);
 
+  const handlePhoneChange = (val: string) => update("phone", cleanPhone(val));
+  const handleEmailBlur = () => {
+    markTouched("email");
+    setEmailTypo(getEmailTypoSuggestion(form.email));
+    checkDuplicateEmail(form.email);
+  };
+
   const handleFileSelect = (docKey: string, file: File | null) => {
-    if (file) {
-      setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
-    }
+    if (file) setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
   };
 
   const updateAvail = (day: string, field: keyof AvailDay, value: any) => {
@@ -83,7 +89,7 @@ const TrainerSignup = () => {
   };
 
   const checkDuplicateEmail = async (email: string) => {
-    if (!email || !/\S+@\S+\.\S+/.test(email)) { setEmailError(""); return; }
+    if (!email || !isValidEmail(email)) { setEmailError(""); return; }
     try {
       const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
       if (profile) {
@@ -95,13 +101,50 @@ const TrainerSignup = () => {
     } catch { setEmailError(""); }
   };
 
-  const validateStep = (s: number): boolean => {
+  const isPhoneFilled = isValidPhone(form.phone);
+  const isEmailFilled = isValidEmail(form.email) && !emailError;
+
+  // Count remaining required fields per step
+  const getStepProgress = (s: number): { total: number; filled: number } => {
     if (s === 0) {
-      if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.gender || !form.experience || !form.currentRole.trim() || !form.currentCompany.trim()) {
+      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim()];
+      return { total: fields.length, filled: fields.filter(Boolean).length };
+    }
+    if (s === 1) {
+      const filled = [skills.length > 0, form.experience.trim(), form.currentRole.trim(), form.currentCompany.trim(), teachLangs.length > 0, form.bio.trim()].filter(Boolean).length;
+      return { total: 6, filled };
+    }
+    if (s === 2) {
+      return { total: 1, filled: docs["government_id"]?.file ? 1 : 0 };
+    }
+    if (s === 3) {
+      const hasSlot = Object.values(availability).some(v => v.checked);
+      return { total: 1, filled: hasSlot ? 1 : 0 };
+    }
+    return { total: 0, filled: 0 };
+  };
+
+  const validateStep = (s: number): boolean => {
+    setStepAttempted(p => ({ ...p, [s]: true }));
+    if (s === 0) {
+      const allKeys = ["fullName", "email", "phone", "city", "state", "gender", "password", "confirmPassword"];
+      const newTouched: Record<string, boolean> = { ...touched };
+      allKeys.forEach(k => newTouched[k] = true);
+      setTouched(newTouched);
+
+      if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.city.trim() || !form.state || !form.gender) {
         toast({ title: "Please fill all required fields", variant: "destructive" });
         return false;
       }
+      if (!isValidEmail(form.email)) {
+        toast({ title: "Please enter a valid email address", variant: "destructive" });
+        return false;
+      }
       if (emailError) return false;
+      if (!isValidPhone(form.phone)) {
+        toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "destructive" });
+        return false;
+      }
       if (!isPasswordValid(form.password)) {
         toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
         return false;
@@ -113,15 +156,26 @@ const TrainerSignup = () => {
     }
     if (s === 1) {
       if (skills.length === 0) { toast({ title: "Select at least one skill", variant: "destructive" }); return false; }
-      if (teachLangs.length === 0) { toast({ title: "Select at least one language", variant: "destructive" }); return false; }
+      if (!form.experience.trim()) { toast({ title: "Years of experience is required", variant: "destructive" }); return false; }
+      if (!form.currentRole.trim()) { toast({ title: "Current role is required", variant: "destructive" }); return false; }
+      if (!form.currentCompany.trim()) { toast({ title: "Current company is required", variant: "destructive" }); return false; }
+      if (teachLangs.length === 0) { toast({ title: "Select at least one teaching language", variant: "destructive" }); return false; }
       if (!form.bio.trim()) { toast({ title: "Please add your bio", variant: "destructive" }); return false; }
     }
-    if (s === 4) {
-      if (!form.bankAccount.trim() || !form.ifsc.trim()) {
-        toast({ title: "Bank account and IFSC are required", variant: "destructive" });
+    if (s === 2) {
+      if (!docs["government_id"]?.file) {
+        toast({ title: "Government ID is required for verification", variant: "destructive" });
         return false;
       }
     }
+    if (s === 3) {
+      const hasSlot = Object.values(availability).some(v => v.checked);
+      if (!hasSlot) {
+        toast({ title: "Select at least one availability slot", variant: "destructive" });
+        return false;
+      }
+    }
+    // Step 4 (bank details) — all optional
     return true;
   };
 
@@ -143,13 +197,12 @@ const TrainerSignup = () => {
     if (!agreed) { toast({ title: "Please agree to the terms", variant: "destructive" }); return; }
     setLoading(true);
     try {
-      // 1. Sign up
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: form.fullName, phone: form.phone, role: "trainer" },
+          data: { full_name: form.fullName, phone: form.phone, role: "trainer", city: form.city, state: form.state, gender: form.gender },
         },
       });
       if (authError) throw authError;
@@ -157,19 +210,16 @@ const TrainerSignup = () => {
 
       const userId = authData.user.id;
 
-      // 2. Update profile with extra fields
       await supabase.from("profiles").update({
         city: form.city || null,
+        state: form.state || null,
         gender: form.gender || null,
       }).eq("id", userId);
 
-      // 3. Update trainer record
       const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", userId).single();
       if (!trainer) throw new Error("Trainer profile not created");
 
       let introVideoUrl: string | null = null;
-
-      // 4. Upload documents
       for (const docType of docTypes) {
         const docFile = docs[docType.key];
         if (docFile?.file) {
@@ -187,7 +237,6 @@ const TrainerSignup = () => {
         }
       }
 
-      // 5. Update trainer with all fields
       await supabase.from("trainers").update({
         bio: form.bio,
         skills,
@@ -197,14 +246,14 @@ const TrainerSignup = () => {
         current_company: form.currentCompany,
         linkedin_url: form.linkedinUrl || null,
         previous_companies: form.previousCompanies ? form.previousCompanies.split(",").map(c => c.trim()).filter(Boolean) : [],
-        bank_account_number: form.bankAccount,
-        ifsc_code: form.ifsc,
+        bank_account_number: form.bankAccount || null,
+        ifsc_code: form.ifsc || null,
         upi_id: form.upiId || null,
         pan_number: form.panNumber || null,
+        account_holder_name: form.accountHolderName || null,
         intro_video_url: introVideoUrl,
       }).eq("id", trainer.id);
 
-      // 6. Save availability
       const dayMap: Record<string, number> = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0 };
       const availRows = Object.entries(availability).map(([day, val]) => ({
         trainer_id: trainer.id,
@@ -215,7 +264,6 @@ const TrainerSignup = () => {
       }));
       await supabase.from("trainer_availability").insert(availRows);
 
-      // Process trainer referral if code provided (fire-and-forget)
       const trimmedRef = referralCode.trim().toUpperCase();
       if (trimmedRef && authData.user?.id) {
         supabase.functions.invoke("process-trainer-referral", {
@@ -233,6 +281,9 @@ const TrainerSignup = () => {
       setLoading(false);
     }
   };
+
+  const progress = getStepProgress(step);
+  const remaining = progress.total - progress.filled;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -271,15 +322,26 @@ const TrainerSignup = () => {
           </div>
 
           <h1 className="text-2xl font-bold text-foreground">{steps[step]}</h1>
+          {progress.total > 0 && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Step {step + 1} of {steps.length} — {remaining > 0 ? `${remaining} field${remaining > 1 ? "s" : ""} remaining` : <span className="text-green-600">All fields complete ✓</span>}
+            </p>
+          )}
 
           {/* Step 0: Personal Info */}
           {step === 0 && (
             <div className="mt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><Label>Full Name *</Label><Input value={form.fullName} onChange={e => update("fullName", e.target.value)} placeholder="Your full name" className="mt-1.5 h-11" /></div>
                 <div>
-                  <Label>Email *</Label>
-                  <Input type="email" value={form.email} onChange={e => update("email", e.target.value)} onBlur={() => checkDuplicateEmail(form.email)} placeholder="you@email.com" className={`mt-1.5 h-11 ${emailError ? "border-destructive" : ""}`} />
+                  <Label>Full Name<RequiredMark /></Label>
+                  <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} onBlur={() => markTouched("fullName")} placeholder="Your full name"
+                    className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                  {touched.fullName && !form.fullName.trim() && <p className="text-xs text-destructive mt-1">Full name is required</p>}
+                </div>
+                <div>
+                  <Label>Email<RequiredMark /></Label>
+                  <Input type="email" value={form.email} onChange={e => { update("email", e.target.value); setEmailTypo(null); }} onBlur={handleEmailBlur} placeholder="you@email.com"
+                    className={`mt-1.5 h-11 ${touched.email ? (isEmailFilled ? "border-green-500" : "border-destructive") : ""}`} />
                   {emailError && (
                     <p className="text-xs text-destructive mt-1">
                       {emailError}{" "}
@@ -287,31 +349,52 @@ const TrainerSignup = () => {
                       {emailError.includes("login instead") && <Link to="/trainer/login" className="font-semibold underline">Login here</Link>}
                     </p>
                   )}
+                  {!emailError && touched.email && !isValidEmail(form.email) && form.email.length > 0 && <p className="text-xs text-destructive mt-1">Please enter a valid email address</p>}
+                  {emailTypo && <p className="text-xs text-amber-600 mt-1">{emailTypo}</p>}
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><Label>Phone *</Label><Input value={form.phone} onChange={e => update("phone", e.target.value)} placeholder="+91 98765 43210" className="mt-1.5 h-11" /></div>
-                <div><Label>City *</Label><Input value={form.city} onChange={e => update("city", e.target.value)} placeholder="Your city" className="mt-1.5 h-11" /></div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Gender *</Label>
-                  <Select value={form.gender} onValueChange={v => update("gender", v)}>
-                    <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent><SelectItem value="male">Male</SelectItem><SelectItem value="female">Female</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
-                  </Select>
+                  <Label>Phone<RequiredMark /></Label>
+                  <div className="relative">
+                    <Input value={form.phone} onChange={e => handlePhoneChange(e.target.value)} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
+                      className={`mt-1.5 h-11 pr-8 ${touched.phone ? (isPhoneFilled ? "border-green-500" : "border-destructive") : ""}`} />
+                    {isPhoneFilled && <CheckCircle2 className="w-4 h-4 text-green-500 absolute right-3 top-1/2 mt-[3px] -translate-y-1/2" />}
+                  </div>
+                  {touched.phone && !isPhoneFilled && form.phone.length > 0 && <p className="text-xs text-destructive mt-1">Please enter a valid 10-digit Indian mobile number</p>}
+                  {touched.phone && !form.phone && <p className="text-xs text-destructive mt-1">Phone is required</p>}
                 </div>
-                <div><Label>Years of Experience *</Label><Input type="number" value={form.experience} onChange={e => update("experience", e.target.value)} placeholder="e.g. 5" className="mt-1.5 h-11" /></div>
+                <div>
+                  <Label>City<RequiredMark /></Label>
+                  <Input value={form.city} onChange={e => update("city", e.target.value)} onBlur={() => markTouched("city")} placeholder="Your city"
+                    className={`mt-1.5 h-11 ${touched.city ? (form.city.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                  {touched.city && !form.city.trim() && <p className="text-xs text-destructive mt-1">City is required</p>}
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><Label>Current Role *</Label><Input value={form.currentRole} onChange={e => update("currentRole", e.target.value)} placeholder="e.g. Senior Developer" className="mt-1.5 h-11" /></div>
-                <div><Label>Current Company *</Label><Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} placeholder="e.g. Google" className="mt-1.5 h-11" /></div>
+                <div>
+                  <Label>State<RequiredMark /></Label>
+                  <Select value={form.state} onValueChange={v => { update("state", v); markTouched("state"); }}>
+                    <SelectTrigger className={`mt-1.5 h-11 ${touched.state ? (form.state ? "border-green-500" : "border-destructive") : ""}`}><SelectValue placeholder="Select state" /></SelectTrigger>
+                    <SelectContent>
+                      {stateOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {touched.state && !form.state && <p className="text-xs text-destructive mt-1">State is required</p>}
+                </div>
+                <div>
+                  <Label>Gender<RequiredMark /></Label>
+                  <Select value={form.gender} onValueChange={v => { update("gender", v); markTouched("gender"); }}>
+                    <SelectTrigger className={`mt-1.5 h-11 ${touched.gender ? (form.gender ? "border-green-500" : "border-destructive") : ""}`}><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent><SelectItem value="male">Male</SelectItem><SelectItem value="female">Female</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
+                  </Select>
+                  {touched.gender && !form.gender && <p className="text-xs text-destructive mt-1">Gender is required</p>}
+                </div>
               </div>
-              <div><Label>LinkedIn Profile URL</Label><Input value={form.linkedinUrl} onChange={e => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/in/yourprofile" className="mt-1.5 h-11" /></div>
               <div>
-                <Label>Password *</Label>
+                <Label>Password<RequiredMark /></Label>
                 <div className="relative mt-1.5">
-                  <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" />
+                  <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} onBlur={() => markTouched("password")} placeholder="Min 8 characters" className="h-11 pr-10" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -319,28 +402,22 @@ const TrainerSignup = () => {
                 <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
               </div>
               <div>
-                <Label>Confirm Password *</Label>
-                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
+                <Label>Confirm Password<RequiredMark /></Label>
+                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onBlur={() => markTouched("confirmPassword")} placeholder="Re-enter password" className="mt-1.5 h-11" />
               </div>
               <div>
                 <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Input
-                  value={referralCode}
-                  onChange={e => setReferralCode(e.target.value.toUpperCase())}
-                  placeholder="e.g. TM-A1B2C3"
-                  className="mt-1.5 h-11 font-mono uppercase"
-                  maxLength={10}
-                />
+                <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-A1B2C3" className="mt-1.5 h-11 font-mono uppercase" maxLength={10} />
                 <p className="text-xs text-muted-foreground mt-1">Got a code from another trainer? Enter it here.</p>
               </div>
             </div>
           )}
 
-          {/* Step 1: Skills */}
+          {/* Step 1: Skills & Experience */}
           {step === 1 && (
             <div className="mt-6 space-y-5">
               <div>
-                <Label>Skills You Can Teach *</Label>
+                <Label>Skills You Can Teach<RequiredMark /></Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {skillOptions.map(s => (
                     <button key={s} type="button" onClick={() => toggleSkill(s)}
@@ -349,9 +426,36 @@ const TrainerSignup = () => {
                     </button>
                   ))}
                 </div>
+                {stepAttempted[1] && skills.length === 0 && <p className="text-xs text-destructive mt-1">Select at least one skill</p>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Years of Experience<RequiredMark /></Label>
+                  <Input type="number" value={form.experience} onChange={e => update("experience", e.target.value)} onBlur={() => markTouched("experience")} placeholder="e.g. 5"
+                    className={`mt-1.5 h-11 ${touched.experience ? (form.experience.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                  {touched.experience && !form.experience.trim() && <p className="text-xs text-destructive mt-1">Experience is required</p>}
+                </div>
+                <div>
+                  <Label>Current Role<RequiredMark /></Label>
+                  <Input value={form.currentRole} onChange={e => update("currentRole", e.target.value)} onBlur={() => markTouched("currentRole")} placeholder="e.g. Senior Developer"
+                    className={`mt-1.5 h-11 ${touched.currentRole ? (form.currentRole.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                  {touched.currentRole && !form.currentRole.trim() && <p className="text-xs text-destructive mt-1">Current role is required</p>}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Current Company<RequiredMark /></Label>
+                  <Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} onBlur={() => markTouched("currentCompany")} placeholder="e.g. Google"
+                    className={`mt-1.5 h-11 ${touched.currentCompany ? (form.currentCompany.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                  {touched.currentCompany && !form.currentCompany.trim() && <p className="text-xs text-destructive mt-1">Current company is required</p>}
+                </div>
+                <div>
+                  <Label>LinkedIn Profile URL</Label>
+                  <Input value={form.linkedinUrl} onChange={e => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/in/you" className="mt-1.5 h-11" />
+                </div>
               </div>
               <div>
-                <Label>Teaching Languages *</Label>
+                <Label>Teaching Languages<RequiredMark /></Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {langOptions.map(l => (
                     <button key={l} type="button" onClick={() => toggleLang(l)}
@@ -360,13 +464,15 @@ const TrainerSignup = () => {
                     </button>
                   ))}
                 </div>
+                {stepAttempted[1] && teachLangs.length === 0 && <p className="text-xs text-destructive mt-1">Select at least one language</p>}
               </div>
               <div>
-                <Label>Bio (150 words max) *</Label>
-                <Textarea value={form.bio} onChange={e => update("bio", e.target.value)} placeholder="Tell students about your teaching experience and approach..." className="mt-1.5 min-h-[120px]" maxLength={900} />
+                <Label>Bio (150 words max)<RequiredMark /></Label>
+                <Textarea value={form.bio} onChange={e => update("bio", e.target.value)} onBlur={() => markTouched("bio")} placeholder="Tell students about your teaching experience and approach..." className="mt-1.5 min-h-[120px]" maxLength={900} />
+                {touched.bio && !form.bio.trim() && <p className="text-xs text-destructive mt-1">Bio is required</p>}
               </div>
               <div>
-                <Label>Previous Companies</Label>
+                <Label>Previous Companies <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Input value={form.previousCompanies} onChange={e => update("previousCompanies", e.target.value)} placeholder="e.g. Amazon, TCS, Infosys (comma separated)" className="mt-1.5 h-11" />
               </div>
             </div>
@@ -375,14 +481,16 @@ const TrainerSignup = () => {
           {/* Step 2: Documents */}
           {step === 2 && (
             <div className="mt-6 space-y-5">
-              <p className="text-sm text-muted-foreground">Upload documents for verification. All documents are securely stored and only visible to our verification team.</p>
+              <p className="text-sm text-muted-foreground">Upload documents for verification. Government ID is required. All other documents are optional.</p>
               {docTypes.map(doc => (
-                <div key={doc.key} className="border border-dashed border-border rounded-xl p-4 hover:border-primary/30 transition-colors">
+                <div key={doc.key} className={`border rounded-xl p-4 transition-colors ${
+                  doc.required && stepAttempted[2] && !docs[doc.key]?.file ? "border-destructive border-solid" : "border-dashed border-border hover:border-primary/30"
+                }`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{doc.label}</p>
+                      <p className="text-sm font-medium text-foreground">{doc.label}{doc.required && <RequiredMark />}</p>
                       {docs[doc.key] ? (
-                        <p className="text-xs text-success mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />{docs[doc.key].name}</p>
+                        <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />{docs[doc.key].name}</p>
                       ) : (
                         <p className="text-xs text-muted-foreground mt-0.5">PDF, JPG, PNG up to 10MB</p>
                       )}
@@ -400,6 +508,7 @@ const TrainerSignup = () => {
                       </Button>
                     </div>
                   </div>
+                  {doc.required && stepAttempted[2] && !docs[doc.key]?.file && <p className="text-xs text-destructive mt-2">Government ID is required for verification</p>}
                 </div>
               ))}
             </div>
@@ -408,7 +517,10 @@ const TrainerSignup = () => {
           {/* Step 3: Availability */}
           {step === 3 && (
             <div className="mt-6 space-y-5">
-              <p className="text-sm text-muted-foreground">Select your weekly available time slots. Students will book sessions based on this schedule.</p>
+              <p className="text-sm text-muted-foreground">Select your weekly available time slots. At least one slot is required.</p>
+              {stepAttempted[3] && !Object.values(availability).some(v => v.checked) && (
+                <p className="text-xs text-destructive">Select at least one availability slot</p>
+              )}
               <div className="space-y-3">
                 {Object.entries(availability).map(([day, val]) => (
                   <div key={day} className="flex items-center gap-4 p-3 rounded-lg bg-secondary/50">
@@ -437,14 +549,15 @@ const TrainerSignup = () => {
             </div>
           )}
 
-          {/* Step 4: Bank Details */}
+          {/* Step 4: Bank Details (all optional) */}
           {step === 4 && (
             <div className="mt-6 space-y-5">
-              <p className="text-sm text-muted-foreground">Add your bank details for receiving payouts. This information is encrypted and secure.</p>
-              <div><Label>Bank Account Number *</Label><Input value={form.bankAccount} onChange={e => update("bankAccount", e.target.value)} placeholder="Account number" className="mt-1.5 h-11" /></div>
-              <div><Label>IFSC Code *</Label><Input value={form.ifsc} onChange={e => update("ifsc", e.target.value)} placeholder="e.g. SBIN0001234" className="mt-1.5 h-11" /></div>
+              <p className="text-sm text-muted-foreground">Add your bank details for receiving payouts. All fields are optional — you can add them later from your dashboard.</p>
+              <div><Label>Account Holder Name</Label><Input value={form.accountHolderName} onChange={e => update("accountHolderName", e.target.value)} placeholder="Name as per bank account" className="mt-1.5 h-11" /></div>
+              <div><Label>Bank Account Number</Label><Input value={form.bankAccount} onChange={e => update("bankAccount", e.target.value)} placeholder="Account number" className="mt-1.5 h-11" /></div>
+              <div><Label>IFSC Code</Label><Input value={form.ifsc} onChange={e => update("ifsc", e.target.value.toUpperCase())} placeholder="e.g. SBIN0001234" className="mt-1.5 h-11 uppercase" /></div>
               <div><Label>UPI ID</Label><Input value={form.upiId} onChange={e => update("upiId", e.target.value)} placeholder="e.g. yourname@upi" className="mt-1.5 h-11" /></div>
-              <div><Label>PAN Number</Label><Input value={form.panNumber} onChange={e => update("panNumber", e.target.value)} placeholder="e.g. ABCDE1234F" className="mt-1.5 h-11" /></div>
+              <div><Label>PAN Number</Label><Input value={form.panNumber} onChange={e => update("panNumber", e.target.value.toUpperCase())} placeholder="e.g. ABCDE1234F" className="mt-1.5 h-11 uppercase" /></div>
               <label className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50">
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="accent-primary mt-1 w-4 h-4" />
                 <span className="text-sm text-muted-foreground">I declare that all information provided is accurate. I agree to SkillMitra's Terms of Service and understand that my profile will be reviewed before approval.</span>

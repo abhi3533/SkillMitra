@@ -13,6 +13,7 @@ import { demoTrainers, demoTestimonials, demoStats } from "@/lib/demoData";
 import { blogPosts as recentBlogPosts, categoryIcons as blogCategoryIcons } from "@/lib/blogData";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import TrainerCardSkeleton from "@/components/TrainerCardSkeleton";
 
 /* ─── Scroll-triggered section wrapper ─── */
 const ScrollReveal = ({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {

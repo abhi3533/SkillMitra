@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProfilesMap } from "@/lib/profileHelpers";
+import { demoTrainers, demoTestimonials, demoStats } from "@/lib/demoData";
 import { demoTrainers, demoTestimonials, demoStats } from "@/lib/demoData";
 import { blogPosts as recentBlogPosts, categoryIcons as blogCategoryIcons } from "@/lib/blogData";
 import Navbar from "@/components/Navbar";

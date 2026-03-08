@@ -155,9 +155,9 @@ const BrowseTrainers = () => {
           if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
         } else {
           const minFee = courseFeeMap[t.id];
-          if (minFee !== undefined) {
-            if (minFee < priceRange[0] || minFee > priceRange[1]) return false;
-          }
+          // If trainer has no courses, check all their course fees; if no courses at all, hide them when price filter is active
+          if (minFee === undefined) return false;
+          if (minFee < priceRange[0] || minFee > priceRange[1]) return false;
         }
       }
 

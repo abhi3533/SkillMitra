@@ -270,42 +270,43 @@ const Index = () => {
                 {/* Glow behind card */}
                 <div className="absolute inset-0 rounded-2xl blur-3xl bg-primary/[0.08] scale-105" />
 
-                <div className="relative bg-background rounded-2xl border border-border p-7 max-w-sm mx-auto shadow-[0_8px_40px_rgba(26,86,219,0.12)]">
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                      <GraduationCap className="w-8 h-8 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-foreground">Find Your Trainer</h3>
-                      <p className="text-sm text-muted-foreground">1:1 Personal Training</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {["Python", "React", "Data Science", "UI/UX"].map(s => (
-                      <span key={s} className="text-xs px-3 py-1.5 rounded-full bg-primary/[0.06] text-primary font-medium border border-primary/10">{s}</span>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex -space-x-2">
-                      {["RK", "PS", "MI"].map((init, i) => (
-                        <div key={init} className="w-8 h-8 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center" style={{ zIndex: 3 - i }}>
-                          <span className="text-[10px] font-bold text-primary">{init}</span>
+                <div className="relative bg-background rounded-2xl border border-border max-w-sm mx-auto shadow-[0_8px_40px_rgba(26,86,219,0.12)] overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#EA580C15" }}>
+                        <span className="text-lg font-bold" style={{ color: "#EA580C" }}>SR</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-semibold text-foreground text-[15px]">Sneha Reddy</h3>
+                          <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded gold-gradient text-accent-foreground ml-auto">ELITE</span>
                         </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">Digital Marketing Expert</p>
+                        <p className="text-xs font-medium mt-0.5" style={{ color: "#EA580C" }}>Startup, Hyderabad</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 mt-4">
+                      {["SEO", "Social Media", "Google Ads", "Content Marketing"].map(s => (
+                        <span key={s} className="text-[11px] px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
                       ))}
                     </div>
-                    <span className="text-xs text-muted-foreground">50+ trainers online</span>
+
+                    <p className="mt-3 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹1,499</span> per course</p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <div>
-                      <span className="text-xs text-muted-foreground">Starting from</span>
-                      <div className="text-lg font-bold text-foreground">₹1,999<span className="text-sm font-normal text-muted-foreground"> per course</span></div>
+                  <div className="px-6 py-3.5 border-t border-border flex items-center justify-between bg-secondary/30">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-accent fill-accent" />
+                        <span className="text-sm font-semibold text-foreground">4.9</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">51 students</span>
                     </div>
                     <Link to="/browse">
-                      <Button size="sm" className="hero-gradient text-primary-foreground font-semibold rounded-lg shadow-sm hover:shadow-md">
-                        Explore <ArrowRight className="ml-1 w-3.5 h-3.5" />
+                      <Button size="sm" className="hero-gradient text-primary-foreground font-semibold rounded-lg text-xs h-8 px-4 shadow-sm hover:shadow-md">
+                        Book Free Trial
                       </Button>
                     </Link>
                   </div>

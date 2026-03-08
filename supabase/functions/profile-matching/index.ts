@@ -89,6 +89,14 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Course interests match with trainer skills
+        if (student?.course_interests?.length && trainer.skills?.length) {
+          const skillOverlap = student.course_interests.filter((interest: string) =>
+            trainer.skills!.some((skill: string) => skill.toLowerCase() === interest.toLowerCase())
+          )
+          score += skillOverlap.length * 4 // Strong signal
+        }
+
         // Rating bonus
         if (trainer.average_rating && trainer.average_rating >= 4) {
           score += 2

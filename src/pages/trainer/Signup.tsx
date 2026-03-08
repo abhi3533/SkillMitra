@@ -45,6 +45,7 @@ const docTypes = [
 ];
 
 const TrainerSignup = () => {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     fullName: "", email: "", phone: "", city: "", gender: "", currentRole: "", currentCompany: "", experience: "", linkedinUrl: "", password: "",

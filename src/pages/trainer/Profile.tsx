@@ -70,14 +70,19 @@ const TrainerProfile = () => {
           const profileMap = await fetchProfilesMap([t.user_id]);
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
-          const [coursesRes, ratingsRes, availRes] = await Promise.all([
+          const [coursesRes, ratingsRes, availRes, docsRes] = await Promise.all([
             supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved"),
             supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
             supabase.from("trainer_availability").select("*").eq("trainer_id", resolvedId).eq("is_available", true),
+            supabase.from("trainer_documents").select("verification_status").eq("trainer_id", resolvedId),
           ]);
 
           setCourses(coursesRes.data || []);
           setAvailability(availRes.data || []);
+          // Check if all documents are approved
+          const docs = docsRes.data || [];
+          const allApproved = docs.length > 0 && docs.every(d => d.verification_status === "approved");
+          setIsVerified(allApproved);
 
           if (ratingsRes.data && ratingsRes.data.length > 0) {
             const studentIds = ratingsRes.data.map(r => r.student_id);

@@ -8,18 +8,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { isDemo, getDemoTrainer, getDemoCourse, demoTestimonials } from "@/lib/demoData";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const TrainerProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [trainer, setTrainer] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resolvedId, setResolvedId] = useState<string | undefined>(id);
+
+  // If no id param (trainer viewing own profile), resolve from auth
+  useEffect(() => {
+    if (id) {
+      setResolvedId(id);
+      return;
+    }
+    if (!user) return;
+    (async () => {
+      const { data: t } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
+      if (t) setResolvedId(t.id);
+      else setLoading(false);
+    })();
+  }, [id, user]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!resolvedId) return;
 
     if (isDemo(id)) {
       const demo = getDemoTrainer(id);

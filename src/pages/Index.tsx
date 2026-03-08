@@ -132,7 +132,8 @@ const StatItem = ({ item }: { item: typeof statItems[number] }) => {
   );
 };
 
-  const Index = () => {
+const Index = () => {
+  const [realTrainers, setRealTrainers] = useState<any[]>([]);
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   usePageMeta("SkillMitra — Learn Any Skill From India's Best Experts", "Personal 1:1 skill training from verified industry experts. Learn React, Python, Data Science and more in your language from home.");

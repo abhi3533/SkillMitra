@@ -73,7 +73,7 @@ const BrowseTrainers = () => {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("trainers").select("*").eq("approval_status", "approved");
+      const { data } = await supabase.from("trainers").select("id, user_id, bio, skills, experience_years, current_company, current_role, teaching_languages, average_rating, total_students, approval_status, subscription_plan, is_job_seeker, boost_score").eq("approval_status", "approved");
       const trainerData = data || [];
       let realTrainers: any[] = [];
       if (trainerData.length > 0) {

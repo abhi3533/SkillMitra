@@ -3,7 +3,7 @@ import { LayoutDashboard, Search, Calendar, User, Users } from "lucide-react";
 
 const studentItems = [
   { label: "Home", icon: LayoutDashboard, path: "/student/dashboard" },
-  { label: "Browse", icon: Search, path: "/browse-trainers" },
+  { label: "Browse", icon: Search, path: "/browse" },
   { label: "Sessions", icon: Calendar, path: "/student/sessions" },
   { label: "Profile", icon: User, path: "/student/profile" },
 ];

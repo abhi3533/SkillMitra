@@ -1665,6 +1665,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_approved_trainers_list: {
+        Args: never
+        Returns: {
+          trainer_approval_status: string
+          trainer_average_rating: number
+          trainer_bio: string
+          trainer_boost_score: number
+          trainer_current_company: string
+          trainer_current_role: string
+          trainer_experience_years: number
+          trainer_id: string
+          trainer_is_job_seeker: boolean
+          trainer_skills: string[]
+          trainer_subscription_plan: string
+          trainer_teaching_languages: string[]
+          trainer_total_students: number
+          trainer_user_id: string
+        }[]
+      }
       get_public_profile: {
         Args: { profile_id: string }
         Returns: {

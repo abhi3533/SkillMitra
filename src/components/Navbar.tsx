@@ -63,7 +63,7 @@ const Navbar = () => {
 
           {/* Mobile Toggle */}
           <button onClick={() => setMobileOpen(!mobileOpen)}
-            className={`lg:hidden p-2 rounded-lg transition-colors ${textColor}`}>
+            className="lg:hidden p-2 rounded-lg transition-colors text-foreground">
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>

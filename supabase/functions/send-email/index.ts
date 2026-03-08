@@ -18,6 +18,7 @@ type EmailType =
   | 'session_reminder'
   | 'student_trainer_match'
   | 'trainer_student_match'
+  | 'student_new_trainer_match'
 
 interface EmailPayload {
   type: EmailType

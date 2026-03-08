@@ -38,6 +38,7 @@ const TrainerProfile = () => {
   const [resolvedId, setResolvedId] = useState<string | undefined>(id);
   const [isVerified, setIsVerified] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   // Modal states
   const [enrollCourse, setEnrollCourse] = useState<any>(null);

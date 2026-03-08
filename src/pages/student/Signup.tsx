@@ -201,7 +201,15 @@ const StudentSignup = () => {
             </div>
           )}
 
-          <form onSubmit={handleSignup} className="mt-6 space-y-5">
+          <div className="mt-6 space-y-4">
+            <GoogleSignInButton label="Sign up with Google" />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+              <div className="relative flex justify-center text-xs"><span className="bg-background px-3 text-muted-foreground">OR</span></div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSignup} className="mt-4 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Full Name<RequiredMark /></Label>

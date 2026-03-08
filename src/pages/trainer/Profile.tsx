@@ -38,12 +38,11 @@ const TrainerProfile = () => {
   useEffect(() => {
     if (!resolvedId) return;
 
-    if (isDemo(id)) {
-      const demo = getDemoTrainer(id);
+    if (isDemo(resolvedId)) {
+      const demo = getDemoTrainer(resolvedId);
       if (demo) {
         setTrainer(demo);
-        setCourses(getDemoCourse(id));
-        // Pick 2 demo testimonials as reviews
+        setCourses(getDemoCourse(resolvedId));
         setReviews(demoTestimonials.slice(0, 2));
       }
       setLoading(false);
@@ -52,7 +51,7 @@ const TrainerProfile = () => {
 
     (async () => {
       try {
-        const { data: t } = await supabase.from("trainers").select("*").eq("id", id).single();
+        const { data: t } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
         if (t) {
           const profileMap = await fetchProfilesMap([t.user_id]);
           setTrainer({ ...t, profile: profileMap[t.user_id] });

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp, Settings, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const sidebarItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },

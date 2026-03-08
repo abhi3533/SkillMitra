@@ -113,6 +113,8 @@ const App = () => (
             <Route path="/trainer/signup/success" element={<TrainerThankYou />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/parent/login" element={<ParentLogin />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Student Protected */}
             <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />

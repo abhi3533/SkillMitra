@@ -37,7 +37,10 @@ const BrowseTrainers = () => {
   const [minRating, setMinRating] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
-  usePageMeta("Browse Expert Trainers — SkillMitra", "Find verified industry experts for 1:1 personal training. Filter by skill, language, and budget.");
+  usePageMeta({
+    title: "Find Expert Trainers — SkillMitra",
+    description: "Browse 50+ verified trainers for personal 1:1 skill training. Filter by skill, language, budget. Start with a free trial session today.",
+  });
 
   useEffect(() => {
     (async () => {

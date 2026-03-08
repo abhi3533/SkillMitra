@@ -115,9 +115,18 @@ const TrainerProfile = () => {
   const avatarColor = trainer?.avatarColor || "#1A56DB";
   const initials = name.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
 
-  usePageMeta(
-    loading ? "Trainer Profile — SkillMitra" : `${name} — SkillMitra Trainer`,
-    loading ? "View trainer profile on SkillMitra" : `Learn from ${name}, ${trainer?.current_role || "Expert Trainer"}. Book 1:1 sessions on SkillMitra.`
+  usePageMeta({
+    title: loading ? "Trainer Profile — SkillMitra" : `${name} — Expert Trainer on SkillMitra`,
+    description: loading ? "View trainer profile on SkillMitra" : `Learn from ${name}, ${trainer?.current_role || "Expert Trainer"}. Book 1:1 sessions on SkillMitra.`,
+    jsonLd: !loading && trainer ? {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      provider: { "@type": "Organization", name: "SkillMitra", url: "https://skillmitra.online" },
+      instructor: { "@type": "Person", name },
+      name: courses[0]?.title || `${name}'s Training`,
+      description: trainer?.bio || `Personal 1:1 training by ${name}`,
+    } : undefined,
+  });
   );
 
   if (loading) {

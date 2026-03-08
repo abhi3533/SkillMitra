@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import AdminLayout from "@/components/layouts/AdminLayout";
+import { useLoadingTitle } from "@/hooks/useLoadingTitle";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);

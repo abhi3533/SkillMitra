@@ -160,12 +160,12 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
       if (trainerProfileEmail?.email) {
         supabase.functions.invoke("send-email", {
           body: {
-            type: "enrollment_confirmation",
+            type: "new_enrollment_trainer",
             to: trainerProfileEmail.email,
             data: {
               name: trainerProfileEmail.full_name || "Trainer",
               course_name: course.title,
-              trainer_name: "you",
+              student_name: studentProfile?.full_name || "A student",
               start_date: scheduledTimeStr,
             },
           },

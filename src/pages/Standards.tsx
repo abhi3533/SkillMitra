@@ -1,7 +1,13 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
-const Standards = () => (
+const Standards = () => {
+  usePageMeta({
+    title: "Certification Standards — SkillMitra",
+    description: "Learn about SkillMitra's rigorous certification standards covering technical proficiency, communication, punctuality, and AI interview scoring.",
+  });
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
     <div className="pt-24 pb-16 container mx-auto px-4 lg:px-8 max-w-3xl">

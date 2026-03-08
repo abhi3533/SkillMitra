@@ -184,6 +184,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AIChatBot />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

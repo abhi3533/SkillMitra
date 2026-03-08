@@ -21,6 +21,8 @@ import CertificateVerify from "./pages/CertificateVerify";
 import JoinRedirect from "./pages/JoinRedirect";
 import Notifications from "./pages/Notifications";
 import NotificationPreferences from "./pages/NotificationPreferences";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Student
 import StudentLogin from "./pages/student/Login";

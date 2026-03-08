@@ -22,9 +22,9 @@ const TrainerDashboard = () => {
     unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!user) return;
-    (async () => {
+    await (async () => {
       const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status").eq("user_id", user.id).single();
       if (!trainer) { setLoading(false); return; }
 

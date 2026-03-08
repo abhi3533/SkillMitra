@@ -44,6 +44,7 @@ import TrainerStudents from "./pages/trainer/Students";
 import TrainerEarnings from "./pages/trainer/Earnings";
 import TrainerCertificates from "./pages/trainer/Certificates";
 import TrainerSchedule from "./pages/trainer/Schedule";
+import TrainerWallet from "./pages/trainer/Wallet";
 
 // Admin
 import AdminLogin from "./pages/admin/Login";

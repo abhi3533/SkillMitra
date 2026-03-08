@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ToastAction } from "@/components/ui/toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -162,12 +163,24 @@ const TrainerProfile = () => {
 
   const requireAuth = (action: string): boolean => {
     if (!user) {
-      toast({ title: `Please login to ${action}`, variant: "destructive" });
-      navigate(`/student/login?redirect=/trainer/${resolvedId}`);
+      toast({ 
+        title: `Please log in as a student to ${action}`,
+        description: "You need a student account to continue.",
+        variant: "info" as any,
+        action: (
+          <ToastAction altText="Login" onClick={() => navigate(`/student/login?redirect=/trainer/${resolvedId}`)}>
+            Login as Student
+          </ToastAction>
+        ),
+      });
       return false;
     }
     if (role !== "student") {
-      toast({ title: "Only students can enroll or book trials", variant: "destructive" });
+      toast({ 
+        title: "Please log in as a student to enroll or book a free trial",
+        description: "This feature is available for student accounts only.",
+        variant: "info" as any,
+      });
       return false;
     }
     return true;
@@ -177,7 +190,7 @@ const TrainerProfile = () => {
     if (!requireAuth("enroll")) return;
     const c = course || courses[0];
     if (!c) {
-      toast({ title: "No courses available for this trainer", variant: "destructive" });
+      toast({ title: "No courses available for this trainer", variant: "info" as any });
       return;
     }
     setEnrollCourse(c);
@@ -201,7 +214,7 @@ const TrainerProfile = () => {
 
     // For demo trainers, show success without DB
     if (isDemo(resolvedId || "")) {
-      toast({ title: "Your free trial is booked!", description: "Check your email for details." });
+      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" as any });
       setShowTrialModal(false);
       return;
     }
@@ -264,7 +277,7 @@ const TrainerProfile = () => {
         action_url: "/trainer/sessions",
       });
 
-      toast({ title: "Your free trial is booked!", description: "Check your email for details." });
+      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" as any });
       setShowTrialModal(false);
     } catch (err: any) {
       console.error(err);

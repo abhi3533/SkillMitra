@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { createClient } from "npm:@supabase/supabase-js@2"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const TIMEOUT_MS = 10000;
@@ -17,7 +17,7 @@ function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> 
   ]);
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -61,7 +61,7 @@ serve(async (req) => {
           body: JSON.stringify({
             from: "SkillMitra <contact@skillmitra.online>",
             to: ["contact@skillmitra.online"],
-            subject: "New Contact Message from SkillMitra",
+            subject: `New Contact: ${subject}`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #1a1a1a; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">New Contact Message</h2>
@@ -105,14 +105,16 @@ serve(async (req) => {
         const [adminRes, replyRes] = await Promise.all([adminEmailPromise, autoReplyPromise]);
 
         if (!adminRes.ok) {
-          console.error("Admin email failed:", await adminRes.text());
+          const errText = await adminRes.text();
+          console.error("Admin email failed:", errText);
         }
         if (!replyRes.ok) {
-          console.error("Auto-reply email failed:", await replyRes.text());
+          const errText = await replyRes.text();
+          console.error("Auto-reply email failed:", errText);
         }
-      } catch (emailError) {
-        console.error("Email sending error:", emailError.message);
-        // Still return success since the message was saved to DB
+      } catch (emailError: unknown) {
+        const msg = emailError instanceof Error ? emailError.message : "Unknown email error";
+        console.error("Email sending error:", msg);
       }
     } else {
       console.warn("RESEND_API_KEY not configured, skipping emails");
@@ -122,8 +124,9 @@ serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
-    console.error("Contact form error:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Contact form error:", msg);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

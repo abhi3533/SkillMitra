@@ -28,6 +28,7 @@ const StudentSignup = () => {
   const [emailTypo, setEmailTypo] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [languages, setLanguages] = useState<string[]>([]);
+  const [courseInterests, setCourseInterests] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});

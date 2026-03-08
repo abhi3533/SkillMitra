@@ -150,6 +150,13 @@ const StudentSignup = () => {
         body: { type: "student_welcome", to: form.email, data: { name: form.fullName } },
       }).then(({ error: fnErr }) => { if (fnErr) console.error("Welcome email error:", fnErr); });
 
+      // Trigger profile matching to recommend trainers
+      if (signupData?.user?.id) {
+        supabase.functions.invoke("profile-matching", {
+          body: { new_user_id: signupData.user.id, role: "student" },
+        }).then(({ error: fnErr }) => { if (fnErr) console.error("Profile matching error:", fnErr); });
+      }
+
       toast({ title: "Account created!", description: "Please check your email to verify your account." });
       navigate("/student/login");
     } catch (err: any) {

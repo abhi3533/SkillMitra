@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield,
-  IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video, TrendingUp, Zap, Play
+  IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video, TrendingUp, Zap, Play, ArrowUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";

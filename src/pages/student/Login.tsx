@@ -118,7 +118,8 @@ const StudentLogin = () => {
 
         clearLoginAttempts(email);
         const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
-        if (roleData === "trainer") navigate("/trainer/dashboard");
+        if (redirectUrl && roleData === "student") navigate(redirectUrl);
+        else if (roleData === "trainer") navigate("/trainer/dashboard");
         else if (roleData === "admin") navigate("/admin");
         else navigate("/student/dashboard");
         toast({ title: "Signed in successfully" });

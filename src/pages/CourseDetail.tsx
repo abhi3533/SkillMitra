@@ -110,17 +110,30 @@ const CourseDetail = () => {
     if (!courseData) { setLoading(false); return; }
     setCourse(courseData);
 
-    // Fetch trainer and profile in parallel
-    const [{ data: trainerData }, { data: curriculumData }] = await Promise.all([
-      supabase.from("trainers").select("*").eq("id", courseData.trainer_id).single(),
+    // Fetch trainer (via secure RPC) and curriculum in parallel
+    const [{ data: trainerRpc }, { data: curriculumData }] = await Promise.all([
+      supabase.rpc("get_public_trainer_profile", { trainer_row_id: courseData.trainer_id }),
       supabase.from("course_curriculum").select("*").eq("course_id", courseId!).order("week_number"),
     ]);
 
-    if (trainerData) {
+    const t = trainerRpc?.[0];
+    if (t) {
+      const trainerData = {
+        id: t.trainer_id, user_id: t.trainer_user_id, bio: t.trainer_bio,
+        skills: t.trainer_skills, experience_years: t.trainer_experience_years,
+        current_company: t.trainer_current_company, current_role: t.trainer_current_role,
+        teaching_languages: t.trainer_teaching_languages, average_rating: t.trainer_average_rating,
+        total_students: t.trainer_total_students, approval_status: t.trainer_approval_status,
+        intro_video_url: t.trainer_intro_video_url, linkedin_url: t.trainer_linkedin_url,
+        previous_companies: t.trainer_previous_companies, subscription_plan: t.trainer_subscription_plan,
+        is_job_seeker: t.trainer_is_job_seeker,
+      };
       setTrainer(trainerData);
-      const { data: profile } = await supabase
-        .from("profiles").select("*").eq("id", trainerData.user_id).single();
-      setTrainerProfile(profile);
+      const { data: profileRpc } = await supabase.rpc("get_public_profile", { profile_id: t.trainer_user_id });
+      const p = profileRpc?.[0];
+      if (p) {
+        setTrainerProfile({ id: p.p_id, full_name: p.p_full_name, city: p.p_city, state: p.p_state, profile_picture_url: p.p_profile_picture_url, is_verified: p.p_is_verified, gender: p.p_gender });
+      }
     }
     setCurriculum(curriculumData || []);
     setLoading(false);

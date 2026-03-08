@@ -3,7 +3,10 @@ import Footer from "@/components/Footer";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 const About = () => {
-  usePageMeta("About SkillMitra — India's 1:1 Skill Training Platform", "Learn about SkillMitra's mission to democratize skill training across India with verified expert trainers.");
+  usePageMeta({
+    title: "About SkillMitra — Learnvate Solutions Private Limited",
+    description: "SkillMitra by Learnvate Solutions connects learners with verified industry experts for affordable 1:1 personal skill training across India.",
+  });
   return (
   <div className="min-h-screen bg-background">
     <Navbar />

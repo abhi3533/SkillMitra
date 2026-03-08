@@ -6,11 +6,17 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const CertificateVerify = () => {
   const { certificateId } = useParams();
   const [searchId, setSearchId] = useState(certificateId || "");
   const [verified, setVerified] = useState(!!certificateId);
+
+  usePageMeta({
+    title: "Verify Certificate — SkillMitra",
+    description: "Verify the authenticity of SkillMitra certificates using the unique certificate ID.",
+  });
 
   return (
     <div className="min-h-screen bg-background">

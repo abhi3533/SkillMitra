@@ -1,7 +1,13 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
-const Terms = () => (
+const Terms = () => {
+  usePageMeta({
+    title: "Terms & Conditions — SkillMitra",
+    description: "Read SkillMitra's terms and conditions. Understand platform fees, refund policies, and usage guidelines.",
+  });
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
     <div className="pt-24 pb-16 container mx-auto px-4 lg:px-8 max-w-3xl">
@@ -15,6 +21,7 @@ const Terms = () => (
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default Terms;

@@ -10,7 +10,10 @@ const steps = [
 ];
 
 const HowItWorks = () => {
-  usePageMeta("How SkillMitra Works — 3 Simple Steps", "Browse trainers, book a free trial, and learn 1:1 from verified experts in your language.");
+  usePageMeta({
+    title: "How SkillMitra Works — Personal 1:1 Skill Training",
+    description: "Browse verified trainers, book a free trial session, and learn 1:1 from industry experts in your language. 3 simple steps to start learning.",
+  });
   return (
   <div className="min-h-screen bg-background">
     <Navbar />

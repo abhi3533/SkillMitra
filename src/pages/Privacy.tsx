@@ -1,7 +1,13 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
-const Privacy = () => (
+const Privacy = () => {
+  usePageMeta({
+    title: "Privacy Policy — SkillMitra",
+    description: "Read SkillMitra's privacy policy. Learn how we collect, use, and protect your personal information.",
+  });
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
     <div className="pt-24 pb-16 container mx-auto px-4 lg:px-8 max-w-3xl prose prose-sm">
@@ -15,6 +21,7 @@ const Privacy = () => (
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default Privacy;

@@ -136,7 +136,21 @@ const Index = () => {
   const [realTrainers, setRealTrainers] = useState<any[]>([]);
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  usePageMeta("SkillMitra — Learn Any Skill From India's Best Experts", "Personal 1:1 skill training from verified industry experts. Learn React, Python, Data Science and more in your language from home.");
+  usePageMeta({
+    title: "SkillMitra — Learn Any Skill From India's Best Experts",
+    description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999/month.",
+    ogType: "website",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "SkillMitra",
+      url: "https://skillmitra.online",
+      logo: "https://skillmitra.online/icons/icon-512x512.png",
+      description: "India's premier 1:1 personal skill training platform",
+      contactPoint: { "@type": "ContactPoint", email: "contact@skillmitra.online", contactType: "customer service" },
+      sameAs: ["https://linkedin.com/company/skillmitra", "https://twitter.com/skillmitra", "https://instagram.com/skillmitra"],
+    },
+  });
 
   useEffect(() => {
     const fetchData = async () => {

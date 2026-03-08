@@ -29,7 +29,8 @@ const StudentLogin = () => {
 
   useEffect(() => {
     if (user && role) {
-      if (role === "admin") navigate("/admin", { replace: true });
+      if (redirectUrl && role === "student") navigate(redirectUrl, { replace: true });
+      else if (role === "admin") navigate("/admin", { replace: true });
       else if (role === "trainer") navigate("/trainer/dashboard", { replace: true });
       else navigate("/student/dashboard", { replace: true });
     }

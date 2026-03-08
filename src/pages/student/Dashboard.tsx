@@ -33,6 +33,7 @@ const StudentDashboard = () => {
     if (!user) return;
     const { data: student } = await supabase.from("students").select("id, referral_credits").eq("user_id", user.id).single();
     if (!student) { setLoading(false); return; }
+    setStudentId(student.id);
 
     const [enrollRes, aiRes, resumeRes, completedSessions, certsRes, upcomingSessions, walletRes] = await Promise.all([
       supabase.from("enrollments").select("*, courses(title, total_sessions)").eq("student_id", student.id).eq("status", "active"),

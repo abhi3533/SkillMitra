@@ -53,13 +53,13 @@ const BrowseTrainers = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="bg-primary pt-24 pb-10 lg:pt-28 lg:pb-14">
+      <div className="bg-white border-b border-border pt-24 pb-10 lg:pt-28 lg:pb-14">
         <div className="container mx-auto px-4 lg:px-8">
-          <h1 className="text-2xl lg:text-3xl font-bold text-primary-foreground">Browse Expert Trainers</h1>
-          <p className="mt-2 text-primary-foreground/60">Find your perfect mentor from our verified industry experts</p>
+          <h1 className="text-2xl lg:text-3xl font-bold" style={{ color: "#0F172A" }}>Browse Expert Trainers</h1>
+          <p className="mt-2" style={{ color: "#64748B" }}>Find your perfect mentor from our verified industry experts</p>
           <div className="mt-6 relative max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by skill, trainer name, or role..." className="pl-12 h-12 bg-card border-0 shadow-lg text-foreground text-base rounded-xl" />
+            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by skill, trainer name, or role..." className="pl-12 h-12 bg-white border border-border text-foreground text-base rounded-xl shadow-sm" />
           </div>
         </div>
       </div>

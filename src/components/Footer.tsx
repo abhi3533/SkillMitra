@@ -54,7 +54,7 @@ const Footer = () => {
                 { label: "Refer & Earn ₹200", path: "/refer" },
                 { label: "About Us", path: "/about" },
                 { label: "Blog", path: "/blog" },
-                { label: "Pricing", path: "/pricing" },
+                
                 { label: "Verify Certificate", path: "/verify" },
               ].map(link => (
                 <li key={link.path}>

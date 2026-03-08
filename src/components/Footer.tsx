@@ -35,9 +35,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="col-span-1 sm:col-span-2 md:col-span-1">
             <div className="flex items-center mb-5">
-              <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-                <span style={{ color: "#FFFFFF" }}>Skill</span><span style={{ color: "#6EA8FE" }}>Mitra</span>
-              </span>
+              <img src="/skillmitra-logo-tagline.png" alt="SkillMitra — Learn. Grow. Succeed." className="h-[50px]" />
             </div>
             <p className="text-white/50 text-sm leading-relaxed">
               India's first 1:1 personal skill training platform. Learn from verified expert trainers from home in your own language.

@@ -99,9 +99,7 @@ const TrainerLogin = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="lg:hidden mb-8">
             <Link to="/" className="flex items-center">
-              <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-                <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
-              </span>
+              <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10" />
             </Link>
           </div>
 

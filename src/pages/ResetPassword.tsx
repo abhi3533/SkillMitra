@@ -75,9 +75,7 @@ const ResetPassword = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center mb-8">
-          <span className="text-[22px] font-bold" style={{ fontFamily: "Inter, sans-serif" }}>
-            <span style={{ color: "#0F172A" }}>Skill</span><span style={{ color: "#1A56DB" }}>Mitra</span>
-          </span>
+          <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10" />
         </Link>
 
         <div className="bg-card rounded-xl border p-6 space-y-5">

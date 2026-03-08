@@ -18,6 +18,7 @@ const StudentDashboard = () => {
     aiScore: null as number | null, resumeScore: null as number | null,
     enrollments: [] as any[], sessions: [] as any[], unratedSessions: [] as any[],
     certificates: 0, referralCredits: 0, walletBalance: 0,
+    attendancePercent: null as number | null,
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
 

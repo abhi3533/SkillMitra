@@ -81,14 +81,32 @@ const TrainerSignup = () => {
     setAvailability(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
   };
 
+  const checkDuplicateEmail = async (email: string) => {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) { setEmailError(""); return; }
+    try {
+      const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
+      if (profile) {
+        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: profile.id });
+        if (roleData === "student") setEmailError("This email is registered as a student. Please use student login.");
+        else if (roleData === "admin") setEmailError("This email is registered as admin.");
+        else setEmailError("An account with this email already exists. Please login instead.");
+      } else { setEmailError(""); }
+    } catch { setEmailError(""); }
+  };
+
   const validateStep = (s: number): boolean => {
     if (s === 0) {
       if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.gender || !form.experience || !form.currentRole.trim() || !form.currentCompany.trim()) {
         toast({ title: "Please fill all required fields", variant: "destructive" });
         return false;
       }
-      if (form.password.length < 8) {
-        toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+      if (emailError) return false;
+      if (!isPasswordValid(form.password)) {
+        toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+        return false;
+      }
+      if (form.password !== confirmPassword) {
+        toast({ title: "Passwords do not match", variant: "destructive" });
         return false;
       }
     }

@@ -102,8 +102,30 @@ const LazyFallback = () => (
   </div>
 );
 
+const useAuthRedirect = () => {
+  const { user, role, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (loading || !user || !role) return;
+
+    const loginPages = ["/student/login", "/trainer/login", "/admin/login", "/student/signup", "/trainer/signup"];
+    const isLoginPage = loginPages.includes(location.pathname);
+    const isRoot = location.pathname === "/";
+
+    // Only redirect from root (OAuth return) or login pages
+    if (!isRoot && !isLoginPage) return;
+
+    if (role === "student") navigate("/student/dashboard", { replace: true });
+    else if (role === "trainer") navigate("/trainer/dashboard", { replace: true });
+    else if (role === "admin") navigate("/admin/dashboard", { replace: true });
+  }, [user, role, loading, location.pathname, navigate]);
+};
+
 const AppContent = () => {
   const { user, needsRoleSelection, setNeedsRoleSelection } = useAuth();
+  useAuthRedirect();
   return (
     <>
       <PWAInstallPrompt />

@@ -1,5 +1,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
 
 type AppRole = "student" | "trainer" | "admin" | null;
@@ -10,9 +12,10 @@ interface AuthContextType {
   role: AppRole;
   loading: boolean;
   profile: any;
+  signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null });
+const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {} });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -21,26 +24,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setRole(null);
+    setProfile(null);
+  };
+
+  const fetchUserData = async (session: Session | null) => {
+    if (session?.user) {
+      const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: session.user.id });
+      setRole(roleData as AppRole);
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+      setProfile(profileData);
+    } else {
+      setRole(null);
+      setProfile(null);
+    }
+  };
+
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
-        // Fetch role using security definer function
-        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: session.user.id });
-        setRole(roleData as AppRole);
-
-        // Fetch profile
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        setProfile(profileData);
-      } else {
+      if (event === "SIGNED_OUT") {
         setRole(null);
         setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      if (event === "TOKEN_REFRESHED" && !session) {
+        // Session expired — token refresh failed
+        setRole(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      if (session?.user) {
+        await fetchUserData(session);
       }
       setLoading(false);
     });
@@ -48,16 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: session.user.id });
-        setRole(roleData as AppRole);
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        setProfile(profileData);
-      }
+      await fetchUserData(session);
       setLoading(false);
     });
 
@@ -65,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, profile }}>
+    <AuthContext.Provider value={{ user, session, role, loading, profile, signOut: handleSignOut }}>
       {children}
     </AuthContext.Provider>
   );

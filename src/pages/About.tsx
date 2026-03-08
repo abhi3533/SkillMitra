@@ -13,7 +13,7 @@ const About = () => {
     <div className="pt-24 pb-16 container mx-auto px-4 lg:px-8 max-w-3xl">
       <h1 className="text-3xl font-bold text-foreground">About SkillMitra</h1>
       <p className="mt-4 text-muted-foreground leading-relaxed">
-        SkillMitra is India's premier 1:1 personal skill training platform. We connect learners with verified industry experts for personalized training sessions — in their own language, from the comfort of home.
+        SkillMitra is India's premier 1:1 personal skill training platform. We connect students with verified industry experts for personalized training sessions — in their own language, from the comfort of home.
       </p>
       <p className="mt-4 text-muted-foreground leading-relaxed">
         Our mission is to democratize access to quality skill training across India, making expert mentorship affordable and accessible to every student regardless of their location.

@@ -307,15 +307,14 @@ const Index = () => {
             <p className="label-uppercase text-primary mb-2">Student Reviews</p>
             <h2 className="text-2xl md:text-3xl font-bold text-foreground">What Our Students Say</h2>
           </div>
-          {(displayReviews || demoReviews).length > 0 ? (
+          {displayReviews && displayReviews.length > 0 ? (
             <div className="grid md:grid-cols-3 gap-6">
-              {(displayReviews || demoReviews).slice(0, 3).map((r: any, i: number) => {
-                const isReal = !!r.student_id;
-                const name = isReal ? r.studentProfile?.full_name || "Student" : r.name;
-                const text = isReal ? r.student_review_text || "Great experience!" : r.text;
-                const rating = isReal ? r.student_to_trainer_rating : r.rating;
-                const course = isReal ? "" : r.course;
-                const city = isReal ? r.studentProfile?.city || "" : r.city;
+              {displayReviews.slice(0, 3).map((r: any, i: number) => {
+                const name = r.studentProfile?.full_name || "Student";
+                const text = r.student_review_text || "Great experience!";
+                const rating = r.student_to_trainer_rating || 5;
+                const course = "";
+                const city = r.studentProfile?.city || "";
 
                 return (
                   <motion.div key={r.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}

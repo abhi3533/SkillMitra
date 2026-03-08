@@ -138,7 +138,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   usePageMeta({
     title: "SkillMitra — Learn Any Skill From India's Best Experts",
-    description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999/month.",
+    description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999 per course.",
     ogType: "website",
     jsonLd: {
       "@context": "https://schema.org",

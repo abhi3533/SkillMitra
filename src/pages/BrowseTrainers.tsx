@@ -346,7 +346,7 @@ const BrowseTrainers = () => {
 
             {loading ? (
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-52 animate-pulse rounded-xl bg-muted" />)}
+                {[1, 2, 3, 4, 5, 6].map(i => <TrainerCardSkeleton key={i} variant="browse" />)}
               </div>
             ) : sorted.length === 0 ? (
               <div className="text-center py-16">

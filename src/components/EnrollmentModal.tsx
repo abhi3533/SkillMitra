@@ -97,6 +97,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
       // Create the first session (trial or regular)
       const scheduledDate = getNextScheduledDate(selectedDay, selectedSlot);
+      const meetLink = generateMeetLink(course.title, 1);
       const { error: sessionError } = await supabase.from("course_sessions").insert({
         enrollment_id: enrollment.id,
         trainer_id: trainer.id,
@@ -106,6 +107,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         scheduled_at: scheduledDate.toISOString(),
         duration_mins: course.session_duration_mins || 60,
         status: "upcoming",
+        meet_link: meetLink,
       });
 
       if (sessionError) throw sessionError;

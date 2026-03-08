@@ -169,15 +169,17 @@ const TrainerSessions = () => {
 
       const enrollment = enrollments.find(e => e.id === newSession.enrollmentId);
 
+      const sessionNum = (count || 0) + 1;
+      const autoMeetLink = generateMeetLink(enrollment?.courses?.title || "Session", sessionNum);
       const { error } = await supabase.from("course_sessions").insert({
         enrollment_id: newSession.enrollmentId,
         trainer_id: trainerId!,
         title: newSession.title || `${enrollment?.courses?.title || "Session"} — ${enrollment?.studentName || "Student"}`,
         scheduled_at: scheduledAt.toISOString(),
         duration_mins: parseInt(newSession.durationMins),
-        meet_link: newSession.meetLink || null,
+        meet_link: newSession.meetLink || autoMeetLink,
         notes: newSession.notes || null,
-        session_number: (count || 0) + 1,
+        session_number: sessionNum,
         status: "upcoming",
       });
 

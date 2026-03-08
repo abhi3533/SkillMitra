@@ -125,13 +125,16 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
       // Create notification for student
       const { data: trainerProfile2 } = await supabase.from("profiles").select("full_name").eq("id", trainer.user_id).single();
       const trainerDisplayName = trainerProfile2?.full_name || "your trainer";
-      await supabase.from("notifications").insert({
-        user_id: user!.id,
-        title: bookingType === "trial" ? "Trial Session Booked! 🎉" : "Enrollment Confirmed! 🎉",
-        body: `Your ${bookingType === "trial" ? "trial" : "enrollment"} is confirmed. Trainer: ${trainerDisplayName}. Session scheduled on ${scheduledTimeStr}.`,
-        type: bookingType === "trial" ? "trial_booking" : "enrollment",
-        action_url: "/student/sessions",
-      });
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        await supabase.from("notifications").insert({
+          user_id: currentUser.id,
+          title: bookingType === "trial" ? "Trial Session Booked! 🎉" : "Enrollment Confirmed! 🎉",
+          body: `Your ${bookingType === "trial" ? "trial" : "enrollment"} is confirmed. Trainer: ${trainerDisplayName}. Session scheduled on ${scheduledTimeStr}.`,
+          type: bookingType === "trial" ? "trial_booking" : "enrollment",
+          action_url: "/student/sessions",
+        });
+      }
 
       toast({
         title: bookingType === "trial" ? "Trial Booked!" : "Enrolled Successfully!",

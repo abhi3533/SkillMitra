@@ -11,6 +11,9 @@ import ScrollToTop from "@/components/ScrollToTop";
 import AIChatBot from "@/components/AIChatBot";
 import RoleSelectionModal from "@/components/auth/RoleSelectionModal";
 import { lazy, Suspense } from "react";
+import { Navigate } from "react-router-dom";
+
+const AdminRedirect = () => <Navigate to="/admin/login" replace />;
 
 // Critical: load eagerly
 import Index from "./pages/Index";

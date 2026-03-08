@@ -63,16 +63,16 @@ const NotificationPreferences = () => {
     setPrefs(prev => ({ ...prev, [key]: value }));
     setSaving(true);
 
-    const { data: existing } = await supabase
-      .from("notification_preferences")
+    const { data: existing } = await (supabase
+      .from("notification_preferences" as any)
       .select("id")
       .eq("user_id", user.id)
-      .single();
+      .single() as any);
 
     if (existing) {
-      await supabase.from("notification_preferences").update({ [key]: value }).eq("user_id", user.id);
+      await (supabase.from("notification_preferences" as any) as any).update({ [key]: value }).eq("user_id", user.id);
     } else {
-      await supabase.from("notification_preferences").insert({ user_id: user.id, ...prefs, [key]: value });
+      await (supabase.from("notification_preferences" as any) as any).insert({ user_id: user.id, ...prefs, [key]: value });
     }
 
     setSaving(false);

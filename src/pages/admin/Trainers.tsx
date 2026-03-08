@@ -44,11 +44,25 @@ const AdminTrainers = () => {
     setRejectTarget(null);
     toast({ title: `Trainer ${status}!`, description: status === "approved" ? "The trainer can now create courses." : "The trainer has been notified." });
 
-    // Send email notification (fire-and-forget)
+    // Send email notification via send-email (fire-and-forget)
+    const trainer = trainers.find(t => t.id === id);
+    const trainerEmail = trainer?.profiles?.email;
+    const trainerName = trainer?.profiles?.full_name || "Trainer";
+    if (trainerEmail) {
+      supabase.functions.invoke("send-email", {
+        body: {
+          type: status === "approved" ? "trainer_approved" : "trainer_rejected",
+          to: trainerEmail,
+          data: { name: trainerName, reason: rejectionReason },
+        },
+      }).then(({ error: fnErr }) => { if (fnErr) console.error("Email error:", fnErr); });
+    }
+
+    // Also create in-app notification via old function (fire-and-forget)
     supabase.functions.invoke("notify-trainer-status", {
       body: { trainer_id: id, status, rejection_reason: rejectionReason },
     }).then(({ error: fnErr }) => {
-      if (fnErr) console.error("Email notification error:", fnErr);
+      if (fnErr) console.error("Notification error:", fnErr);
     });
   };
 

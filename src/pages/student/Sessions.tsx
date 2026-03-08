@@ -191,7 +191,7 @@ const StudentSessions = () => {
       <h1 className="text-2xl font-bold text-foreground">My Sessions</h1>
       <p className="mt-1 text-sm text-muted-foreground">View and manage your learning sessions</p>
 
-      <Tabs value={tab} onValueChange={setTab} className="mt-6">
+      <Tabs value={tab} onValueChange={(v) => { setTab(v); setVisibleCount(SESSIONS_PER_PAGE); }} className="mt-6">
         <TabsList>
           <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>

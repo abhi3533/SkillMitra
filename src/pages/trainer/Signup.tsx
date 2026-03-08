@@ -295,6 +295,17 @@ const TrainerSignup = () => {
                   </button>
                 </div>
               </div>
+              <div>
+                <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Input
+                  value={referralCode}
+                  onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. TM-A1B2C3"
+                  className="mt-1.5 h-11 font-mono uppercase"
+                  maxLength={10}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Got a code from another trainer? Enter it here.</p>
+              </div>
             </div>
           )}
 

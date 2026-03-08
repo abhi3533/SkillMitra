@@ -95,13 +95,17 @@ const BrowseTrainers = () => {
         // Build min course fee map for real trainers
         if (courses) {
           const feeMap: Record<string, number> = {};
+          const cMap: Record<string, { id: string; title: string; fee: number }[]> = {};
           courses.forEach(c => {
             const fee = Number(c.course_fee) || 0;
             if (!feeMap[c.trainer_id] || fee < feeMap[c.trainer_id]) {
               feeMap[c.trainer_id] = fee;
             }
+            if (!cMap[c.trainer_id]) cMap[c.trainer_id] = [];
+            cMap[c.trainer_id].push({ id: c.id, title: c.title, fee });
           });
           setCourseFeeMap(feeMap);
+          setTrainerCourseMap(cMap);
         }
       }
       // Only show demo trainers if no real trainers exist

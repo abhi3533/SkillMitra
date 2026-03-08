@@ -146,7 +146,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mt-6">
         {statCards.map(card => (
           <Link key={card.label} to={card.link} className="group">
-            <div className="bg-white rounded-xl border border-border p-4 hover:border-primary/20 hover:shadow-sm transition-all duration-200">
+            <div className="bg-card rounded-xl border border-border p-4 hover:border-primary/20 hover:shadow-sm transition-all duration-200">
               <div className="flex items-center justify-between mb-2">
                 <div className={`w-8 h-8 rounded-lg ${card.bg} flex items-center justify-center`}>
                   <card.icon className={`w-4 h-4 ${card.color}`} />

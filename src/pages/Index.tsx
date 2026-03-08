@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, Users, Star, Clock, BadgeCheck, GraduationCap, Globe, Home, Shield,
-  IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video, TrendingUp, Zap, Play
+  IndianRupee, Award, ChevronRight, Quote, Sparkles, BookOpen, Video, TrendingUp, Zap, Play, ArrowUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -576,7 +576,34 @@ const Index = () => {
       </section>
 
       <Footer />
+      <ScrollToTop />
     </div>
+  );
+};
+
+/* ─── Scroll-to-top button ─── */
+const ScrollToTop = () => {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl flex items-center justify-center transition-shadow"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </motion.button>
+      )}
+    </AnimatePresence>
   );
 };
 

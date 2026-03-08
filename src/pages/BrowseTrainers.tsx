@@ -424,20 +424,39 @@ const BrowseTrainers = () => {
                                 <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
                               ))}
                             </div>
+                            {/* Course links */}
                             {demoCourse ? (
-                              <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{demoCourse.fee.toLocaleString()}</span></p>
-                            ) : courseFeeMap[t.id] !== undefined && (
-                              <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{courseFeeMap[t.id].toLocaleString()}</span></p>
-                            )}
+                              <div className="mt-2">
+                                <Link to={`/course/${demoCourse.id}`} onClick={(e) => e.stopPropagation()}
+                                  className="text-xs text-primary hover:underline font-medium">{demoCourse.title}</Link>
+                                <p className="text-xs text-muted-foreground">From <span className="font-semibold text-foreground">₹{demoCourse.fee.toLocaleString()}</span></p>
+                              </div>
+                            ) : (trainerCourseMap[t.id] || []).length > 0 ? (
+                              <div className="mt-2 space-y-1">
+                                {trainerCourseMap[t.id].slice(0, 2).map(c => (
+                                  <Link key={c.id} to={`/course/${c.id}`} onClick={(e) => e.stopPropagation()}
+                                    className="block text-xs text-primary hover:underline font-medium truncate">{c.title}</Link>
+                                ))}
+                                <p className="text-xs text-muted-foreground">From <span className="font-semibold text-foreground">₹{courseFeeMap[t.id]?.toLocaleString()}</span></p>
+                              </div>
+                            ) : null}
                           </div>
                           <div className="px-5 py-3 border-t border-border flex items-center justify-between bg-secondary/30">
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 text-accent fill-accent" />
                               <span className="text-sm font-semibold text-foreground">{Number(t.average_rating) > 0 ? t.average_rating : "New"}</span>
                             </div>
-                            <Button size="sm" variant="outline" className="text-[11px] h-7 px-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                              Book Free Trial
-                            </Button>
+                            {(trainerCourseMap[t.id]?.length > 0 || demoCourse) ? (
+                              <Link to={`/course/${demoCourse?.id || trainerCourseMap[t.id]?.[0]?.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-[11px] h-7 px-3 inline-flex items-center rounded-md border border-primary text-primary font-medium hover:bg-primary hover:text-primary-foreground transition-colors">
+                                View Course
+                              </Link>
+                            ) : (
+                              <Button size="sm" variant="outline" className="text-[11px] h-7 px-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                View Profile
+                              </Button>
+                            )}
                             <span className="text-sm text-muted-foreground">{t.total_students || 0} students</span>
                           </div>
                         </div>

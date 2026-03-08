@@ -276,7 +276,7 @@ const Index = () => {
                       <GraduationCap className="w-8 h-8 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-foreground">Find Your Mentor</h3>
+                      <h3 className="text-lg font-bold text-foreground">Find Your Trainer</h3>
                       <p className="text-sm text-muted-foreground">1:1 Personal Training</p>
                     </div>
                   </div>

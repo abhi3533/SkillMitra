@@ -38,8 +38,8 @@ const StudentCourses = () => {
       ) : enrollments.length === 0 ? (
         <div className="mt-12 text-center">
           <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto" />
-          <h3 className="mt-4 text-lg font-semibold text-foreground">No courses yet</h3>
-          <p className="mt-2 text-muted-foreground">Browse trainers and enroll in your first course!</p>
+          <h3 className="mt-4 text-lg font-semibold text-foreground">No Courses Yet</h3>
+          <p className="mt-2 text-muted-foreground">You have no courses yet. Browse trainers to enrol in your first course.</p>
           <Link to="/browse"><Button className="mt-4 hero-gradient border-0">Browse Trainers</Button></Link>
         </div>
       ) : (

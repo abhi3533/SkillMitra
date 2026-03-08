@@ -32,8 +32,8 @@ const TrainerStudents = () => {
       ) : enrollments.length === 0 ? (
         <div className="mt-12 text-center">
           <Users className="w-16 h-16 text-muted-foreground/30 mx-auto" />
-          <h3 className="mt-4 text-lg font-semibold text-foreground">No students yet</h3>
-          <p className="mt-2 text-muted-foreground">Students will appear here once they enroll in your courses</p>
+          <h3 className="mt-4 text-lg font-semibold text-foreground">No Students Yet</h3>
+          <p className="mt-2 text-muted-foreground">Students will appear here once they enrol in your courses.</p>
         </div>
       ) : (
         <div className="mt-6 bg-card rounded-xl border overflow-hidden">

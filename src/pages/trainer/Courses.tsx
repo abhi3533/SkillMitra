@@ -186,8 +186,8 @@ const TrainerCourses = () => {
       ) : courses.length === 0 ? (
         <div className="mt-12 text-center">
           <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto" />
-          <h3 className="mt-4 text-lg font-semibold text-foreground">No courses yet</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Create your first course to start teaching</p>
+          <h3 className="mt-4 text-lg font-semibold text-foreground">No Courses Yet</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Create your first course to start training students.</p>
           <Button onClick={openCreate} className="mt-4 gap-1.5"><Plus className="w-4 h-4" /> Create Course</Button>
         </div>
       ) : (

@@ -202,7 +202,7 @@ const BrowseTrainers = () => {
       <div className="bg-card border-b border-border pt-24 pb-10 lg:pt-28 lg:pb-14">
         <div className="container mx-auto px-4 lg:px-8">
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Browse Expert Trainers</h1>
-          <p className="mt-2 text-muted-foreground">Find your perfect mentor from our verified industry experts</p>
+          <p className="mt-2 text-muted-foreground">Find your ideal trainer from our verified industry experts</p>
           <div className="mt-6 relative max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by skill, trainer name, or role..."

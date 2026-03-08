@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { RefreshCw } from "lucide-react";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();

@@ -17,7 +17,8 @@ const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", 
 const StudentSignup = () => {
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", city: "", state: "", gender: "", password: "", trainerPref: "no_preference" });
-  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [languages, setLanguages] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

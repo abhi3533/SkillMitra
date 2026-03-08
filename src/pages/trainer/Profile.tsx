@@ -586,6 +586,31 @@ const TrainerProfile = () => {
         />
       )}
 
+      {/* Auth Prompt Modal */}
+      <Dialog open={showAuthPrompt} onOpenChange={setShowAuthPrompt}>
+        <DialogContent className="max-w-sm text-center">
+          <div className="flex flex-col items-center gap-4 py-2">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="w-7 h-7 text-primary" />
+            </div>
+            <DialogHeader className="space-y-2">
+              <DialogTitle className="text-xl">Join SkillMitra to Get Started</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Create a free student account to enroll in courses and book free trial sessions with expert trainers.
+            </p>
+            <div className="flex flex-col gap-2 w-full mt-2">
+              <Button className="w-full" onClick={() => { setShowAuthPrompt(false); navigate(`/student/signup`); }}>
+                Sign Up Free
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => { setShowAuthPrompt(false); navigate(`/student/login?redirect=/trainer/${resolvedId}`); }}>
+                Already have an account? Log In
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Enrollment Confirmation Modal */}
       <Dialog open={!!enrollCourse} onOpenChange={(open) => { if (!open) setEnrollCourse(null); }}>
         <DialogContent className="max-w-md">

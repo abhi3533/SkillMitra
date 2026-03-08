@@ -142,11 +142,11 @@ const StudentSignup = () => {
       });
       if (error) throw error;
 
-      // Save course interests to students table
+      // Use edge function to update course interests (bypasses RLS when session not available)
       if (signupData?.user?.id && courseInterests.length > 0) {
-        supabase.from('students').update({ course_interests: courseInterests })
-          .eq('user_id', signupData.user.id)
-          .then(({ error: updErr }) => { if (updErr) console.error("Course interests save error:", updErr); });
+        supabase.functions.invoke("complete-signup", {
+          body: { user_id: signupData.user.id, role: "student", student_data: { course_interests: courseInterests } },
+        }).catch(e => console.error("Course interests save error:", e));
       }
 
       const trimmedCode = referralCode.trim().toUpperCase();

@@ -135,14 +135,25 @@ const StudentDashboard = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-        {[
-          { label: "Active Courses", value: loading ? "–" : String(data.activeCourses), icon: BookOpen, color: "text-primary", bg: "bg-primary/10" },
-          { label: "Sessions Done", value: loading ? "–" : `${data.sessionsDone}${data.totalSessions ? `/${data.totalSessions}` : ""}`, icon: Calendar, color: "text-primary", bg: "bg-primary/10" },
-          { label: "AI Interview", value: loading ? "–" : data.aiScore !== null ? `${data.aiScore}%` : "—", icon: Brain, color: "text-emerald-600", bg: "bg-emerald-50", link: "/student/interview" },
-          { label: "Resume Score", value: loading ? "–" : data.resumeScore !== null ? `${data.resumeScore}%` : "—", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50", link: "/student/resume" },
-          { label: "Certificates", value: loading ? "–" : String(data.certificates), icon: Award, color: "text-amber-600", bg: "bg-amber-50", link: "/student/certificates" },
-          { label: "Referral Credits", value: loading ? "–" : `₹${data.referralCredits}`, icon: Users, color: "text-primary", bg: "bg-primary/10", link: "/student/referrals" },
-        ].map(card => {
+        {(() => {
+          const attendanceColor = data.attendancePercent === null ? "text-muted-foreground" 
+            : data.attendancePercent >= 90 ? "text-emerald-600" 
+            : data.attendancePercent >= 75 ? "text-amber-600" 
+            : "text-destructive";
+          const attendanceBg = data.attendancePercent === null ? "bg-muted" 
+            : data.attendancePercent >= 90 ? "bg-emerald-50" 
+            : data.attendancePercent >= 75 ? "bg-amber-50" 
+            : "bg-destructive/10";
+          return [
+            { label: "Active Courses", value: loading ? "–" : String(data.activeCourses), icon: BookOpen, color: "text-primary", bg: "bg-primary/10" },
+            { label: "Attendance", value: loading ? "–" : data.attendancePercent !== null ? `${data.attendancePercent}%` : "—", icon: CheckCircle, color: attendanceColor, bg: attendanceBg },
+            { label: "Sessions Done", value: loading ? "–" : `${data.sessionsDone}${data.totalSessions ? `/${data.totalSessions}` : ""}`, icon: Calendar, color: "text-primary", bg: "bg-primary/10" },
+            { label: "AI Interview", value: loading ? "–" : data.aiScore !== null ? `${data.aiScore}%` : "—", icon: Brain, color: "text-emerald-600", bg: "bg-emerald-50", link: "/student/interview" },
+            { label: "Resume Score", value: loading ? "–" : data.resumeScore !== null ? `${data.resumeScore}%` : "—", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50", link: "/student/resume" },
+            { label: "Certificates", value: loading ? "–" : String(data.certificates), icon: Award, color: "text-amber-600", bg: "bg-amber-50", link: "/student/certificates" },
+            { label: "Referral Credits", value: loading ? "–" : `₹${data.referralCredits}`, icon: Users, color: "text-primary", bg: "bg-primary/10", link: "/student/referrals" },
+          ];
+        })().map(card => {
           const content = (
             <div className="bg-card rounded-xl border p-4 hover:border-primary/20 transition-colors group">
               <div className="flex items-center justify-between mb-2">

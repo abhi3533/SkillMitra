@@ -20,6 +20,7 @@ import Standards from "./pages/Standards";
 import CertificateVerify from "./pages/CertificateVerify";
 import JoinRedirect from "./pages/JoinRedirect";
 import Notifications from "./pages/Notifications";
+import NotificationPreferences from "./pages/NotificationPreferences";
 
 // Student
 import StudentLogin from "./pages/student/Login";
@@ -112,6 +113,7 @@ const App = () => (
             <Route path="/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
             <Route path="/student/wallet" element={<ProtectedRoute allowedRoles={["student"]}><StudentWallet /></ProtectedRoute>} />
             <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Notifications /></ProtectedRoute>} />
+            <Route path="/notification-preferences" element={<ProtectedRoute allowedRoles={["student", "trainer"]}><NotificationPreferences /></ProtectedRoute>} />
 
             {/* Trainer Protected */}
             <Route path="/trainer/dashboard" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerDashboard /></ProtectedRoute>} />

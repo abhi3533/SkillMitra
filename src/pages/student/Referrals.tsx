@@ -61,7 +61,7 @@ const StudentReferrals = () => {
   }, [user]);
 
   const referralCode = student?.referral_code || "";
-  const referralLink = referralCode ? `https://${APP_DOMAIN}/join/${referralCode}` : "";
+  const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";
   const totalEarned = referrals.filter(r => r.status === "paid").length * 200;
 
   const copyLink = () => {

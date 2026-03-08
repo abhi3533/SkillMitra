@@ -24,6 +24,8 @@ import Terms from "./pages/Terms";
 import Standards from "./pages/Standards";
 import CertificateVerify from "./pages/CertificateVerify";
 import JoinRedirect from "./pages/JoinRedirect";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Notifications from "./pages/Notifications";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -118,6 +120,8 @@ const AppContent = () => {
         <Route path="/verify" element={<CertificateVerify />} />
         <Route path="/trainer/:id" element={<TrainerProfile />} />
         <Route path="/join/:code" element={<JoinRedirect />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
 
         {/* Auth pages */}
         <Route path="/student/login" element={<StudentLogin />} />

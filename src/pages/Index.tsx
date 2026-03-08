@@ -29,19 +29,6 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4 } }),
 };
 
-const demoTrainers = [
-  { id: "demo-1", name: "Rahul Sharma", role: "Senior Software Engineer", company: "Google", skills: ["React", "Node.js", "System Design"], rating: 4.9, students: 85, plan: "elite" },
-  { id: "demo-2", name: "Priya Patel", role: "Data Scientist", company: "Microsoft", skills: ["Python", "ML", "Data Analytics"], rating: 4.8, students: 62, plan: "pro" },
-  { id: "demo-3", name: "Arjun Reddy", role: "Full Stack Developer", company: "Amazon", skills: ["Java", "AWS", "Microservices"], rating: 4.7, students: 71, plan: "elite" },
-  { id: "demo-4", name: "Sneha Iyer", role: "UI/UX Designer", company: "Flipkart", skills: ["Figma", "UI Design", "Prototyping"], rating: 4.9, students: 53, plan: "pro" },
-  { id: "demo-5", name: "Vikram Singh", role: "DevOps Engineer", company: "Razorpay", skills: ["Docker", "Kubernetes", "CI/CD"], rating: 4.6, students: 44, plan: "pro" },
-];
-
-const demoReviews = [
-  { id: "r1", text: "Rahul sir explained React concepts so clearly that I built my first project within 2 weeks!", rating: 5, name: "Ananya M.", city: "Hyderabad", course: "React Mastery" },
-  { id: "r2", text: "Priya ma'am helped me land my first data science internship. Very practical teaching.", rating: 5, name: "Karthik R.", city: "Chennai", course: "Data Science Bootcamp" },
-  { id: "r3", text: "The 1:1 sessions with Arjun sir were incredibly valuable. Cleared my Amazon interview!", rating: 5, name: "Deepak K.", city: "Bangalore", course: "DSA & System Design" },
-];
 
 
 

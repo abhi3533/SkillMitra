@@ -23,6 +23,7 @@ const Standards = () => {
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default Standards;

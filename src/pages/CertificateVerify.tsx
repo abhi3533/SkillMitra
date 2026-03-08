@@ -13,6 +13,11 @@ const CertificateVerify = () => {
   const [searchId, setSearchId] = useState(certificateId || "");
   const [verified, setVerified] = useState(!!certificateId);
 
+  usePageMeta({
+    title: "Verify Certificate — SkillMitra",
+    description: "Verify the authenticity of SkillMitra certificates using the unique certificate ID.",
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

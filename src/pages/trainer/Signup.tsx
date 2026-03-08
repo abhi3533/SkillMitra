@@ -193,6 +193,16 @@ const TrainerSignup = () => {
       }));
       await supabase.from("trainer_availability").insert(availRows);
 
+      // Process trainer referral if code provided (fire-and-forget)
+      const trimmedRef = referralCode.trim().toUpperCase();
+      if (trimmedRef && authData.user?.id) {
+        supabase.functions.invoke("process-trainer-referral", {
+          body: { referral_code: trimmedRef, new_user_id: authData.user.id },
+        }).then(({ error: fnErr }) => {
+          if (fnErr) console.error("Trainer referral error:", fnErr);
+        });
+      }
+
       toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours." });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {

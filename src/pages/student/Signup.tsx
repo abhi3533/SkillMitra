@@ -32,14 +32,41 @@ const StudentSignup = () => {
     setLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
   };
 
+  // Check for duplicate email
+  const checkDuplicateEmail = async (email: string) => {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) { setEmailError(""); return; }
+    try {
+      const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
+      if (profile) {
+        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: profile.id });
+        if (roleData === "trainer") setEmailError("This email is registered as a trainer. Please use trainer login.");
+        else if (roleData === "admin") setEmailError("This email is registered as admin.");
+        else setEmailError("An account with this email already exists. Please login instead.");
+      } else {
+        setEmailError("");
+      }
+    } catch { setEmailError(""); }
+  };
+
+  const validatePhone = (phone: string) => /^[6-9]\d{9}$/.test(phone.replace(/\D/g, "").slice(-10));
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim()) {
       toast({ title: "Please fill all required fields", variant: "destructive" });
       return;
     }
-    if (form.password.length < 8) {
-      toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+    if (emailError) return;
+    if (!isPasswordValid(form.password)) {
+      toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+      return;
+    }
+    if (form.password !== confirmPassword) {
+      toast({ title: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (!validatePhone(form.phone)) {
+      toast({ title: "Please enter a valid 10-digit Indian phone number", variant: "destructive" });
       return;
     }
     if (languages.length === 0) {

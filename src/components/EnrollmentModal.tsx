@@ -95,22 +95,34 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
       if (enrollError) throw enrollError;
 
-      // Create the first session (trial or regular)
-      const scheduledDate = getNextScheduledDate(selectedDay, selectedSlot);
-      const meetLink = generateMeetLink(course.title, 1);
-      const { error: sessionError } = await supabase.from("course_sessions").insert({
-        enrollment_id: enrollment.id,
-        trainer_id: trainer.id,
-        title: bookingType === "trial" ? `Free Trial: ${course.title}` : `Session 1: ${course.title}`,
-        session_number: 1,
-        is_trial: bookingType === "trial",
-        scheduled_at: scheduledDate.toISOString(),
-        duration_mins: course.session_duration_mins || 60,
-        status: "upcoming",
-        meet_link: meetLink,
-      });
+      // Generate all sessions for the course
+      const firstDate = getNextScheduledDate(selectedDay, selectedSlot);
+      const totalSessions = bookingType === "trial" ? 1 : (course.total_sessions || 1);
+      const sessionsToInsert = [];
 
+      for (let i = 0; i < totalSessions; i++) {
+        const sessionDate = new Date(firstDate);
+        // Space sessions 7 days apart (weekly recurrence)
+        sessionDate.setDate(firstDate.getDate() + (i * 7));
+        const meetLink = generateMeetLink(course.title, i + 1);
+
+        sessionsToInsert.push({
+          enrollment_id: enrollment.id,
+          trainer_id: trainer.id,
+          title: bookingType === "trial" ? `Free Trial: ${course.title}` : `Session ${i + 1}: ${course.title}`,
+          session_number: i + 1,
+          is_trial: bookingType === "trial",
+          scheduled_at: sessionDate.toISOString(),
+          duration_mins: course.session_duration_mins || 60,
+          status: "upcoming",
+          meet_link: meetLink,
+        });
+      }
+
+      const { error: sessionError } = await supabase.from("course_sessions").insert(sessionsToInsert);
       if (sessionError) throw sessionError;
+
+      const scheduledDate = firstDate;
 
       // Create notification for trainer
       const scheduledTimeStr = scheduledDate.toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });

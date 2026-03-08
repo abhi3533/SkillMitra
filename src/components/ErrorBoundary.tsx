@@ -27,7 +27,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, State
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="text-center max-w-md px-6">
             <div className="flex items-center justify-center mb-8">
-              <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
+              <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
             </div>
             <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl">⚠️</span>

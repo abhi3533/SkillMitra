@@ -47,7 +47,7 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block" style={{ background: 'transparent' }} />
+          <img src="/logo-navbar.png" alt="SkillMitra" className="h-8 w-auto block" />
           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold">Admin</span>
         </Link>
         <form onSubmit={handleLogin} className="bg-card rounded-xl border p-6 space-y-4">

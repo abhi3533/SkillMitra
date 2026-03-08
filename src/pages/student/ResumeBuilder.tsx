@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import StudentLayout from "@/components/layouts/StudentLayout";
 
 const ResumeBuilder = () => {
   const [objective, setObjective] = useState("Motivated software developer with hands-on experience in React and Node.js seeking a challenging role at a growth-stage tech company.");
   const [atsScore] = useState(85);
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto pt-16">
+    <StudentLayout>
+      <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -116,7 +117,7 @@ const ResumeBuilder = () => {
           </div>
         </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 };
 

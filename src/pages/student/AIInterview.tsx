@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import StudentLayout from "@/components/layouts/StudentLayout";
 
 const AIInterview = () => {
   const [started, setStarted] = useState(false);
@@ -12,8 +13,8 @@ const AIInterview = () => {
 
   if (completed) {
     return (
-      <div className="min-h-screen bg-background p-6 lg:p-8">
-        <div className="max-w-3xl mx-auto pt-20">
+      <StudentLayout>
+        <div className="max-w-3xl mx-auto">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
             <div className="w-32 h-32 mx-auto rounded-full hero-gradient flex items-center justify-center mb-6">
               <span className="text-5xl font-bold text-primary-foreground">78</span>
@@ -51,14 +52,14 @@ const AIInterview = () => {
             <Link to="/student/dashboard"><Button className="hero-gradient border-0">Back to Dashboard</Button></Link>
           </div>
         </div>
-      </div>
+      </StudentLayout>
     );
   }
 
   if (started) {
     return (
-      <div className="min-h-screen bg-background p-6 lg:p-8">
-        <div className="max-w-2xl mx-auto pt-20">
+      <StudentLayout>
+        <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <span className="text-sm text-muted-foreground">Question 1 of 5</span>
             <div className="flex items-center gap-2">
@@ -85,13 +86,13 @@ const AIInterview = () => {
             <Button onClick={() => setCompleted(true)} className="hero-gradient border-0">Next Question <ArrowRight className="ml-2 w-4 h-4" /></Button>
           </div>
         </div>
-      </div>
+      </StudentLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-8">
-      <div className="max-w-lg mx-auto pt-20">
+    <StudentLayout>
+      <div className="max-w-lg mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="w-16 h-16 mx-auto rounded-2xl hero-gradient flex items-center justify-center mb-4">
             <Brain className="w-8 h-8 text-primary-foreground" />
@@ -142,7 +143,7 @@ const AIInterview = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 };
 

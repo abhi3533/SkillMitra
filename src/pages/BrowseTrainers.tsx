@@ -39,6 +39,7 @@ const BrowseTrainers = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [courseFeeMap, setCourseFeeMap] = useState<Record<string, number>>({});
   const [showFilters, setShowFilters] = useState(false);
 
   // Filters

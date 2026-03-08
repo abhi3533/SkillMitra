@@ -142,6 +142,13 @@ const StudentSignup = () => {
       });
       if (error) throw error;
 
+      // Save course interests to students table
+      if (signupData?.user?.id && courseInterests.length > 0) {
+        supabase.from('students').update({ course_interests: courseInterests })
+          .eq('user_id', signupData.user.id)
+          .then(({ error: updErr }) => { if (updErr) console.error("Course interests save error:", updErr); });
+      }
+
       const trimmedCode = referralCode.trim().toUpperCase();
       if (trimmedCode && signupData?.user?.id) {
         supabase.functions.invoke("process-referral", {

@@ -138,7 +138,7 @@ const BrowseTrainers = () => {
       const company = t.current_company?.toLowerCase() || "";
       if (q && !name.includes(q) && !role.includes(q) && !skills.includes(q) && !company.includes(q)) return false;
 
-      if (selectedSkill && !(t.skills || []).some((s: string) => s.toLowerCase().includes(selectedSkill.toLowerCase()))) return false;
+      if (selectedSkill && selectedSkill !== "all" && !(t.skills || []).some((s: string) => s.toLowerCase().includes(selectedSkill.toLowerCase()))) return false;
       if (selectedLanguages.length > 0 && !selectedLanguages.some(l => (t.teaching_languages || []).includes(l))) return false;
       if (minRating > 0 && (Number(t.average_rating) || 0) < minRating) return false;
 

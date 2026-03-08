@@ -278,6 +278,13 @@ const StudentSessions = () => {
             </div>
           );
         })}
+        {visibleCount < filtered.length && (
+          <div className="text-center mt-4">
+            <Button variant="outline" size="sm" onClick={() => setVisibleCount(v => v + SESSIONS_PER_PAGE)}>
+              Load More ({filtered.length - visibleCount} remaining)
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Postpone/Reschedule Dialog */}

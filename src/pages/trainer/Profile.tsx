@@ -56,10 +56,10 @@ const TrainerProfile = () => {
           const profileMap = await fetchProfilesMap([t.user_id]);
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
-          const { data: coursesData } = await supabase.from("courses").select("*").eq("trainer_id", id).eq("approval_status", "approved");
+          const { data: coursesData } = await supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved");
           setCourses(coursesData || []);
 
-          const { data: ratingsData } = await supabase.from("ratings").select("*").eq("trainer_id", id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
+          const { data: ratingsData } = await supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
           if (ratingsData && ratingsData.length > 0) {
             const studentIds = ratingsData.map(r => r.student_id);
             const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);

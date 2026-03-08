@@ -124,7 +124,7 @@ const StudentSignup = () => {
       <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
         <div className="max-w-md">
           <Link to="/" className="flex items-center mb-12">
-            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-9 w-auto block brightness-0 invert" style={{ background: 'transparent' }} />
+            <img src="/skillmitra-logo.png?v=2" alt="SkillMitra" className="h-9 w-auto block brightness-0 invert" style={{ background: 'transparent' }} />
           </Link>
           <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join students learning from verified industry experts in their own language.</p>

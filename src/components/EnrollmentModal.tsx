@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, Calendar, Shield, Loader2, AlertCircle } from "lucide-react";
+import { generateMeetLink } from "@/lib/meetingLink";
 
 interface EnrollmentModalProps {
   open: boolean;

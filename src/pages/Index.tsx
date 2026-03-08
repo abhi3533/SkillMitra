@@ -198,7 +198,9 @@ const Index = () => {
   }, []);
 
   const displayTrainers = realTrainers.length >= 6 ? realTrainers : [...realTrainers, ...demoTrainers.slice(0, 6 - realTrainers.length)];
-  const displayReviews = realReviews.length >= 4 ? realReviews.slice(0, 4) : [...realReviews, ...demoTestimonials.slice(0, 4 - realReviews.length)];
+  // Only show real reviews that have meaningful content (name + review text)
+  const qualityReviews = realReviews.filter(r => r.studentProfile?.full_name && r.student_review_text && r.student_to_trainer_rating);
+  const displayReviews = qualityReviews.length >= 4 ? qualityReviews.slice(0, 4) : [...qualityReviews, ...demoTestimonials.slice(0, 4 - qualityReviews.length)];
 
   return (
     <div className="min-h-screen bg-background">

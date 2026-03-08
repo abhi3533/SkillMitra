@@ -106,21 +106,33 @@ const useAuthRedirect = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     if (loading || !user || !role) return;
+    if (hasRedirected.current) return;
 
+    const path = location.pathname;
     const loginPages = ["/student/login", "/trainer/login", "/admin/login", "/student/signup", "/trainer/signup"];
-    const isLoginPage = loginPages.includes(location.pathname);
-    const isRoot = location.pathname === "/";
+    const isLoginPage = loginPages.includes(path);
+    const isRoot = path === "/";
+    // Also handle OAuth callback paths
+    const isOAuthCallback = path.startsWith("/~oauth");
 
-    // Only redirect from root (OAuth return) or login pages
-    if (!isRoot && !isLoginPage) return;
+    // Only redirect from root (OAuth return), login pages, or OAuth callback
+    if (!isRoot && !isLoginPage && !isOAuthCallback) return;
+
+    hasRedirected.current = true;
 
     if (role === "student") navigate("/student/dashboard", { replace: true });
     else if (role === "trainer") navigate("/trainer/dashboard", { replace: true });
     else if (role === "admin") navigate("/admin/dashboard", { replace: true });
   }, [user, role, loading, location.pathname, navigate]);
+
+  // Reset flag when user signs out
+  useEffect(() => {
+    if (!user) hasRedirected.current = false;
+  }, [user]);
 };
 
 const AppContent = () => {

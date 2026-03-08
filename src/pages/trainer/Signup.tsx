@@ -284,7 +284,17 @@ const TrainerSignup = () => {
             <div className="mt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><Label>Full Name *</Label><Input value={form.fullName} onChange={e => update("fullName", e.target.value)} placeholder="Your full name" className="mt-1.5 h-11" /></div>
-                <div><Label>Email *</Label><Input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="you@email.com" className="mt-1.5 h-11" /></div>
+                <div>
+                  <Label>Email *</Label>
+                  <Input type="email" value={form.email} onChange={e => update("email", e.target.value)} onBlur={() => checkDuplicateEmail(form.email)} placeholder="you@email.com" className={`mt-1.5 h-11 ${emailError ? "border-destructive" : ""}`} />
+                  {emailError && (
+                    <p className="text-xs text-destructive mt-1">
+                      {emailError}{" "}
+                      {emailError.includes("student login") && <Link to="/student/login" className="font-semibold underline">Student Login</Link>}
+                      {emailError.includes("login instead") && <Link to="/trainer/login" className="font-semibold underline">Login here</Link>}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><Label>Phone *</Label><Input value={form.phone} onChange={e => update("phone", e.target.value)} placeholder="+91 98765 43210" className="mt-1.5 h-11" /></div>
@@ -313,6 +323,11 @@ const TrainerSignup = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
+              </div>
+              <div>
+                <Label>Confirm Password *</Label>
+                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
               </div>
               <div>
                 <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>

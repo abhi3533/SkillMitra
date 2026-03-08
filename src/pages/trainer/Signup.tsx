@@ -107,10 +107,28 @@ const TrainerSignup = () => {
   const isPhoneFilled = isValidPhone(form.phone);
   const isEmailFilled = isValidEmail(form.email) && !emailError;
 
+  const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Photo must be less than 5MB", variant: "destructive" });
+        return;
+      }
+      setProfilePhoto(file);
+      setProfilePhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeProfilePhoto = () => {
+    setProfilePhoto(null);
+    setProfilePhotoPreview(null);
+    if (profilePhotoRef.current) profilePhotoRef.current.value = "";
+  };
+
   // Count remaining required fields per step
   const getStepProgress = (s: number): { total: number; filled: number } => {
     if (s === 0) {
-      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim()];
+      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim(), profilePhoto ? "yes" : ""];
       return { total: fields.length, filled: fields.filter(Boolean).length };
     }
     if (s === 1) {

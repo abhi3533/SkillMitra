@@ -16,6 +16,8 @@ import StudentLayout from "@/components/layouts/StudentLayout";
 import RatingModal from "@/components/RatingModal";
 import SessionReflectionModal from "@/components/SessionReflectionModal";
 
+const SESSIONS_PER_PAGE = 15;
+
 const StudentSessions = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -27,6 +29,7 @@ const StudentSessions = () => {
   const [reflectedIds, setReflectedIds] = useState<Set<string>>(new Set());
   const [studentId, setStudentId] = useState<string | null>(null);
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(SESSIONS_PER_PAGE);
 
   // Postpone state
   const [postponeModal, setPostponeModal] = useState<any>(null);

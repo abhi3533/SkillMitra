@@ -77,6 +77,7 @@ const StudentDashboard = () => {
       unratedSessions: unrated,
       certificates: certsRes.count || 0,
       referralCredits: Number(student.referral_credits) || 0,
+      walletBalance: Number(walletRes.data?.balance) || 0,
     });
     setLoading(false);
   };

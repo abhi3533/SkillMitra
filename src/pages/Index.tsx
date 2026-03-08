@@ -218,16 +218,16 @@ const Index = () => {
               View all <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
+          {displayTrainers && displayTrainers.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(displayTrainers || demoTrainers.slice(0, 6)).map((t: any, i: number) => {
-              const isReal = !!t.user_id;
-              const name = isReal ? t.profile?.full_name || "Trainer" : t.name;
-              const role = isReal ? t.current_role || "Trainer" : t.role;
-              const company = isReal ? t.current_company : t.company;
-              const skills = isReal ? t.skills || [] : t.skills;
-              const rating = isReal ? Number(t.average_rating) : t.rating;
-              const studentCount = isReal ? t.total_students || 0 : t.students;
-              const plan = isReal ? t.subscription_plan : t.plan;
+            {displayTrainers.map((t: any, i: number) => {
+              const name = t.profile?.full_name || "Trainer";
+              const role = t.current_role || "Trainer";
+              const company = t.current_company;
+              const skills = t.skills || [];
+              const rating = Number(t.average_rating);
+              const studentCount = t.total_students || 0;
+              const plan = t.subscription_plan;
               const id = isReal ? t.id : t.id;
 
               return (

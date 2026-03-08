@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { motion } from "framer-motion";
-import { Search, Star, BadgeCheck, SlidersHorizontal, X, ChevronDown } from "lucide-react";
+import { Search, Star, BadgeCheck, SlidersHorizontal, X, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +20,18 @@ const ALL_SKILLS = [
   "Public Speaking", "Interview Prep", "MongoDB", "Web Design", "GST",
 ];
 const ALL_LANGUAGES = ["English", "Hindi", "Telugu", "Tamil", "Malayalam", "Marathi", "Urdu", "Kannada"];
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const TIME_SLOTS = [
+  { label: "Early Morning", sub: "6 AM – 9 AM", startHour: 6, endHour: 9 },
+  { label: "Morning", sub: "9 AM – 12 PM", startHour: 9, endHour: 12 },
+  { label: "Afternoon", sub: "12 PM – 4 PM", startHour: 12, endHour: 16 },
+  { label: "Evening", sub: "4 PM – 8 PM", startHour: 16, endHour: 20 },
+  { label: "Night", sub: "8 PM – 11 PM", startHour: 20, endHour: 23 },
+];
+const SCHEDULE_PREFS = [
+  { label: "Weekend Only", sub: "Sat & Sun", days: [6, 0] },
+  { label: "Weekday Only", sub: "Mon – Fri", days: [1, 2, 3, 4, 5] },
+];
 
 const BrowseTrainers = () => {
   const [search, setSearch] = useState("");
@@ -35,7 +46,11 @@ const BrowseTrainers = () => {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [genderPref, setGenderPref] = useState<string>("");
   const [minRating, setMinRating] = useState<number>(0);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
+  const [selectedSchedule, setSelectedSchedule] = useState<string[]>([]);
+
+  // Availability data from DB
+  const [availabilityMap, setAvailabilityMap] = useState<Record<string, any[]>>({});
 
   usePageMeta({
     title: "Find Expert Trainers — SkillMitra",
@@ -51,6 +66,18 @@ const BrowseTrainers = () => {
         const userIds = trainerData.map(t => t.user_id);
         const profileMap = await fetchProfilesMap(userIds);
         realTrainers = trainerData.map(t => ({ ...t, profile: profileMap[t.user_id] }));
+
+        // Fetch availability for real trainers
+        const trainerIds = trainerData.map(t => t.id);
+        const { data: avail } = await supabase.from("trainer_availability").select("*").in("trainer_id", trainerIds);
+        if (avail) {
+          const map: Record<string, any[]> = {};
+          avail.forEach(a => {
+            if (!map[a.trainer_id]) map[a.trainer_id] = [];
+            map[a.trainer_id].push(a);
+          });
+          setAvailabilityMap(map);
+        }
       }
       setTrainers([...realTrainers, ...demoTrainers]);
       setLoading(false);
@@ -58,16 +85,18 @@ const BrowseTrainers = () => {
   }, []);
 
   const toggleLang = (lang: string) => setSelectedLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
-  const toggleDay = (day: string) => setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+  const toggleTimeSlot = (slot: string) => setSelectedTimeSlots(prev => prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot]);
+  const toggleSchedule = (sched: string) => setSelectedSchedule(prev => prev.includes(sched) ? prev.filter(s => s !== sched) : [...prev, sched]);
 
   const activeFilterCount = [
-    selectedSkill, selectedLanguages.length > 0, genderPref, minRating > 0, selectedDays.length > 0,
+    selectedSkill, selectedLanguages.length > 0, genderPref, minRating > 0,
+    selectedTimeSlots.length > 0, selectedSchedule.length > 0,
     priceRange[0] !== 500 || priceRange[1] !== 10000,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setSelectedSkill(""); setPriceRange([500, 10000]); setSelectedLanguages([]);
-    setGenderPref(""); setMinRating(0); setSelectedDays([]);
+    setGenderPref(""); setMinRating(0); setSelectedTimeSlots([]); setSelectedSchedule([]);
   };
 
   const filtered = useMemo(() => {
@@ -89,9 +118,38 @@ const BrowseTrainers = () => {
         if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
       }
 
+      // Time slot and schedule filtering (only for real trainers with availability data)
+      if ((selectedTimeSlots.length > 0 || selectedSchedule.length > 0) && !t.id?.startsWith("demo-")) {
+        const trainerAvail = availabilityMap[t.id] || [];
+        if (trainerAvail.length === 0) return false;
+
+        if (selectedTimeSlots.length > 0) {
+          const matchesTimeSlot = selectedTimeSlots.some(slotLabel => {
+            const slot = TIME_SLOTS.find(s => s.label === slotLabel);
+            if (!slot) return false;
+            return trainerAvail.some(a => {
+              if (!a.is_available || !a.start_time || !a.end_time) return false;
+              const startH = parseInt(a.start_time.split(":")[0]);
+              const endH = parseInt(a.end_time.split(":")[0]);
+              return startH < slot.endHour && endH > slot.startHour;
+            });
+          });
+          if (!matchesTimeSlot) return false;
+        }
+
+        if (selectedSchedule.length > 0) {
+          const matchesSchedule = selectedSchedule.some(schedLabel => {
+            const sched = SCHEDULE_PREFS.find(s => s.label === schedLabel);
+            if (!sched) return false;
+            return trainerAvail.some(a => a.is_available && sched.days.includes(a.day_of_week));
+          });
+          if (!matchesSchedule) return false;
+        }
+      }
+
       return true;
     });
-  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedDays]);
+  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, availabilityMap]);
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
@@ -175,14 +233,25 @@ const BrowseTrainers = () => {
         </div>
       </div>
 
-      {/* Availability */}
+      {/* Availability - Time Slots */}
       <div>
-        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Availability</label>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5" /> Availability
+        </label>
+        <p className="text-[11px] text-muted-foreground mt-1 mb-2.5">When can you learn?</p>
+        <div className="flex flex-wrap gap-1.5">
+          {TIME_SLOTS.map(slot => (
+            <button key={slot.label} onClick={() => toggleTimeSlot(slot.label)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${selectedTimeSlots.includes(slot.label) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:border-primary/30'}`}>
+              {slot.label}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap gap-1.5 mt-2">
-          {DAYS.map(day => (
-            <button key={day} onClick={() => toggleDay(day)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${selectedDays.includes(day) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:border-primary/30'}`}>
-              {day}
+          {SCHEDULE_PREFS.map(sched => (
+            <button key={sched.label} onClick={() => toggleSchedule(sched.label)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${selectedSchedule.includes(sched.label) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:border-primary/30'}`}>
+              {sched.label}
             </button>
           ))}
         </div>
@@ -233,7 +302,6 @@ const BrowseTrainers = () => {
                 Showing <span className="font-semibold text-foreground">{sorted.length}</span> trainers found
               </p>
               <div className="flex items-center gap-2">
-                {/* Mobile filter toggle */}
                 <Button variant="outline" size="sm" className="lg:hidden text-xs gap-1.5" onClick={() => setShowFilters(true)}>
                   <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
                   {activeFilterCount > 0 && <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">{activeFilterCount}</span>}

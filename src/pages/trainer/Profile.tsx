@@ -4,13 +4,16 @@ import { motion } from "framer-motion";
 import { Star, BadgeCheck, Globe, Clock, Users, Calendar, ArrowRight, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
-import { isDemo, getDemoTrainer, getDemoCourse, demoTestimonials } from "@/lib/demoData";
+import { isDemo, getDemoTrainer, getDemoCourse, demoTestimonials, demoTrainers } from "@/lib/demoData";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
+const DAYS_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const TrainerProfile = () => {
   const { id } = useParams();
@@ -18,15 +21,13 @@ const TrainerProfile = () => {
   const [trainer, setTrainer] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [availability, setAvailability] = useState<any[]>([]);
+  const [similarTrainers, setSimilarTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolvedId, setResolvedId] = useState<string | undefined>(id);
 
-  // If no id param (trainer viewing own profile), resolve from auth
   useEffect(() => {
-    if (id) {
-      setResolvedId(id);
-      return;
-    }
+    if (id) { setResolvedId(id); return; }
     if (!user) return;
     (async () => {
       const { data: t } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
@@ -44,6 +45,16 @@ const TrainerProfile = () => {
         setTrainer(demo);
         setCourses(getDemoCourse(resolvedId));
         setReviews(demoTestimonials.slice(0, 2));
+        // Demo availability
+        setAvailability([
+          { day_of_week: 1, start_time: "09:00", end_time: "12:00", is_available: true },
+          { day_of_week: 2, start_time: "14:00", end_time: "18:00", is_available: true },
+          { day_of_week: 3, start_time: "09:00", end_time: "12:00", is_available: true },
+          { day_of_week: 5, start_time: "10:00", end_time: "16:00", is_available: true },
+          { day_of_week: 6, start_time: "09:00", end_time: "13:00", is_available: true },
+        ]);
+        // Similar trainers
+        setSimilarTrainers(demoTrainers.filter(t => t.id !== resolvedId).slice(0, 3));
       }
       setLoading(false);
       return;
@@ -56,28 +67,46 @@ const TrainerProfile = () => {
           const profileMap = await fetchProfilesMap([t.user_id]);
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
-          const { data: coursesData } = await supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved");
-          setCourses(coursesData || []);
+          const [coursesRes, ratingsRes, availRes] = await Promise.all([
+            supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved"),
+            supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
+            supabase.from("trainer_availability").select("*").eq("trainer_id", resolvedId).eq("is_available", true),
+          ]);
 
-          const { data: ratingsData } = await supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
-          if (ratingsData && ratingsData.length > 0) {
-            const studentIds = ratingsData.map(r => r.student_id);
+          setCourses(coursesRes.data || []);
+          setAvailability(availRes.data || []);
+
+          if (ratingsRes.data && ratingsRes.data.length > 0) {
+            const studentIds = ratingsRes.data.map(r => r.student_id);
             const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
             const sUserIds = (studentData || []).map(s => s.user_id);
             const sProfileMap = await fetchProfilesMap(sUserIds);
             const studentMap: Record<string, any> = {};
             (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
-            setReviews(ratingsData.map(r => ({
+            setReviews(ratingsRes.data.map(r => ({
               student: studentMap[r.student_id]?.full_name || "Student",
               rating: r.student_to_trainer_rating || 5,
               text: r.student_to_trainer_review || r.student_review_text || "Great experience!",
               date: new Date(r.created_at || "").toLocaleDateString(),
             })));
           }
+
+          // Similar trainers by skill overlap
+          const skills = t.skills || [];
+          if (skills.length > 0) {
+            const { data: similar } = await supabase.from("trainers").select("*").eq("approval_status", "approved").neq("id", resolvedId).limit(10);
+            if (similar) {
+              const simUserIds = similar.map(s => s.user_id);
+              const simProfiles = await fetchProfilesMap(simUserIds);
+              const withProfiles = similar.map(s => ({ ...s, profile: simProfiles[s.user_id] }));
+              const scored = withProfiles.map(s => ({
+                ...s, overlap: (s.skills || []).filter((sk: string) => skills.includes(sk)).length
+              })).sort((a, b) => b.overlap - a.overlap).slice(0, 3);
+              setSimilarTrainers(scored);
+            }
+          }
         }
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
       setLoading(false);
     })();
   }, [resolvedId]);
@@ -95,12 +124,7 @@ const TrainerProfile = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="pt-24 pb-12 bg-primary">
-          <div className="container mx-auto px-4 lg:px-8">
-            <Skeleton className="h-32 w-32 rounded-2xl" />
-            <Skeleton className="h-8 w-64 mt-4" />
-          </div>
-        </div>
+        <div className="pt-24 pb-12 hero-gradient"><div className="container mx-auto px-4 lg:px-8"><Skeleton className="h-32 w-32 rounded-2xl" /><Skeleton className="h-8 w-64 mt-4" /></div></div>
       </div>
     );
   }
@@ -118,8 +142,7 @@ const TrainerProfile = () => {
     );
   }
 
-  const isDemoTrainer = isDemo(trainer.id);
-  const trainerCourses = isDemoTrainer ? courses : courses;
+  const trainerCourses = courses;
   const minFee = trainerCourses.length > 0
     ? Math.min(...trainerCourses.map((c: any) => Number(c.fee || c.course_fee || 0)))
     : 0;
@@ -132,13 +155,9 @@ const TrainerProfile = () => {
       <div className="hero-gradient pt-24 pb-12 lg:pt-28 lg:pb-16">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <div
-              className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${avatarColor}25` }}
-            >
-              <span className="text-primary-foreground font-bold text-3xl lg:text-4xl" style={{ color: avatarColor }}>
-                {initials}
-              </span>
+            <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `${avatarColor}25` }}>
+              <span className="text-primary-foreground font-bold text-3xl lg:text-4xl" style={{ color: avatarColor }}>{initials}</span>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -152,9 +171,7 @@ const TrainerProfile = () => {
               <div className="flex flex-wrap gap-4 mt-4 text-sm text-primary-foreground/60">
                 <span className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent" /> {trainer.average_rating} ({reviews.length} reviews)</span>
                 <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {trainer.total_students} students</span>
-                {trainer.teaching_languages && (
-                  <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {trainer.teaching_languages.join(", ")}</span>
-                )}
+                {trainer.teaching_languages && <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {trainer.teaching_languages.join(", ")}</span>}
                 <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responds &lt; 2 hours</span>
               </div>
               <div className="flex flex-wrap gap-2 mt-4">
@@ -169,88 +186,149 @@ const TrainerProfile = () => {
 
       <div className="container mx-auto px-4 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main */}
-          <div className="flex-1 space-y-8">
-            {/* About */}
-            {trainer.bio && (
-              <section className="bg-card rounded-xl border p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
-                <p className="text-muted-foreground leading-relaxed">{trainer.bio}</p>
-              </section>
-            )}
+          {/* Main — Tabbed */}
+          <div className="flex-1 min-w-0">
+            <Tabs defaultValue="about" className="w-full">
+              <TabsList className="w-full justify-start bg-muted/50 mb-6">
+                <TabsTrigger value="about" className="flex-1 sm:flex-none">About</TabsTrigger>
+                <TabsTrigger value="courses" className="flex-1 sm:flex-none">Courses ({trainerCourses.length})</TabsTrigger>
+                <TabsTrigger value="reviews" className="flex-1 sm:flex-none">Reviews ({reviews.length})</TabsTrigger>
+              </TabsList>
 
-            {/* Courses */}
-            {trainerCourses.length > 0 && (
-              <section>
-                <h2 className="text-lg font-semibold text-foreground mb-4">Courses Offered</h2>
-                <div className="space-y-4">
-                  {trainerCourses.map((c: any) => {
-                    const fee = c.fee || c.course_fee || 0;
-                    const dur = c.duration || (c.duration_days ? `${c.duration_days} days` : "");
-                    const sess = c.sessions || c.total_sessions || 0;
-                    const lvl = c.level || "All Levels";
-                    const desc = c.description || "";
-                    const curriculum = c.curriculum || c.what_you_learn || [];
+              <TabsContent value="about" className="space-y-6">
+                {trainer.bio && (
+                  <section className="bg-card rounded-xl border border-border p-6">
+                    <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
+                    <p className="text-muted-foreground leading-relaxed">{trainer.bio}</p>
+                  </section>
+                )}
 
-                    return (
-                      <div key={c.id} className="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
-                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-foreground">{c.title}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">{desc}</p>
-                            <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {dur}</span>
-                              <span>{sess} sessions</span>
-                              <span className="px-2 py-0.5 rounded bg-secondary text-secondary-foreground">{lvl}</span>
-                            </div>
-                            {curriculum.length > 0 && (
-                              <div className="mt-3">
-                                <p className="text-xs font-medium text-foreground mb-1">Curriculum Preview:</p>
-                                <ul className="space-y-1">
-                                  {curriculum.slice(0, 4).map((topic: string) => (
-                                    <li key={topic} className="text-xs text-muted-foreground flex items-center gap-1"><ChevronRight className="w-3 h-3 text-accent" />{topic}</li>
-                                  ))}
-                                </ul>
-                              </div>
+                {/* Availability Calendar */}
+                {availability.length > 0 && (
+                  <section className="bg-card rounded-xl border border-border p-6">
+                    <h2 className="text-lg font-semibold text-foreground mb-4">Availability</h2>
+                    <div className="grid grid-cols-7 gap-2">
+                      {DAYS_LABEL.map((day, idx) => {
+                        const slots = availability.filter(a => a.day_of_week === idx);
+                        const hasSlot = slots.length > 0;
+                        return (
+                          <div key={day} className={`rounded-xl p-3 text-center border transition-colors ${hasSlot ? 'bg-primary/5 border-primary/20' : 'bg-muted/30 border-border'}`}>
+                            <p className={`text-xs font-semibold ${hasSlot ? 'text-primary' : 'text-muted-foreground'}`}>{day}</p>
+                            {hasSlot ? slots.map((s, i) => (
+                              <p key={i} className="text-[10px] text-muted-foreground mt-1">{s.start_time?.slice(0, 5)}–{s.end_time?.slice(0, 5)}</p>
+                            )) : (
+                              <p className="text-[10px] text-muted-foreground/50 mt-1">—</p>
                             )}
                           </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-2xl font-bold text-foreground">₹{Number(fee).toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground">{dur}</p>
-                            <Button size="sm" className="mt-3 hero-gradient border-0 text-xs">Enroll Now</Button>
-                            <p className="text-xs text-accent mt-2 cursor-pointer hover:underline">Free Trial Available</p>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+              </TabsContent>
+
+              <TabsContent value="courses" className="space-y-4">
+                {trainerCourses.length === 0 ? (
+                  <div className="text-center py-12 bg-card rounded-xl border border-border">
+                    <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto" />
+                    <p className="text-sm text-muted-foreground mt-2">No courses available yet</p>
+                  </div>
+                ) : trainerCourses.map((c: any) => {
+                  const fee = c.fee || c.course_fee || 0;
+                  const dur = c.duration || (c.duration_days ? `${c.duration_days} days` : "");
+                  const sess = c.sessions || c.total_sessions || 0;
+                  const lvl = c.level || "All Levels";
+                  const curriculum = c.curriculum || c.what_you_learn || [];
+
+                  return (
+                    <div key={c.id} className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground">{c.title}</h3>
+                          <p className="text-sm text-muted-foreground mt-1">{c.description || ""}</p>
+                          <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {dur}</span>
+                            <span>{sess} sessions</span>
+                            <span className="px-2 py-0.5 rounded bg-secondary text-secondary-foreground">{lvl}</span>
                           </div>
+                          {curriculum.length > 0 && (
+                            <ul className="mt-3 space-y-1">
+                              {curriculum.slice(0, 4).map((topic: string) => (
+                                <li key={topic} className="text-xs text-muted-foreground flex items-center gap-1"><ChevronRight className="w-3 h-3 text-accent" />{topic}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-2xl font-bold text-foreground">₹{Number(fee).toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">{dur}</p>
+                          <Button size="sm" className="mt-3 hero-gradient border-0 text-xs">Enroll Now</Button>
+                          <p className="text-xs text-accent mt-2 cursor-pointer hover:underline">Free Trial Available</p>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
+                    </div>
+                  );
+                })}
+              </TabsContent>
 
-            {/* Reviews */}
-            {reviews.length > 0 && (
-              <section>
-                <h2 className="text-lg font-semibold text-foreground mb-4">Student Reviews</h2>
-                <div className="space-y-4">
-                  {reviews.map((r: any, idx: number) => {
-                    const rName = r.student || r.name || "Student";
-                    const rText = r.text || "";
-                    const rRating = r.rating || 5;
-                    const rDate = r.date || "";
+              <TabsContent value="reviews" className="space-y-4">
+                {reviews.length === 0 ? (
+                  <div className="text-center py-12 bg-card rounded-xl border border-border">
+                    <Star className="w-10 h-10 text-muted-foreground/30 mx-auto" />
+                    <p className="text-sm text-muted-foreground mt-2">No reviews yet</p>
+                  </div>
+                ) : reviews.map((r: any, idx: number) => {
+                  const rName = r.student || r.name || "Student";
+                  return (
+                    <div key={idx} className="bg-card rounded-xl border border-border p-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-full hero-gradient flex items-center justify-center">
+                          <span className="text-primary-foreground text-xs font-bold">{rName[0]}</span>
+                        </div>
+                        <span className="font-medium text-foreground text-sm">{rName}</span>
+                        <div className="flex gap-0.5">{[...Array(r.rating || 5)].map((_, i) => <Star key={i} className="w-3 h-3 text-accent fill-accent" />)}</div>
+                        {r.date && <span className="text-xs text-muted-foreground ml-auto">{r.date}</span>}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{r.text}</p>
+                    </div>
+                  );
+                })}
+              </TabsContent>
+            </Tabs>
 
+            {/* Similar Trainers */}
+            {similarTrainers.length > 0 && (
+              <section className="mt-10">
+                <h2 className="text-lg font-semibold text-foreground mb-4">Similar Trainers</h2>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {similarTrainers.map(t => {
+                    const sName = t.profile?.full_name || "Trainer";
+                    const sInitials = sName.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
+                    const sColor = t.avatarColor || "#1A56DB";
                     return (
-                      <div key={idx} className="bg-card rounded-xl border p-5">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-8 h-8 rounded-full hero-gradient flex items-center justify-center">
-                            <span className="text-primary-foreground text-xs font-bold">{rName[0]}</span>
+                      <Link key={t.id} to={`/trainer/${t.id}`} className="block group">
+                        <div className="bg-card rounded-xl border border-border p-4 hover:shadow-md hover:border-primary/20 transition-all">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${sColor}15` }}>
+                              <span className="text-xs font-bold" style={{ color: sColor }}>{sInitials}</span>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1">
+                                <p className="text-sm font-semibold text-foreground truncate">{sName}</p>
+                                <BadgeCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                              </div>
+                              <p className="text-xs text-muted-foreground truncate">{t.current_role}</p>
+                            </div>
                           </div>
-                          <span className="font-medium text-foreground text-sm">{rName}</span>
-                          <div className="flex gap-0.5">{[...Array(rRating)].map((_, i) => <Star key={i} className="w-3 h-3 text-accent fill-accent" />)}</div>
-                          {rDate && <span className="text-xs text-muted-foreground ml-auto">{rDate}</span>}
+                          <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center gap-1 text-xs">
+                              <Star className="w-3 h-3 text-accent fill-accent" />
+                              <span className="font-medium text-foreground">{t.average_rating}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{t.total_students} students</span>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{rText}</p>
-                      </div>
+                      </Link>
                     );
                   })}
                 </div>
@@ -260,7 +338,7 @@ const TrainerProfile = () => {
 
           {/* Sidebar */}
           <aside className="lg:w-80 flex-shrink-0">
-            <div className="bg-card rounded-xl border p-6 sticky top-24">
+            <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
               <h3 className="font-semibold text-foreground mb-4">Quick Enroll</h3>
               {minFee > 0 ? (
                 <>
@@ -276,7 +354,7 @@ const TrainerProfile = () => {
               <Button variant="outline" className="w-full mt-2 h-11 font-semibold">
                 Book Free Trial
               </Button>
-              <div className="mt-6 pt-4 border-t space-y-3 text-sm">
+              <div className="mt-6 pt-4 border-t border-border space-y-3 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Next available slot</span>
                   <span className="text-foreground font-medium">Today, 6 PM</span>

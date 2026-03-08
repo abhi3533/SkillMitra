@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle } from "lucide-react";
+import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -112,6 +113,11 @@ const StudentDashboard = () => {
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* Getting Started Checklist */}
+      <div className="mt-6">
+        <GettingStartedChecklist />
       </div>
 
       {/* Rating Prompts */}

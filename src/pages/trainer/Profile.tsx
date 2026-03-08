@@ -26,6 +26,8 @@ const TrainerProfile = () => {
   const [similarTrainers, setSimilarTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolvedId, setResolvedId] = useState<string | undefined>(id);
+  const [isVerified, setIsVerified] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     if (id) { setResolvedId(id); return; }

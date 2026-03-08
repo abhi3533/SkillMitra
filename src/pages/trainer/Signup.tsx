@@ -55,8 +55,6 @@ const TrainerSignup = () => {
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [emailError, setEmailError] = useState("");
-    bankAccount: "", ifsc: "", upiId: "", panNumber: "",
-  });
   const [skills, setSkills] = useState<string[]>([]);
   const [teachLangs, setTeachLangs] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);

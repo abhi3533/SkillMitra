@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell, Wallet } from "lucide-react";
+import { LayoutDashboard, BookOpen, Brain, FileText, Award, Users, User, LogOut, Menu, X, Bell, Wallet, Calendar, ClipboardCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 const sidebarItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/student/dashboard" },
   { label: "My Courses", icon: BookOpen, path: "/student/courses" },
+  { label: "Sessions", icon: Calendar, path: "/student/sessions" },
+  { label: "Attendance", icon: ClipboardCheck, path: "/student/attendance" },
   { label: "AI Interview", icon: Brain, path: "/student/interview" },
   { label: "Resume Builder", icon: FileText, path: "/student/resume" },
   { label: "Certificates", icon: Award, path: "/student/certificates" },

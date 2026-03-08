@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const sidebarItems = [
@@ -8,13 +8,18 @@ const sidebarItems = [
   { label: "Trainers", icon: Users, path: "/admin/trainers" },
   { label: "Students", icon: Users, path: "/admin/students" },
   { label: "Courses", icon: BookOpen, path: "/admin/courses" },
+  { label: "Sessions", icon: Calendar, path: "/admin/sessions" },
+  { label: "Attendance", icon: ClipboardCheck, path: "/admin/attendance" },
   { label: "Payments", icon: DollarSign, path: "/admin/payments" },
   { label: "Payouts", icon: CreditCard, path: "/admin/payouts" },
-  { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
+  { label: "Wallets", icon: Wallet, path: "/admin/wallets" },
+  { label: "Referrals", icon: Gift, path: "/admin/referrals" },
+  { label: "Subscriptions", icon: TrendingUp, path: "/admin/subscriptions" },
   { label: "Disputes", icon: AlertTriangle, path: "/admin/disputes" },
   { label: "Certificates", icon: Award, path: "/admin/certificates" },
+  { label: "Ratings", icon: Star, path: "/admin/ratings" },
+  { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Messages", icon: Mail, path: "/admin/messages" },
-  { label: "Ratings", icon: BarChart3, path: "/admin/ratings" },
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {

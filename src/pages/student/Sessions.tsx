@@ -48,6 +48,11 @@ const StudentSessions = () => {
       const { data: ratings } = await supabase.from("ratings").select("session_id").eq("student_id", student.id).not("student_rated_at", "is", null);
       const ratedIds = new Set((ratings || []).map(r => r.session_id));
       setSessions(prev => prev.map(s => ({ ...s, isRated: ratedIds.has(s.id) })));
+
+      // Check reflected sessions
+      const { data: refs } = await supabase.from("session_reflections").select("session_id").eq("student_id", student.id);
+      setReflectedIds(new Set((refs || []).map(r => r.session_id)));
+
       setLoading(false);
     })();
   }, [user]);

@@ -419,8 +419,10 @@ const BrowseTrainers = () => {
                                 <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
                               ))}
                             </div>
-                            {demoCourse && (
+                            {demoCourse ? (
                               <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{demoCourse.fee.toLocaleString()}</span></p>
+                            ) : courseFeeMap[t.id] !== undefined && (
+                              <p className="mt-2 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{courseFeeMap[t.id].toLocaleString()}</span></p>
                             )}
                           </div>
                           <div className="px-5 py-3 border-t border-border flex items-center justify-between bg-secondary/30">

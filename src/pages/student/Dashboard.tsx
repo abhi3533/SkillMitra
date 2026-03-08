@@ -97,6 +97,45 @@ const StudentDashboard = () => {
       walletBalance: Number(walletRes.data?.balance) || 0,
       attendancePercent,
     });
+
+    // Fetch recommended trainers based on course interests
+    const interests = (student.course_interests as string[]) || [];
+    if (interests.length > 0) {
+      const { data: allTrainers } = await supabase
+        .from("trainers")
+        .select("id, user_id, skills, teaching_languages, average_rating, current_role, current_company, experience_years, total_students")
+        .eq("approval_status", "approved")
+        .order("boost_score", { ascending: false })
+        .limit(20);
+
+      if (allTrainers && allTrainers.length > 0) {
+        // Score trainers by interest overlap
+        const scored = allTrainers.map(t => {
+          let score = 0;
+          if (t.skills?.length) {
+            const overlap = interests.filter(i => t.skills!.some((s: string) => s.toLowerCase() === i.toLowerCase()));
+            score += overlap.length * 4;
+          }
+          if (t.average_rating && t.average_rating >= 4) score += 2;
+          if (t.total_students && t.total_students >= 5) score += 1;
+          return { ...t, matchScore: score };
+        }).filter(t => t.matchScore > 0).sort((a, b) => b.matchScore - a.matchScore).slice(0, 4);
+
+        if (scored.length > 0) {
+          const tUserIds = scored.map(t => t.user_id);
+          const tProfileMap = await fetchProfilesMap(tUserIds);
+          const enriched = scored.map(t => ({
+            ...t,
+            trainerName: tProfileMap[t.user_id]?.full_name || "Trainer",
+            trainerCity: tProfileMap[t.user_id]?.city || "",
+            profilePicture: tProfileMap[t.user_id]?.profile_picture_url || "",
+            matchedSkills: interests.filter(i => t.skills?.some((s: string) => s.toLowerCase() === i.toLowerCase())),
+          }));
+          setRecommendedTrainers(enriched);
+        }
+      }
+    }
+
     setLoading(false);
   };
 

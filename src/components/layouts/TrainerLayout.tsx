@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Users, DollarSign, Award, TrendingUp, User, LogOut, Menu, X, Bell, Calendar, Wallet, Gift, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, DollarSign, Award, TrendingUp, User, LogOut, Menu, X, Bell, Calendar, Wallet, Gift, ClipboardCheck, Star, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 const sidebarItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/trainer/dashboard" },
+  { label: "Sessions", icon: Video, path: "/trainer/sessions" },
   { label: "My Courses", icon: BookOpen, path: "/trainer/courses" },
   { label: "My Students", icon: Users, path: "/trainer/students" },
   { label: "Schedule", icon: Calendar, path: "/trainer/schedule" },
   { label: "Attendance", icon: ClipboardCheck, path: "/trainer/attendance" },
   { label: "Earnings", icon: DollarSign, path: "/trainer/earnings" },
+  { label: "Wallet", icon: Wallet, path: "/trainer/wallet" },
+  { label: "Reviews", icon: Star, path: "/trainer/reviews" },
   { label: "Certificates", icon: Award, path: "/trainer/certificates" },
   { label: "Subscription", icon: TrendingUp, path: "/trainer/subscription" },
-  { label: "Wallet", icon: Wallet, path: "/trainer/wallet" },
   { label: "Referrals", icon: Gift, path: "/trainer/referrals" },
   { label: "Profile", icon: User, path: "/trainer/profile" },
 ];
@@ -71,7 +73,7 @@ const TrainerLayout = ({ children }: { children: React.ReactNode }) => {
 
       <div className="flex pt-16">
         <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:sticky top-16 left-0 z-30 h-[calc(100vh-4rem)] w-60 bg-card border-r border-border transition-transform duration-300 flex flex-col`}>
-          <nav className="flex-1 p-3 space-y-0.5">
+          <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
             {sidebarItems.map(item => {
               const active = location.pathname === item.path;
               return (

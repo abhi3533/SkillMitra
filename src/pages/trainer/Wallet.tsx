@@ -3,6 +3,7 @@ import { Wallet, ArrowUpRight, ArrowDownLeft, IndianRupee, Filter, Banknote } fr
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -15,21 +16,54 @@ const TrainerWallet = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [showPayout, setShowPayout] = useState(false);
+  const [payoutAmount, setPayoutAmount] = useState("");
+  const [requesting, setRequesting] = useState(false);
+  const [trainerId, setTrainerId] = useState<string | null>(null);
+  const [trainerData, setTrainerData] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const [{ data: w }, { data: tx }] = await Promise.all([
+      const [{ data: w }, { data: tx }, { data: t }] = await Promise.all([
         supabase.from("wallets").select("*").eq("user_id", user.id).single(),
         supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("trainers").select("id, upi_id, bank_account_number, ifsc_code").eq("user_id", user.id).single(),
       ]);
       setWallet(w);
       setTransactions(tx || []);
+      setTrainerId(t?.id || null);
+      setTrainerData(t);
       setLoading(false);
     };
     load();
   }, [user]);
+
+  const requestPayout = async () => {
+    const amount = Number(payoutAmount);
+    if (amount < 500) { toast({ title: "Minimum ₹500 required", variant: "destructive" }); return; }
+    if (amount > Number(wallet?.balance || 0)) { toast({ title: "Insufficient balance", variant: "destructive" }); return; }
+    if (!trainerId) return;
+
+    setRequesting(true);
+    const { error } = await supabase.from("payout_requests").insert({
+      trainer_id: trainerId,
+      requested_amount: amount,
+      upi_id: trainerData?.upi_id,
+      bank_account_number: trainerData?.bank_account_number,
+      ifsc_code: trainerData?.ifsc_code,
+    });
+
+    if (error) {
+      toast({ title: "Failed to submit", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted` });
+      setShowPayout(false);
+      setPayoutAmount("");
+    }
+    setRequesting(false);
+  };
 
   const filtered = transactions.filter(t => filter === "all" || t.type === filter);
 
@@ -39,7 +73,6 @@ const TrainerWallet = () => {
         <h1 className="text-2xl font-bold text-foreground">My Wallet</h1>
         <p className="text-sm text-muted-foreground mt-1">Track your earnings and manage withdrawals</p>
 
-        {/* Balance Card */}
         {loading ? (
           <Skeleton className="h-36 mt-6 rounded-xl" />
         ) : (
@@ -63,19 +96,35 @@ const TrainerWallet = () => {
           </div>
         )}
 
-        {/* Withdraw CTA */}
+        {/* Payout CTA */}
         {!loading && Number(wallet?.balance || 0) >= 500 && (
-          <div className="mt-4 p-4 bg-card border rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Banknote className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm font-medium text-foreground">Request Withdrawal</p>
-                <p className="text-xs text-muted-foreground">Min ₹500 • Via Earnings page</p>
+          <div className="mt-4 p-4 bg-card border rounded-xl">
+            {!showPayout ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Banknote className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Request Withdrawal</p>
+                    <p className="text-xs text-muted-foreground">Min ₹500 • Processed within 3-5 days</p>
+                  </div>
+                </div>
+                <Button size="sm" onClick={() => setShowPayout(true)}>Withdraw</Button>
               </div>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => window.location.href = "/trainer/earnings"}>
-              Withdraw
-            </Button>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-foreground">Enter withdrawal amount</p>
+                <Input type="number" placeholder="Min ₹500" value={payoutAmount} onChange={e => setPayoutAmount(e.target.value)} className="h-9" />
+                <p className="text-xs text-muted-foreground">
+                  {trainerData?.upi_id ? `UPI: ${trainerData.upi_id}` : trainerData?.bank_account_number ? `Bank: ****${trainerData.bank_account_number.slice(-4)}` : "Add bank details in Profile first"}
+                </p>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={requestPayout} disabled={requesting || !payoutAmount}>
+                    {requesting ? "Submitting..." : "Request Payout"}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setShowPayout(false)}>Cancel</Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

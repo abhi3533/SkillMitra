@@ -125,6 +125,19 @@ const StudentSessions = () => {
                 {s.status === "completed" && s.isRated && (
                   <span className="text-[10px] text-emerald-600 flex items-center gap-1"><Star className="w-3 h-3 fill-emerald-600" /> Rated</span>
                 )}
+                {s.status === "completed" && !reflectedIds.has(s.id) && (
+                  <Button size="sm" variant="outline" className="text-xs h-7 gap-1"
+                    onClick={() => setReflectionModal({
+                      sessionId: s.id,
+                      studentId: s.enrollments?.student_id,
+                      title: s.title || s.enrollments?.courses?.title || `Session #${s.session_number}`,
+                    })}>
+                    <MessageSquare className="w-3 h-3" /> Reflect
+                  </Button>
+                )}
+                {s.status === "completed" && reflectedIds.has(s.id) && (
+                  <span className="text-[10px] text-primary flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Reflected</span>
+                )}
               </div>
             </div>
           </div>

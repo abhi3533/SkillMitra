@@ -20,6 +20,7 @@ import Standards from "./pages/Standards";
 import CertificateVerify from "./pages/CertificateVerify";
 import JoinRedirect from "./pages/JoinRedirect";
 import Notifications from "./pages/Notifications";
+import NotificationPreferences from "./pages/NotificationPreferences";
 
 // Student
 import StudentLogin from "./pages/student/Login";

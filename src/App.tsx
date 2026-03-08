@@ -23,6 +23,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Standards from "./pages/Standards";
 import CertificateVerify from "./pages/CertificateVerify";
+import ReferPage from "./pages/Refer";
 import JoinRedirect from "./pages/JoinRedirect";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";

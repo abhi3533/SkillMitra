@@ -99,6 +99,12 @@ const TrainerDashboard = () => {
         todaySessions: enrichedToday,
         reviews: enrichedReviews,
         recentEnrollments: enrichedEnrollments,
+        unreadNotifs: notifRes.count || 0,
+        walletBalance: Number(walletRes.data?.balance || 0),
+        todayCount: enrichedToday.length,
+        pendingAttendance: enrichedToday.filter((s: any) => s.status !== "completed").length,
+        reviews: enrichedReviews,
+        recentEnrollments: enrichedEnrollments,
       });
       setLoading(false);
     })();

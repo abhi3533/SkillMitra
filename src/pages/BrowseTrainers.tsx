@@ -40,6 +40,7 @@ const BrowseTrainers = () => {
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [courseFeeMap, setCourseFeeMap] = useState<Record<string, number>>({});
+  const [trainerCourseMap, setTrainerCourseMap] = useState<Record<string, { id: string; title: string; fee: number }[]>>({});
   const [showFilters, setShowFilters] = useState(false);
 
   // Filters

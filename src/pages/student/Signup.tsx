@@ -175,7 +175,14 @@ const StudentSignup = () => {
               </div>
               <div>
                 <Label>Email *</Label>
-                <Input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="you@email.com" className="mt-1.5 h-11" required />
+                <Input type="email" value={form.email} onChange={e => { update("email", e.target.value); }} onBlur={() => checkDuplicateEmail(form.email)} placeholder="you@email.com" className={`mt-1.5 h-11 ${emailError ? "border-destructive" : ""}`} required />
+                {emailError && (
+                  <p className="text-xs text-destructive mt-1">
+                    {emailError}{" "}
+                    {emailError.includes("login instead") && <Link to="/student/login" className="font-semibold underline">Login here</Link>}
+                    {emailError.includes("trainer login") && <Link to="/trainer/login" className="font-semibold underline">Trainer Login</Link>}
+                  </p>
+                )}
               </div>
             </div>
 

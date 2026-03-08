@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, Users, BookOpen, Star, Award, AlertTriangle, Calendar, IndianRupee } from "lucide-react";
+import { BarChart3, TrendingUp, Users, BookOpen, Star, Award, AlertTriangle, Calendar, IndianRupee, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layouts/AdminLayout";
+import { Button } from "@/components/ui/button";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer

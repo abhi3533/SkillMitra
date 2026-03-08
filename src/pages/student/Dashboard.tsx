@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle } from "lucide-react";
+import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages } from "lucide-react";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

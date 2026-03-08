@@ -12,6 +12,7 @@ const sidebarItems = [
   { label: "Earnings", icon: DollarSign, path: "/trainer/earnings" },
   { label: "Certificates", icon: Award, path: "/trainer/certificates" },
   { label: "Subscription", icon: TrendingUp, path: "/trainer/subscription" },
+  { label: "Wallet", icon: Wallet, path: "/trainer/wallet" },
   { label: "Profile", icon: User, path: "/trainer/profile" },
 ];
 

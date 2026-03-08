@@ -11,6 +11,7 @@ const sidebarItems = [
   { label: "Resume Builder", icon: FileText, path: "/student/resume" },
   { label: "Certificates", icon: Award, path: "/student/certificates" },
   { label: "Referrals", icon: Users, path: "/student/referrals" },
+  { label: "Wallet", icon: Wallet, path: "/student/wallet" },
   { label: "Profile", icon: User, path: "/student/profile" },
 ];
 

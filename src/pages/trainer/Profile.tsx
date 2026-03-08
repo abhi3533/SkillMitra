@@ -588,23 +588,21 @@ const TrainerProfile = () => {
 
       {/* Auth Prompt Modal */}
       <Dialog open={showAuthPrompt} onOpenChange={setShowAuthPrompt}>
-        <DialogContent className="max-w-sm text-center">
-          <div className="flex flex-col items-center gap-4 py-2">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-              <Users className="w-7 h-7 text-primary" />
+        <DialogContent className="max-w-sm text-center bg-background shadow-xl border">
+          <div className="flex flex-col items-center gap-5 py-4">
+            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10 object-contain" />
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-foreground">Join SkillMitra to Get Started</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Create a free student account to book trial sessions with verified expert trainers.
+              </p>
             </div>
-            <DialogHeader className="space-y-2">
-              <DialogTitle className="text-xl">Join SkillMitra to Get Started</DialogTitle>
-            </DialogHeader>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Create a free student account to enroll in courses and book free trial sessions with expert trainers.
-            </p>
-            <div className="flex flex-col gap-2 w-full mt-2">
-              <Button className="w-full" onClick={() => { setShowAuthPrompt(false); navigate(`/student/signup`); }}>
+            <div className="flex flex-col gap-2.5 w-full mt-1">
+              <Button className="w-full h-11 text-base font-semibold" onClick={() => { setShowAuthPrompt(false); navigate(`/student/signup`); }}>
                 Sign Up Free
               </Button>
-              <Button variant="outline" className="w-full" onClick={() => { setShowAuthPrompt(false); navigate(`/student/login?redirect=/trainer/${resolvedId}`); }}>
-                Already have an account? Log In
+              <Button variant="outline" className="w-full h-11" onClick={() => { setShowAuthPrompt(false); navigate(`/student/login?redirect=/trainer/${resolvedId}`); }}>
+                Log In
               </Button>
             </div>
           </div>

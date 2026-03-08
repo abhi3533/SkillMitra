@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 import RatingModal from "@/components/RatingModal";
+import { generateMeetLink } from "@/lib/meetingLink";
 
 const TrainerSessions = () => {
   const { user } = useAuth();

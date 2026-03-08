@@ -167,8 +167,8 @@ const Contact = () => {
                   className={`mt-1 min-h-[120px] ${touched.message ? (form.message.length >= 20 ? "border-green-500" : "border-destructive") : ""}`} required />
                 {touched.message && form.message.length > 0 && form.message.length < 20 && <p className="text-xs text-destructive mt-1">Message must be at least 20 characters</p>}
               </div>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Sending..." : "Send Message"}
+              <Button type="submit" disabled={loading || cooldown > 0} className="w-full">
+                {loading ? "Sending..." : cooldown > 0 ? `Please wait ${cooldown}s` : "Send Message"}
               </Button>
             </form>
           </div>

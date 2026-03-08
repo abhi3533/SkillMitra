@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet, ArrowUpRight, ArrowDownLeft, IndianRupee, Filter } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, IndianRupee, Filter, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,6 +58,35 @@ const StudentWallet = () => {
                 <p className="font-semibold">₹{Number(wallet?.total_withdrawn || 0).toLocaleString("en-IN")}</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Add Money CTA */}
+        {!loading && (
+          <div className="mt-4 p-4 bg-card border rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <Plus className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Add Money to Wallet</p>
+                <p className="text-xs text-muted-foreground">Use wallet balance to pay for courses</p>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" disabled>
+              Coming Soon
+            </Button>
+          </div>
+        )}
+
+        {/* How wallet credits work */}
+        {!loading && (
+          <div className="mt-4 p-4 bg-muted/50 rounded-xl">
+            <p className="text-xs font-semibold text-foreground mb-1">How do I earn wallet credits?</p>
+            <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+              <li>Refer a friend and both of you get ₹200 credits</li>
+              <li>Wallet credits can be used to pay for courses partially or fully</li>
+            </ul>
           </div>
         )}
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp } from "lucide-react";
+import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -17,7 +17,7 @@ const StudentDashboard = () => {
     activeCourses: 0, sessionsDone: 0, totalSessions: 0,
     aiScore: null as number | null, resumeScore: null as number | null,
     enrollments: [] as any[], sessions: [] as any[], unratedSessions: [] as any[],
-    certificates: 0, referralCredits: 0,
+    certificates: 0, referralCredits: 0, walletBalance: 0,
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
 
@@ -26,13 +26,14 @@ const StudentDashboard = () => {
     const { data: student } = await supabase.from("students").select("id, referral_credits").eq("user_id", user.id).single();
     if (!student) { setLoading(false); return; }
 
-    const [enrollRes, aiRes, resumeRes, completedSessions, certsRes, upcomingSessions] = await Promise.all([
+    const [enrollRes, aiRes, resumeRes, completedSessions, certsRes, upcomingSessions, walletRes] = await Promise.all([
       supabase.from("enrollments").select("*, courses(title, total_sessions)").eq("student_id", student.id).eq("status", "active"),
       supabase.from("ai_interviews").select("overall_score").eq("student_id", student.id).order("completed_at", { ascending: false }).limit(1),
       supabase.from("student_resumes").select("ats_score").eq("student_id", student.id).limit(1),
       supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("status", "completed"),
       supabase.from("certificates").select("id", { count: "exact", head: true }).eq("student_id", student.id),
       supabase.from("course_sessions").select("*, enrollments!inner(student_id, trainer_id, courses(title))").eq("enrollments.student_id", student.id).eq("status", "upcoming").order("scheduled_at", { ascending: true }).limit(5),
+      supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
     ]);
 
     const enrollments = enrollRes.data || [];
@@ -76,6 +77,7 @@ const StudentDashboard = () => {
       unratedSessions: unrated,
       certificates: certsRes.count || 0,
       referralCredits: Number(student.referral_credits) || 0,
+      walletBalance: Number(walletRes.data?.balance) || 0,
     });
     setLoading(false);
   };
@@ -91,11 +93,17 @@ const StudentDashboard = () => {
           <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}! 👋</h1>
           <p className="mt-1 text-sm text-muted-foreground">Here's your learning progress overview</p>
         </div>
-        <Link to="/browse">
-          <Button size="sm" className="gap-1.5 text-xs hidden sm:flex">
-            <BookOpen className="w-3.5 h-3.5" /> Browse Trainers
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/student/wallet" className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/15 transition-colors px-3 py-2 rounded-lg">
+            <Wallet className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-primary flex items-center"><IndianRupee className="w-3.5 h-3.5" />{Number(data.walletBalance || 0).toLocaleString("en-IN")}</span>
+          </Link>
+          <Link to="/browse">
+            <Button size="sm" className="gap-1.5 text-xs hidden sm:flex">
+              <BookOpen className="w-3.5 h-3.5" /> Browse Trainers
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Rating Prompts */}

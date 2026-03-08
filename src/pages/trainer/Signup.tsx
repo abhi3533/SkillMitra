@@ -369,6 +369,11 @@ const TrainerSignup = () => {
           {/* Step 0: Personal Info */}
           {step === 0 && (
             <div className="mt-6 space-y-4">
+              <GoogleSignInButton label="Sign up with Google" />
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+                <div className="relative flex justify-center text-xs"><span className="bg-background px-3 text-muted-foreground">OR</span></div>
+              </div>
               {/* Profile Photo Upload */}
               <div className="flex flex-col items-center gap-3">
                 <Label className="text-sm font-medium">Profile Photo<RequiredMark /></Label>

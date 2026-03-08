@@ -359,6 +359,14 @@ const TrainerSignup = () => {
             <p className="text-xs text-muted-foreground mt-2">Step {step + 1} of {steps.length}: {steps[step]}</p>
           </div>
 
+          {referralCode && step === 0 && (
+            <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+              <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
+              <p className="text-sm text-emerald-700">
+                Referral code <span className="font-bold">{referralCode.toUpperCase()}</span> applied — you'll get ₹500 wallet credit after your first paid session!
+              </p>
+            </div>
+          )}
           <h1 className="text-2xl font-bold text-foreground">{steps[step]}</h1>
           {progress.total > 0 && (
             <p className="text-sm text-muted-foreground mt-1">

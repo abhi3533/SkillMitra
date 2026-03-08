@@ -13,9 +13,11 @@ interface AuthContextType {
   loading: boolean;
   profile: any;
   signOut: () => Promise<void>;
+  needsRoleSelection: boolean;
+  setNeedsRoleSelection: (v: boolean) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {} });
+const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {}, needsRoleSelection: false, setNeedsRoleSelection: () => {} });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

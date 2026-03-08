@@ -180,6 +180,24 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
         `)
       }
 
+    case 'student_new_trainer_match':
+      return {
+        subject: `🎓 New trainer ${data.trainer_name || ''} just joined SkillMitra — matches your interests!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Trainer Alert! 🎓</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A new trainer just joined SkillMitra who matches your course interests:</p>
+          <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 16px 0; background: #f9fafb;">
+            <p style="font-size: 16px; font-weight: 600; color: #111; margin: 0;">🎓 ${data.trainer_name || 'New Trainer'}</p>
+            ${data.trainer_role ? `<p style="font-size: 13px; color: #666; margin: 4px 0 0;">${data.trainer_role}${data.trainer_company ? ` at ${data.trainer_company}` : ''}</p>` : ''}
+            ${data.matched_skills?.length ? `<p style="font-size: 14px; color: #444; margin: 8px 0 0;"><strong>Matching skills:</strong> ${data.matched_skills.join(', ')}</p>` : ''}
+            ${data.trainer_experience ? `<p style="font-size: 13px; color: #666; margin: 4px 0 0;">📊 ${data.trainer_experience}+ years experience</p>` : ''}
+          </div>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Book a free trial session to see if they're the right fit for you!</p>
+          ${btn('Browse Trainers', `${APP_URL}/browse-trainers`)}
+        `)
+      }
+
     default:
       throw new Error(`Unknown email type: ${type}`)
   }

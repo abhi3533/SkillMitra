@@ -316,6 +316,13 @@ const TrainerSignup = () => {
         body: { type: "trainer_welcome", to: form.email, data: { name: form.fullName } },
       }).then(({ error: fnErr }) => { if (fnErr) console.error("Trainer welcome email error:", fnErr); });
 
+      // Trigger profile matching to notify students with matching interests
+      if (authData.user?.id) {
+        supabase.functions.invoke("profile-matching", {
+          body: { new_user_id: authData.user.id, role: "trainer" },
+        }).then(({ error: fnErr }) => { if (fnErr) console.error("Trainer profile matching error:", fnErr); });
+      }
+
       toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message." });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {

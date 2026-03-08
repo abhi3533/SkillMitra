@@ -61,6 +61,9 @@ const TrainerSignup = () => {
   const [agreed, setAgreed] = useState(false);
   const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const profilePhotoRef = useRef<HTMLInputElement | null>(null);
   const [availability, setAvailability] = useState<Record<string, AvailDay>>(defaultAvail);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [stepAttempted, setStepAttempted] = useState<Record<number, boolean>>({});

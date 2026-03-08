@@ -25,6 +25,13 @@ const Privacy = () => {
   usePageMeta({
     title: "Privacy Policy — SkillMitra",
     description: "Read SkillMitra's privacy policy by Learnvate Solutions Private Limited. Learn how we collect, use, and protect your data under Indian law.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Privacy Policy",
+      url: "https://skillmitra.online/privacy",
+      isPartOf: { "@type": "WebSite", name: "SkillMitra", url: "https://skillmitra.online" },
+    },
   });
 
   return (

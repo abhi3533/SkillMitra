@@ -18,6 +18,17 @@ const BlogPost = () => {
     title: post?.metaTitle || "Blog | SkillMitra",
     description: post?.metaDescription || "",
     ogType: "article",
+    jsonLd: post ? {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: post.metaTitle || post.title,
+      description: post.metaDescription || post.excerpt,
+      url: `https://skillmitra.online/blog/${post.slug}`,
+      datePublished: post.date,
+      author: { "@type": "Person", name: post.author },
+      publisher: { "@type": "Organization", name: "SkillMitra", logo: { "@type": "ImageObject", url: "https://skillmitra.online/icons/icon-512x512.png" } },
+      mainEntityOfPage: { "@type": "WebPage", "@id": `https://skillmitra.online/blog/${post.slug}` },
+    } : undefined,
   });
 
   // Parse TOC from content

@@ -16,6 +16,13 @@ const CertificateVerify = () => {
   usePageMeta({
     title: "Verify Certificate — SkillMitra",
     description: "Verify the authenticity of SkillMitra certificates using the unique certificate ID.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Verify Certificate",
+      url: "https://skillmitra.online/verify",
+      description: "Verify the authenticity of SkillMitra certificates using the unique certificate ID",
+    },
   });
 
   return (

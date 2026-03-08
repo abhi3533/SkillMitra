@@ -24,6 +24,18 @@ const Contact = () => {
   usePageMeta({
     title: "Contact SkillMitra — Get Help & Support",
     description: "Reach out to SkillMitra for support, partnerships, or general inquiries. We respond within 24 hours.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "ContactPage",
+      name: "Contact SkillMitra",
+      url: "https://skillmitra.online/contact",
+      mainEntity: {
+        "@type": "Organization",
+        name: "SkillMitra",
+        email: "contact@skillmitra.online",
+        contactPoint: { "@type": "ContactPoint", email: "contact@skillmitra.online", contactType: "customer service", availableLanguage: ["English", "Hindi", "Telugu"] },
+      },
+    },
   });
 
   const markTouched = (key: string) => setTouched(t => ({ ...t, [key]: true }));

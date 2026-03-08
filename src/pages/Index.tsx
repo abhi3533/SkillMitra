@@ -180,10 +180,10 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8 py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { value: `${stats.students}+`, label: "Students Trained" },
-              { value: `${stats.trainers}+`, label: "Verified Trainers" },
-              { value: `${stats.avgRating}★`, label: "Average Rating" },
-              { value: `${stats.hours}+`, label: "Hours Taught" },
+              { value: stats.students > 0 ? `${stats.students}+` : "0", label: "Students Trained" },
+              { value: stats.trainers > 0 ? `${stats.trainers}+` : "0", label: "Verified Trainers" },
+              { value: stats.avgRating > 0 ? `${stats.avgRating}★` : "—", label: "Average Rating" },
+              { value: stats.hours > 0 ? `${stats.hours}+` : "0", label: "Hours Taught" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-2xl md:text-3xl font-extrabold text-primary">{s.value}</div>

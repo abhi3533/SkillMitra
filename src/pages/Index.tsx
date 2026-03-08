@@ -132,10 +132,27 @@ const StatItem = ({ item }: { item: typeof statItems[number] }) => {
   );
 };
 
+const heroTrainers = [
+  { name: "Rajesh Kumar", role: "Senior Software Engineer", company: "TCS, Hyderabad", color: "#1A56DB", skills: ["Python", "Data Science", "Machine Learning"], rating: 4.9, students: 45, fee: 2999, elite: true },
+  { name: "Priya Sharma", role: "UI/UX Designer", company: "Infosys, Bangalore", color: "#7C3AED", skills: ["Figma", "Adobe XD", "UI Design", "Web Design"], rating: 4.8, students: 32, fee: 1999, elite: false },
+  { name: "Mohammed Irfan", role: "Full Stack Developer", company: "Wipro, Chennai", color: "#059669", skills: ["React", "Node.js", "JavaScript", "MongoDB"], rating: 4.7, students: 28, fee: 2499, elite: false },
+  { name: "Sneha Reddy", role: "Digital Marketing Expert", company: "Startup, Hyderabad", color: "#EA580C", skills: ["SEO", "Social Media", "Google Ads", "Content Marketing"], rating: 4.9, students: 51, fee: 1499, elite: true },
+  { name: "Arjun Nair", role: "CA & Finance Trainer", company: "Independent, Kerala", color: "#DC2626", skills: ["Accounting", "Tally", "GST", "Financial Planning"], rating: 4.8, students: 38, fee: 1799, elite: false },
+  { name: "Divya Menon", role: "Communication & Soft Skills Trainer", company: "Independent, Mumbai", color: "#0D9488", skills: ["Public Speaking", "Interview Prep", "Business English"], rating: 4.9, students: 62, fee: 999, elite: true },
+];
+
 const Index = () => {
   const [realTrainers, setRealTrainers] = useState<any[]>([]);
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTrainer, setActiveTrainer] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTrainer(prev => (prev + 1) % heroTrainers.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
   usePageMeta({
     title: "SkillMitra — Learn Any Skill From India's Best Experts",
     description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999 per course.",
@@ -270,45 +287,70 @@ const Index = () => {
                 {/* Glow behind card */}
                 <div className="absolute inset-0 rounded-2xl blur-3xl bg-primary/[0.08] scale-105" />
 
-                <div className="relative bg-background rounded-2xl border border-border max-w-sm mx-auto shadow-[0_8px_40px_rgba(26,86,219,0.12)] overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-start gap-3.5">
-                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#EA580C15" }}>
-                        <span className="text-lg font-bold" style={{ color: "#EA580C" }}>SR</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-semibold text-foreground text-[15px]">Sneha Reddy</h3>
-                          <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded gold-gradient text-accent-foreground ml-auto">ELITE</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">Digital Marketing Expert</p>
-                        <p className="text-xs font-medium mt-0.5" style={{ color: "#EA580C" }}>Startup, Hyderabad</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5 mt-4">
-                      {["SEO", "Social Media", "Google Ads", "Content Marketing"].map(s => (
-                        <span key={s} className="text-[11px] px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
-                      ))}
-                    </div>
-
-                    <p className="mt-3 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹1,499</span> per course</p>
-                  </div>
-
-                  <div className="px-6 py-3.5 border-t border-border flex items-center justify-between bg-secondary/30">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-accent fill-accent" />
-                        <span className="text-sm font-semibold text-foreground">4.9</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">51 students</span>
-                    </div>
-                    <Link to="/browse">
-                      <Button size="sm" className="hero-gradient text-primary-foreground font-semibold rounded-lg text-xs h-8 px-4 shadow-sm hover:shadow-md">
-                        Book Free Trial
-                      </Button>
-                    </Link>
+                {/* Rotating trainer card */}
+                <div className="relative max-w-sm mx-auto">
+                  <AnimatePresence mode="wait">
+                    {(() => {
+                      const t = heroTrainers[activeTrainer];
+                      const initials = t.name.split(" ").map(n => n[0]).join("");
+                      return (
+                        <motion.div
+                          key={activeTrainer}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -12 }}
+                          transition={{ duration: 0.4, ease: "easeInOut" }}
+                          className="bg-background rounded-2xl border border-border shadow-[0_8px_40px_rgba(26,86,219,0.12)] overflow-hidden"
+                        >
+                          <div className="p-6">
+                            <div className="flex items-start gap-3.5">
+                              <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${t.color}15` }}>
+                                <span className="text-lg font-bold" style={{ color: t.color }}>{initials}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <h3 className="font-semibold text-foreground text-[15px]">{t.name}</h3>
+                                  <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                                  {t.elite && <span className="text-[9px] font-bold px-2 py-0.5 rounded gold-gradient text-accent-foreground ml-auto">ELITE</span>}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5">{t.role}</p>
+                                <p className="text-xs font-medium mt-0.5" style={{ color: t.color }}>{t.company}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 mt-4">
+                              {t.skills.slice(0, 4).map(s => (
+                                <span key={s} className="text-[11px] px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
+                              ))}
+                            </div>
+                            <p className="mt-3 text-xs text-muted-foreground">Starting from <span className="font-semibold text-foreground">₹{t.fee.toLocaleString()}</span> per course</p>
+                          </div>
+                          <div className="px-6 py-3.5 border-t border-border flex items-center justify-between bg-secondary/30">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-4 h-4 text-accent fill-accent" />
+                                <span className="text-sm font-semibold text-foreground">{t.rating}</span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">{t.students} students</span>
+                            </div>
+                            <Link to="/browse">
+                              <Button size="sm" className="hero-gradient text-primary-foreground font-semibold rounded-lg text-xs h-8 px-4 shadow-sm hover:shadow-md">
+                                Book Free Trial
+                              </Button>
+                            </Link>
+                          </div>
+                        </motion.div>
+                      );
+                    })()}
+                  </AnimatePresence>
+                  {/* Dot indicators */}
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    {heroTrainers.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveTrainer(i)}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${i === activeTrainer ? "bg-primary scale-125" : "bg-border hover:bg-muted-foreground/40"}`}
+                      />
+                    ))}
                   </div>
                 </div>
 

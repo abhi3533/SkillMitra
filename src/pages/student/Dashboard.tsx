@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle } from "lucide-react";
+import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages } from "lucide-react";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,11 +28,12 @@ const StudentDashboard = () => {
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [recommendedTrainers, setRecommendedTrainers] = useState<any[]>([]);
   useLoadingTitle(loading);
 
   const fetchDashboard = async () => {
     if (!user) return;
-    const { data: student } = await supabase.from("students").select("id, referral_credits").eq("user_id", user.id).single();
+    const { data: student } = await supabase.from("students").select("id, referral_credits, course_interests, trainer_gender_preference").eq("user_id", user.id).single();
     if (!student) { setLoading(false); return; }
     setStudentId(student.id);
 
@@ -96,6 +97,45 @@ const StudentDashboard = () => {
       walletBalance: Number(walletRes.data?.balance) || 0,
       attendancePercent,
     });
+
+    // Fetch recommended trainers based on course interests
+    const interests = (student.course_interests as string[]) || [];
+    if (interests.length > 0) {
+      const { data: allTrainers } = await supabase
+        .from("trainers")
+        .select("id, user_id, skills, teaching_languages, average_rating, current_role, current_company, experience_years, total_students")
+        .eq("approval_status", "approved")
+        .order("boost_score", { ascending: false })
+        .limit(20);
+
+      if (allTrainers && allTrainers.length > 0) {
+        // Score trainers by interest overlap
+        const scored = allTrainers.map(t => {
+          let score = 0;
+          if (t.skills?.length) {
+            const overlap = interests.filter(i => t.skills!.some((s: string) => s.toLowerCase() === i.toLowerCase()));
+            score += overlap.length * 4;
+          }
+          if (t.average_rating && t.average_rating >= 4) score += 2;
+          if (t.total_students && t.total_students >= 5) score += 1;
+          return { ...t, matchScore: score };
+        }).filter(t => t.matchScore > 0).sort((a, b) => b.matchScore - a.matchScore).slice(0, 4);
+
+        if (scored.length > 0) {
+          const tUserIds = scored.map(t => t.user_id);
+          const tProfileMap = await fetchProfilesMap(tUserIds);
+          const enriched = scored.map(t => ({
+            ...t,
+            trainerName: tProfileMap[t.user_id]?.full_name || "Trainer",
+            trainerCity: tProfileMap[t.user_id]?.city || "",
+            profilePicture: tProfileMap[t.user_id]?.profile_picture_url || "",
+            matchedSkills: interests.filter(i => t.skills?.some((s: string) => s.toLowerCase() === i.toLowerCase())),
+          }));
+          setRecommendedTrainers(enriched);
+        }
+      }
+    }
+
     setLoading(false);
   };
 
@@ -266,6 +306,67 @@ const StudentDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Recommended Trainers */}
+      {recommendedTrainers.length > 0 && (
+        <div className="mt-6 bg-card rounded-xl border">
+          <div className="flex items-center justify-between p-5 pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Recommended For You</h2>
+            </div>
+            <Link to="/browse-trainers" className="text-xs font-medium text-primary hover:underline">See all</Link>
+          </div>
+          <div className="px-5 pb-5 grid sm:grid-cols-2 gap-3">
+            {recommendedTrainers.map((t: any) => (
+              <Link key={t.id} to={`/browse-trainers`} className="block">
+                <div className="p-4 rounded-xl border bg-muted/20 hover:border-primary/30 hover:bg-muted/40 transition-all group">
+                  <div className="flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                      {t.profilePicture ? (
+                        <img src={t.profilePicture} alt={t.trainerName} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-primary font-bold text-lg">{t.trainerName?.[0] || "T"}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{t.trainerName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{t.current_role || "Trainer"}{t.current_company ? ` at ${t.current_company}` : ""}</p>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        {t.average_rating && (
+                          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />{Number(t.average_rating).toFixed(1)}
+                          </span>
+                        )}
+                        {t.experience_years && (
+                          <span className="text-xs text-muted-foreground">{t.experience_years}+ yrs</span>
+                        )}
+                        {t.trainerCity && (
+                          <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                            <MapPin className="w-3 h-3" />{t.trainerCity}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {t.matchedSkills?.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {t.matchedSkills.slice(0, 3).map((skill: string) => (
+                        <span key={skill} className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary">
+                          {skill}
+                        </span>
+                      ))}
+                      {t.matchedSkills.length > 3 && (
+                        <span className="px-2 py-0.5 rounded-full text-[11px] text-muted-foreground bg-secondary">+{t.matchedSkills.length - 3} more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Learning Progress */}
       {studentId && <StudentProgressSection studentId={studentId} />}

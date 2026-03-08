@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Save, X } from "lucide-react";
+import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 
 const courseInterestOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
@@ -102,9 +103,12 @@ const StudentProfile = () => {
       <div className="bg-card rounded-xl border p-6 space-y-6">
         {/* Basic Info */}
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-primary font-bold text-2xl">{profile?.full_name?.[0] || "U"}</span>
-          </div>
+          <ProfilePictureUpload
+            userId={user?.id || ""}
+            currentUrl={profile?.profile_picture_url}
+            fullName={profile?.full_name || "User"}
+            size="lg"
+          />
           <div>
             <p className="text-lg font-semibold text-foreground">{profile?.full_name || "User"}</p>
             <p className="text-sm text-muted-foreground">{profile?.email}</p>

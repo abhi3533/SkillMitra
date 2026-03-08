@@ -301,7 +301,7 @@ const Index = () => {
                   <div className="flex items-center justify-between pt-4 border-t border-border">
                     <div>
                       <span className="text-xs text-muted-foreground">Starting from</span>
-                      <div className="text-lg font-bold text-foreground">₹999<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
+                      <div className="text-lg font-bold text-foreground">₹999<span className="text-sm font-normal text-muted-foreground"> per course</span></div>
                     </div>
                     <Link to="/browse">
                       <Button size="sm" className="hero-gradient text-primary-foreground font-semibold rounded-lg shadow-sm hover:shadow-md">

@@ -75,6 +75,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const { error: dbError } = await supabase
       .from("contact_messages")
       .insert({ name, email, phone: phone || null, subject, message });
 

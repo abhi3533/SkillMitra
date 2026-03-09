@@ -149,7 +149,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         });
       }
 
-      toast({ title: "Trial Booked!", description: "Your free trial session has been scheduled." });
+      toast({ title: "Trial Booked!", description: "Your free trial session has been scheduled.", variant: "success" });
       onClose();
       navigate("/student/sessions");
     } catch (err: any) {

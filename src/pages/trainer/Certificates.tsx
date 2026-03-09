@@ -41,7 +41,7 @@ const TrainerCertificates = () => {
     const commScore = parseInt(scores.communication);
     const punctScore = parseInt(scores.punctuality);
     if (isNaN(techScore) || isNaN(commScore) || isNaN(punctScore)) {
-      toast({ title: "Please enter valid scores", variant: "destructive" });
+      toast({ title: "Please enter valid scores", variant: "warning" });
       return;
     }
 

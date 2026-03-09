@@ -30,7 +30,7 @@ const ProfilePictureUpload = ({ userId, currentUrl, fullName, size = "md", onUpl
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast({ title: "Please select an image file", variant: "destructive" });
+      toast({ title: "Please select an image file", variant: "warning" });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {

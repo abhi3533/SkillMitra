@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, Calendar, Shield, Loader2, AlertCircle } from "lucide-react";
 import { generateMeetLink } from "@/lib/meetingLink";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface EnrollmentModalProps {
   open: boolean;
@@ -71,150 +76,189 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
       })
     : TIME_SLOTS;
 
-  const handleSubmit = async () => {
+  const getNextScheduledDate = (day: number | null, slotLabel: string): Date => {
+    const now = new Date();
+    const slot = TIME_SLOTS.find(s => s.label === slotLabel);
+    const hour = slot ? parseInt(slot.time.split(":")[0]) : 10;
+    const targetDay = day ?? ((now.getDay() + 2) % 7);
+    let daysUntil = targetDay - now.getDay();
+    if (daysUntil <= 1) daysUntil += 7;
+    const scheduled = new Date(now);
+    scheduled.setDate(now.getDate() + daysUntil);
+    scheduled.setHours(hour, 0, 0, 0);
+    return scheduled;
+  };
+
+  const handleTrialBooking = async () => {
     if (submitting) return;
     setSubmitting(true);
 
     try {
       if (course.id?.startsWith("demo-")) {
-        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!", variant: "default" });
+        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!" });
         onClose();
         return;
       }
 
-      // Create enrollment
       const { data: enrollment, error: enrollError } = await supabase.from("enrollments").insert({
         student_id: studentId,
         course_id: course.id,
         trainer_id: trainer.id,
-        status: bookingType === "trial" ? "trial" : "active",
-        amount_paid: bookingType === "trial" ? 0 : Number(course.course_fee),
-        sessions_total: course.total_sessions || 1,
+        status: "trial",
+        amount_paid: 0,
+        sessions_total: 1,
         start_date: new Date().toISOString().split("T")[0],
       }).select().single();
 
       if (enrollError) throw enrollError;
 
-      // Generate all sessions for the course
       const firstDate = getNextScheduledDate(selectedDay, selectedSlot);
-      const totalSessions = bookingType === "trial" ? 1 : (course.total_sessions || 1);
-      const sessionsToInsert = [];
+      const meetLink = generateMeetLink(course.title, 1);
 
-      for (let i = 0; i < totalSessions; i++) {
-        const sessionDate = new Date(firstDate);
-        // Space sessions 7 days apart (weekly recurrence)
-        sessionDate.setDate(firstDate.getDate() + (i * 7));
-        const meetLink = generateMeetLink(course.title, i + 1);
+      await supabase.from("course_sessions").insert({
+        enrollment_id: enrollment.id,
+        trainer_id: trainer.id,
+        title: `Free Trial: ${course.title}`,
+        session_number: 1,
+        is_trial: true,
+        scheduled_at: firstDate.toISOString(),
+        duration_mins: course.session_duration_mins || 60,
+        status: "upcoming",
+        meet_link: meetLink,
+      });
 
-        sessionsToInsert.push({
-          enrollment_id: enrollment.id,
-          trainer_id: trainer.id,
-          title: bookingType === "trial" ? `Free Trial: ${course.title}` : `Session ${i + 1}: ${course.title}`,
-          session_number: i + 1,
-          is_trial: bookingType === "trial",
-          scheduled_at: sessionDate.toISOString(),
-          duration_mins: course.session_duration_mins || 60,
-          status: "upcoming",
-          meet_link: meetLink,
-        });
-      }
+      const scheduledTimeStr = firstDate.toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
-      const { error: sessionError } = await supabase.from("course_sessions").insert(sessionsToInsert);
-      if (sessionError) throw sessionError;
-
-      const scheduledDate = firstDate;
-
-      // Create notification for trainer
-      const scheduledTimeStr = scheduledDate.toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      // Notifications
       await supabase.from("notifications").insert({
         user_id: trainer.user_id,
-        title: bookingType === "trial" ? "New Trial Booking!" : "New Enrollment!",
-        body: `A student has ${bookingType === "trial" ? "booked a free trial" : "enrolled"} in "${course.title}". Session scheduled on ${scheduledTimeStr}.`,
-        type: bookingType === "trial" ? "trial_booking" : "enrollment",
+        title: "New Trial Booking!",
+        body: `A student booked a free trial in "${course.title}". Session: ${scheduledTimeStr}.`,
+        type: "trial_booking",
         action_url: "/trainer/sessions",
       });
 
-      // Create notification for student
-      const { data: trainerProfile2 } = await supabase.from("profiles").select("full_name").eq("id", trainer.user_id).single();
-      const trainerDisplayName = trainerProfile2?.full_name || "your trainer";
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
         await supabase.from("notifications").insert({
           user_id: currentUser.id,
-          title: bookingType === "trial" ? "Trial Session Booked! 🎉" : "Enrollment Confirmed! 🎉",
-          body: `Your ${bookingType === "trial" ? "trial" : "enrollment"} is confirmed. Trainer: ${trainerDisplayName}. Session scheduled on ${scheduledTimeStr}.`,
-          type: bookingType === "trial" ? "trial_booking" : "enrollment",
+          title: "Trial Session Booked! 🎉",
+          body: `Your trial is confirmed. Trainer: ${trainerProfile?.full_name || "your trainer"}. Session: ${scheduledTimeStr}.`,
+          type: "trial_booking",
           action_url: "/student/sessions",
         });
       }
 
-      // Send email notifications (fire-and-forget, don't block enrollment)
-      const { data: studentProfile } = await supabase.from("profiles").select("email, full_name").eq("id", currentUser?.id).single();
-      const { data: trainerProfileEmail } = await supabase.from("profiles").select("email, full_name").eq("id", trainer.user_id).single();
-
-      // Email to student
-      if (studentProfile?.email) {
-        supabase.functions.invoke("send-email", {
-          body: {
-            type: "enrollment_confirmation",
-            to: studentProfile.email,
-            data: {
-              name: studentProfile.full_name || "Student",
-              course_name: course.title,
-              trainer_name: trainerDisplayName,
-              start_date: scheduledTimeStr,
-            },
-          },
-        }).catch(() => {});
-      }
-
-      // Email to trainer
-      if (trainerProfileEmail?.email) {
-        supabase.functions.invoke("send-email", {
-          body: {
-            type: "new_enrollment_trainer",
-            to: trainerProfileEmail.email,
-            data: {
-              name: trainerProfileEmail.full_name || "Trainer",
-              course_name: course.title,
-              student_name: studentProfile?.full_name || "A student",
-              start_date: scheduledTimeStr,
-            },
-          },
-        }).catch(() => {});
-      }
-
-      toast({
-        title: bookingType === "trial" ? "Trial Booked!" : "Enrolled Successfully!",
-        description: bookingType === "trial"
-          ? "Your free trial session has been scheduled. Check your sessions page for details."
-          : "You're now enrolled. Your first session has been scheduled.",
-      });
-
+      toast({ title: "Trial Booked!", description: "Your free trial session has been scheduled." });
       onClose();
       navigate("/student/sessions");
     } catch (err: any) {
-      console.error("Enrollment error:", err);
-      toast({ title: "Error", description: err.message || "Failed to complete booking. Please try again.", variant: "destructive" });
+      console.error("Trial booking error:", err);
+      toast({ title: "Error", description: err.message || "Failed to book trial.", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getNextScheduledDate = (day: number | null, slotLabel: string): Date => {
-    const now = new Date();
-    const slot = TIME_SLOTS.find(s => s.label === slotLabel);
-    const hour = slot ? parseInt(slot.time.split(":")[0]) : 10;
+  const handlePaidEnrollment = async () => {
+    if (submitting) return;
+    setSubmitting(true);
 
-    // Find next occurrence of selected day
-    const targetDay = day ?? ((now.getDay() + 2) % 7); // default to day after tomorrow
-    let daysUntil = targetDay - now.getDay();
-    if (daysUntil <= 1) daysUntil += 7; // at least 2 days from now
+    try {
+      if (course.id?.startsWith("demo-")) {
+        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!" });
+        onClose();
+        return;
+      }
 
-    const scheduled = new Date(now);
-    scheduled.setDate(now.getDate() + daysUntil);
-    scheduled.setHours(hour, 0, 0, 0);
-    return scheduled;
+      // Step 1: Create Razorpay order via edge function
+      const { data: orderData, error: orderError } = await supabase.functions.invoke("create-razorpay-order", {
+        body: {
+          course_id: course.id,
+          student_id: studentId,
+          amount: Number(course.course_fee),
+        },
+      });
+
+      if (orderError || !orderData?.order_id) {
+        throw new Error(orderData?.error || "Failed to create payment order");
+      }
+
+      // Step 2: Open Razorpay Checkout
+      const options = {
+        key: orderData.key_id,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "SkillMitra",
+        description: `Enrollment: ${course.title}`,
+        order_id: orderData.order_id,
+        prefill: orderData.prefill,
+        theme: { color: "#1A56DB" },
+        handler: async (response: any) => {
+          try {
+            // Step 3: Verify payment on server
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-razorpay-payment", {
+              body: {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                course_id: course.id,
+                trainer_id: trainer.id,
+                student_id: studentId,
+                selected_day: selectedDay,
+                selected_slot: selectedSlot,
+                booking_type: "enroll",
+              },
+            });
+
+            if (verifyError || !verifyData?.success) {
+              throw new Error(verifyData?.error || "Payment verification failed");
+            }
+
+            toast({ title: "Enrolled Successfully! 🎉", description: "Payment confirmed. Check your sessions page." });
+            onClose();
+            navigate(`/student/receipt/${verifyData.enrollment_id}`);
+          } catch (err: any) {
+            console.error("Verification error:", err);
+            toast({ title: "Verification Issue", description: "Payment received but verification failed. Please contact support.", variant: "destructive" });
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setSubmitting(false);
+            toast({ title: "Payment Cancelled", description: "You can try again anytime." });
+          },
+        },
+      };
+
+      if (!window.Razorpay) {
+        throw new Error("Payment system not loaded. Please refresh and try again.");
+      }
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (response: any) => {
+        console.error("Payment failed:", response.error);
+        setSubmitting(false);
+        toast({
+          title: "Payment Failed",
+          description: response.error?.description || "Payment could not be completed. Please try again.",
+          variant: "destructive",
+        });
+      });
+      rzp.open();
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      setSubmitting(false);
+      toast({ title: "Error", description: err.message || "Failed to initiate payment.", variant: "destructive" });
+    }
+  };
+
+  const handleSubmit = () => {
+    if (bookingType === "trial") {
+      handleTrialBooking();
+    } else {
+      handlePaidEnrollment();
+    }
   };
 
   return (
@@ -358,14 +402,18 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
             <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 text-sm text-foreground border border-primary/10">
               <Shield className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-              <span>Your booking is protected by SkillMitra's quality guarantee. If you're not satisfied, reach out to us for support.</span>
+              <span>
+                {bookingType === "trial"
+                  ? "Your booking is protected by SkillMitra's quality guarantee."
+                  : "Payment is securely processed via Razorpay. Your booking is protected by SkillMitra's quality guarantee."}
+              </span>
             </div>
 
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setStep("slot")}>Back</Button>
               <Button className="flex-1" onClick={handleSubmit} disabled={submitting}>
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {bookingType === "trial" ? "Confirm Trial" : "Confirm & Pay"}
+                {bookingType === "trial" ? "Confirm Trial" : "Pay & Enroll"}
               </Button>
             </div>
           </div>

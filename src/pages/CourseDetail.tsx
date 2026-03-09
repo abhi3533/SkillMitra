@@ -285,18 +285,28 @@ const CourseDetail = () => {
                   ) : (
                     <div className="space-y-3">
                       {course.has_free_trial && !hasTrialBooked && (
-                        <Button className="w-full" size="lg" onClick={() => {
+                        <Button className="w-full" size="lg" onClick={async () => {
                           if (!user) { navigate("/student/login"); return; }
                           if (role !== "student") { return; }
+                          if (!studentId) {
+                            const { data: s } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+                            if (s) setStudentId(s.id);
+                            else return;
+                          }
                           setShowEnrollModal(true);
                         }}>
                           Book Free Trial
                         </Button>
                       )}
                       <Button variant={course.has_free_trial && !hasTrialBooked ? "outline" : "default"} className="w-full" size="lg"
-                        onClick={() => {
+                        onClick={async () => {
                           if (!user) { navigate("/student/login"); return; }
                           if (role !== "student") { return; }
+                          if (!studentId) {
+                            const { data: s } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+                            if (s) setStudentId(s.id);
+                            else return;
+                          }
                           setShowEnrollModal(true);
                         }}>
                         Enroll Now

@@ -158,7 +158,7 @@ const TrainerSessions = () => {
 
   const handleCreateSession = async () => {
     if (!newSession.enrollmentId || !newSession.date || !newSession.time) {
-      toast({ title: "Please fill required fields", description: "Student, date and time are required.", variant: "destructive" });
+      toast({ title: "Please fill required fields", description: "Student, date and time are required.", variant: "warning" });
       return;
     }
     setCreating(true);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Calendar, Video, FileText } from "lucide-react";
+import { BookOpen, Calendar, Video, FileText, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +59,11 @@ const StudentCourses = () => {
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-xs text-muted-foreground">{e.progress_percent || 0}% complete • {e.sessions_completed || 0}/{e.sessions_total || 0} sessions</p>
                     <div className="flex gap-2">
+                      <Link to={`/student/receipt/${e.id}`}>
+                        <Button size="sm" variant="outline" className="text-xs">
+                          <Receipt className="w-3 h-3 mr-1" />Receipt
+                        </Button>
+                      </Link>
                       <Button size="sm" variant="outline" className="text-xs"><FileText className="w-3 h-3 mr-1" />Materials</Button>
                       <Button size="sm" className="hero-gradient border-0 text-xs"><Video className="w-3 h-3 mr-1" />Join Session</Button>
                     </div>

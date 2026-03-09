@@ -50,6 +50,7 @@ const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
 const StudentWallet = lazy(() => import("./pages/student/Wallet"));
 const StudentAttendance = lazy(() => import("./pages/student/StudentAttendance"));
 const StudentSessions = lazy(() => import("./pages/student/Sessions"));
+const StudentReceipt = lazy(() => import("./pages/student/Receipt"));
 
 // Lazy-loaded Trainer pages
 const TrainerLogin = lazy(() => import("./pages/trainer/Login"));
@@ -195,6 +196,7 @@ const AppContent = () => {
           <Route path="/student/certificates" element={<ProtectedRoute allowedRoles={["student"]}><StudentCertificates /></ProtectedRoute>} />
           <Route path="/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
           <Route path="/student/wallet" element={<ProtectedRoute allowedRoles={["student"]}><StudentWallet /></ProtectedRoute>} />
+          <Route path="/student/receipt/:enrollmentId" element={<ProtectedRoute allowedRoles={["student"]}><StudentReceipt /></ProtectedRoute>} />
           <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Notifications /></ProtectedRoute>} />
           <Route path="/notification-preferences" element={<ProtectedRoute allowedRoles={["student", "trainer"]}><NotificationPreferences /></ProtectedRoute>} />
 

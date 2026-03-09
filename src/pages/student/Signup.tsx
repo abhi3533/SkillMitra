@@ -31,6 +31,8 @@ const StudentSignup = () => {
   const [courseInterests, setCourseInterests] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [otherSelected, setOtherSelected] = useState(false);
+  const [otherSkill, setOtherSkill] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -143,9 +145,15 @@ const StudentSignup = () => {
       if (error) throw error;
 
       // Use edge function to update course interests (bypasses RLS when session not available)
-      if (signupData?.user?.id && courseInterests.length > 0) {
+      const allInterests = [...courseInterests];
+      if (otherSelected && otherSkill.trim()) {
+        otherSkill.split(",").map(s => s.trim()).filter(Boolean).forEach(s => {
+          if (!allInterests.includes(s)) allInterests.push(s);
+        });
+      }
+      if (signupData?.user?.id && allInterests.length > 0) {
         supabase.functions.invoke("complete-signup", {
-          body: { user_id: signupData.user.id, role: "student", student_data: { course_interests: courseInterests } },
+          body: { user_id: signupData.user.id, role: "student", student_data: { course_interests: allInterests } },
         }).catch(e => console.error("Course interests save error:", e));
       }
 
@@ -333,8 +341,28 @@ const StudentSignup = () => {
                     {interest}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setOtherSelected(prev => !prev)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    otherSelected
+                      ? "hero-gradient text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  Other
+                </button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Select skills you want to learn — helps us match you with the right trainers</p>
+              {otherSelected && (
+                <Input
+                  value={otherSkill}
+                  onChange={e => setOtherSkill(e.target.value)}
+                  placeholder="e.g. Yoga, Cooking, Photography, Music"
+                  className="mt-2 h-11"
+                />
+              )}
+              {otherSelected && <p className="text-xs text-muted-foreground mt-1">Please specify your course or skill</p>}
+              {!otherSelected && <p className="text-xs text-muted-foreground mt-1">Select skills you want to learn — helps us match you with the right trainers</p>}
             </div>
 
             <div>

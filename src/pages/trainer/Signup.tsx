@@ -155,7 +155,7 @@ const TrainerSignup = () => {
       setTouched(newTouched);
 
       if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.city.trim() || !form.state || !form.gender) {
-        toast({ title: "Please fill all required fields", variant: "destructive" });
+        toast({ title: "Please fill all required fields", variant: "warning" });
         return false;
       }
       if (!isValidEmail(form.email)) {

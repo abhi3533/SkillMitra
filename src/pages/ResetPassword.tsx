@@ -51,7 +51,7 @@ const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isPasswordValid(password)) {
-      toast({ title: "Password doesn't meet requirements", variant: "destructive" });
+      toast({ title: "Password doesn't meet requirements", variant: "warning" });
       return;
     }
     if (password !== confirmPassword) {

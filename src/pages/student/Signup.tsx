@@ -335,8 +335,28 @@ const StudentSignup = () => {
                     {interest}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setOtherSelected(prev => !prev)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    otherSelected
+                      ? "hero-gradient text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  Other
+                </button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Select skills you want to learn — helps us match you with the right trainers</p>
+              {otherSelected && (
+                <Input
+                  value={otherSkill}
+                  onChange={e => setOtherSkill(e.target.value)}
+                  placeholder="e.g. Yoga, Cooking, Photography, Music"
+                  className="mt-2 h-11"
+                />
+              )}
+              {otherSelected && <p className="text-xs text-muted-foreground mt-1">Please specify your course or skill</p>}
+              {!otherSelected && <p className="text-xs text-muted-foreground mt-1">Select skills you want to learn — helps us match you with the right trainers</p>}
             </div>
 
             <div>

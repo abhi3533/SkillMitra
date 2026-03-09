@@ -115,7 +115,7 @@ const TrainerAttendance = () => {
     }
     setAttendance(prev => ({ ...prev, [studentId]: { ...prev[studentId], status } }));
     setSaving(null);
-    toast({ title: `Marked as ${status}` });
+    toast({ title: `Marked as ${status}`, variant: "success" });
   };
 
   const bulkMarkPresent = async () => {

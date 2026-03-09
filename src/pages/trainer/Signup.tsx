@@ -129,7 +129,7 @@ const TrainerSignup = () => {
   // Count remaining required fields per step
   const getStepProgress = (s: number): { total: number; filled: number } => {
     if (s === 0) {
-      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim(), profilePhoto ? "yes" : ""];
+      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim()];
       return { total: fields.length, filled: fields.filter(Boolean).length };
     }
     if (s === 1) {

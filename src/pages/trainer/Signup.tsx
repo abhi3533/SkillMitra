@@ -322,7 +322,7 @@ const TrainerSignup = () => {
         body: { new_user_id: userId, role: "trainer" },
       }).catch(e => console.error("Trainer profile matching error:", e));
 
-      toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message." });
+      toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message.", variant: "success" });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {
       console.error("Trainer signup error:", err);

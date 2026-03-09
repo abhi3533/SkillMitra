@@ -145,9 +145,15 @@ const StudentSignup = () => {
       if (error) throw error;
 
       // Use edge function to update course interests (bypasses RLS when session not available)
-      if (signupData?.user?.id && courseInterests.length > 0) {
+      const allInterests = [...courseInterests];
+      if (otherSelected && otherSkill.trim()) {
+        otherSkill.split(",").map(s => s.trim()).filter(Boolean).forEach(s => {
+          if (!allInterests.includes(s)) allInterests.push(s);
+        });
+      }
+      if (signupData?.user?.id && allInterests.length > 0) {
         supabase.functions.invoke("complete-signup", {
-          body: { user_id: signupData.user.id, role: "student", student_data: { course_interests: courseInterests } },
+          body: { user_id: signupData.user.id, role: "student", student_data: { course_interests: allInterests } },
         }).catch(e => console.error("Course interests save error:", e));
       }
 

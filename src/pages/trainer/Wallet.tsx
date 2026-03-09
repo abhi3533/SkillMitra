@@ -42,8 +42,8 @@ const TrainerWallet = () => {
 
   const requestPayout = async () => {
     const amount = Number(payoutAmount);
-    if (amount < 500) { toast({ title: "Minimum ₹500 required", variant: "destructive" }); return; }
-    if (amount > Number(wallet?.balance || 0)) { toast({ title: "Insufficient balance", variant: "destructive" }); return; }
+    if (amount < 500) { toast({ title: "Minimum ₹500 required", variant: "warning" }); return; }
+    if (amount > Number(wallet?.balance || 0)) { toast({ title: "Insufficient balance", variant: "warning" }); return; }
     if (!trainerId) return;
 
     setRequesting(true);

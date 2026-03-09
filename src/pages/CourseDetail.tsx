@@ -370,14 +370,14 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {trainer && studentId && showEnrollModal && (
+      {showEnrollModal && trainer && (
         <EnrollmentModal
           open={showEnrollModal}
           onClose={() => setShowEnrollModal(false)}
           course={course}
           trainer={trainer}
           trainerProfile={trainerProfile}
-          studentId={studentId}
+          studentId={studentId || ""}
           hasTrialBooked={hasTrialBooked}
         />
       )}

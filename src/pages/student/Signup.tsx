@@ -112,7 +112,7 @@ const StudentSignup = () => {
     }
     if (emailError) return;
     if (!isPasswordValid(form.password)) {
-      toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+      toast({ title: "Password doesn't meet all requirements", variant: "warning" });
       return;
     }
     if (form.password !== confirmPassword) {

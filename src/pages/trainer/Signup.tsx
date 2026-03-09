@@ -322,6 +322,19 @@ const TrainerSignup = () => {
         body: { new_user_id: userId, role: "trainer" },
       }).catch(e => console.error("Trainer profile matching error:", e));
 
+      // Notify admin about new trainer application
+      supabase.functions.invoke("notify-admin-new-trainer", {
+        body: {
+          user_id: userId,
+          trainer_name: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          city: form.city,
+          skills,
+          experience_years: parseInt(form.experience) || 0,
+        },
+      }).catch(e => console.error("Admin notification error:", e));
+
       toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message.", variant: "success" });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {

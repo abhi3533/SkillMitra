@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,33 +45,57 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <SkillMitraLogo darkText height={32} />
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold">Admin</span>
+    <div className="min-h-screen bg-background flex">
+      {/* Left Panel */}
+      <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12 sticky top-0 h-screen overflow-hidden">
+        <div className="max-w-md">
+          <SkillMitraLogo darkText={false} height={40} className="mb-12" />
+          <h2 className="text-3xl font-bold text-primary-foreground">Admin Dashboard</h2>
+          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Manage trainers, students, payments, and platform settings — all in one place.</p>
+          <div className="mt-8 space-y-3">
+            {["Manage trainers & students", "Monitor payments & payouts", "Platform analytics", "Full control over settings"].map(b => (
+              <div key={b} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full gold-gradient flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3 h-3 text-accent-foreground" />
+                </div>
+                <span className="text-sm text-primary-foreground/70">{b}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <form onSubmit={handleLogin} className="bg-card rounded-xl border p-6 space-y-4">
-          <h1 className="text-xl font-bold text-foreground">Admin Login</h1>
-          <div>
-            <Label>Email</Label>
-            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1" required />
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
+            <SkillMitraLogo darkText height={32} />
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold">Admin</span>
           </div>
-          <div>
-            <Label>Password</Label>
-            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1" required />
-          </div>
-          <div className="flex items-center justify-between">
+          <form onSubmit={handleLogin} className="bg-card rounded-xl border p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
-              <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
+              <ShieldCheck className="w-5 h-5 text-primary" />
+              <h1 className="text-xl font-bold text-foreground">Admin Login</h1>
             </div>
-            <Link to="/forgot-password?role=admin" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
-          </div>
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : "Sign In"}
-          </Button>
-        </form>
+            <div>
+              <Label>Email</Label>
+              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1" required />
+            </div>
+            <div>
+              <Label>Password</Label>
+              <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1" required />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
+                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
+              </div>
+              <Link to="/forgot-password?role=admin" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
+            </div>
+            <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : "Sign In"}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

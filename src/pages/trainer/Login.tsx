@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Loader2, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, ShieldAlert, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,11 +87,21 @@ const TrainerLogin = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12 sticky top-0 h-screen overflow-hidden">
         <div className="max-w-md">
           <SkillMitraLogo darkText={false} height={40} className="mb-12" />
           <h2 className="text-3xl font-bold text-primary-foreground">Welcome Back, Trainer!</h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Manage your students, sessions, and earnings — all from one dashboard.</p>
+          <div className="mt-8 space-y-3">
+            {["Earn from your expertise", "Flexible schedule", "Verified trainer badge", "Monthly payouts"].map(b => (
+              <div key={b} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full gold-gradient flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3 h-3 text-accent-foreground" />
+                </div>
+                <span className="text-sm text-primary-foreground/70">{b}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

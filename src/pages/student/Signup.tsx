@@ -191,7 +191,7 @@ const StudentSignup = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12 sticky top-0 h-screen overflow-hidden">
         <div className="max-w-md">
           <SkillMitraLogo darkText={false} height={40} className="mb-12" />
           <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>

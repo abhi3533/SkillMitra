@@ -55,7 +55,7 @@ const ResetPassword = () => {
       return;
     }
     if (password !== confirmPassword) {
-      toast({ title: "Passwords do not match", variant: "destructive" });
+      toast({ title: "Passwords do not match", variant: "warning" });
       return;
     }
     setLoading(true);

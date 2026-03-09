@@ -226,7 +226,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         modal: {
           ondismiss: () => {
             setSubmitting(false);
-            toast({ title: "Payment Cancelled", description: "You can try again anytime." });
+            toast({ title: "Payment Cancelled", description: "You can try again anytime.", variant: "info" });
           },
         },
       };

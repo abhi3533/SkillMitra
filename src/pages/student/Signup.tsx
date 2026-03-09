@@ -177,7 +177,7 @@ const StudentSignup = () => {
         }).then(({ error: fnErr }) => { if (fnErr) console.error("Profile matching error:", fnErr); });
       }
 
-      toast({ title: "Account created!", description: "Please check your email to verify your account." });
+      toast({ title: "Account created!", description: "Please check your email to verify your account.", variant: "success" });
       navigate("/student/login");
     } catch (err: any) {
       toast({ title: "Signup failed", description: getAuthErrorMessage(err), variant: "destructive" });

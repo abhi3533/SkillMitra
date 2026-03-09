@@ -18,7 +18,7 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 const skillOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
 const langOptions = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"];
 const stateOptions = ["Andhra Pradesh", "Telangana", "Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Kerala"];
-const steps = ["Personal Info", "Skills & Experience", "Verification", "Availability", "Bank Details"];
+const steps = ["Personal Info", "Skills & Experience", "Documents", "Availability", "Bank Details"];
 
 interface DocFile { file: File | null; name: string; }
 interface AvailDay { checked: boolean; start: string; end: string; }

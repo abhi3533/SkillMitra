@@ -31,6 +31,8 @@ const StudentSignup = () => {
   const [courseInterests, setCourseInterests] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [otherSelected, setOtherSelected] = useState(false);
+  const [otherSkill, setOtherSkill] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const navigate = useNavigate();

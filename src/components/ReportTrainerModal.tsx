@@ -23,7 +23,7 @@ const ReportTrainerModal = ({ trainerId, trainerName, onClose }: { trainerId: st
 
   const handleSubmit = async () => {
     if (!reason) {
-      toast({ title: "Please select a reason", variant: "destructive" });
+      toast({ title: "Please select a reason", variant: "warning" });
       return;
     }
     if (!user) {

@@ -120,7 +120,7 @@ const StudentSignup = () => {
       return;
     }
     if (!isValidPhone(form.phone)) {
-      toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "destructive" });
+      toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "warning" });
       return;
     }
     setLoading(true);

@@ -14,12 +14,39 @@ import GlobalSearch from "@/components/GlobalSearch";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import { useAuth } from "@/hooks/useAuth";
 
-const navLinks = [
+const defaultNavLinks = [
   { label: "Browse Trainers", path: "/browse" },
   { label: "How It Works", path: "/how-it-works" },
   { label: "Become a Trainer", path: "/trainer/signup" },
   { label: "Contact", path: "/contact" },
 ];
+
+const studentNavLinks = [
+  { label: "Browse Trainers", path: "/browse" },
+  { label: "My Sessions", path: "/student/sessions" },
+  { label: "My Courses", path: "/student/courses" },
+  { label: "Contact", path: "/contact" },
+];
+
+const trainerNavLinks = [
+  { label: "My Students", path: "/trainer/students" },
+  { label: "My Courses", path: "/trainer/courses" },
+  { label: "My Schedule", path: "/trainer/schedule" },
+  { label: "Contact", path: "/contact" },
+];
+
+const adminNavLinks = [
+  { label: "Dashboard", path: "/admin" },
+];
+
+const getNavLinks = (role: string | null) => {
+  switch (role) {
+    case "student": return studentNavLinks;
+    case "trainer": return trainerNavLinks;
+    case "admin": return adminNavLinks;
+    default: return defaultNavLinks;
+  }
+};
 
 const getRoleConfig = (role: string | null) => {
   switch (role) {

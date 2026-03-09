@@ -172,7 +172,7 @@ const TrainerSignup = () => {
         return false;
       }
       if (form.password !== confirmPassword) {
-        toast({ title: "Passwords do not match", variant: "destructive" });
+        toast({ title: "Passwords do not match", variant: "warning" });
         return false;
       }
     }

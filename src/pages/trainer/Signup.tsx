@@ -216,7 +216,7 @@ const TrainerSignup = () => {
 
   const handleSubmit = async () => {
     if (!validateStep(4)) return;
-    if (!agreed) { toast({ title: "Please agree to the terms", variant: "destructive" }); return; }
+    if (!agreed) { toast({ title: "Please agree to the terms", variant: "warning" }); return; }
     setLoading(true);
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({

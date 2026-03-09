@@ -92,7 +92,7 @@ const StudentLogin = () => {
               action: (
                 <Button variant="outline" size="sm" onClick={async () => {
                   await supabase.auth.resend({ type: "signup", email });
-                  toast({ title: "Verification email resent!" });
+                  toast({ title: "Verification email resent!", variant: "info" });
                 }}>
                   Resend
                 </Button>

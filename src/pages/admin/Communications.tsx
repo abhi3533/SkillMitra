@@ -31,7 +31,7 @@ const AdminCommunications = () => {
 
   const handleSend = async () => {
     if (!subject.trim() || !body.trim()) {
-      toast({ title: "Missing fields", description: "Subject and body are required.", variant: "destructive" });
+      toast({ title: "Missing fields", description: "Subject and body are required.", variant: "warning" });
       return;
     }
     setSending(true);

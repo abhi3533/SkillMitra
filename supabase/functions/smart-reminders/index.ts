@@ -301,16 +301,11 @@ Deno.serve(async (req) => {
 
       if (!studentUserId || !studentId) continue
 
-      // Check if already rated
       const { data: existingRating } = await supabase.from('ratings')
         .select('id').eq('session_id', s.id).eq('student_id', studentId)
         .not('student_rated_at', 'is', null).limit(1)
       if (existingRating?.length) continue
 
-      // Check if already prompted
-      const { data: existingNotif } = await supabase.from('notifications')
-        .select('id').eq('user_id', studentUserId).eq('type', 'rate_session').eq('action_url', `/student/sessions`).limit(1)
-      // Use session id in body to deduplicate
       const { data: existingNotif2 } = await supabase.from('notifications')
         .select('id').eq('user_id', studentUserId).eq('type', 'rate_session')
         .ilike('body', `%${s.id.slice(0, 8)}%`).limit(1)
@@ -323,6 +318,71 @@ Deno.serve(async (req) => {
         action_url: `/student/sessions`, icon: 'star',
       })
       results.push(`rate prompt → student ${studentUserId} for session ${s.id}`)
+    }
+
+    // ============ PENDING TRAINER APPLICATION 24H REMINDER ============
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
+    const { data: stalePending } = await supabase
+      .from('trainers')
+      .select('id, user_id, skills, experience_years, created_at')
+      .eq('approval_status', 'pending')
+      .lt('created_at', twentyFourHoursAgo.toISOString())
+      .gte('created_at', fortyEightHoursAgo.toISOString())
+
+    for (const trainer of stalePending || []) {
+      // Check if reminder already sent for this trainer
+      const { data: existingReminder } = await supabase.from('notifications')
+        .select('id').eq('type', 'pending_trainer_reminder').eq('action_url', trainer.id).limit(1)
+      if (existingReminder?.length) continue
+
+      // Get trainer profile
+      const { data: profile } = await supabase.from('profiles')
+        .select('full_name, email').eq('id', trainer.user_id).single()
+      const trainerName = profile?.full_name || 'Unknown'
+
+      // Send reminder to all admins
+      const { data: admins } = await supabase.from('admins').select('user_id')
+      for (const admin of admins || []) {
+        await supabase.from('notifications').insert({
+          user_id: admin.user_id, type: 'pending_trainer_reminder',
+          title: '⏰ Pending Review Reminder',
+          body: `Reminder — ${trainerName}'s application is still pending review (applied ${new Date(trainer.created_at!).toLocaleDateString('en-IN')}).`,
+          action_url: trainer.id, icon: 'clock',
+        })
+      }
+
+      // Send reminder email to admin
+      const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+      if (RESEND_API_KEY) {
+        try {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'SkillMitra <contact@skillmitra.online>',
+              to: ['contact@skillmitra.online'],
+              subject: `Reminder — ${trainerName}'s application is still pending review`,
+              html: `<div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 24px;">
+                <h2 style="color: #111;">⏰ Pending Trainer Review</h2>
+                <p style="color: #444; line-height: 1.7;"><strong>${trainerName}</strong>'s trainer application has been pending for over 24 hours.</p>
+                <p style="color: #444;">Applied: ${new Date(trainer.created_at!).toLocaleString('en-IN')}</p>
+                <p style="color: #444;">Skills: ${(trainer.skills || []).join(', ') || 'N/A'}</p>
+                <div style="text-align: center; margin: 24px 0;">
+                  <a href="https://skillmitra.online/admin/trainers" style="background: #1A56DB; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">Review Now</a>
+                </div>
+              </div>`,
+            }),
+          })
+        } catch (e) {
+          console.error('Reminder email failed:', e)
+        }
+      }
+
+      results.push(`24h pending reminder → trainer ${trainerName}`)
     }
 
     console.log(`✅ Smart reminders processed: ${results.length} actions`, results)

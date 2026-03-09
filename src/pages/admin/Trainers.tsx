@@ -25,7 +25,11 @@ const AdminTrainers = () => {
       .from("trainers")
       .select("*, profiles(*)")
       .order("created_at", { ascending: false });
-    setTrainers(data || []);
+    const trainerData = data || [];
+    setTrainers(trainerData);
+    // Default to pending tab if there are pending trainers
+    const hasPending = trainerData.some(t => t.approval_status === "pending");
+    if (hasPending && tab === "pending") setTab("pending");
     setLoading(false);
   };
 

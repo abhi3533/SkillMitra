@@ -37,8 +37,8 @@ const TrainerEarnings = () => {
 
   const requestPayout = async () => {
     const amount = parseFloat(payoutAmount);
-    if (amount < 500) { toast({ title: "Minimum ₹500", variant: "destructive" }); return; }
-    if (amount > (trainer?.available_balance || 0)) { toast({ title: "Insufficient balance", variant: "destructive" }); return; }
+    if (amount < 500) { toast({ title: "Minimum ₹500", variant: "warning" }); return; }
+    if (amount > (trainer?.available_balance || 0)) { toast({ title: "Insufficient balance", variant: "warning" }); return; }
     setRequesting(true);
     try {
       const { error } = await supabase.from("payout_requests").insert({

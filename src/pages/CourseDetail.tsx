@@ -73,14 +73,15 @@ const CourseDetail = () => {
       return; 
     }
     if (role !== "student") { return; }
-    if (!studentId) {
+    let sid = studentId;
+    if (!sid) {
       const { data: s } = await supabase.from("students").select("id").eq("user_id", user.id).single();
       if (s) { 
+        sid = s.id;
         setStudentId(s.id); 
-        // Wait for next render cycle so studentId is available for EnrollmentModal
-        requestAnimationFrame(() => setShowEnrollModal(true));
+      } else {
+        return;
       }
-      return;
     }
     setShowEnrollModal(true);
   };

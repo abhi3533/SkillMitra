@@ -144,6 +144,27 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* Pending Approvals Alert Card */}
+      {!loading && stats.pendingTrainers > 0 && (
+        <Link to="/admin/trainers" className="block mt-6">
+          <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-center justify-between hover:border-amber-300 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Pending Trainer Approvals</p>
+                <p className="text-sm text-muted-foreground">{stats.pendingTrainers} trainer{stats.pendingTrainers > 1 ? 's' : ''} waiting for review</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">{stats.pendingTrainers}</span>
+              <ArrowUpRight className="w-4 h-4 text-amber-600" />
+            </div>
+          </div>
+        </Link>
+      )}
+
       {/* Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mt-6">
         {statCards.map(card => (

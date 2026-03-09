@@ -164,7 +164,7 @@ const TrainerSignup = () => {
       }
       if (emailError) return false;
       if (!isValidPhone(form.phone)) {
-        toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "destructive" });
+        toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "warning" });
         return false;
       }
       if (!isPasswordValid(form.password)) {

@@ -186,7 +186,7 @@ const TrainerSignup = () => {
     }
     if (s === 2) {
       if (!docs["government_id"]?.file) {
-        toast({ title: "Government ID is required for verification", variant: "destructive" });
+        toast({ title: "Government ID is required for verification", variant: "warning" });
         return false;
       }
     }

@@ -4,7 +4,7 @@ import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 const trustBadges = [
   { icon: Shield, label: "Secure Payments", sub: "Powered by Razorpay" },
-  { icon: BadgeCheck, label: "Verified Trainers", sub: "Document verified" },
+  { icon: BadgeCheck, label: "Verified Trainers", sub: "ID and background verified" },
   { icon: IndianRupee, label: "Money Back Guarantee", sub: "Within 48 hours" },
   { icon: Video, label: "1000+ Sessions", sub: "Completed on platform" },
 ];

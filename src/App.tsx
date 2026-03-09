@@ -196,6 +196,7 @@ const AppContent = () => {
           <Route path="/student/certificates" element={<ProtectedRoute allowedRoles={["student"]}><StudentCertificates /></ProtectedRoute>} />
           <Route path="/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
           <Route path="/student/wallet" element={<ProtectedRoute allowedRoles={["student"]}><StudentWallet /></ProtectedRoute>} />
+          <Route path="/student/receipt/:enrollmentId" element={<ProtectedRoute allowedRoles={["student"]}><StudentReceipt /></ProtectedRoute>} />
           <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Notifications /></ProtectedRoute>} />
           <Route path="/notification-preferences" element={<ProtectedRoute allowedRoles={["student", "trainer"]}><NotificationPreferences /></ProtectedRoute>} />
 

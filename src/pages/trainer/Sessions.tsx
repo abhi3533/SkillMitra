@@ -253,7 +253,7 @@ const TrainerSessions = () => {
 
   const handlePostpone = async () => {
     if (!postponeData.date || !postponeData.time) {
-      toast({ title: "Please select date and time", variant: "destructive" });
+      toast({ title: "Please select date and time", variant: "warning" });
       return;
     }
     setPostponing(true);

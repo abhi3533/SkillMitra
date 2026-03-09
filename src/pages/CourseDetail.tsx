@@ -68,21 +68,29 @@ const CourseDetail = () => {
   };
 
   const handleEnrollClick = async () => {
+    console.log("[Enroll] clicked. user:", !!user, "role:", role, "trainer:", !!trainer, "studentId:", studentId);
     if (!user) { 
       navigate(`/student/login?redirect=${encodeURIComponent(window.location.pathname)}`); 
       return; 
     }
-    if (role !== "student") { return; }
+    if (role !== "student") {
+      console.log("[Enroll] Not a student role, aborting");
+      navigate(`/student/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
     let sid = studentId;
     if (!sid) {
-      const { data: s } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+      const { data: s, error } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
+      console.log("[Enroll] fetched student:", s, "error:", error);
       if (s) { 
         sid = s.id;
         setStudentId(s.id); 
       } else {
+        console.log("[Enroll] No student record found");
         return;
       }
     }
+    console.log("[Enroll] Opening modal. sid:", sid);
     setShowEnrollModal(true);
   };
 

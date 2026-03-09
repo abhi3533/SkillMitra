@@ -78,7 +78,7 @@ const AdminCommunications = () => {
         channel,
       } as any);
 
-      toast({ title: "Sent!", description: `Message sent to ${userIds.length} users.` });
+      toast({ title: "Sent!", description: `Message sent to ${userIds.length} users.`, variant: "success" });
       setSubject("");
       setBody("");
 

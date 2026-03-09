@@ -26,7 +26,7 @@ const AdminPayouts = () => {
     const { error } = await supabase.from("payout_requests").update(updates).eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     setPayouts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
-    toast({ title: `Payout ${status}` });
+    toast({ title: `Payout ${status}`, variant: "success" });
   };
 
   return (

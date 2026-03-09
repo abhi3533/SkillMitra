@@ -47,7 +47,7 @@ const TrainerEarnings = () => {
       });
       if (error) throw error;
       await supabase.from("trainers").update({ available_balance: (trainer.available_balance || 0) - amount }).eq("id", trainer.id);
-      toast({ title: "Payout requested!", description: "Will be processed within 2-3 business days." });
+      toast({ title: "Payout requested!", description: "Will be processed within 2-3 business days.", variant: "success" });
       setDialogOpen(false);
       setPayoutAmount("");
     } catch (err: any) {

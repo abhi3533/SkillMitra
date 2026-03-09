@@ -163,7 +163,7 @@ const StudentSessions = () => {
       }
 
       setSessions(prev => prev.map(s => s.id === postponeModal.id ? { ...s, scheduled_at: newDate.toISOString() } : s));
-      toast({ title: "Session rescheduled ✅", description: "Trainer has been notified." });
+      toast({ title: "Session rescheduled ✅", description: "Trainer has been notified.", variant: "success" });
       setPostponeModal(null);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

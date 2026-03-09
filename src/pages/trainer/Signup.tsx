@@ -112,7 +112,7 @@ const TrainerSignup = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "Photo must be less than 5MB", variant: "destructive" });
+        toast({ title: "Photo must be less than 5MB", variant: "warning" });
         return;
       }
       setProfilePhoto(file);
@@ -155,45 +155,45 @@ const TrainerSignup = () => {
       setTouched(newTouched);
 
       if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.city.trim() || !form.state || !form.gender) {
-        toast({ title: "Please fill all required fields", variant: "destructive" });
+        toast({ title: "Please fill all required fields", variant: "warning" });
         return false;
       }
       if (!isValidEmail(form.email)) {
-        toast({ title: "Please enter a valid email address", variant: "destructive" });
+        toast({ title: "Please enter a valid email address", variant: "warning" });
         return false;
       }
       if (emailError) return false;
       if (!isValidPhone(form.phone)) {
-        toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "destructive" });
+        toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "warning" });
         return false;
       }
       if (!isPasswordValid(form.password)) {
-        toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+        toast({ title: "Password doesn't meet all requirements", variant: "warning" });
         return false;
       }
       if (form.password !== confirmPassword) {
-        toast({ title: "Passwords do not match", variant: "destructive" });
+        toast({ title: "Passwords do not match", variant: "warning" });
         return false;
       }
     }
     if (s === 1) {
-      if (skills.length === 0) { toast({ title: "Select at least one skill", variant: "destructive" }); return false; }
-      if (!form.experience.trim()) { toast({ title: "Years of experience is required", variant: "destructive" }); return false; }
-      if (!form.currentRole.trim()) { toast({ title: "Current role is required", variant: "destructive" }); return false; }
-      if (!form.currentCompany.trim()) { toast({ title: "Current company is required", variant: "destructive" }); return false; }
-      if (teachLangs.length === 0) { toast({ title: "Select at least one teaching language", variant: "destructive" }); return false; }
-      if (!form.bio.trim()) { toast({ title: "Please add your bio", variant: "destructive" }); return false; }
+      if (skills.length === 0) { toast({ title: "Select at least one skill", variant: "warning" }); return false; }
+      if (!form.experience.trim()) { toast({ title: "Years of experience is required", variant: "warning" }); return false; }
+      if (!form.currentRole.trim()) { toast({ title: "Current role is required", variant: "warning" }); return false; }
+      if (!form.currentCompany.trim()) { toast({ title: "Current company is required", variant: "warning" }); return false; }
+      if (teachLangs.length === 0) { toast({ title: "Select at least one teaching language", variant: "warning" }); return false; }
+      if (!form.bio.trim()) { toast({ title: "Please add your bio", variant: "warning" }); return false; }
     }
     if (s === 2) {
       if (!docs["government_id"]?.file) {
-        toast({ title: "Government ID is required for verification", variant: "destructive" });
+        toast({ title: "Government ID is required for verification", variant: "warning" });
         return false;
       }
     }
     if (s === 3) {
       const hasSlot = Object.values(availability).some(v => v.checked);
       if (!hasSlot) {
-        toast({ title: "Select at least one availability slot", variant: "destructive" });
+        toast({ title: "Select at least one availability slot", variant: "warning" });
         return false;
       }
     }
@@ -216,7 +216,7 @@ const TrainerSignup = () => {
 
   const handleSubmit = async () => {
     if (!validateStep(4)) return;
-    if (!agreed) { toast({ title: "Please agree to the terms", variant: "destructive" }); return; }
+    if (!agreed) { toast({ title: "Please agree to the terms", variant: "warning" }); return; }
     setLoading(true);
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -322,7 +322,7 @@ const TrainerSignup = () => {
         body: { new_user_id: userId, role: "trainer" },
       }).catch(e => console.error("Trainer profile matching error:", e));
 
-      toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message." });
+      toast({ title: "Application submitted!", description: "We'll review your profile within 48 hours. Check your email for a welcome message.", variant: "success" });
       navigate("/trainer/signup/thankyou");
     } catch (err: any) {
       console.error("Trainer signup error:", err);

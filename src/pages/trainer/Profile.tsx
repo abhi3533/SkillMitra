@@ -174,7 +174,7 @@ const TrainerProfile = () => {
     if (!requireAuth("enroll")) return;
     const c = course || courses[0];
     if (!c) {
-      toast({ title: "No courses available for this trainer", variant: "info" as any });
+      toast({ title: "No courses available for this trainer", variant: "info" });
       return;
     }
     setEnrollCourse(c);
@@ -192,13 +192,13 @@ const TrainerProfile = () => {
 
   const handleBookTrial = async () => {
     if (!trialDate || !trialTime) {
-      toast({ title: "Please select a date and time", variant: "destructive" });
+      toast({ title: "Please select a date and time", variant: "warning" });
       return;
     }
 
     // For demo trainers, show success without DB
     if (isDemo(resolvedId || "")) {
-      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" as any });
+      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" });
       setShowTrialModal(false);
       return;
     }
@@ -261,7 +261,7 @@ const TrainerProfile = () => {
         action_url: "/trainer/sessions",
       });
 
-      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" as any });
+      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" });
       setShowTrialModal(false);
     } catch (err: any) {
       console.error(err);

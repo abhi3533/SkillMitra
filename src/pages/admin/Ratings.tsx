@@ -66,7 +66,7 @@ const AdminRatings = () => {
 
   const deleteRating = async (id: string) => {
     await supabase.from("ratings").delete().eq("id", id);
-    toast({ title: "Rating deleted" });
+    toast({ title: "Rating deleted", variant: "success" });
     fetchData();
   };
 

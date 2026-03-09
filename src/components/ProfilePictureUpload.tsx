@@ -30,11 +30,11 @@ const ProfilePictureUpload = ({ userId, currentUrl, fullName, size = "md", onUpl
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast({ title: "Please select an image file", variant: "destructive" });
+      toast({ title: "Please select an image file", variant: "warning" });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Image must be under 5MB", variant: "destructive" });
+      toast({ title: "Image must be under 5MB", variant: "warning" });
       return;
     }
 
@@ -62,7 +62,7 @@ const ProfilePictureUpload = ({ userId, currentUrl, fullName, size = "md", onUpl
 
       setImageUrl(publicUrl);
       onUpload?.(publicUrl);
-      toast({ title: "Profile picture updated!" });
+      toast({ title: "Profile picture updated!", variant: "success" });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {

@@ -113,7 +113,7 @@ const RatingModal = ({ type, sessionId, enrollmentId, studentId, trainerId, targ
         }
       }
 
-      toast({ title: "Rating submitted!", description: "Thank you for your feedback." });
+      toast({ title: "Rating submitted!", description: "Thank you for your feedback.", variant: "success" });
       onSubmitted();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

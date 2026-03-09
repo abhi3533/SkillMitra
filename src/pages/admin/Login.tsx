@@ -36,7 +36,7 @@ const AdminLogin = () => {
         throw new Error("You do not have admin access.");
       }
       navigate("/admin/dashboard");
-      toast({ title: "Welcome, Admin!", variant: "success" as any });
+      toast({ title: "Welcome, Admin!", variant: "success" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });
     } finally {

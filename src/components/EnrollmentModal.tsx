@@ -95,7 +95,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
     try {
       if (course.id?.startsWith("demo-")) {
-        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!" });
+        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!", variant: "info" });
         onClose();
         return;
       }
@@ -149,7 +149,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         });
       }
 
-      toast({ title: "Trial Booked!", description: "Your free trial session has been scheduled." });
+      toast({ title: "Trial Booked!", description: "Your free trial session has been scheduled.", variant: "success" });
       onClose();
       navigate("/student/sessions");
     } catch (err: any) {
@@ -166,7 +166,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
     try {
       if (course.id?.startsWith("demo-")) {
-        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!" });
+        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!", variant: "info" });
         onClose();
         return;
       }
@@ -215,7 +215,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               throw new Error(verifyData?.error || "Payment verification failed");
             }
 
-            toast({ title: "Enrolled Successfully! 🎉", description: "Payment confirmed. Check your sessions page." });
+            toast({ title: "Enrolled Successfully! 🎉", description: "Payment confirmed. Check your sessions page.", variant: "success" });
             onClose();
             navigate(`/student/receipt/${verifyData.enrollment_id}`);
           } catch (err: any) {
@@ -226,7 +226,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         modal: {
           ondismiss: () => {
             setSubmitting(false);
-            toast({ title: "Payment Cancelled", description: "You can try again anytime." });
+            toast({ title: "Payment Cancelled", description: "You can try again anytime.", variant: "info" });
           },
         },
       };

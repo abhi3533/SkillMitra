@@ -73,7 +73,7 @@ const StudentProfile = () => {
       ]);
       if (profileRes.error) throw profileRes.error;
       if (studentRes.error) throw studentRes.error;
-      toast({ title: "Profile updated!" });
+      toast({ title: "Profile updated!", variant: "success" });
       setEditing(false);
     } catch (err: any) {
       toast({ title: "Update failed", description: err.message, variant: "destructive" });

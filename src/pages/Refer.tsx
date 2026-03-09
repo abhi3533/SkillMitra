@@ -91,7 +91,7 @@ const ReferPage = () => {
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
-    toast({ title: "Copied!", description: "Referral link copied to clipboard" });
+    toast({ title: "Copied!", description: "Referral link copied to clipboard", variant: "success" });
   };
 
   const shareWhatsApp = () => {

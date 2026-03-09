@@ -139,7 +139,7 @@ const StudentSessions = () => {
 
   const handlePostpone = async () => {
     if (!postponeData.date || !postponeData.time) {
-      toast({ title: "Please select date and time", variant: "destructive" });
+      toast({ title: "Please select date and time", variant: "warning" });
       return;
     }
     setPostponing(true);
@@ -163,7 +163,7 @@ const StudentSessions = () => {
       }
 
       setSessions(prev => prev.map(s => s.id === postponeModal.id ? { ...s, scheduled_at: newDate.toISOString() } : s));
-      toast({ title: "Session rescheduled ✅", description: "Trainer has been notified." });
+      toast({ title: "Session rescheduled ✅", description: "Trainer has been notified.", variant: "success" });
       setPostponeModal(null);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

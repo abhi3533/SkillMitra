@@ -76,7 +76,7 @@ const AdminReferrals = () => {
     if (error) {
       toast({ title: "Failed to update", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Updated", description: `Referral marked as ${newStatus}` });
+      toast({ title: "Updated", description: `Referral marked as ${newStatus}`, variant: "success" });
       loadData();
     }
   };

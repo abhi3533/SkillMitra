@@ -158,7 +158,7 @@ const TrainerSessions = () => {
 
   const handleCreateSession = async () => {
     if (!newSession.enrollmentId || !newSession.date || !newSession.time) {
-      toast({ title: "Please fill required fields", description: "Student, date and time are required.", variant: "destructive" });
+      toast({ title: "Please fill required fields", description: "Student, date and time are required.", variant: "warning" });
       return;
     }
     setCreating(true);
@@ -196,7 +196,7 @@ const TrainerSessions = () => {
         });
       }
 
-      toast({ title: "Session scheduled! ✅", description: "Student has been notified.", variant: "success" as any });
+      toast({ title: "Session scheduled! ✅", description: "Student has been notified.", variant: "success" });
       setSheetOpen(false);
       await fetchSessions();
     } catch (err: any) {
@@ -211,14 +211,14 @@ const TrainerSessions = () => {
     const update = (list: any[]) => list.map(s => s.id === sessionId ? { ...s, notes: noteText } : s);
     setTodaySessions(update); setUpcomingSessions(update); setPastSessions(update);
     setEditingNotes(null);
-    toast({ title: "Notes saved" });
+    toast({ title: "Notes saved", variant: "success" });
   };
 
   const saveRecording = async (sessionId: string) => {
     await supabase.from("course_sessions").update({ recording_url: recordingUrl }).eq("id", sessionId);
     setPastSessions(prev => prev.map(s => s.id === sessionId ? { ...s, recording_url: recordingUrl } : s));
     setEditingRecording(null);
-    toast({ title: "Recording URL saved" });
+    toast({ title: "Recording URL saved", variant: "success" });
   };
 
   const saveMeetLink = async (sessionId: string) => {
@@ -226,7 +226,7 @@ const TrainerSessions = () => {
     const update = (list: any[]) => list.map(s => s.id === sessionId ? { ...s, meet_link: meetLinkText } : s);
     setTodaySessions(update); setUpcomingSessions(update); setPastSessions(update);
     setEditingMeetLink(null);
-    toast({ title: "Meet link saved ✅" });
+    toast({ title: "Meet link saved ✅", variant: "success" });
   };
 
   const canJoin = (scheduledAt: string | null) => {
@@ -253,7 +253,7 @@ const TrainerSessions = () => {
 
   const handlePostpone = async () => {
     if (!postponeData.date || !postponeData.time) {
-      toast({ title: "Please select date and time", variant: "destructive" });
+      toast({ title: "Please select date and time", variant: "warning" });
       return;
     }
     setPostponing(true);
@@ -276,7 +276,7 @@ const TrainerSessions = () => {
         });
       }
 
-      toast({ title: "Session rescheduled ✅", description: "Student has been notified." });
+      toast({ title: "Session rescheduled ✅", description: "Student has been notified.", variant: "success" });
       setPostponeModal(null);
       await fetchSessions();
     } catch (err: any) {

@@ -73,7 +73,7 @@ const Contact = () => {
       toast({
         title: "Your message has been sent successfully!",
         description: "We will get back to you within 24 hours.",
-        variant: "success" as any,
+        variant: "success",
       });
       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
       setTouched({});

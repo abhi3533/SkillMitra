@@ -88,11 +88,11 @@ const StudentLogin = () => {
             toast({
               title: "Email not verified",
               description: "Please verify your email first. Check your inbox for the confirmation link.",
-              variant: "destructive",
+              variant: "warning",
               action: (
                 <Button variant="outline" size="sm" onClick={async () => {
                   await supabase.auth.resend({ type: "signup", email });
-                  toast({ title: "Verification email resent!" });
+                  toast({ title: "Verification email resent!", variant: "info" });
                 }}>
                   Resend
                 </Button>
@@ -123,7 +123,7 @@ const StudentLogin = () => {
         else if (roleData === "trainer") navigate("/trainer/dashboard");
         else if (roleData === "admin") navigate("/admin");
         else navigate("/student/dashboard");
-        toast({ title: "Signed in successfully", variant: "success" as any });
+        toast({ title: "Signed in successfully", variant: "success" });
         return;
       } catch (err: any) {
         lastError = err;

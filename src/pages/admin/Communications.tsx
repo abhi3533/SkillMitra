@@ -31,7 +31,7 @@ const AdminCommunications = () => {
 
   const handleSend = async () => {
     if (!subject.trim() || !body.trim()) {
-      toast({ title: "Missing fields", description: "Subject and body are required.", variant: "destructive" });
+      toast({ title: "Missing fields", description: "Subject and body are required.", variant: "warning" });
       return;
     }
     setSending(true);
@@ -78,7 +78,7 @@ const AdminCommunications = () => {
         channel,
       } as any);
 
-      toast({ title: "Sent!", description: `Message sent to ${userIds.length} users.` });
+      toast({ title: "Sent!", description: `Message sent to ${userIds.length} users.`, variant: "success" });
       setSubject("");
       setBody("");
 

@@ -42,7 +42,7 @@ const AdminTrainers = () => {
     setTrainers(prev => prev.map(t => t.id === id ? { ...t, ...update } : t));
     setDrawerOpen(false);
     setRejectTarget(null);
-    toast({ title: `Trainer ${status}!`, description: status === "approved" ? "The trainer can now create courses." : "The trainer has been notified." });
+    toast({ title: `Trainer ${status}!`, description: status === "approved" ? "The trainer can now create courses." : "The trainer has been notified.", variant: "success" });
 
     // Send email notification via send-email (fire-and-forget)
     const trainer = trainers.find(t => t.id === id);

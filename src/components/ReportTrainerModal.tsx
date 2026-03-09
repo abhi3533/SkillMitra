@@ -23,11 +23,11 @@ const ReportTrainerModal = ({ trainerId, trainerName, onClose }: { trainerId: st
 
   const handleSubmit = async () => {
     if (!reason) {
-      toast({ title: "Please select a reason", variant: "destructive" });
+      toast({ title: "Please select a reason", variant: "warning" });
       return;
     }
     if (!user) {
-      toast({ title: "Please log in to report", variant: "destructive" });
+      toast({ title: "Please log in to report", variant: "warning" });
       return;
     }
     setLoading(true);
@@ -39,7 +39,7 @@ const ReportTrainerModal = ({ trainerId, trainerName, onClose }: { trainerId: st
         status: "open",
       });
       if (error) throw error;
-      toast({ title: "Report submitted", description: "Our team will review this report within 48 hours." });
+      toast({ title: "Report submitted", description: "Our team will review this report within 48 hours.", variant: "success" });
       onClose();
     } catch (err: any) {
       toast({ title: "Failed to submit report", description: err.message, variant: "destructive" });

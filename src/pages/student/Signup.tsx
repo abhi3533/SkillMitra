@@ -102,25 +102,25 @@ const StudentSignup = () => {
     setTouched(newTouched);
 
     if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.city.trim() || !form.state || !form.gender) {
-      toast({ title: "Please fill all required fields", variant: "destructive" });
+      toast({ title: "Please fill all required fields", variant: "warning" });
       setTimeout(scrollToFirstError, 100);
       return;
     }
     if (!isValidEmail(form.email)) {
-      toast({ title: "Please enter a valid email address", variant: "destructive" });
+      toast({ title: "Please enter a valid email address", variant: "warning" });
       return;
     }
     if (emailError) return;
     if (!isPasswordValid(form.password)) {
-      toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+      toast({ title: "Password doesn't meet all requirements", variant: "warning" });
       return;
     }
     if (form.password !== confirmPassword) {
-      toast({ title: "Passwords do not match", variant: "destructive" });
+      toast({ title: "Passwords do not match", variant: "warning" });
       return;
     }
     if (!isValidPhone(form.phone)) {
-      toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "destructive" });
+      toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "warning" });
       return;
     }
     setLoading(true);
@@ -177,7 +177,7 @@ const StudentSignup = () => {
         }).then(({ error: fnErr }) => { if (fnErr) console.error("Profile matching error:", fnErr); });
       }
 
-      toast({ title: "Account created!", description: "Please check your email to verify your account." });
+      toast({ title: "Account created!", description: "Please check your email to verify your account.", variant: "success" });
       navigate("/student/login");
     } catch (err: any) {
       toast({ title: "Signup failed", description: getAuthErrorMessage(err), variant: "destructive" });

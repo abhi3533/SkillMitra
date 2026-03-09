@@ -45,7 +45,7 @@ const AdminCourses = () => {
     setCourses(prev => prev.map(c => c.id === id ? { ...c, approval_status: status, is_active: status === "approved" } : c));
     if (selectedCourse?.id === id) setSelectedCourse((prev: any) => prev ? { ...prev, approval_status: status } : prev);
     setDrawerOpen(false);
-    toast({ title: `Course ${status}!`, description: status === "approved" ? "The course is now visible to students." : "The trainer will be notified." });
+    toast({ title: `Course ${status}!`, description: status === "approved" ? "The course is now visible to students." : "The trainer will be notified.", variant: "success" });
   };
 
   const filtered = courses

@@ -21,11 +21,11 @@ const SessionReflectionModal = ({ sessionId, studentId, sessionTitle, onClose, o
 
   const handleSubmit = async () => {
     if (!learnedToday.trim()) {
-      toast({ title: "Please describe what you learned today", variant: "destructive" });
+      toast({ title: "Please describe what you learned today", variant: "warning" });
       return;
     }
     if (confidence === 0) {
-      toast({ title: "Please rate your confidence level", variant: "destructive" });
+      toast({ title: "Please rate your confidence level", variant: "warning" });
       return;
     }
 
@@ -41,7 +41,7 @@ const SessionReflectionModal = ({ sessionId, studentId, sessionTitle, onClose, o
     if (error) {
       toast({ title: "Failed to save reflection", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Reflection saved! 🎉" });
+      toast({ title: "Reflection saved! 🎉", variant: "success" });
       onSubmitted();
     }
     setSubmitting(false);

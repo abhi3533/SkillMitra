@@ -21,7 +21,7 @@ const SessionReflectionModal = ({ sessionId, studentId, sessionTitle, onClose, o
 
   const handleSubmit = async () => {
     if (!learnedToday.trim()) {
-      toast({ title: "Please describe what you learned today", variant: "destructive" });
+      toast({ title: "Please describe what you learned today", variant: "warning" });
       return;
     }
     if (confidence === 0) {

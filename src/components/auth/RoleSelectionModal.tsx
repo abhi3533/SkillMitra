@@ -42,7 +42,7 @@ const RoleSelectionModal = ({ open, onClose, userId, userEmail, userName }: Role
           referral_code: referralCode,
           trainer_gender_preference: "no_preference",
         });
-        toast({ title: "Welcome to SkillMitra! 🎉", description: "Your student account is ready.", variant: "success" as any });
+        toast({ title: "Welcome to SkillMitra! 🎉", description: "Your student account is ready.", variant: "success" });
         navigate("/student/dashboard");
       } else {
         const referralCode = 'TM-' + Math.random().toString(36).substring(2, 8).toUpperCase();

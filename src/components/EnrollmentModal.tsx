@@ -95,7 +95,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
     try {
       if (course.id?.startsWith("demo-")) {
-        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!" });
+        toast({ title: "Demo Course", description: "This is a demo course. Sign up to enroll in real courses!", variant: "info" });
         onClose();
         return;
       }

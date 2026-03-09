@@ -93,7 +93,7 @@ const TrainerStudentProgress = ({ trainerId }: Props) => {
   };
 
   const handleFlag = (name: string) => {
-    toast({ title: `${name} flagged for extra attention` });
+    toast({ title: `${name} flagged for extra attention`, variant: "info" });
   };
 
   if (loading) return <div className="space-y-2 mt-4">{[1, 2].map(i => <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />)}</div>;

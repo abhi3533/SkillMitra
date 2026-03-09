@@ -41,7 +41,7 @@ const SessionReflectionModal = ({ sessionId, studentId, sessionTitle, onClose, o
     if (error) {
       toast({ title: "Failed to save reflection", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Reflection saved! 🎉" });
+      toast({ title: "Reflection saved! 🎉", variant: "success" });
       onSubmitted();
     }
     setSubmitting(false);

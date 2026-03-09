@@ -215,7 +215,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               throw new Error(verifyData?.error || "Payment verification failed");
             }
 
-            toast({ title: "Enrolled Successfully! 🎉", description: "Payment confirmed. Check your sessions page." });
+            toast({ title: "Enrolled Successfully! 🎉", description: "Payment confirmed. Check your sessions page.", variant: "success" });
             onClose();
             navigate(`/student/receipt/${verifyData.enrollment_id}`);
           } catch (err: any) {

@@ -39,7 +39,7 @@ const ReportTrainerModal = ({ trainerId, trainerName, onClose }: { trainerId: st
         status: "open",
       });
       if (error) throw error;
-      toast({ title: "Report submitted", description: "Our team will review this report within 48 hours." });
+      toast({ title: "Report submitted", description: "Our team will review this report within 48 hours.", variant: "success" });
       onClose();
     } catch (err: any) {
       toast({ title: "Failed to submit report", description: err.message, variant: "destructive" });

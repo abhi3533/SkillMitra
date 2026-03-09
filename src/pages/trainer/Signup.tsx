@@ -129,7 +129,7 @@ const TrainerSignup = () => {
   // Count remaining required fields per step
   const getStepProgress = (s: number): { total: number; filled: number } => {
     if (s === 0) {
-      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim(), profilePhoto ? "yes" : ""];
+      const fields = [form.fullName.trim(), form.email.trim(), form.phone.trim(), form.city.trim(), form.state, form.gender, form.password.trim(), confirmPassword.trim()];
       return { total: fields.length, filled: fields.filter(Boolean).length };
     }
     if (s === 1) {
@@ -154,10 +154,6 @@ const TrainerSignup = () => {
       allKeys.forEach(k => newTouched[k] = true);
       setTouched(newTouched);
 
-      if (!profilePhoto) {
-        toast({ title: "Profile photo is required", variant: "destructive" });
-        return false;
-      }
       if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim() || !form.city.trim() || !form.state || !form.gender) {
         toast({ title: "Please fill all required fields", variant: "destructive" });
         return false;
@@ -406,7 +402,7 @@ const TrainerSignup = () => {
               </div>
               {/* Profile Photo Upload */}
               <div className="flex flex-col items-center gap-3">
-                <Label className="text-sm font-medium">Profile Photo<RequiredMark /></Label>
+                <Label className="text-sm font-medium">Profile Photo</Label>
                 <div className="relative">
                   {profilePhotoPreview ? (
                     <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
@@ -418,15 +414,14 @@ const TrainerSignup = () => {
                     </div>
                   ) : (
                     <button type="button" onClick={() => profilePhotoRef.current?.click()}
-                      className={`w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${stepAttempted[0] && !profilePhoto ? 'border-destructive bg-destructive/5' : 'border-border hover:border-primary/50 bg-muted/50'}`}>
+                      className="w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors border-border hover:border-primary/50 bg-muted/50">
                       <Camera className="w-6 h-6 text-muted-foreground" />
                       <span className="text-[10px] text-muted-foreground">Upload</span>
                     </button>
                   )}
                   <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
                 </div>
-                {stepAttempted[0] && !profilePhoto && <p className="text-xs text-destructive">Profile photo is required</p>}
-                <p className="text-[11px] text-muted-foreground">JPG or PNG, max 5MB. This will be visible to students.</p>
+                <p className="text-[11px] text-muted-foreground">Optional — you can add your photo later from dashboard</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

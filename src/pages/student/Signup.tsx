@@ -343,7 +343,7 @@ const StudentSignup = () => {
                 ))}
                 <button
                   type="button"
-                  onClick={() => setOtherSelected(prev => !prev)}
+                  onClick={() => { setOtherSelected(prev => { if (prev) setOtherSkill(""); return !prev; }); }}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                     otherSelected
                       ? "hero-gradient text-primary-foreground"

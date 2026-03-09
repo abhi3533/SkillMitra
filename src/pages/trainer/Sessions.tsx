@@ -218,7 +218,7 @@ const TrainerSessions = () => {
     await supabase.from("course_sessions").update({ recording_url: recordingUrl }).eq("id", sessionId);
     setPastSessions(prev => prev.map(s => s.id === sessionId ? { ...s, recording_url: recordingUrl } : s));
     setEditingRecording(null);
-    toast({ title: "Recording URL saved" });
+    toast({ title: "Recording URL saved", variant: "success" });
   };
 
   const saveMeetLink = async (sessionId: string) => {

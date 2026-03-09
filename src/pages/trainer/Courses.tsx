@@ -101,9 +101,9 @@ const TrainerCourses = () => {
   const setField = (field: string, value: any) => setForm(f => ({ ...f, [field]: value }));
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) { toast({ title: "Course title is required", variant: "destructive" }); return; }
-    if (!form.course_fee.trim() || parseFloat(form.course_fee) <= 0) { toast({ title: "Valid course fee is required", variant: "destructive" }); return; }
-    if (!trainerId) { toast({ title: "Trainer profile not found", variant: "destructive" }); return; }
+    if (!form.title.trim()) { toast({ title: "Course title is required", variant: "warning" }); return; }
+    if (!form.course_fee.trim() || parseFloat(form.course_fee) <= 0) { toast({ title: "Valid course fee is required", variant: "warning" }); return; }
+    if (!trainerId) { toast({ title: "Trainer profile not found", variant: "warning" }); return; }
 
     setCreating(true);
     try {

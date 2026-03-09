@@ -116,7 +116,7 @@ const StudentSignup = () => {
       return;
     }
     if (form.password !== confirmPassword) {
-      toast({ title: "Passwords do not match", variant: "destructive" });
+      toast({ title: "Passwords do not match", variant: "warning" });
       return;
     }
     if (!isValidPhone(form.phone)) {

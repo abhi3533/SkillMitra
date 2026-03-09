@@ -89,6 +89,7 @@ const Navbar = () => {
   };
 
   const isLoggedIn = !!user && !!role;
+  const navLinks = getNavLinks(role);
   const roleConfig = getRoleConfig(role);
   const firstName = profile?.full_name?.split(" ")[0] || user?.user_metadata?.full_name?.split(" ")[0] || "";
   const initial = firstName?.charAt(0)?.toUpperCase() || "U";

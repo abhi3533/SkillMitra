@@ -168,7 +168,7 @@ const TrainerSignup = () => {
         return false;
       }
       if (!isPasswordValid(form.password)) {
-        toast({ title: "Password doesn't meet all requirements", variant: "destructive" });
+        toast({ title: "Password doesn't meet all requirements", variant: "warning" });
         return false;
       }
       if (form.password !== confirmPassword) {

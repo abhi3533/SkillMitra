@@ -68,15 +68,20 @@ const CourseDetail = () => {
   };
 
   const handleEnrollClick = async () => {
-    if (!user) { navigate("/student/login"); return; }
-    if (role !== "student") { return; }
-    let sid = studentId;
-    if (!sid) {
-      const { data: s } = await supabase.from("students").select("id").eq("user_id", user.id).single();
-      if (s) { sid = s.id; setStudentId(s.id); }
-      else return;
+    if (!user) { 
+      navigate(`/student/login?redirect=${encodeURIComponent(window.location.pathname)}`); 
+      return; 
     }
-    setStudentId(sid);
+    if (role !== "student") { return; }
+    if (!studentId) {
+      const { data: s } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+      if (s) { 
+        setStudentId(s.id); 
+        // Wait for next render cycle so studentId is available for EnrollmentModal
+        requestAnimationFrame(() => setShowEnrollModal(true));
+      }
+      return;
+    }
     setShowEnrollModal(true);
   };
 
@@ -364,7 +369,7 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {showEnrollModal && trainer && studentId && (
+      {trainer && studentId && (
         <EnrollmentModal
           open={showEnrollModal}
           onClose={() => setShowEnrollModal(false)}

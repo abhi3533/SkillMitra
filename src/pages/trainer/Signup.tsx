@@ -386,11 +386,9 @@ const TrainerSignup = () => {
             </div>
           )}
           <h1 className="text-2xl font-bold text-foreground">{steps[step]}</h1>
-          {progress.total > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Step {step + 1} of {steps.length} — {remaining > 0 ? `${remaining} field${remaining > 1 ? "s" : ""} remaining` : <span className="text-green-600">All fields complete ✓</span>}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground mt-1">
+            Step {step + 1} of {steps.length} — {steps[step]}
+          </p>
 
           {/* Step 0: Personal Info */}
           {step === 0 && (

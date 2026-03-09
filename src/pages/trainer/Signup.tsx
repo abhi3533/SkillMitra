@@ -193,7 +193,7 @@ const TrainerSignup = () => {
     if (s === 3) {
       const hasSlot = Object.values(availability).some(v => v.checked);
       if (!hasSlot) {
-        toast({ title: "Select at least one availability slot", variant: "destructive" });
+        toast({ title: "Select at least one availability slot", variant: "warning" });
         return false;
       }
     }

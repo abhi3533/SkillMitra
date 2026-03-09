@@ -50,6 +50,7 @@ const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
 const StudentWallet = lazy(() => import("./pages/student/Wallet"));
 const StudentAttendance = lazy(() => import("./pages/student/StudentAttendance"));
 const StudentSessions = lazy(() => import("./pages/student/Sessions"));
+const StudentReceipt = lazy(() => import("./pages/student/Receipt"));
 
 // Lazy-loaded Trainer pages
 const TrainerLogin = lazy(() => import("./pages/trainer/Login"));

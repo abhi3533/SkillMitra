@@ -25,7 +25,7 @@ const SessionReflectionModal = ({ sessionId, studentId, sessionTitle, onClose, o
       return;
     }
     if (confidence === 0) {
-      toast({ title: "Please rate your confidence level", variant: "destructive" });
+      toast({ title: "Please rate your confidence level", variant: "warning" });
       return;
     }
 

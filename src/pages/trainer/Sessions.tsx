@@ -211,7 +211,7 @@ const TrainerSessions = () => {
     const update = (list: any[]) => list.map(s => s.id === sessionId ? { ...s, notes: noteText } : s);
     setTodaySessions(update); setUpcomingSessions(update); setPastSessions(update);
     setEditingNotes(null);
-    toast({ title: "Notes saved" });
+    toast({ title: "Notes saved", variant: "success" });
   };
 
   const saveRecording = async (sessionId: string) => {

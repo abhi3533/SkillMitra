@@ -198,7 +198,7 @@ const TrainerProfile = () => {
 
     // For demo trainers, show success without DB
     if (isDemo(resolvedId || "")) {
-      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" as any });
+      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" });
       setShowTrialModal(false);
       return;
     }

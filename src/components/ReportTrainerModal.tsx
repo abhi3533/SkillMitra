@@ -27,7 +27,7 @@ const ReportTrainerModal = ({ trainerId, trainerName, onClose }: { trainerId: st
       return;
     }
     if (!user) {
-      toast({ title: "Please log in to report", variant: "destructive" });
+      toast({ title: "Please log in to report", variant: "warning" });
       return;
     }
     setLoading(true);

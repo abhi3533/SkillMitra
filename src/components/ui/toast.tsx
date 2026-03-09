@@ -28,10 +28,10 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: "border-border bg-background text-foreground",
-        destructive: "border-red-200 bg-[#FEF2F2] text-red-800",
-        info: "border-blue-200 bg-[#1A56DB] text-white",
-        success: "border-emerald-200 bg-[#10B981] text-white",
-        warning: "border-amber-200 bg-[#F59E0B] text-amber-900",
+        destructive: "border-red-200 bg-[#FEF2F2] text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200",
+        info: "border-blue-200 bg-[#1A56DB] text-white dark:border-blue-700 dark:bg-blue-900 dark:text-blue-100",
+        success: "border-emerald-200 bg-[#10B981] text-white dark:border-emerald-700 dark:bg-emerald-900 dark:text-emerald-100",
+        warning: "border-amber-200 bg-[#F59E0B] text-amber-900 dark:border-amber-700 dark:bg-amber-900 dark:text-amber-100",
       },
     },
     defaultVariants: {

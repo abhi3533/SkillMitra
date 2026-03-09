@@ -112,7 +112,7 @@ const TrainerSignup = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "Photo must be less than 5MB", variant: "destructive" });
+        toast({ title: "Photo must be less than 5MB", variant: "warning" });
         return;
       }
       setProfilePhoto(file);

@@ -226,7 +226,7 @@ const TrainerSessions = () => {
     const update = (list: any[]) => list.map(s => s.id === sessionId ? { ...s, meet_link: meetLinkText } : s);
     setTodaySessions(update); setUpcomingSessions(update); setPastSessions(update);
     setEditingMeetLink(null);
-    toast({ title: "Meet link saved ✅" });
+    toast({ title: "Meet link saved ✅", variant: "success" });
   };
 
   const canJoin = (scheduledAt: string | null) => {

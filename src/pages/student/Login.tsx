@@ -88,7 +88,7 @@ const StudentLogin = () => {
             toast({
               title: "Email not verified",
               description: "Please verify your email first. Check your inbox for the confirmation link.",
-              variant: "destructive",
+              variant: "warning",
               action: (
                 <Button variant="outline" size="sm" onClick={async () => {
                   await supabase.auth.resend({ type: "signup", email });

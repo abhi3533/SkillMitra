@@ -373,7 +373,7 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {showEnrollModal && trainer && studentId && (
+      {trainer && studentId && (
         <EnrollmentModal
           open={showEnrollModal}
           onClose={() => setShowEnrollModal(false)}

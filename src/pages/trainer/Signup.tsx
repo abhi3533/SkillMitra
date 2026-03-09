@@ -159,7 +159,7 @@ const TrainerSignup = () => {
         return false;
       }
       if (!isValidEmail(form.email)) {
-        toast({ title: "Please enter a valid email address", variant: "destructive" });
+        toast({ title: "Please enter a valid email address", variant: "warning" });
         return false;
       }
       if (emailError) return false;

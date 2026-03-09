@@ -342,10 +342,16 @@ const TrainerSignup = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-5/12 hero-gradient items-center justify-center p-12 sticky top-0 h-screen overflow-hidden">
         <div className="max-w-md">
           <SkillMitraLogo darkText={false} height={40} className="mb-12" />
-          <h2 className="text-3xl font-bold text-primary-foreground">Share your expertise. Earn from home.</h2>
+          <h2 className="text-3xl font-bold text-primary-foreground">
+            {step === 0 && "Start earning from your expertise"}
+            {step === 1 && "Average trainer earns ₹25,000/month"}
+            {step === 2 && "You are in control of your schedule"}
+            {step === 3 && "You are in control of your schedule"}
+            {step === 4 && "Almost done — join 50+ verified trainers"}
+          </h2>
           <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join verified trainers earning from home teaching skills they love.</p>
           <div className="mt-10 space-y-4">
             {steps.map((s, i) => (

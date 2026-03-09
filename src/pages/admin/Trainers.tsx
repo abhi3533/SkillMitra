@@ -42,27 +42,24 @@ const AdminTrainers = () => {
     setTrainers(prev => prev.map(t => t.id === id ? { ...t, ...update } : t));
     setDrawerOpen(false);
     setRejectTarget(null);
-    toast({ title: `Trainer ${status}!`, description: status === "approved" ? "The trainer can now create courses." : "The trainer has been notified.", variant: "success" });
 
-    // Send email notification via send-email (fire-and-forget)
     const trainer = trainers.find(t => t.id === id);
-    const trainerEmail = trainer?.profiles?.email;
     const trainerName = trainer?.profiles?.full_name || "Trainer";
-    if (trainerEmail) {
-      supabase.functions.invoke("send-email", {
-        body: {
-          type: status === "approved" ? "trainer_approved" : "trainer_rejected",
-          to: trainerEmail,
-          data: { name: trainerName, reason: rejectionReason },
-        },
-      }).then(({ error: fnErr }) => { if (fnErr) console.error("Email error:", fnErr); });
-    }
 
-    // Also create in-app notification via old function (fire-and-forget)
+    // Send email + in-app notification via notify-trainer-status (single function handles both)
     supabase.functions.invoke("notify-trainer-status", {
       body: { trainer_id: id, status, rejection_reason: rejectionReason },
-    }).then(({ error: fnErr }) => {
-      if (fnErr) console.error("Notification error:", fnErr);
+    }).then(({ data, error: fnErr }) => {
+      if (fnErr) {
+        console.error("Notification error:", fnErr);
+        toast({ title: `Trainer ${status}`, description: "Status updated but email notification failed.", variant: "warning" });
+      } else {
+        toast({ 
+          title: `Trainer ${status}!`, 
+          description: `Email notification sent to ${trainerName}.`,
+          variant: "success",
+        });
+      }
     });
   };
 

@@ -177,12 +177,12 @@ const TrainerSignup = () => {
       }
     }
     if (s === 1) {
-      if (skills.length === 0) { toast({ title: "Select at least one skill", variant: "destructive" }); return false; }
-      if (!form.experience.trim()) { toast({ title: "Years of experience is required", variant: "destructive" }); return false; }
-      if (!form.currentRole.trim()) { toast({ title: "Current role is required", variant: "destructive" }); return false; }
-      if (!form.currentCompany.trim()) { toast({ title: "Current company is required", variant: "destructive" }); return false; }
-      if (teachLangs.length === 0) { toast({ title: "Select at least one teaching language", variant: "destructive" }); return false; }
-      if (!form.bio.trim()) { toast({ title: "Please add your bio", variant: "destructive" }); return false; }
+      if (skills.length === 0) { toast({ title: "Select at least one skill", variant: "warning" }); return false; }
+      if (!form.experience.trim()) { toast({ title: "Years of experience is required", variant: "warning" }); return false; }
+      if (!form.currentRole.trim()) { toast({ title: "Current role is required", variant: "warning" }); return false; }
+      if (!form.currentCompany.trim()) { toast({ title: "Current company is required", variant: "warning" }); return false; }
+      if (teachLangs.length === 0) { toast({ title: "Select at least one teaching language", variant: "warning" }); return false; }
+      if (!form.bio.trim()) { toast({ title: "Please add your bio", variant: "warning" }); return false; }
     }
     if (s === 2) {
       if (!docs["government_id"]?.file) {

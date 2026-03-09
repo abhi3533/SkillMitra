@@ -71,7 +71,7 @@ const ToastClose = React.forwardRef<
     ref={ref}
     className={cn(
       "absolute right-2 top-2 rounded-md p-1 opacity-60 transition-opacity hover:opacity-100 focus:outline-none focus:ring-1",
-      "group-[.bg-\\[\\#1A56DB\\]]:text-white group-[.bg-\\[\\#10B981\\]]:text-white group-[.bg-\\[\\#F59E0B\\]]:text-amber-900 group-[.bg-\\[\\#FEF2F2\\]]:text-red-500",
+      "group-[.bg-\\[\\#1A56DB\\]]:text-white group-[.bg-\\[\\#10B981\\]]:text-white group-[.bg-\\[\\#F59E0B\\]]:text-amber-900 group-[.bg-\\[\\#FEF2F2\\]]:text-red-500 dark:group-[.dark\\:bg-blue-900]:text-blue-200 dark:group-[.dark\\:bg-emerald-900]:text-emerald-200 dark:group-[.dark\\:bg-amber-900]:text-amber-200 dark:group-[.dark\\:bg-red-950]:text-red-300",
       className,
     )}
     toast-close=""

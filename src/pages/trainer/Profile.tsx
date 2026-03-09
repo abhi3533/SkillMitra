@@ -261,7 +261,7 @@ const TrainerProfile = () => {
         action_url: "/trainer/sessions",
       });
 
-      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" as any });
+      toast({ title: "Your free trial is booked!", description: "Check your email for details.", variant: "success" });
       setShowTrialModal(false);
     } catch (err: any) {
       console.error(err);

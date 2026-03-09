@@ -196,7 +196,7 @@ const TrainerSessions = () => {
         });
       }
 
-      toast({ title: "Session scheduled! ✅", description: "Student has been notified.", variant: "success" as any });
+      toast({ title: "Session scheduled! ✅", description: "Student has been notified.", variant: "success" });
       setSheetOpen(false);
       await fetchSessions();
     } catch (err: any) {

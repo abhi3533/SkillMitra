@@ -66,7 +66,7 @@ const AdminSettings = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Settings saved", description: "Platform settings updated successfully.", variant: "success" as any });
+      toast({ title: "Settings saved", description: "Platform settings updated successfully.", variant: "success" });
     }
     setSaving(false);
   };

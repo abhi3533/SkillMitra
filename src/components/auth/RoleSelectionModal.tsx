@@ -50,7 +50,7 @@ const RoleSelectionModal = ({ open, onClose, userId, userEmail, userName }: Role
           user_id: userId,
           referral_code: referralCode,
         });
-        toast({ title: "Welcome, Trainer! 🎉", description: "Let's complete your profile.", variant: "success" as any });
+        toast({ title: "Welcome, Trainer! 🎉", description: "Let's complete your profile.", variant: "success" });
         // Redirect to trainer signup step 2 (skills) — we pass a query param
         navigate("/trainer/dashboard");
       }

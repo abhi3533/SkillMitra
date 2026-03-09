@@ -34,7 +34,7 @@ const ProfilePictureUpload = ({ userId, currentUrl, fullName, size = "md", onUpl
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Image must be under 5MB", variant: "destructive" });
+      toast({ title: "Image must be under 5MB", variant: "warning" });
       return;
     }
 

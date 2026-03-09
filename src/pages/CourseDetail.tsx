@@ -73,20 +73,16 @@ const CourseDetail = () => {
       return; 
     }
     if (role !== "student") { return; }
-    let sid = studentId;
-    if (!sid) {
+    if (!studentId) {
       const { data: s } = await supabase.from("students").select("id").eq("user_id", user.id).single();
       if (s) { 
-        sid = s.id; 
         setStudentId(s.id); 
-      } else {
-        return;
+        // Wait for next render cycle so studentId is available for EnrollmentModal
+        requestAnimationFrame(() => setShowEnrollModal(true));
       }
+      return;
     }
-    // Use callback to ensure studentId is set before modal opens
-    setStudentId(sid);
-    // Small delay to ensure state is committed before modal checks it
-    setTimeout(() => setShowEnrollModal(true), 0);
+    setShowEnrollModal(true);
   };
 
   const loadCourseData = async () => {

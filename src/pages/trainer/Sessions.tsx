@@ -276,7 +276,7 @@ const TrainerSessions = () => {
         });
       }
 
-      toast({ title: "Session rescheduled ✅", description: "Student has been notified." });
+      toast({ title: "Session rescheduled ✅", description: "Student has been notified.", variant: "success" });
       setPostponeModal(null);
       await fetchSessions();
     } catch (err: any) {

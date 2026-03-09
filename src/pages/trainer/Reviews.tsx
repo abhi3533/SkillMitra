@@ -57,7 +57,7 @@ const TrainerReviews = () => {
     setReviews(prev => prev.map(r => r.id === ratingId ? { ...r, trainer_to_student_review: replyText } : r));
     setReplyingTo(null);
     setReplyText("");
-    toast({ title: "Reply posted" });
+    toast({ title: "Reply posted", variant: "success" });
   };
 
   const totalReviews = reviews.length;

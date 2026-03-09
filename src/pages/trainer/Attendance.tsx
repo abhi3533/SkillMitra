@@ -131,7 +131,7 @@ const TrainerAttendance = () => {
       setAttendance(prev => ({ ...prev, [s.id]: { ...prev[s.id], status: "present" } }));
     }
     setSaving(null);
-    toast({ title: "All marked present" });
+    toast({ title: "All marked present", variant: "success" });
   };
 
   const filteredSessions = selectedCourse === "all" ? sessions : sessions;

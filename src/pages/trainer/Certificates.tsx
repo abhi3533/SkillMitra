@@ -64,7 +64,7 @@ const TrainerCertificates = () => {
       });
       if (error) throw error;
 
-      toast({ title: "Certificate approved!", description: `Certificate ID generated. Student will be notified.` });
+      toast({ title: "Certificate approved!", description: `Certificate ID generated. Student will be notified.`, variant: "success" });
       setEnrollments(prev => prev.filter(e => e.id !== scoreDialog.id));
       setScoreDialog(null);
       setScores({ technical: "80", communication: "80", punctuality: "85", comments: "" });

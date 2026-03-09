@@ -58,7 +58,7 @@ const TrainerWallet = () => {
     if (error) {
       toast({ title: "Failed to submit", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted` });
+      toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted`, variant: "success" });
       setShowPayout(false);
       setPayoutAmount("");
     }

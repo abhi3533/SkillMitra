@@ -192,7 +192,7 @@ const TrainerProfile = () => {
 
   const handleBookTrial = async () => {
     if (!trialDate || !trialTime) {
-      toast({ title: "Please select a date and time", variant: "destructive" });
+      toast({ title: "Please select a date and time", variant: "warning" });
       return;
     }
 

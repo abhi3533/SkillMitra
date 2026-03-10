@@ -288,7 +288,7 @@ const TrainerDashboard = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{s.title || s.enrollments?.courses?.title || `Session #${s.session_number}`}</p>
-                    <p className="text-xs text-muted-foreground">{s.studentName} • {s.scheduled_at ? new Date(s.scheduled_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}</p>
+                    <p className="text-xs text-muted-foreground">{s.studentName} • {s.scheduled_at ? formatTimeIST(s.scheduled_at) : ""}</p>
                   </div>
                 </div>
                 {s.meet_link && (

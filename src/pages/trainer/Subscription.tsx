@@ -49,15 +49,17 @@ const TrainerSubscription = () => {
   const [selectedPlan, setSelectedPlan] = useState("");
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto pt-16">
-        <Button
-          variant="ghost"
-          className="gap-2 mb-6"
-          onClick={() => navigate("/trainer/dashboard")}
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-        </Button>
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto pt-4 sm:pt-16">
+        <div className="sticky top-0 z-10 bg-background py-3 -mx-4 px-4 sm:relative sm:mx-0 sm:px-0 sm:py-0 border-b sm:border-0 border-border mb-4 sm:mb-6">
+          <Button
+            variant="ghost"
+            className="gap-2"
+            onClick={() => navigate("/trainer/dashboard")}
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+          </Button>
+        </div>
 
         <div className="text-center mb-12">
           <div className="w-14 h-14 mx-auto rounded-2xl hero-gradient flex items-center justify-center mb-4">

@@ -39,7 +39,7 @@ const NotificationPreferences = () => {
         .from("notification_preferences" as any)
         .select("*")
         .eq("user_id", user.id)
-        .single() as any);
+        .maybeSingle() as any);
 
       if (data) {
         setPrefs({

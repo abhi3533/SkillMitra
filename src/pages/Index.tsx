@@ -544,8 +544,8 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">Why Choose Us</span>
-              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Why Students Trust SkillMitra</h2>
+              <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">Why SkillMitra</span>
+              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Why Students Choose Us</h2>
             </div>
           </ScrollReveal>
 

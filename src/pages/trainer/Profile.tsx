@@ -114,7 +114,12 @@ const TrainerProfile = () => {
           t = directData;
         }
         if (t) {
-          const profileMap = await fetchProfilesMap([t.user_id]);
+          // Use public RPC for profile to bypass RLS
+          const { data: profileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: [t.user_id] });
+          const profileMap: Record<string, any> = {};
+          (profileData || []).forEach((p: any) => {
+            profileMap[p.p_id] = { id: p.p_id, full_name: p.p_full_name, city: p.p_city, state: p.p_state, profile_picture_url: p.p_profile_picture_url, is_verified: p.p_is_verified, gender: p.p_gender };
+          });
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
           const [coursesRes, ratingsRes, availRes, docsRes] = await Promise.all([

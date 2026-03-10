@@ -127,9 +127,9 @@ const ReferPage = () => {
             {/* CTA */}
             {user && role === "student" && referralLink ? (
               <div className="mt-8 max-w-md mx-auto">
-                <div className="flex items-center gap-2 bg-card border rounded-xl p-2">
-                  <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate">{referralLink}</div>
-                  <Button onClick={copyLink} size="icon" variant="outline"><Copy className="w-4 h-4" /></Button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card border rounded-xl p-2">
+                  <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate min-w-0">{referralLink}</div>
+                  <Button onClick={copyLink} size="icon" variant="outline" className="shrink-0 self-end sm:self-auto"><Copy className="w-4 h-4" /></Button>
                 </div>
                 <div className="flex justify-center gap-3 mt-4">
                   <Button onClick={shareWhatsApp} className="gap-2 bg-emerald-600 hover:bg-emerald-700">

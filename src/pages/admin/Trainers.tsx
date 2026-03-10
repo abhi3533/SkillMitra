@@ -202,6 +202,7 @@ const AdminTrainers = () => {
                 <div className="flex items-center gap-2 shrink-0 ml-3">
                   <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
                     t.approval_status === "approved" ? "bg-emerald-50 text-emerald-700" :
+                    t.approval_status === "suspended" ? "bg-orange-50 text-orange-700" :
                     t.approval_status === "rejected" ? "bg-destructive/10 text-destructive" :
                     "bg-amber-50 text-amber-700"
                   }`}>
@@ -219,6 +220,21 @@ const AdminTrainers = () => {
                         <X className="w-3.5 h-3.5" />
                       </Button>
                     </>
+                  )}
+                  {t.approval_status === "approved" && (
+                    <>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2 border-orange-300 text-orange-700 hover:bg-orange-50" onClick={() => handleSuspendClick(t)}>
+                        <ShieldOff className="w-3.5 h-3.5" /> Suspend
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => handleRemoveClick(t)}>
+                        <Trash2 className="w-3.5 h-3.5" /> Remove
+                      </Button>
+                    </>
+                  )}
+                  {t.approval_status === "suspended" && (
+                    <Button size="sm" className="h-8 gap-1 text-xs px-2 bg-emerald-600 hover:bg-emerald-700" onClick={() => updateStatus(t.id, "approved")}>
+                      <Check className="w-3.5 h-3.5" /> Reactivate
+                    </Button>
                   )}
                 </div>
               </div>
@@ -246,6 +262,38 @@ const AdminTrainers = () => {
         trainerName={rejectTarget?.profiles?.full_name || "Trainer"}
         onConfirm={(reason) => updateStatus(rejectTarget.id, "rejected", reason)}
       />
+
+      {/* Suspend Confirmation Dialog */}
+      <Dialog open={!!suspendTarget} onOpenChange={() => setSuspendTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend Trainer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to suspend <strong>{suspendTarget?.profiles?.full_name || "this trainer"}</strong>? They will not be able to log in or be visible to students.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSuspendTarget(null)}>Cancel</Button>
+            <Button className="bg-orange-600 hover:bg-orange-700" onClick={handleSuspendConfirm}>Suspend</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Confirmation Dialog */}
+      <Dialog open={!!removeTarget} onOpenChange={() => setRemoveTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Trainer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove <strong>{removeTarget?.profiles?.full_name || "this trainer"}</strong>? This action cannot be undone. The trainer will be permanently deleted and notified via email.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRemoveTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleRemoveConfirm}>Remove Permanently</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

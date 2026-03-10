@@ -60,7 +60,7 @@ const TrainerProfile = () => {
     if (id) { setResolvedId(id); return; }
     if (!user) return;
     (async () => {
-      const { data: t } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
+      const { data: t } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
       if (t) setResolvedId(t.id);
       else setLoading(false);
     })();

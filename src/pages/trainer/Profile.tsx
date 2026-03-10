@@ -123,7 +123,7 @@ const TrainerProfile = () => {
             }
           } else {
             // Fallback: try direct query (works if user is the trainer or admin)
-            const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
+            const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).maybeSingle();
             if (!directData) {
               // Try by user_id
               const { data: byUserId } = await supabase.from("trainers").select("*").eq("user_id", resolvedId).single();

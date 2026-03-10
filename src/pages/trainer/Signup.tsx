@@ -203,6 +203,7 @@ const TrainerSignup = () => {
     if (s === 5) {
       if (!agreedTraining) { toast({ title: "Please confirm 1-on-1 training commitment", variant: "warning" }); return false; }
       if (!agreedTerms) { toast({ title: "Please agree to Terms and Conditions", variant: "warning" }); return false; }
+      if (!allReadinessChecked) { toast({ title: "Please confirm all teaching readiness items", variant: "warning" }); return false; }
     }
     return true;
   };

@@ -313,8 +313,8 @@ Deno.serve(async (req) => {
 
       await supabase.from('notifications').insert({
         user_id: studentUserId, type: 'rate_session',
-        title: '⭐ Rate Your Session',
-        body: `How was your "${courseTitle}" session? Share your feedback to help other students. [${s.id.slice(0, 8)}]`,
+        title: '⭐ How was your session?',
+        body: `Rate your "${courseTitle}" session to help other students. [${s.id.slice(0, 8)}]`,
         action_url: `/student/sessions`, icon: 'star',
       })
       results.push(`rate prompt → student ${studentUserId} for session ${s.id}`)

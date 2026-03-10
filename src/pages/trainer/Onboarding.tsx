@@ -673,7 +673,7 @@ const TrainerOnboarding = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label>PIN Code<RequiredMark /></Label>
+                  <Label>PIN Code <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
                   <Input value={form.pincode} onChange={e => update("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))} onBlur={() => markTouched("pincode")} placeholder="6 digits" maxLength={6} inputMode="numeric" className="mt-1.5 h-11" />
                 </div>
               </div>

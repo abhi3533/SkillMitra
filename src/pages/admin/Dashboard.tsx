@@ -241,7 +241,7 @@ const AdminDashboard = () => {
                   <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">{e.studentName} → {e.courses?.title || "Course"}</p>
-                      <p className="text-xs text-muted-foreground">Trainer: {e.trainerName} • {new Date(e.enrollment_date).toLocaleDateString("en-IN")}</p>
+                      <p className="text-xs text-muted-foreground">Trainer: {e.trainerName} • {formatDateIST(e.enrollment_date)}</p>
                     </div>
                     <span className="text-sm font-semibold text-foreground ml-3 whitespace-nowrap">{formatINR(Number(e.amount_paid || 0))}</span>
                   </div>

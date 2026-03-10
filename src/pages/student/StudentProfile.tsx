@@ -35,6 +35,7 @@ const StudentProfile = () => {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [gender, setGender] = useState("");
+  const [fullName, setFullName] = useState("");
   const [trainerPref, setTrainerPref] = useState("no_preference");
 
   // Skills state

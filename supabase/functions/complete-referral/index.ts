@@ -61,13 +61,14 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Find pending referral for this student
+    // Find pending or eligible referral for this student
     const { data: referral } = await supabase
       .from('referrals')
       .select('*, referrer:referrer_id(id, user_id)')
       .eq('referred_id', student_id)
-      .eq('status', 'pending')
+      .in('status', ['pending', 'eligible'])
       .single()
+
 
     if (!referral) {
       return new Response(JSON.stringify({ success: false, message: 'No pending referral found' }), {

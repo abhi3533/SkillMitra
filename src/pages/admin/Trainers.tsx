@@ -149,11 +149,13 @@ const AdminTrainers = () => {
                     <p className="font-medium text-foreground truncate">{t.profiles?.full_name || "Unknown"}</p>
                     <p className="text-xs text-muted-foreground truncate">
                       {t.profiles?.email}
+                      {t.profiles?.phone ? ` • ${t.profiles.phone}` : ""}
                       {t.experience_years ? ` • ${t.experience_years}y exp` : ""}
                       {t.skills?.length ? ` • ${t.skills.slice(0, 3).join(", ")}` : ""}
                     </p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Applied {new Date(t.created_at).toLocaleDateString("en-IN")}
+                      Applied {new Date(t.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      {t.profiles?.city ? ` • ${t.profiles.city}` : ""}
                       {t.current_company ? ` • ${t.current_role || ""} at ${t.current_company}` : ""}
                     </p>
                   </div>

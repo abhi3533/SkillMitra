@@ -135,6 +135,7 @@ const AdminTrainers = () => {
     pending: trainers.filter(t => t.approval_status === "pending").length,
     approved: trainers.filter(t => t.approval_status === "approved").length,
     rejected: trainers.filter(t => t.approval_status === "rejected").length,
+    suspended: trainers.filter(t => t.approval_status === "suspended").length,
     all: trainers.length,
   };
 

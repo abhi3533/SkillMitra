@@ -117,7 +117,7 @@ const useAuthRedirect = () => {
     if (hasRedirected.current) return;
 
     const path = location.pathname;
-    const loginPages = ["/student/login", "/trainer/login", "/admin/login", "/student/signup", "/trainer/signup"];
+    const loginPages = ["/login", "/student/login", "/trainer/login", "/admin/login", "/student/signup", "/trainer/signup"];
     const isLoginPage = loginPages.includes(path);
     const isRoot = path === "/";
     // Also handle OAuth callback paths

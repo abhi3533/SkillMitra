@@ -120,7 +120,7 @@ const AdminCourses = () => {
                       {c.trainers?.profiles?.full_name || "Unknown"} • {formatINR(Number(c.course_fee))} • {c.duration_days}d • {c.total_sessions} sessions • {c.level}
                     </p>
                     {c.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.description}</p>}
-                    <p className="text-[11px] text-muted-foreground mt-1">Submitted {new Date(c.created_at).toLocaleDateString("en-IN")}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">Submitted {formatDateIST(c.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openDetail(c)}>

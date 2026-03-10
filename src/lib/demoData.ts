@@ -83,7 +83,7 @@ export const demoTrainers = [
     total_students: 38,
     subscription_plan: "pro",
     teaching_languages: ["Malayalam", "English", "Hindi"],
-    bio: "Chartered Accountant and Finance Trainer with 7 years of experience. Helped 38+ students clear their CA exams and master accounting tools.",
+    bio: "Hi, I'm a CA with 7 years of experience. I've helped 38+ students clear their CA exams and get comfortable with Tally, GST, and accounting basics.",
     profile: { full_name: "Arjun Nair", city: "Kochi" },
     avatarColor: "#DC2626",
   },

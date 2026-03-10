@@ -144,6 +144,15 @@ const TrainerSignup = () => {
   };
   const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); if (selfieRef.current) selfieRef.current.value = ""; };
 
+  const toggleReadiness = (key: string) => setReadinessChecks(p => ({ ...p, [key]: !p[key] }));
+  const allReadinessChecked = Object.values(readinessChecks).every(Boolean);
+
+  const previewBadges = getTrainerBadges({
+    hasAadhaar: !!docs["aadhaar"]?.file || !!form.govtIdType,
+    hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file),
+    hasDemoVideo: !!docs["demo_video"]?.file,
+  });
+
   const toggleExpertise = (e: string) => setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]);
   const toggleService = (s: string) => setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
 

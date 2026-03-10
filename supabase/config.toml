@@ -31,3 +31,5 @@ project_id = "huszmetnqxrividclgad"
     verify_jwt = false
   [functions.notify-admin-new-trainer]
     verify_jwt = false
+  [functions.onboarding-reminders]
+    verify_jwt = false

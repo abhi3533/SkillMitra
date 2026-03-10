@@ -58,7 +58,7 @@ const Receipt = () => {
           .from("trainers")
           .select("user_id")
           .eq("id", enrollment.trainer_id)
-          .single();
+          .maybeSingle();
 
         let trainerName = "Trainer";
         if (trainer?.user_id) {

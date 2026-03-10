@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layouts/AdminLayout";
+import { formatDateIST } from "@/lib/dateUtils";
 
 const AdminPayments = () => {
   const [payments, setPayments] = useState<any[]>([]);

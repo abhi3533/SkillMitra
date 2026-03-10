@@ -143,11 +143,11 @@ Deno.serve(async (req) => {
 
     // Create in-app notification
     const notifTitle = status === 'approved'
-      ? 'You're approved! 🎉'
+      ? "You're approved! 🎉"
       : 'Application update'
     const notifBody = status === 'approved'
       ? 'Your trainer profile is live! You can now create courses and start teaching.'
-      : `Your application wasn't approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
+      : `Your application wasn${String.fromCharCode(39)}t approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
 
     await supabase.from('notifications').insert({
       user_id: trainer.user_id,

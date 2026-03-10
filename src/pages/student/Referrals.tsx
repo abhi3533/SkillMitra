@@ -82,7 +82,7 @@ const StudentReferrals = () => {
     };
     load();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, authLoading]);
 
   const referralCode = student?.referral_code || "";
   const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";

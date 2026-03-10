@@ -520,7 +520,7 @@ const Index = () => {
 
                     {/* Book Trial button — revealed on hover */}
                     <div className="mt-3">
-                      <Link to={`/trainer/${t.id}`}>
+                      <Link to={`/trainer/${t.slug || t.id}`}>
                         <Button size="sm" className="w-full hero-gradient text-primary-foreground font-semibold rounded-lg opacity-80 group-hover:opacity-100 transition-opacity">
                           <Play className="w-3 h-3 mr-1.5" /> Book Free Trial
                         </Button>

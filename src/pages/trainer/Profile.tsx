@@ -137,18 +137,19 @@ const TrainerProfile = () => {
           const allApproved = docs.length > 0 && docs.every(d => d.verification_status === "approved");
           setIsVerified(allApproved);
 
-          if (ratingsRes.data && ratingsRes.data.length > 0) {
-            const studentIds = ratingsRes.data.map(r => r.student_id);
-            const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
-            const sUserIds = (studentData || []).map(s => s.user_id);
-            const sProfileMap = await fetchProfilesMap(sUserIds);
-            const studentMap: Record<string, any> = {};
-            (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
-            setReviews(ratingsRes.data.map(r => ({
-              student: studentMap[r.student_id]?.full_name || "Student",
-              rating: r.student_to_trainer_rating || 5,
-              text: r.student_to_trainer_review || r.student_review_text || "Excellent training experience!",
-              date: new Date(r.created_at || "").toLocaleDateString(),
+          if (ratingsData && ratingsData.length > 0) {
+            const studentIds = ratingsData.map((r: any) => r.r_student_id);
+            const { data: sProfileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: studentIds });
+            const studentProfileMap: Record<string, any> = {};
+            (sProfileData || []).forEach((p: any) => { studentProfileMap[p.p_id] = { full_name: p.p_full_name }; });
+
+            // Need to map student_id (students table) to user_id (profiles table) — but get_public_ratings gives us r_student_id which is students.id, not user_id
+            // We can't query students table due to RLS, so just use "Student" as fallback
+            setReviews(ratingsData.slice(0, 5).map((r: any) => ({
+              student: "Student",
+              rating: r.r_student_to_trainer_rating || 5,
+              text: r.r_student_to_trainer_review || "Excellent training experience!",
+              date: r.r_student_rated_at ? new Date(r.r_student_rated_at).toLocaleDateString() : new Date(r.r_created_at || "").toLocaleDateString(),
             })));
           }
 

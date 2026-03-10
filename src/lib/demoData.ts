@@ -4,6 +4,7 @@
 export const demoTrainers = [
   {
     id: "demo-trainer-1",
+    slug: "rajesh-kumar",
     user_id: "demo-user-1",
     approval_status: "approved",
     current_role: "Senior Software Engineer",
@@ -20,6 +21,7 @@ export const demoTrainers = [
   },
   {
     id: "demo-trainer-2",
+    slug: "priya-sharma",
     user_id: "demo-user-2",
     approval_status: "approved",
     current_role: "UI/UX Designer",
@@ -36,6 +38,7 @@ export const demoTrainers = [
   },
   {
     id: "demo-trainer-3",
+    slug: "mohammed-irfan",
     user_id: "demo-user-3",
     approval_status: "approved",
     current_role: "Full Stack Developer",
@@ -52,6 +55,7 @@ export const demoTrainers = [
   },
   {
     id: "demo-trainer-4",
+    slug: "sneha-reddy",
     user_id: "demo-user-4",
     approval_status: "approved",
     current_role: "Digital Marketing Expert",
@@ -68,6 +72,7 @@ export const demoTrainers = [
   },
   {
     id: "demo-trainer-5",
+    slug: "arjun-nair",
     user_id: "demo-user-5",
     approval_status: "approved",
     current_role: "CA & Finance Trainer",
@@ -84,6 +89,7 @@ export const demoTrainers = [
   },
   {
     id: "demo-trainer-6",
+    slug: "divya-menon",
     user_id: "demo-user-6",
     approval_status: "approved",
     current_role: "Communication & Soft Skills Trainer",

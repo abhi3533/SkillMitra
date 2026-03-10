@@ -210,7 +210,7 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">{t.profileName}</p>
-                        <p className="text-xs text-muted-foreground">{(t.skills || []).slice(0, 2).join(", ") || "No skills listed"} • {new Date(t.created_at).toLocaleDateString("en-IN")}</p>
+                        <p className="text-xs text-muted-foreground">{(t.skills || []).slice(0, 2).join(", ") || "No skills listed"} • {formatDateIST(t.created_at)}</p>
                       </div>
                     </div>
                     <Link to="/admin/trainers"><Button size="sm" variant="outline" className="text-xs h-7">Review</Button></Link>

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProfilesMap } from "@/lib/profileHelpers";
+
 import { isDemo, getDemoTrainer, getDemoCourse, demoTestimonials, demoTrainers } from "@/lib/demoData";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +51,9 @@ const TrainerProfile = () => {
   const [existingTrial, setExistingTrial] = useState<any>(null);
   const [checkingTrial, setCheckingTrial] = useState(false);
 
+  // Determine if ID is a slug (demo), UUID (real), or self-profile (no id)
+  const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
   useEffect(() => {
     if (id) { setResolvedId(id); return; }
     if (!user) return;
@@ -64,38 +67,69 @@ const TrainerProfile = () => {
   useEffect(() => {
     if (!resolvedId) return;
 
-    if (isDemo(resolvedId)) {
-      const demo = getDemoTrainer(resolvedId);
-      if (demo) {
-        setTrainer(demo);
-        setCourses(getDemoCourse(resolvedId));
-        setReviews(demoTestimonials.slice(0, 2));
-        setAvailability([
-          { day_of_week: 1, start_time: "09:00", end_time: "12:00", is_available: true },
-          { day_of_week: 2, start_time: "14:00", end_time: "18:00", is_available: true },
-          { day_of_week: 3, start_time: "09:00", end_time: "12:00", is_available: true },
-          { day_of_week: 5, start_time: "10:00", end_time: "16:00", is_available: true },
-          { day_of_week: 6, start_time: "09:00", end_time: "13:00", is_available: true },
-        ]);
-        setSimilarTrainers(demoTrainers.filter(t => t.id !== resolvedId).slice(0, 3));
-      }
+    // Check if it's a demo trainer (by slug or demo-id)
+    const demoTrainer = getDemoTrainer(resolvedId);
+    if (demoTrainer) {
+      setTrainer(demoTrainer);
+      setCourses(getDemoCourse(demoTrainer.id));
+      setReviews(demoTestimonials.slice(0, 2));
+      setAvailability([
+        { day_of_week: 1, start_time: "09:00", end_time: "12:00", is_available: true },
+        { day_of_week: 2, start_time: "14:00", end_time: "18:00", is_available: true },
+        { day_of_week: 3, start_time: "09:00", end_time: "12:00", is_available: true },
+        { day_of_week: 5, start_time: "10:00", end_time: "16:00", is_available: true },
+        { day_of_week: 6, start_time: "09:00", end_time: "13:00", is_available: true },
+      ]);
+      setSimilarTrainers(demoTrainers.filter(t => t.id !== demoTrainer.id).slice(0, 3));
+      setLoading(false);
+      return;
+    }
+
+    // Must be a real trainer UUID
+    if (!isUUID(resolvedId)) {
       setLoading(false);
       return;
     }
 
     (async () => {
       try {
-        const { data: t } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
+        // Use RPC for public access (bypasses RLS), fall back to direct query for own profile
+        let t: any = null;
+        const { data: rpcData } = await supabase.rpc("get_public_trainer_profile", { trainer_row_id: resolvedId });
+        if (rpcData && rpcData.length > 0) {
+          const r = rpcData[0];
+          t = {
+            id: r.trainer_id, user_id: r.trainer_user_id, bio: r.trainer_bio,
+            skills: r.trainer_skills, experience_years: r.trainer_experience_years,
+            current_company: r.trainer_current_company, current_role: r.trainer_current_role,
+            teaching_languages: r.trainer_teaching_languages, average_rating: r.trainer_average_rating,
+            total_students: r.trainer_total_students, approval_status: r.trainer_approval_status,
+            subscription_plan: r.trainer_subscription_plan, is_job_seeker: r.trainer_is_job_seeker,
+            intro_video_url: r.trainer_intro_video_url, linkedin_url: r.trainer_linkedin_url,
+            previous_companies: r.trainer_previous_companies, boost_score: r.trainer_boost_score,
+          };
+        } else {
+          // Fallback: try direct query (works if user is the trainer or admin)
+          const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
+          t = directData;
+        }
         if (t) {
-          const profileMap = await fetchProfilesMap([t.user_id]);
+          // Use public RPC for profile to bypass RLS
+          const { data: profileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: [t.user_id] });
+          const profileMap: Record<string, any> = {};
+          (profileData || []).forEach((p: any) => {
+            profileMap[p.p_id] = { id: p.p_id, full_name: p.p_full_name, city: p.p_city, state: p.p_state, profile_picture_url: p.p_profile_picture_url, is_verified: p.p_is_verified, gender: p.p_gender };
+          });
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
-          const [coursesRes, ratingsRes, availRes, docsRes] = await Promise.all([
+          const [coursesRes, availRes, docsRes] = await Promise.all([
             supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved"),
-            supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
             supabase.from("trainer_availability").select("*").eq("trainer_id", resolvedId).eq("is_available", true),
             supabase.from("trainer_documents").select("verification_status").eq("trainer_id", resolvedId),
           ]);
+
+          // Use public RPC for ratings
+          const { data: ratingsData } = await supabase.rpc("get_public_ratings", { p_trainer_id: resolvedId });
 
           setCourses(coursesRes.data || []);
           setAvailability(availRes.data || []);
@@ -103,28 +137,41 @@ const TrainerProfile = () => {
           const allApproved = docs.length > 0 && docs.every(d => d.verification_status === "approved");
           setIsVerified(allApproved);
 
-          if (ratingsRes.data && ratingsRes.data.length > 0) {
-            const studentIds = ratingsRes.data.map(r => r.student_id);
-            const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
-            const sUserIds = (studentData || []).map(s => s.user_id);
-            const sProfileMap = await fetchProfilesMap(sUserIds);
-            const studentMap: Record<string, any> = {};
-            (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
-            setReviews(ratingsRes.data.map(r => ({
-              student: studentMap[r.student_id]?.full_name || "Student",
-              rating: r.student_to_trainer_rating || 5,
-              text: r.student_to_trainer_review || r.student_review_text || "Excellent training experience!",
-              date: new Date(r.created_at || "").toLocaleDateString(),
+          if (ratingsData && ratingsData.length > 0) {
+            const studentIds = ratingsData.map((r: any) => r.r_student_id);
+            const { data: sProfileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: studentIds });
+            const studentProfileMap: Record<string, any> = {};
+            (sProfileData || []).forEach((p: any) => { studentProfileMap[p.p_id] = { full_name: p.p_full_name }; });
+
+            // Need to map student_id (students table) to user_id (profiles table) — but get_public_ratings gives us r_student_id which is students.id, not user_id
+            // We can't query students table due to RLS, so just use "Student" as fallback
+            setReviews(ratingsData.slice(0, 5).map((r: any) => ({
+              student: "Student",
+              rating: r.r_student_to_trainer_rating || 5,
+              text: r.r_student_to_trainer_review || "Excellent training experience!",
+              date: r.r_student_rated_at ? new Date(r.r_student_rated_at).toLocaleDateString() : new Date(r.r_created_at || "").toLocaleDateString(),
             })));
           }
 
           const skills = t.skills || [];
           if (skills.length > 0) {
-            const { data: similar } = await supabase.from("trainers").select("*").eq("approval_status", "approved").neq("id", resolvedId).limit(10);
-            if (similar) {
-              const simUserIds = similar.map(s => s.user_id);
-              const simProfiles = await fetchProfilesMap(simUserIds);
-              const withProfiles = similar.map(s => ({ ...s, profile: simProfiles[s.user_id] }));
+            const { data: similarData } = await supabase.rpc("get_approved_trainers_list");
+            if (similarData) {
+              const simTrainers = (similarData as any[])
+                .filter((s: any) => s.trainer_id !== resolvedId)
+                .map((s: any) => ({
+                  id: s.trainer_id, user_id: s.trainer_user_id, skills: s.trainer_skills,
+                  current_role: s.trainer_current_role, current_company: s.trainer_current_company,
+                  average_rating: s.trainer_average_rating, total_students: s.trainer_total_students,
+                  subscription_plan: s.trainer_subscription_plan, experience_years: s.trainer_experience_years,
+                }));
+              const simUserIds = simTrainers.map(s => s.user_id);
+              const { data: simProfileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: simUserIds });
+              const simProfileMap: Record<string, any> = {};
+              (simProfileData || []).forEach((p: any) => {
+                simProfileMap[p.p_id] = { full_name: p.p_full_name, city: p.p_city, profile_picture_url: p.p_profile_picture_url };
+              });
+              const withProfiles = simTrainers.map(s => ({ ...s, profile: simProfileMap[s.user_id] }));
               const scored = withProfiles.map(s => ({
                 ...s, overlap: (s.skills || []).filter((sk: string) => skills.includes(sk)).length
               })).sort((a, b) => b.overlap - a.overlap).slice(0, 3);
@@ -348,10 +395,14 @@ const TrainerProfile = () => {
       <div className="hero-gradient pt-24 pb-12 lg:pt-28 lg:pb-16">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${avatarColor}25` }}>
-              <span className="text-primary-foreground font-bold text-3xl lg:text-4xl" style={{ color: avatarColor }}>{initials}</span>
-            </div>
+            {trainer.profile?.profile_picture_url ? (
+              <img src={trainer.profile.profile_picture_url} alt={name} className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${avatarColor}25` }}>
+                <span className="text-primary-foreground font-bold text-3xl lg:text-4xl" style={{ color: avatarColor }}>{initials}</span>
+              </div>
+            )}
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl lg:text-3xl font-bold text-primary-foreground">{name}</h1>

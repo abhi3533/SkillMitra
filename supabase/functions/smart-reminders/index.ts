@@ -346,8 +346,8 @@ Deno.serve(async (req) => {
       for (const admin of admins || []) {
         await supabase.from('notifications').insert({
           user_id: admin.user_id, type: 'pending_trainer_reminder',
-          title: '⏰ Pending Review Reminder',
-          body: `Reminder — ${trainerName}'s application is still pending review (applied ${new Date(trainer.created_at!).toLocaleDateString('en-IN')}).`,
+          title: '⏰ Pending review reminder',
+          body: `${trainerName}'s application has been pending since ${new Date(trainer.created_at!).toLocaleDateString('en-IN')}. Please review.`,
           action_url: trainer.id, icon: 'clock',
         })
       }

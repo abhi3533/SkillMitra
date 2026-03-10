@@ -183,7 +183,9 @@ const TrainerSignup = () => {
       if (skills.length === 0) { toast({ title: "Select at least one skill", variant: "warning" }); return false; }
       if (!form.experience.trim()) { toast({ title: "Years of experience is required", variant: "warning" }); return false; }
       if (!form.currentRole.trim()) { toast({ title: "Current role is required", variant: "warning" }); return false; }
+      if (!hasLetters(form.currentRole)) { toast({ title: "Please enter a valid job role", variant: "warning" }); return false; }
       if (!form.currentCompany.trim()) { toast({ title: "Current company is required", variant: "warning" }); return false; }
+      if (!hasLetters(form.currentCompany)) { toast({ title: "Please enter a valid company name", variant: "warning" }); return false; }
       if (teachLangs.length === 0) { toast({ title: "Select at least one teaching language", variant: "warning" }); return false; }
       if (!form.bio.trim()) { toast({ title: "Please add your bio", variant: "warning" }); return false; }
     }

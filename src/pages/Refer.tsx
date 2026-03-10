@@ -214,16 +214,16 @@ const ReferPage = () => {
       </section>
 
       {/* Stats (logged in students only) */}
-      {user && role === "student" && !loading && (
+      {isLoggedIn && !loading && (
         <section className="py-12 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
             <h2 className="text-xl font-bold text-foreground text-center mb-8">Your Referral Stats</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               {[
-                { label: "Friends Referred", value: String(stats.total), icon: Users, color: "text-primary bg-primary/10" },
+                { label: "Total Referrals", value: String(stats.total), icon: Users, color: "text-primary bg-primary/10" },
                 { label: "Credits Earned", value: `₹${stats.earned.toLocaleString("en-IN")}`, icon: Gift, color: "text-emerald-600 bg-emerald-50" },
                 { label: "Pending Credits", value: `₹${stats.pending.toLocaleString("en-IN")}`, icon: Clock, color: "text-amber-600 bg-amber-50" },
-                { label: "Wallet Balance", value: `₹${Number(student?.referral_credits || 0).toLocaleString("en-IN")}`, icon: Wallet, color: "text-primary bg-primary/10" },
+                { label: "Wallet Balance", value: `₹${stats.walletBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "text-primary bg-primary/10" },
               ].map(s => (
                 <div key={s.label} className="bg-card rounded-xl border p-5 text-center">
                   <div className={`w-11 h-11 rounded-xl ${s.color} flex items-center justify-center mx-auto mb-3`}>

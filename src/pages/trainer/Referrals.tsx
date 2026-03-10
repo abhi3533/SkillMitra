@@ -69,7 +69,7 @@ const TrainerReferrals = () => {
       setLoading(false);
     };
     load();
-  }, [user]);
+  }, [user, authLoading]);
 
   const referralCode = trainer?.referral_code || "";
   const referralLink = referralCode ? `https://${APP_DOMAIN}/trainer/signup?ref=${referralCode}` : "";

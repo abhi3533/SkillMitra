@@ -66,7 +66,7 @@ const TrainerSchedule = () => {
   const grouped: Record<string, any[]> = {};
   sessions.forEach(s => {
     if (!s.scheduled_at) return;
-    const dateKey = new Date(s.scheduled_at).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
+    const dateKey = getDateGroupKeyIST(s.scheduled_at);
     if (!grouped[dateKey]) grouped[dateKey] = [];
     grouped[dateKey].push(s);
   });

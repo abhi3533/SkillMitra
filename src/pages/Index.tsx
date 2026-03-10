@@ -415,8 +415,8 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-14">
               <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">How It Works</span>
-              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Three Simple Steps</h2>
-              <p className="mt-3 text-muted-foreground max-w-md mx-auto">Get started in minutes. No commitments. No hidden fees.</p>
+              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">How It Works</h2>
+              <p className="mt-3 text-muted-foreground max-w-md mx-auto">Start learning in 3 simple steps. No commitments, no hidden charges.</p>
             </div>
           </ScrollReveal>
 

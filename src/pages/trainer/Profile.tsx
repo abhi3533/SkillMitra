@@ -126,7 +126,7 @@ const TrainerProfile = () => {
             const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).maybeSingle();
             if (!directData) {
               // Try by user_id
-              const { data: byUserId } = await supabase.from("trainers").select("*").eq("user_id", resolvedId).single();
+              const { data: byUserId } = await supabase.from("trainers").select("*").eq("user_id", resolvedId).maybeSingle();
               t = byUserId;
             } else {
               t = directData;

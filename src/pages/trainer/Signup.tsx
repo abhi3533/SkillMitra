@@ -362,6 +362,8 @@ const TrainerSignup = () => {
     </div>
   );
 
+  if (!pageReady) return <TrainerSignupSkeleton />;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Left Panel - Fixed */}

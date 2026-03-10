@@ -188,8 +188,8 @@ const TrainerDashboard = () => {
         <div className="mt-4 bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-foreground">Complete your profile to go live</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Step {onboardingInfo.step + 1} of 6 remaining. Finish your onboarding to start receiving students.</p>
+            <h3 className="text-sm font-semibold text-foreground">Finish your profile to go live</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Step {onboardingInfo.step + 1} of 6 left. Complete your profile so students can find you.</p>
             <Link to="/trainer/onboarding">
               <Button size="sm" className="mt-2 hero-gradient border-0 text-xs">Continue Onboarding <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
             </Link>

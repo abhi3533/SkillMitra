@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
           await supabase.from('notifications').insert({
             user_id: userId!, type: 'session_1h',
             title: '⏰ Session in 1 Hour',
-            body: `"${courseTitle}" starts in 1 hour. ${s.meet_link ? 'Click to join!' : ''}`,
+            body: `"${courseTitle}" starts in 1 hour. ${s.meet_link ? 'Get ready to join!' : ''}`,
             action_url: s.meet_link || s.id, icon: 'clock',
           })
           // Send email reminder

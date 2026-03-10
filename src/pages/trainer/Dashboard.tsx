@@ -314,7 +314,7 @@ const TrainerDashboard = () => {
             ) : data.recentEnrollments.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No enrollments yet</p>
+                <p className="text-sm text-muted-foreground mt-2">No students enrolled yet. They'll show up here once they join.</p>
               </div>
             ) : data.recentEnrollments.map((e: any) => (
               <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">

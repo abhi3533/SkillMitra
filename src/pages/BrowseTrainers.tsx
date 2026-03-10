@@ -37,8 +37,11 @@ const SCHEDULE_PREFS = [
 const ITEMS_PER_PAGE = 12;
 
 const BrowseTrainers = () => {
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("popular");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Initialize state from URL params
+  const [search, setSearch] = useState(searchParams.get("q") || "");
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popular");
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [courseFeeMap, setCourseFeeMap] = useState<Record<string, number>>({});
@@ -46,17 +49,50 @@ const BrowseTrainers = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Filters
-  const [selectedSkill, setSelectedSkill] = useState<string>("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([500, 10000]);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [genderPref, setGenderPref] = useState<string>("");
-  const [minRating, setMinRating] = useState<number>(0);
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
-  const [selectedSchedule, setSelectedSchedule] = useState<string[]>([]);
+  // Filters from URL
+  const [selectedSkill, setSelectedSkill] = useState<string>(searchParams.get("skill") || "");
+  const [priceRange, setPriceRange] = useState<[number, number]>(() => {
+    const min = parseInt(searchParams.get("pmin") || "500");
+    const max = parseInt(searchParams.get("pmax") || "10000");
+    return [isNaN(min) ? 500 : min, isNaN(max) ? 10000 : max];
+  });
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(() => {
+    const langs = searchParams.get("lang");
+    return langs ? langs.split(",") : [];
+  });
+  const [genderPref, setGenderPref] = useState<string>(searchParams.get("gender") || "");
+  const [minRating, setMinRating] = useState<number>(() => parseFloat(searchParams.get("rating") || "0") || 0);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>(() => {
+    const ts = searchParams.get("time");
+    return ts ? ts.split(",") : [];
+  });
+  const [selectedSchedule, setSelectedSchedule] = useState<string[]>(() => {
+    const sc = searchParams.get("sched");
+    return sc ? sc.split(",") : [];
+  });
 
   // Availability data from DB
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, any[]>>({});
+
+  // Sync filters to URL
+  const syncFiltersToUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    if (sortBy && sortBy !== "popular") params.set("sort", sortBy);
+    if (selectedSkill) params.set("skill", selectedSkill);
+    if (priceRange[0] !== 500) params.set("pmin", String(priceRange[0]));
+    if (priceRange[1] !== 10000) params.set("pmax", String(priceRange[1]));
+    if (selectedLanguages.length > 0) params.set("lang", selectedLanguages.join(","));
+    if (genderPref) params.set("gender", genderPref);
+    if (minRating > 0) params.set("rating", String(minRating));
+    if (selectedTimeSlots.length > 0) params.set("time", selectedTimeSlots.join(","));
+    if (selectedSchedule.length > 0) params.set("sched", selectedSchedule.join(","));
+    setSearchParams(params, { replace: true });
+  }, [search, sortBy, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, setSearchParams]);
+
+  useEffect(() => {
+    syncFiltersToUrl();
+  }, [syncFiltersToUrl]);
 
   usePageMeta({
     title: "Find Expert Trainers — SkillMitra",

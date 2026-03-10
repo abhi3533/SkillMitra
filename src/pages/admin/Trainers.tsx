@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Check, X, Eye, Search, RefreshCw } from "lucide-react";
+import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layouts/AdminLayout";
@@ -18,6 +19,8 @@ const AdminTrainers = () => {
   const [selectedTrainer, setSelectedTrainer] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<any>(null);
+  const [suspendTarget, setSuspendTarget] = useState<any>(null);
+  const [removeTarget, setRemoveTarget] = useState<any>(null);
 
   const fetchTrainers = async () => {
     setLoading(true);

@@ -34,7 +34,7 @@ const StudentDashboard = () => {
 
   const fetchDashboard = async () => {
     if (!user) return;
-    const { data: student } = await supabase.from("students").select("id, referral_credits, course_interests, trainer_gender_preference").eq("user_id", user.id).single();
+    const { data: student } = await supabase.from("students").select("id, referral_credits, course_interests, trainer_gender_preference").eq("user_id", user.id).maybeSingle();
     if (!student) { setLoading(false); return; }
     setStudentId(student.id);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { formatDateTimeWeekdayIST } from "@/lib/dateUtils";
-import { Calendar, Video, Clock, Star, MessageSquare, CalendarClock, Loader2 } from "lucide-react";
+import { formatDateTimeWeekdayIST, generateGoogleCalendarUrl, generateOutlookCalendarUrl } from "@/lib/dateUtils";
+import { Calendar, Video, Clock, Star, MessageSquare, CalendarClock, Loader2, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -243,11 +243,37 @@ const StudentSessions = () => {
                       {joiningId === s.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Video className="w-3 h-3" />} Join Now
                     </Button>
                   )}
-                  {s.status === "upcoming" && s.scheduled_at && (
+                   {s.status === "upcoming" && s.scheduled_at && (
                     <Button size="sm" variant="outline" className="text-xs h-7 gap-1"
                       onClick={() => { setPostponeModal(s); setPostponeData({ date: "", time: "", reason: "" }); }}>
                       <CalendarClock className="w-3 h-3" /> Reschedule
                     </Button>
+                  )}
+                  {s.status === "upcoming" && s.scheduled_at && (
+                    <div className="flex gap-1">
+                      <a href={generateGoogleCalendarUrl({
+                        title: s.title || s.enrollments?.courses?.title || `Session #${s.session_number}`,
+                        startDate: s.scheduled_at,
+                        durationMins: s.duration_mins || 60,
+                        description: `Session with ${s.trainerName}${s.meet_link ? `\nMeeting: ${s.meet_link}` : ""}`,
+                        location: s.meet_link || "",
+                      })} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="ghost" className="text-xs h-7 gap-1 px-2">
+                          <CalendarPlus className="w-3 h-3" /> Google
+                        </Button>
+                      </a>
+                      <a href={generateOutlookCalendarUrl({
+                        title: s.title || s.enrollments?.courses?.title || `Session #${s.session_number}`,
+                        startDate: s.scheduled_at,
+                        durationMins: s.duration_mins || 60,
+                        description: `Session with ${s.trainerName}${s.meet_link ? `\nMeeting: ${s.meet_link}` : ""}`,
+                        location: s.meet_link || "",
+                      })} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="ghost" className="text-xs h-7 gap-1 px-2">
+                          <CalendarPlus className="w-3 h-3" /> Outlook
+                        </Button>
+                      </a>
+                    </div>
                   )}
                   {s.status === "completed" && !s.isRated && (
                     <Button size="sm" variant="outline" className="text-xs h-7 gap-1"

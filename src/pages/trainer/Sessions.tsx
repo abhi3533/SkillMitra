@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { formatDateTimeIST } from "@/lib/dateUtils";
-import { Calendar, Clock, Video, ExternalLink, FileText, CheckCircle, Upload, Plus, Loader2, Link2, CalendarClock, Star } from "lucide-react";
+import { formatDateTimeIST, generateGoogleCalendarUrl, generateOutlookCalendarUrl } from "@/lib/dateUtils";
+import { Calendar, Clock, Video, ExternalLink, FileText, CheckCircle, Upload, Plus, Loader2, Link2, CalendarClock, Star, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -347,10 +347,36 @@ const TrainerSessions = () => {
               <Video className="w-3.5 h-3.5" /> Add Meet Link
             </Button>
           )}
-          {s.status === "upcoming" && s.scheduled_at && (
+           {s.status === "upcoming" && s.scheduled_at && (
             <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => { setPostponeModal(s); setPostponeData({ date: "", time: "", reason: "" }); }}>
               <CalendarClock className="w-3.5 h-3.5" /> Reschedule
             </Button>
+          )}
+          {s.status === "upcoming" && s.scheduled_at && (
+            <>
+              <a href={generateGoogleCalendarUrl({
+                title: s.title || s.courseName || `Session #${s.session_number}`,
+                startDate: s.scheduled_at,
+                durationMins: s.duration_mins || 60,
+                description: `Session with ${s.studentName}${s.meet_link ? `\nMeeting: ${s.meet_link}` : ""}`,
+                location: s.meet_link || "",
+              })} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="ghost" className="text-xs gap-1 h-8 px-2">
+                  <CalendarPlus className="w-3.5 h-3.5" /> Google
+                </Button>
+              </a>
+              <a href={generateOutlookCalendarUrl({
+                title: s.title || s.courseName || `Session #${s.session_number}`,
+                startDate: s.scheduled_at,
+                durationMins: s.duration_mins || 60,
+                description: `Session with ${s.studentName}${s.meet_link ? `\nMeeting: ${s.meet_link}` : ""}`,
+                location: s.meet_link || "",
+              })} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="ghost" className="text-xs gap-1 h-8 px-2">
+                  <CalendarPlus className="w-3.5 h-3.5" /> Outlook
+                </Button>
+              </a>
+            </>
           )}
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => { setEditingNotes(s.id); setNoteText(s.notes || ""); }}>
             <FileText className="w-3.5 h-3.5" /> Notes

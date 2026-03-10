@@ -247,7 +247,7 @@ const StudentDashboard = () => {
             ) : data.enrollments.length === 0 ? (
               <div className="text-center py-8">
                 <GraduationCap className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No active courses yet</p>
+                <p className="text-sm text-muted-foreground mt-2">You haven't enrolled in any course yet. Browse trainers to get started!</p>
                 <Link to="/browse"><Button size="sm" className="mt-3 text-xs">Browse Trainers</Button></Link>
               </div>
             ) : data.enrollments.map((e: any) => (

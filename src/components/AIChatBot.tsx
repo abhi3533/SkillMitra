@@ -210,7 +210,7 @@ const AIChatBot = () => {
                       ? "bg-primary text-primary-foreground rounded-tr-sm"
                       : "bg-muted text-foreground rounded-tl-sm"
                   }`}>
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">{msg.content.replace(/\*/g, "")}</p>
                   </div>
                 </div>
               ))}

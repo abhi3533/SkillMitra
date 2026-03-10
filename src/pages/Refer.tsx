@@ -110,7 +110,7 @@ const ReferPage = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-28 pb-16 lg:pt-36 lg:pb-24">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-28 pb-16 lg:pt-36 lg:pb-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.08),transparent_60%)]" />
         <div className="container mx-auto px-4 lg:px-8 relative">
           <div className="max-w-2xl mx-auto text-center">

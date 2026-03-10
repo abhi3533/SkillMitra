@@ -29,8 +29,13 @@ const TrainerDashboard = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     await (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status").eq("user_id", user.id).single();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status").eq("user_id", user.id).single();
       if (!trainer) { setLoading(false); return; }
+
+      // Check onboarding status
+      if (trainer.onboarding_status === "draft" || (trainer.onboarding_step !== null && trainer.onboarding_step < 6 && trainer.onboarding_status !== "pending")) {
+        setOnboardingInfo({ step: trainer.onboarding_step || 0, status: trainer.onboarding_status || "draft" });
+      }
 
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();

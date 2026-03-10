@@ -36,6 +36,7 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const NotificationPreferences = lazy(() => import("./pages/NotificationPreferences"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const EmailVerified = lazy(() => import("./pages/EmailVerified"));
 
 // Lazy-loaded Student pages
 const StudentLogin = lazy(() => import("./pages/student/Login"));

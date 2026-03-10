@@ -20,6 +20,7 @@ const StudentReferrals = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       setLoading(false);
       return;

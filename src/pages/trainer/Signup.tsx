@@ -649,6 +649,11 @@ const TrainerSignup = () => {
                 <Textarea value={form.courseDescription} onChange={e => update("courseDescription", e.target.value)} onBlur={() => markTouched("courseDescription")} placeholder="Describe what students will learn, prerequisites, outcomes..." className="mt-1.5 min-h-[120px]" />
                 <p className="text-xs text-muted-foreground mt-1">{form.courseDescription.length}/100 characters minimum</p>
               </div>
+
+              {/* Preview Your Profile Button */}
+              <Button type="button" variant="outline" className="w-full mt-4 border-primary text-primary hover:bg-primary/5" onClick={() => setShowPreview(true)}>
+                <Eye className="w-4 h-4 mr-2" /> Preview Your Profile
+              </Button>
             </div>
           )}
 

@@ -549,16 +549,18 @@ const BrowseTrainers = () => {
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-foreground/40" onClick={() => setShowFilters(false)} />
           <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-            className="absolute right-0 top-0 bottom-0 w-80 bg-background border-l border-border overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-background border-l border-border overflow-y-auto">
+            <div className="sticky top-0 z-10 bg-background flex items-center justify-between p-4 border-b border-border">
               <h3 className="font-semibold text-foreground">Filters</h3>
               <button onClick={() => setShowFilters(false)}><X className="w-5 h-5 text-muted-foreground" /></button>
             </div>
-            <div className="p-4">
+            <div className="p-4 pb-24">
               <FilterSidebar />
             </div>
-            <div className="p-4 border-t border-border">
-              <Button className="w-full" onClick={() => setShowFilters(false)}>Apply Filters</Button>
+            <div className="sticky bottom-0 bg-background p-4 border-t border-border">
+              <Button className="w-full" onClick={() => setShowFilters(false)}>
+                Apply Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+              </Button>
             </div>
           </motion.div>
         </div>

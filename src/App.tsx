@@ -177,6 +177,7 @@ const AppContent = () => {
           <Route path="/refer" element={<ReferPage />} />
 
           {/* Auth pages */}
+          <Route path="/login" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 rounded-lg hero-gradient animate-pulse" /></div>}><LoginRoleSelect /></Suspense>} />
           <Route path="/student/login" element={<StudentLogin />} />
           <Route path="/student/signup" element={<StudentSignup />} />
           <Route path="/trainer/login" element={<TrainerLogin />} />

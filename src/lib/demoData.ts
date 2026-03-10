@@ -32,7 +32,7 @@ export const demoTrainers = [
     total_students: 32,
     subscription_plan: "pro",
     teaching_languages: ["Hindi", "English"],
-    bio: "Creative UI/UX Designer at Infosys with 5 years of experience designing user-centric digital products. Passionate about teaching design thinking and modern tools.",
+    bio: "Hi, I'm a UI/UX designer at Infosys with 5 years of experience. I love helping students understand design thinking and build real portfolios using Figma and Adobe XD.",
     profile: { full_name: "Priya Sharma", city: "Bangalore" },
     avatarColor: "#7C3AED",
   },

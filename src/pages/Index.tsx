@@ -101,12 +101,12 @@ const steps = [
 ];
 
 const benefits = [
-  { title: "1:1 Personal Training", desc: "Your trainer focuses only on you, tailoring every session to your pace.", icon: Users },
-  { title: "In Your Language", desc: "Learn in Telugu, Hindi, Tamil, English, or any language you prefer.", icon: Globe },
-  { title: "From Home", desc: "No commuting. Attend live sessions via Google Meet from anywhere.", icon: Home },
-  { title: "Verified Experts", desc: "Every trainer is ID-verified with checked credentials & work history.", icon: Shield },
-  { title: "Affordable Pricing", desc: "Starting from ₹999 per course. Expert training at a fraction of the cost.", icon: IndianRupee },
-  { title: "Earn Certificates", desc: "Get SkillMitra certificates verified by QR code — share on LinkedIn.", icon: Award },
+  { title: "Just You & Your Trainer", desc: "No group classes. Every session is focused only on you and your goals.", icon: Users },
+  { title: "Learn in Your Language", desc: "Sessions in Telugu, Hindi, Tamil, English, and more. Learn comfortably.", icon: Globe },
+  { title: "Learn From Home", desc: "No travel, no fixed batch times. Join live sessions on Google Meet from anywhere.", icon: Home },
+  { title: "Verified Trainers", desc: "Every trainer goes through ID check and profile review before they can teach.", icon: Shield },
+  { title: "Starts at ₹999", desc: "Quality 1:1 training at prices that won't break the bank. Seriously.", icon: IndianRupee },
+  { title: "Get Certified", desc: "Earn a SkillMitra certificate with QR verification. Add it to your LinkedIn.", icon: Award },
 ];
 
 const statItems = [

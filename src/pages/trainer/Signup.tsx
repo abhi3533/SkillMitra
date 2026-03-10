@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Suspense, lazy } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2, Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Webcam as WebcamIcon, Mic, Volume2, MessageSquare, Clock } from "lucide-react";
@@ -17,6 +17,7 @@ import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/Pa
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
+import TrainerSignupSkeleton, { StepLoadingSkeleton } from "@/components/TrainerSignupSkeleton";
 
 const stateOptions = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
@@ -43,6 +44,7 @@ interface DocFile { file: File | null; name: string; }
 const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
 
 const TrainerSignup = () => {
+  const [pageReady, setPageReady] = useState(false);
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -152,6 +154,12 @@ const TrainerSignup = () => {
     hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file),
     hasDemoVideo: !!docs["demo_video"]?.file,
   });
+
+  // Mark page ready after initial render for skeleton transition
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setPageReady(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
 
   const toggleExpertise = (e: string) => setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]);
   const toggleService = (s: string) => setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
@@ -353,6 +361,8 @@ const TrainerSignup = () => {
       </div>
     </div>
   );
+
+  if (!pageReady) return <TrainerSignupSkeleton />;
 
   return (
     <div className="min-h-screen bg-background">

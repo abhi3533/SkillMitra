@@ -155,6 +155,12 @@ const TrainerSignup = () => {
     hasDemoVideo: !!docs["demo_video"]?.file,
   });
 
+  // Mark page ready after initial render for skeleton transition
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setPageReady(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
+
   const toggleExpertise = (e: string) => setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]);
   const toggleService = (s: string) => setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
 

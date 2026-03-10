@@ -155,11 +155,23 @@ const TrainerProfile = () => {
 
           const skills = t.skills || [];
           if (skills.length > 0) {
-            const { data: similar } = await supabase.from("trainers").select("*").eq("approval_status", "approved").neq("id", resolvedId).limit(10);
-            if (similar) {
-              const simUserIds = similar.map(s => s.user_id);
-              const simProfiles = await fetchProfilesMap(simUserIds);
-              const withProfiles = similar.map(s => ({ ...s, profile: simProfiles[s.user_id] }));
+            const { data: similarData } = await supabase.rpc("get_approved_trainers_list");
+            if (similarData) {
+              const simTrainers = (similarData as any[])
+                .filter((s: any) => s.trainer_id !== resolvedId)
+                .map((s: any) => ({
+                  id: s.trainer_id, user_id: s.trainer_user_id, skills: s.trainer_skills,
+                  current_role: s.trainer_current_role, current_company: s.trainer_current_company,
+                  average_rating: s.trainer_average_rating, total_students: s.trainer_total_students,
+                  subscription_plan: s.trainer_subscription_plan, experience_years: s.trainer_experience_years,
+                }));
+              const simUserIds = simTrainers.map(s => s.user_id);
+              const { data: simProfileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: simUserIds });
+              const simProfileMap: Record<string, any> = {};
+              (simProfileData || []).forEach((p: any) => {
+                simProfileMap[p.p_id] = { full_name: p.p_full_name, city: p.p_city, profile_picture_url: p.p_profile_picture_url };
+              });
+              const withProfiles = simTrainers.map(s => ({ ...s, profile: simProfileMap[s.user_id] }));
               const scored = withProfiles.map(s => ({
                 ...s, overlap: (s.skills || []).filter((sk: string) => skills.includes(sk)).length
               })).sort((a, b) => b.overlap - a.overlap).slice(0, 3);

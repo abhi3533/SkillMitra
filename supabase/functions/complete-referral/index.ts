@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       .from('referrals')
       .select('*, referrer:referrer_id(id, user_id)')
       .eq('referred_id', student_id)
-      .eq('status', 'pending')
+      .in('status', ['pending', 'eligible'])
       .single()
 
     if (!referral) {

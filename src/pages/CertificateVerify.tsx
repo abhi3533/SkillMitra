@@ -4,6 +4,7 @@ import { BadgeCheck, Award, XCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { formatLongDateIST } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -136,7 +137,7 @@ const CertificateVerify = () => {
                 <div className="flex justify-between py-2 border-b border-border">
                   <span className="text-sm text-muted-foreground">Issue Date</span>
                   <span className="text-sm font-medium text-foreground">
-                    {result.c_issue_date ? new Date(result.c_issue_date).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }) : "—"}
+                    {result.c_issue_date ? formatLongDateIST(result.c_issue_date) : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between py-2">

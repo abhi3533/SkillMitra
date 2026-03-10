@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
 import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages } from "lucide-react";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
@@ -293,7 +294,7 @@ const StudentDashboard = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{s.title || s.enrollments?.courses?.title || `Session #${s.session_number}`}</p>
-                    <p className="text-xs text-muted-foreground">{s.trainerName} • {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "TBD"}</p>
+                    <p className="text-xs text-muted-foreground">{s.trainerName} • {s.scheduled_at ? formatDateTimeIST(s.scheduled_at) : "TBD"}</p>
                   </div>
                 </div>
                 {s.meet_link && (

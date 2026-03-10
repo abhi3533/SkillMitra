@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST, formatDateTimeIST } from "@/lib/dateUtils";
 import { Wallet, IndianRupee, Search, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,7 +101,7 @@ const AdminWallets = () => {
                     <td className="px-4 py-3 text-sm font-semibold text-foreground">₹{Number(w.balance).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3 text-sm text-emerald-600">₹{Number(w.total_earned).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">₹{Number(w.total_withdrawn).toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{w.last_updated ? new Date(w.last_updated).toLocaleDateString("en-IN") : "-"}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{w.last_updated ? formatDateIST(w.last_updated) : "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -124,7 +125,7 @@ const AdminWallets = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{t.userName} — {t.description || t.type}</p>
-                  <p className="text-[11px] text-muted-foreground">{new Date(t.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                  <p className="text-[11px] text-muted-foreground">{formatDateTimeIST(t.created_at)}</p>
                 </div>
               </div>
               <p className={`text-sm font-semibold ${t.type === "credit" ? "text-emerald-600" : "text-destructive"}`}>

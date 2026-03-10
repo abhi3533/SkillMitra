@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateTimeWeekdayIST } from "@/lib/dateUtils";
 import { Calendar, Video, Clock, Star, MessageSquare, CalendarClock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -156,7 +157,7 @@ const StudentSessions = () => {
         await supabase.from("notifications").insert({
           user_id: trainer.user_id,
           title: "Session Rescheduled",
-          body: `A student has rescheduled a session to ${newDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} at ${postponeData.time}. Reason: ${postponeData.reason || "Not specified"}`,
+          body: `A student has rescheduled a session to ${formatDateTimeWeekdayIST(newDate)}. Reason: ${postponeData.reason || "Not specified"}`,
           type: "session_rescheduled",
           action_url: "/trainer/sessions",
         });
@@ -223,7 +224,7 @@ const StudentSessions = () => {
                       with {s.trainerName} • {s.duration_mins || 60} min
                     </p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Not scheduled"}
+                      {s.scheduled_at ? formatDateTimeWeekdayIST(s.scheduled_at) : "Not scheduled"}
                     </p>
                     {currTopic && (
                       <p className="text-[11px] text-primary mt-1 flex items-center gap-1">

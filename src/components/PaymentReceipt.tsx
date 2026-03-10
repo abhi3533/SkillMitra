@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { formatLongDateIST } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Download, Printer, CheckCircle2 } from "lucide-react";
 
@@ -70,9 +71,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
     printWindow.print();
   };
 
-  const formattedDate = new Date(data.date).toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  const formattedDate = formatLongDateIST(data.date);
 
   return (
     <div className="space-y-4">

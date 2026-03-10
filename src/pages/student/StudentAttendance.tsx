@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatShortDateIST } from "@/lib/dateUtils";
 import { CheckCircle, XCircle, AlertCircle, AlertTriangle, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
@@ -115,7 +116,7 @@ const StudentAttendance = () => {
                         </p>
                         <p className="text-[11px] text-muted-foreground">
                           {r.course_sessions?.enrollments?.courses?.title || "Course"} •{" "}
-                          {r.course_sessions?.scheduled_at ? new Date(r.course_sessions.scheduled_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : ""}
+                          {r.course_sessions?.scheduled_at ? formatShortDateIST(r.course_sessions.scheduled_at) : ""}
                         </p>
                       </div>
                     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 import { Calendar, Clock, Video, ExternalLink, FileText, CheckCircle, Upload, Plus, Loader2, Link2, CalendarClock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -309,7 +310,7 @@ const TrainerSessions = () => {
             <p className="text-sm font-medium text-foreground truncate">{s.title || s.courseName || `Session #${s.session_number}`}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">{s.studentName} • {s.courseName}</p>
             <p className="text-[11px] text-muted-foreground">
-              {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Not scheduled"}
+              {s.scheduled_at ? formatDateTimeIST(s.scheduled_at) : "Not scheduled"}
             </p>
             {currTopic && (
               <p className="text-[11px] text-primary mt-0.5">

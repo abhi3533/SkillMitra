@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST } from "@/lib/dateUtils";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,7 +66,7 @@ const AdminStudents = () => {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{s.profiles?.city || "-"}</td>
                   <td className="px-4 py-3 text-sm text-foreground">{s.total_sessions_attended}</td>
                   <td className="px-4 py-3 text-sm text-foreground">₹{Number(s.total_spent || 0).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateIST(s.created_at)}</td>
                 </tr>
               ))}
             </tbody>

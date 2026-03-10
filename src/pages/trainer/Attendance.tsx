@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 import { CheckCircle, XCircle, AlertCircle, Users, Calendar, FileText, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -222,7 +223,7 @@ const TrainerAttendance = () => {
                     <div>
                       <p className="text-sm font-medium text-foreground">{s.title || `Session #${s.session_number}`}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {s.scheduled_at ? new Date(s.scheduled_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Not scheduled"}
+                        {s.scheduled_at ? formatDateTimeIST(s.scheduled_at) : "Not scheduled"}
                       </p>
                     </div>
                     <Badge variant="outline" className="text-[10px]">{s.status}</Badge>
@@ -299,7 +300,7 @@ const TrainerAttendance = () => {
                 <div key={h.id} className="bg-card border rounded-lg p-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-foreground">{h.studentName}</p>
-                    <p className="text-[11px] text-muted-foreground">{h.marked_at ? new Date(h.marked_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</p>
+                    <p className="text-[11px] text-muted-foreground">{h.marked_at ? formatDateTimeIST(h.marked_at) : ""}</p>
                   </div>
                   <Badge className={`text-[10px] ${getStatusBadge(h.status)}`}>{h.status}</Badge>
                 </div>

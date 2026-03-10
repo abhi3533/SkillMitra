@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 import { Send, Loader2, Mail, Bell, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,7 +184,7 @@ const AdminCommunications = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right text-foreground">{h.recipient_count}</td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">{new Date(h.sent_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{formatDateTimeIST(h.sent_at)}</td>
                     </tr>
                   ))}
                 </tbody>

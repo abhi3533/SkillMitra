@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST } from "@/lib/dateUtils";
 import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,7 +199,7 @@ const AdminTrainers = () => {
                       {t.skills?.length ? ` • ${t.skills.slice(0, 3).join(", ")}` : ""}
                     </p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Applied {new Date(t.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      Applied {formatDateIST(t.created_at)}
                       {t.profiles?.city ? ` • ${t.profiles.city}` : ""}
                       {t.current_company ? ` • ${t.current_role || ""} at ${t.current_company}` : ""}
                     </p>

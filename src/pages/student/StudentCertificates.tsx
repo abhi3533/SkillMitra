@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST, formatLongDateIST } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
@@ -39,7 +40,7 @@ const StudentCertificates = () => {
 
       const refs = reflections || [];
       const name = profile?.full_name || "Student";
-      const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+      const date = formatLongDateIST(new Date());
 
       // Build HTML for printing
       const avgConfidence = refs.length > 0 ? (refs.reduce((s, r) => s + r.confidence_level, 0) / refs.length).toFixed(1) : "N/A";
@@ -48,7 +49,7 @@ const StudentCertificates = () => {
         <tr>
           <td style="padding:8px;border-bottom:1px solid #eee;">${i + 1}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${r.course_sessions?.title || `Session #${r.course_sessions?.session_number || i + 1}`}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;">${new Date(r.created_at).toLocaleDateString("en-IN")}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${formatDateIST(r.created_at)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${"⭐".repeat(r.confidence_level)}${"☆".repeat(5 - r.confidence_level)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${r.learned_today}</td>
         </tr>

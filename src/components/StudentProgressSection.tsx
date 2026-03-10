@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatShortDateIST } from "@/lib/dateUtils";
 import { TrendingUp, Brain, FileText, Flame } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +54,7 @@ const StudentProgressSection = ({ studentId }: Props) => {
   const chartData = reflections.map((r, i) => ({
     session: `S${r.course_sessions?.session_number || i + 1}`,
     confidence: r.confidence_level,
-    date: new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+    date: formatShortDateIST(r.created_at),
   }));
 
   const avgConfidence = reflections.length > 0

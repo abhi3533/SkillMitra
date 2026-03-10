@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatShortDateIST } from "@/lib/dateUtils";
 import { Send, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -93,7 +94,7 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
                 {t.profiles?.email || "—"}
               </TableCell>
               <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
-                {new Date(t.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                {formatShortDateIST(t.created_at)}
               </TableCell>
               <TableCell>
                 <Badge variant="secondary" className={`text-xs ${stepColor(t.onboarding_step || 0)}`}>
@@ -101,7 +102,7 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
                 </Badge>
               </TableCell>
               <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
-                {t.lastActive.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                {formatShortDateIST(t.lastActive)}
               </TableCell>
               <TableCell>
                 <span className={`text-sm font-medium ${t.daysSince >= 3 ? "text-destructive" : t.daysSince >= 1 ? "text-amber-600" : "text-muted-foreground"}`}>

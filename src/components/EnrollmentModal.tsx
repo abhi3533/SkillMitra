@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateTimeWeekdayIST } from "@/lib/dateUtils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -127,7 +128,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         meet_link: meetLink,
       });
 
-      const scheduledTimeStr = firstDate.toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
 
       // Notifications
       await supabase.from("notifications").insert({

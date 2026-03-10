@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatLongDateIST } from "@/lib/dateUtils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -203,7 +204,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
 
           {/* Application date */}
           <Separator />
-          <p className="text-xs text-muted-foreground">Applied on {new Date(trainer.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}</p>
+          <p className="text-xs text-muted-foreground">Applied on {formatLongDateIST(trainer.created_at)}</p>
 
           {/* Action Buttons */}
           {isPending && (

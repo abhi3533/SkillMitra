@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST, formatLongDateIST } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,7 +121,7 @@ const AdminCourses = () => {
                       {c.trainers?.profiles?.full_name || "Unknown"} • {formatINR(Number(c.course_fee))} • {c.duration_days}d • {c.total_sessions} sessions • {c.level}
                     </p>
                     {c.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.description}</p>}
-                    <p className="text-[11px] text-muted-foreground mt-1">Submitted {new Date(c.created_at).toLocaleDateString("en-IN")}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">Submitted {formatDateIST(c.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openDetail(c)}>
@@ -259,7 +260,7 @@ const AdminCourses = () => {
 
               {/* Submission date */}
               <Separator />
-              <p className="text-xs text-muted-foreground">Submitted on {new Date(selectedCourse.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}</p>
+              <p className="text-xs text-muted-foreground">Submitted on {formatLongDateIST(selectedCourse.created_at)}</p>
 
               {/* Actions */}
               {selectedCourse.approval_status === "pending" && (

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST } from "@/lib/dateUtils";
 import { Users, Gift, IndianRupee, TrendingUp, Search, Download, CheckCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +87,7 @@ const AdminReferrals = () => {
     const headers = ["Referrer", "Referred", "Code", "Reward", "Status", "Date"];
     const rows = currentRefs.map(r => [
       r.referrerName, r.referredName || "Pending", r.referral_code || "-",
-      r.reward_amount, r.status, new Date(r.created_at).toLocaleDateString("en-IN"),
+      r.reward_amount, r.status, formatDateIST(r.created_at),
     ]);
     const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -212,7 +213,7 @@ const AdminReferrals = () => {
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === "paid" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{r.status}</span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("en-IN")}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateIST(r.created_at)}</td>
                   <td className="px-4 py-3">
                     {r.status === "pending" && (
                       <Button

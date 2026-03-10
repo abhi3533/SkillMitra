@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST, formatLongDateIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
 import { Users, IndianRupee, BookOpen, Award, Clock, AlertTriangle, TrendingUp, UserCheck, UserX, MessageSquare, CreditCard, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -140,7 +141,7 @@ const AdminDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Platform overview • {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+          <p className="mt-1 text-sm text-muted-foreground">Platform overview • {formatLongDateIST(new Date())}</p>
         </div>
       </div>
 
@@ -209,7 +210,7 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">{t.profileName}</p>
-                        <p className="text-xs text-muted-foreground">{(t.skills || []).slice(0, 2).join(", ") || "No skills listed"} • {new Date(t.created_at).toLocaleDateString("en-IN")}</p>
+                        <p className="text-xs text-muted-foreground">{(t.skills || []).slice(0, 2).join(", ") || "No skills listed"} • {formatDateIST(t.created_at)}</p>
                       </div>
                     </div>
                     <Link to="/admin/trainers"><Button size="sm" variant="outline" className="text-xs h-7">Review</Button></Link>
@@ -240,7 +241,7 @@ const AdminDashboard = () => {
                   <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">{e.studentName} → {e.courses?.title || "Course"}</p>
-                      <p className="text-xs text-muted-foreground">Trainer: {e.trainerName} • {new Date(e.enrollment_date).toLocaleDateString("en-IN")}</p>
+                      <p className="text-xs text-muted-foreground">Trainer: {e.trainerName} • {formatDateIST(e.enrollment_date)}</p>
                     </div>
                     <span className="text-sm font-semibold text-foreground ml-3 whitespace-nowrap">{formatINR(Number(e.amount_paid || 0))}</span>
                   </div>
@@ -270,7 +271,7 @@ const AdminDashboard = () => {
                   <div key={d.id} className="p-3 rounded-lg bg-destructive/5 border border-destructive/10">
                     <p className="text-sm font-medium text-foreground">{d.subject || "Dispute"}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{d.description || "No description"}</p>
-                    <p className="text-[11px] text-muted-foreground mt-1">{new Date(d.created_at).toLocaleDateString("en-IN")}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">{formatDateIST(d.created_at)}</p>
                   </div>
                 ))}
               </div>
@@ -298,7 +299,7 @@ const AdminDashboard = () => {
                   <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-50/50 border border-amber-100">
                     <div>
                       <p className="text-sm font-medium text-foreground">{p.trainerName}</p>
-                      <p className="text-xs text-muted-foreground">{p.upi_id || "Bank transfer"} • {new Date(p.requested_at).toLocaleDateString("en-IN")}</p>
+                      <p className="text-xs text-muted-foreground">{p.upi_id || "Bank transfer"} • {formatDateIST(p.requested_at)}</p>
                     </div>
                     <span className="text-sm font-semibold text-foreground">{formatINR(Number(p.requested_amount || 0))}</span>
                   </div>

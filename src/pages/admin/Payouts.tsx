@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST } from "@/lib/dateUtils";
 import { CreditCard, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +63,7 @@ const AdminPayouts = () => {
             <div>
               <p className="font-medium text-foreground">{p.trainers?.profiles?.full_name || "Trainer"}</p>
               <p className="text-sm text-muted-foreground">₹{Number(p.requested_amount).toLocaleString()} • {p.bank_account_number ? `****${p.bank_account_number.slice(-4)}` : ""} • UPI: {p.upi_id || "-"}</p>
-              <p className="text-xs text-muted-foreground">{new Date(p.requested_at).toLocaleDateString()}</p>
+              <p className="text-xs text-muted-foreground">{formatDateIST(p.requested_at)}</p>
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "completed" ? "bg-success/10 text-success" : p.status === "rejected" ? "bg-destructive/10 text-destructive" : "bg-accent/10 text-accent"}`}>{p.status}</span>

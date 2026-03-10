@@ -4,6 +4,7 @@ import { Bell, Check, ArrowLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { timeAgoIST } from "@/lib/dateUtils";
 
 const Notifications = () => {
   const { user, role } = useAuth();
@@ -40,12 +41,7 @@ const Notifications = () => {
   const backPath = role === "trainer" ? "/trainer/dashboard" : role === "admin" ? "/admin" : "/student/dashboard";
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  const timeAgo = (date: string) => {
-    const mins = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
-    if (mins < 60) return `${mins}m ago`;
-    if (mins < 1440) return `${Math.floor(mins / 60)}h ago`;
-    return `${Math.floor(mins / 1440)}d ago`;
-  };
+  const timeAgo = timeAgoIST;
 
   return (
     <div className="min-h-screen bg-background">

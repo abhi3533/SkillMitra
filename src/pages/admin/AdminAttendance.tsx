@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST } from "@/lib/dateUtils";
 import { ClipboardCheck, Search, Download, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +59,7 @@ const AdminAttendance = () => {
   const downloadCSV = () => {
     const headers = "Student,Trainer,Session,Status,Date\n";
     const rows = filtered.map(r =>
-      `"${r.studentName}","${r.trainerName}","${r.course_sessions?.title || `Session #${r.course_sessions?.session_number}`}","${r.status}","${new Date(r.marked_at).toLocaleDateString("en-IN")}"`
+      `"${r.studentName}","${r.trainerName}","${r.course_sessions?.title || `Session #${r.course_sessions?.session_number}`}","${r.status}","${formatDateIST(r.marked_at)}"`
     ).join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -137,7 +138,7 @@ const AdminAttendance = () => {
                       {r.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{r.marked_at ? new Date(r.marked_at).toLocaleDateString("en-IN") : "-"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{r.marked_at ? formatDateIST(r.marked_at) : "-"}</td>
                 </tr>
               ))}
             </tbody>

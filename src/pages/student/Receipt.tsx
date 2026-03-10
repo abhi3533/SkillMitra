@@ -38,7 +38,7 @@ const Receipt = () => {
           .select("*")
           .eq("id", enrollmentId)
           .eq("student_id", student.id)
-          .single();
+          .maybeSingle();
 
         if (enrollErr || !enrollment) {
           setError("Enrollment not found or access denied.");

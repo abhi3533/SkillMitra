@@ -17,6 +17,7 @@ import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/Pa
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
+import TrainerSignupSkeleton, { StepLoadingSkeleton } from "@/components/TrainerSignupSkeleton";
 
 const stateOptions = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 

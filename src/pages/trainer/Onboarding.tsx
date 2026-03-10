@@ -642,9 +642,9 @@ const TrainerOnboarding = () => {
                   <Input value={form.phone} onChange={e => handlePhoneChange(e.target.value)} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
                     className={`mt-1.5 h-11 ${touched.phone ? (isPhoneFilled ? "border-green-500" : "border-destructive") : ""}`} />
                 </div>
-                <div>
+                 <div>
                   <div className="flex items-center justify-between">
-                    <Label>WhatsApp<RequiredMark /></Label>
+                    <Label>WhatsApp <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
                     <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                       <Checkbox checked={sameAsPhone} onCheckedChange={handleSameAsPhone} className="w-3.5 h-3.5" />
                       Same as phone

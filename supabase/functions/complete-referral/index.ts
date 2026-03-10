@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     }
 
     // Find pending or eligible referral for this student
-    const { data: referral, error: refErr } = await supabase
+    const { data: referral } = await supabase
       .from('referrals')
       .select('*, referrer:referrer_id(id, user_id)')
       .eq('referred_id', student_id)

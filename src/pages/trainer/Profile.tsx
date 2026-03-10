@@ -177,7 +177,7 @@ const TrainerProfile = () => {
             const { data: similarData } = await supabase.rpc("get_approved_trainers_list") as { data: any[] | null };
             if (similarData) {
               const simTrainers = (similarData as any[])
-                .filter((s: any) => s.trainer_id !== resolvedId)
+                .filter((s: any) => s.trainer_id !== trainerId)
                 .map((s: any) => ({
                   id: s.trainer_id, user_id: s.trainer_user_id, skills: s.trainer_skills,
                   current_role: s.trainer_current_role, current_company: s.trainer_current_company,

@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
           await supabase.from('notifications').insert({
             user_id: studentUserId, type: 'session_24h',
             title: '📅 Session Tomorrow',
-            body: `Your "${courseTitle}" session is scheduled for ${time}`,
+            body: `Your "${courseTitle}" session is on ${time}. Don't forget!`,
             action_url: s.id, icon: 'calendar',
           })
           results.push(`24h notification → student ${studentUserId}`)

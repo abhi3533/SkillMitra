@@ -93,7 +93,26 @@ const TrainerProfile = () => {
 
     (async () => {
       try {
-        const { data: t } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
+        // Use RPC for public access (bypasses RLS), fall back to direct query for own profile
+        let t: any = null;
+        const { data: rpcData } = await supabase.rpc("get_public_trainer_profile", { trainer_row_id: resolvedId });
+        if (rpcData && rpcData.length > 0) {
+          const r = rpcData[0];
+          t = {
+            id: r.trainer_id, user_id: r.trainer_user_id, bio: r.trainer_bio,
+            skills: r.trainer_skills, experience_years: r.trainer_experience_years,
+            current_company: r.trainer_current_company, current_role: r.trainer_current_role,
+            teaching_languages: r.trainer_teaching_languages, average_rating: r.trainer_average_rating,
+            total_students: r.trainer_total_students, approval_status: r.trainer_approval_status,
+            subscription_plan: r.trainer_subscription_plan, is_job_seeker: r.trainer_is_job_seeker,
+            intro_video_url: r.trainer_intro_video_url, linkedin_url: r.trainer_linkedin_url,
+            previous_companies: r.trainer_previous_companies, boost_score: r.trainer_boost_score,
+          };
+        } else {
+          // Fallback: try direct query (works if user is the trainer or admin)
+          const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
+          t = directData;
+        }
         if (t) {
           const profileMap = await fetchProfilesMap([t.user_id]);
           setTrainer({ ...t, profile: profileMap[t.user_id] });

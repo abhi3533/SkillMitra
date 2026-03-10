@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Check, X, Eye, Search, RefreshCw } from "lucide-react";
+import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layouts/AdminLayout";
@@ -18,6 +19,8 @@ const AdminTrainers = () => {
   const [selectedTrainer, setSelectedTrainer] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<any>(null);
+  const [suspendTarget, setSuspendTarget] = useState<any>(null);
+  const [removeTarget, setRemoveTarget] = useState<any>(null);
 
   const fetchTrainers = async () => {
     setLoading(true);
@@ -78,8 +81,42 @@ const AdminTrainers = () => {
     });
   };
 
-  const handleRejectClick = (trainer: any) => {
-    setRejectTarget(trainer);
+  const handleRejectClick = (trainer: any) => setRejectTarget(trainer);
+  const handleSuspendClick = (trainer: any) => setSuspendTarget(trainer);
+  const handleRemoveClick = (trainer: any) => setRemoveTarget(trainer);
+
+  const handleSuspendConfirm = async () => {
+    if (!suspendTarget) return;
+    await updateStatus(suspendTarget.id, "suspended");
+    setSuspendTarget(null);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!removeTarget) return;
+    const trainerName = removeTarget.profiles?.full_name || "Trainer";
+    const trainerId = removeTarget.id;
+    
+    // Delete trainer record
+    const { error } = await supabase.from("trainers").delete().eq("id", trainerId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setRemoveTarget(null);
+      return;
+    }
+    setTrainers(prev => prev.filter(t => t.id !== trainerId));
+    setDrawerOpen(false);
+    setRemoveTarget(null);
+
+    // Send removal notification
+    supabase.functions.invoke("notify-trainer-status", {
+      body: { trainer_id: trainerId, status: "removed", rejection_reason: "Your account has been removed from the platform." },
+    }).then(({ error: fnErr }) => {
+      if (fnErr) {
+        toast({ title: "Trainer removed", description: "Removed but email notification failed.", variant: "warning" });
+      } else {
+        toast({ title: "Trainer removed", description: `${trainerName} has been removed and notified.`, variant: "success" });
+      }
+    });
   };
 
   const filtered = trainers
@@ -98,6 +135,7 @@ const AdminTrainers = () => {
     pending: trainers.filter(t => t.approval_status === "pending").length,
     approved: trainers.filter(t => t.approval_status === "approved").length,
     rejected: trainers.filter(t => t.approval_status === "rejected").length,
+    suspended: trainers.filter(t => t.approval_status === "suspended").length,
     all: trainers.length,
   };
 
@@ -118,6 +156,7 @@ const AdminTrainers = () => {
           <TabsList>
             <TabsTrigger value="pending">Pending ({counts.pending})</TabsTrigger>
             <TabsTrigger value="approved">Approved ({counts.approved})</TabsTrigger>
+            <TabsTrigger value="suspended">Suspended ({counts.suspended})</TabsTrigger>
             <TabsTrigger value="rejected">Rejected ({counts.rejected})</TabsTrigger>
             <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
           </TabsList>
@@ -163,6 +202,7 @@ const AdminTrainers = () => {
                 <div className="flex items-center gap-2 shrink-0 ml-3">
                   <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
                     t.approval_status === "approved" ? "bg-emerald-50 text-emerald-700" :
+                    t.approval_status === "suspended" ? "bg-orange-50 text-orange-700" :
                     t.approval_status === "rejected" ? "bg-destructive/10 text-destructive" :
                     "bg-amber-50 text-amber-700"
                   }`}>
@@ -180,6 +220,21 @@ const AdminTrainers = () => {
                         <X className="w-3.5 h-3.5" />
                       </Button>
                     </>
+                  )}
+                  {t.approval_status === "approved" && (
+                    <>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2 border-orange-300 text-orange-700 hover:bg-orange-50" onClick={() => handleSuspendClick(t)}>
+                        <ShieldOff className="w-3.5 h-3.5" /> Suspend
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => handleRemoveClick(t)}>
+                        <Trash2 className="w-3.5 h-3.5" /> Remove
+                      </Button>
+                    </>
+                  )}
+                  {t.approval_status === "suspended" && (
+                    <Button size="sm" className="h-8 gap-1 text-xs px-2 bg-emerald-600 hover:bg-emerald-700" onClick={() => updateStatus(t.id, "approved")}>
+                      <Check className="w-3.5 h-3.5" /> Reactivate
+                    </Button>
                   )}
                 </div>
               </div>
@@ -207,6 +262,38 @@ const AdminTrainers = () => {
         trainerName={rejectTarget?.profiles?.full_name || "Trainer"}
         onConfirm={(reason) => updateStatus(rejectTarget.id, "rejected", reason)}
       />
+
+      {/* Suspend Confirmation Dialog */}
+      <Dialog open={!!suspendTarget} onOpenChange={() => setSuspendTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend Trainer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to suspend <strong>{suspendTarget?.profiles?.full_name || "this trainer"}</strong>? They will not be able to log in or be visible to students.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSuspendTarget(null)}>Cancel</Button>
+            <Button className="bg-orange-600 hover:bg-orange-700" onClick={handleSuspendConfirm}>Suspend</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Confirmation Dialog */}
+      <Dialog open={!!removeTarget} onOpenChange={() => setRemoveTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Trainer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove <strong>{removeTarget?.profiles?.full_name || "this trainer"}</strong>? This action cannot be undone. The trainer will be permanently deleted and notified via email.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRemoveTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleRemoveConfirm}>Remove Permanently</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

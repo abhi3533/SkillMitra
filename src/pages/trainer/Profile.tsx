@@ -93,25 +93,43 @@ const TrainerProfile = () => {
 
     (async () => {
       try {
-        // Use RPC for public access (bypasses RLS), fall back to direct query for own profile
+        // Use RPC for public access (bypasses RLS)
         let t: any = null;
+        const mapRpcRow = (r: any) => ({
+          id: r.trainer_id, user_id: r.trainer_user_id, bio: r.trainer_bio,
+          skills: r.trainer_skills, experience_years: r.trainer_experience_years,
+          current_company: r.trainer_current_company, current_role: r.trainer_current_role,
+          teaching_languages: r.trainer_teaching_languages, average_rating: r.trainer_average_rating,
+          total_students: r.trainer_total_students, approval_status: r.trainer_approval_status,
+          subscription_plan: r.trainer_subscription_plan, is_job_seeker: r.trainer_is_job_seeker,
+          intro_video_url: r.trainer_intro_video_url, linkedin_url: r.trainer_linkedin_url,
+          previous_companies: r.trainer_previous_companies, boost_score: r.trainer_boost_score,
+        });
+
+        // Try by trainer ID first
         const { data: rpcData } = await supabase.rpc("get_public_trainer_profile", { trainer_row_id: resolvedId });
         if (rpcData && rpcData.length > 0) {
-          const r = rpcData[0];
-          t = {
-            id: r.trainer_id, user_id: r.trainer_user_id, bio: r.trainer_bio,
-            skills: r.trainer_skills, experience_years: r.trainer_experience_years,
-            current_company: r.trainer_current_company, current_role: r.trainer_current_role,
-            teaching_languages: r.trainer_teaching_languages, average_rating: r.trainer_average_rating,
-            total_students: r.trainer_total_students, approval_status: r.trainer_approval_status,
-            subscription_plan: r.trainer_subscription_plan, is_job_seeker: r.trainer_is_job_seeker,
-            intro_video_url: r.trainer_intro_video_url, linkedin_url: r.trainer_linkedin_url,
-            previous_companies: r.trainer_previous_companies, boost_score: r.trainer_boost_score,
-          };
+          t = mapRpcRow(rpcData[0]);
         } else {
-          // Fallback: try direct query (works if user is the trainer or admin)
-          const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
-          t = directData;
+          // Maybe resolvedId is actually a user_id — look up trainer by user_id via approved trainers list
+          const { data: allApproved } = await supabase.rpc("get_approved_trainers_list");
+          const match = (allApproved || []).find((a: any) => a.trainer_user_id === resolvedId || a.trainer_id === resolvedId);
+          if (match) {
+            const { data: rpcData2 } = await supabase.rpc("get_public_trainer_profile", { trainer_row_id: match.trainer_id });
+            if (rpcData2 && rpcData2.length > 0) {
+              t = mapRpcRow(rpcData2[0]);
+            }
+          } else {
+            // Fallback: try direct query (works if user is the trainer or admin)
+            const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
+            if (!directData) {
+              // Try by user_id
+              const { data: byUserId } = await supabase.from("trainers").select("*").eq("user_id", resolvedId).single();
+              t = byUserId;
+            } else {
+              t = directData;
+            }
+          }
         }
         if (t) {
           // Use public RPC for profile to bypass RLS

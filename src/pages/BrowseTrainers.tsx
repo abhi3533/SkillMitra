@@ -431,6 +431,7 @@ const BrowseTrainers = () => {
                                   <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
                                 </div>
                                 <p className="text-xs text-muted-foreground">{t.current_role || "Trainer"}</p>
+                                {t.profile?.city && <p className="text-[11px] text-muted-foreground">{t.profile.city}</p>}
                               </div>
                               {t.subscription_plan === "elite" && <span className="text-[9px] font-bold px-2 py-0.5 rounded gold-gradient text-accent-foreground">ELITE</span>}
                             </div>

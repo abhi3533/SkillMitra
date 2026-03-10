@@ -264,6 +264,25 @@ const StudentProfile = () => {
           </div>
         </div>
 
+        {/* Editable Full Name */}
+        {editing && (
+          <div>
+            <Label className="text-muted-foreground">Full Name</Label>
+            <Input
+              value={fullName}
+              onChange={e => {
+                const val = e.target.value;
+                if (/^[a-zA-Z\s.'\-]*$/.test(val)) setFullName(val);
+              }}
+              className="mt-1"
+              placeholder="Your full name"
+            />
+            {fullName.trim() && !/^[a-zA-Z\s.'\-]+$/.test(fullName.trim()) && (
+              <p className="text-xs text-destructive mt-1">Name must contain only letters</p>
+            )}
+          </div>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-4 text-sm">
           <div><span className="text-muted-foreground">Phone:</span> <span className="text-foreground ml-2">{profile?.phone || "-"}</span></div>
           {editing ? (

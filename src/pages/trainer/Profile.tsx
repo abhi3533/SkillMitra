@@ -493,21 +493,23 @@ const TrainerProfile = () => {
                 {availability.length > 0 && (
                   <section className="bg-card rounded-xl border border-border p-6">
                     <h2 className="text-lg font-semibold text-foreground mb-4">Availability</h2>
-                    <div className="grid grid-cols-7 gap-2">
-                      {DAYS_LABEL.map((day, idx) => {
-                        const slots = availability.filter(a => a.day_of_week === idx);
-                        const hasSlot = slots.length > 0;
-                        return (
-                          <div key={day} className={`rounded-xl p-3 text-center border transition-colors ${hasSlot ? 'bg-primary/5 border-primary/20' : 'bg-muted/30 border-border'}`}>
-                            <p className={`text-xs font-semibold ${hasSlot ? 'text-primary' : 'text-muted-foreground'}`}>{day}</p>
-                            {hasSlot ? slots.map((s, i) => (
-                              <p key={i} className="text-[10px] text-muted-foreground mt-1">{s.start_time?.slice(0, 5)}–{s.end_time?.slice(0, 5)}</p>
-                            )) : (
-                              <p className="text-[10px] text-muted-foreground/50 mt-1">—</p>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div className="overflow-x-auto -mx-2 px-2">
+                      <div className="grid grid-cols-7 gap-2 min-w-[420px]">
+                        {DAYS_LABEL.map((day, idx) => {
+                          const slots = availability.filter(a => a.day_of_week === idx);
+                          const hasSlot = slots.length > 0;
+                          return (
+                            <div key={day} className={`rounded-xl p-2 sm:p-3 text-center border transition-colors ${hasSlot ? 'bg-primary/5 border-primary/20' : 'bg-muted/30 border-border'}`}>
+                              <p className={`text-xs font-semibold ${hasSlot ? 'text-primary' : 'text-muted-foreground'}`}>{day}</p>
+                              {hasSlot ? slots.map((s, i) => (
+                                <p key={i} className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">{s.start_time?.slice(0, 5)}–{s.end_time?.slice(0, 5)}</p>
+                              )) : (
+                                <p className="text-[10px] text-muted-foreground/50 mt-1">—</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </section>
                 )}

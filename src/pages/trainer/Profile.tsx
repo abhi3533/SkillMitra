@@ -122,12 +122,14 @@ const TrainerProfile = () => {
           });
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
-          const [coursesRes, ratingsRes, availRes, docsRes] = await Promise.all([
+          const [coursesRes, availRes, docsRes] = await Promise.all([
             supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved"),
-            supabase.from("ratings").select("*").eq("trainer_id", resolvedId).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
             supabase.from("trainer_availability").select("*").eq("trainer_id", resolvedId).eq("is_available", true),
             supabase.from("trainer_documents").select("verification_status").eq("trainer_id", resolvedId),
           ]);
+
+          // Use public RPC for ratings
+          const { data: ratingsData } = await supabase.rpc("get_public_ratings", { p_trainer_id: resolvedId });
 
           setCourses(coursesRes.data || []);
           setAvailability(availRes.data || []);

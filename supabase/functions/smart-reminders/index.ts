@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
           await supabase.from('notifications').insert({
             user_id: studentUserId, type: 'session_24h',
             title: '📅 Session Tomorrow',
-            body: `Your "${courseTitle}" session is scheduled for ${time}`,
+            body: `Your "${courseTitle}" session is on ${time}. Don't forget!`,
             action_url: s.id, icon: 'calendar',
           })
           results.push(`24h notification → student ${studentUserId}`)
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
           await supabase.from('notifications').insert({
             user_id: trainer.user_id, type: 'session_24h',
             title: '📅 Session Tomorrow',
-            body: `Your "${courseTitle}" session is scheduled for ${time}`,
+            body: `Your "${courseTitle}" session is on ${time}. Don't forget!`,
             action_url: s.id, icon: 'calendar',
           })
           results.push(`24h notification → trainer ${trainer.user_id}`)
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
           await supabase.from('notifications').insert({
             user_id: userId!, type: 'session_1h',
             title: '⏰ Session in 1 Hour',
-            body: `"${courseTitle}" starts in 1 hour. ${s.meet_link ? 'Click to join!' : ''}`,
+            body: `"${courseTitle}" starts in 1 hour. ${s.meet_link ? 'Get ready to join!' : ''}`,
             action_url: s.meet_link || s.id, icon: 'clock',
           })
           // Send email reminder
@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
           await supabase.from('notifications').insert({
             user_id: userId!, type: 'session_10m',
             title: '🔔 Session in 10 Minutes!',
-            body: `"${courseTitle}" starts in 10 minutes. Get ready to join!`,
+            body: `"${courseTitle}" starts in 10 minutes. Get ready!`,
             action_url: s.meet_link || s.id, icon: 'bell',
           })
           results.push(`10m notification → ${userId}`)
@@ -213,8 +213,8 @@ Deno.serve(async (req) => {
         if (!existing?.length) {
           await supabase.from('notifications').insert({
             user_id: studentUserId, type: 'missed_session',
-            title: '⚠️ Trainer Missed Session',
-            body: `Your trainer did not join the "${courseTitle}" session. We've been notified and will follow up.`,
+            title: '⚠️ Trainer missed your session',
+            body: `Your trainer didn't join the "${courseTitle}" session. We've been notified and will follow up with them.`,
             action_url: s.id, icon: 'alert-triangle',
           })
           results.push(`missed session notif → student ${studentUserId}`)
@@ -227,8 +227,8 @@ Deno.serve(async (req) => {
         if (!existing?.length) {
           await supabase.from('notifications').insert({
             user_id: admin.user_id, type: 'missed_session',
-            title: '🚨 Trainer No-Show',
-            body: `Trainer missed "${courseTitle}" session. Requires follow-up.`,
+            title: '🚨 Trainer no-show',
+            body: `Trainer missed the "${courseTitle}" session. Needs follow-up.`,
             action_url: s.id, icon: 'alert-triangle',
           })
           results.push(`missed session notif → admin ${admin.user_id}`)
@@ -250,8 +250,8 @@ Deno.serve(async (req) => {
         if (!existing?.length) {
           await supabase.from('notifications').insert({
             user_id: student.user_id, type: 'low_attendance',
-            title: '📉 Low Attendance Warning',
-            body: `Your attendance is at ${pct}%. Minimum 90% is required for certificate eligibility.`,
+            title: '📉 Your attendance is low',
+            body: `Your attendance is at ${pct}%. You need at least 90% to be eligible for your certificate.`,
             icon: 'alert-circle',
           })
           results.push(`low attendance warning → ${student.user_id} (${pct}%)`)
@@ -275,8 +275,8 @@ Deno.serve(async (req) => {
       if (!existing?.length) {
         await supabase.from('notifications').insert({
           user_id: userId, type: 'payment_due',
-          title: '💳 Subscription Expiring Soon',
-          body: `Your ${sub.plan} plan expires on ${sub.end_date}. Renew to continue listing courses.`,
+          title: '💳 Your plan expires soon',
+          body: `Your ${sub.plan} plan expires on ${sub.end_date}. Renew it to keep your courses listed.`,
           action_url: sub.trainer_id, icon: 'credit-card',
         })
         results.push(`payment due → trainer ${userId}`)
@@ -313,8 +313,8 @@ Deno.serve(async (req) => {
 
       await supabase.from('notifications').insert({
         user_id: studentUserId, type: 'rate_session',
-        title: '⭐ Rate Your Session',
-        body: `How was your "${courseTitle}" session? Share your feedback to help other students. [${s.id.slice(0, 8)}]`,
+        title: '⭐ How was your session?',
+        body: `Rate your "${courseTitle}" session to help other students. [${s.id.slice(0, 8)}]`,
         action_url: `/student/sessions`, icon: 'star',
       })
       results.push(`rate prompt → student ${studentUserId} for session ${s.id}`)
@@ -346,8 +346,8 @@ Deno.serve(async (req) => {
       for (const admin of admins || []) {
         await supabase.from('notifications').insert({
           user_id: admin.user_id, type: 'pending_trainer_reminder',
-          title: '⏰ Pending Review Reminder',
-          body: `Reminder — ${trainerName}'s application is still pending review (applied ${new Date(trainer.created_at!).toLocaleDateString('en-IN')}).`,
+          title: '⏰ Pending review reminder',
+          body: `${trainerName}'s application has been pending since ${new Date(trainer.created_at!).toLocaleDateString('en-IN')}. Please review.`,
           action_url: trainer.id, icon: 'clock',
         })
       }

@@ -95,18 +95,18 @@ const useCountUp = (end: number, duration = 2000) => {
 
 /* ─── Steps data ─── */
 const steps = [
-  { num: "01", title: "Browse & Choose", desc: "Explore verified trainers by skill, language, and budget. Find the perfect match.", icon: BookOpen },
-  { num: "02", title: "Book a Free Trial", desc: "Schedule a free 1:1 trial session. Meet your trainer, no commitment.", icon: Video },
-  { num: "03", title: "Learn & Grow", desc: "Attend live sessions, build real projects, earn verified certificates.", icon: Sparkles },
+  { num: "01", title: "Pick a Trainer", desc: "Search by skill, language, or budget. Find someone who fits your learning style.", icon: BookOpen },
+  { num: "02", title: "Try a Free Session", desc: "Book a free 1:1 trial. Meet your trainer, ask questions — no payment needed.", icon: Video },
+  { num: "03", title: "Start Learning", desc: "Attend live sessions, work on real projects, and get a verified certificate.", icon: Sparkles },
 ];
 
 const benefits = [
-  { title: "1:1 Personal Training", desc: "Your trainer focuses only on you, tailoring every session to your pace.", icon: Users },
-  { title: "In Your Language", desc: "Learn in Telugu, Hindi, Tamil, English, or any language you prefer.", icon: Globe },
-  { title: "From Home", desc: "No commuting. Attend live sessions via Google Meet from anywhere.", icon: Home },
-  { title: "Verified Experts", desc: "Every trainer is ID-verified with checked credentials & work history.", icon: Shield },
-  { title: "Affordable Pricing", desc: "Starting from ₹999 per course. Expert training at a fraction of the cost.", icon: IndianRupee },
-  { title: "Earn Certificates", desc: "Get SkillMitra certificates verified by QR code — share on LinkedIn.", icon: Award },
+  { title: "Just You & Your Trainer", desc: "No group classes. Every session is focused only on you and your goals.", icon: Users },
+  { title: "Learn in Your Language", desc: "Sessions in Telugu, Hindi, Tamil, English, and more. Learn comfortably.", icon: Globe },
+  { title: "Learn From Home", desc: "No travel, no fixed batch times. Join live sessions on Google Meet from anywhere.", icon: Home },
+  { title: "Verified Trainers", desc: "Every trainer goes through ID check and profile review before they can teach.", icon: Shield },
+  { title: "Starts at ₹999", desc: "Quality 1:1 training at prices that won't break the bank. Seriously.", icon: IndianRupee },
+  { title: "Get Certified", desc: "Earn a SkillMitra certificate with QR verification. Add it to your LinkedIn.", icon: Award },
 ];
 
 const statItems = [
@@ -155,8 +155,8 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
   usePageMeta({
-    title: "SkillMitra — Learn Any Skill From India's Best Experts",
-    description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999 per course.",
+    title: "SkillMitra — Learn Real Skills From Working Professionals",
+    description: "Find verified trainers for 1:1 personal skill training in Python, Data Science, UI/UX, Digital Marketing and more. Starting ₹999.",
     ogType: "website",
     jsonLd: {
       "@context": "https://schema.org",
@@ -164,7 +164,7 @@ const Index = () => {
       name: "SkillMitra",
       url: "https://skillmitra.online",
       logo: "https://skillmitra.online/icons/icon-512x512.png",
-      description: "India's premier 1:1 personal skill training platform",
+      description: "India's personal 1:1 skill training platform",
       contactPoint: { "@type": "ContactPoint", email: "contact@skillmitra.online", contactType: "customer service" },
       sameAs: ["https://linkedin.com/company/skillmitra", "https://twitter.com/skillmitra", "https://instagram.com/skillmitra"],
     },
@@ -235,26 +235,24 @@ const Index = () => {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-semibold text-primary tracking-wide">India's #1 Personal 1:1 Training — Verified Experts</span>
+                <span className="text-xs font-semibold text-primary tracking-wide">1:1 Skill Training — Verified Trainers Across India</span>
               </div>
 
               <h1 className="text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.08] tracking-tight">
+                <span className="text-foreground">Learn Real Skills</span>
+                <br />
+                <span className="text-foreground">From </span>
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  Skill
+                  Working Professionals
                 </span>
-                <span className="text-foreground">Mitra</span>
-                <br />
-                <span className="text-foreground">Learn Any Skill From</span>
-                <br />
-                <span className="text-primary">India's Best Experts</span>
               </h1>
 
               <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
                 <TypingText texts={[
-                  "Personal 1:1 training from verified industry experts.",
-                  "Learn in your own language, from home.",
-                  "Starting from just ₹999 per course.",
-                  "Earn certificates. Get placed."
+                  "1:1 training with verified industry experts.",
+                  "Learn in your language, from home.",
+                  "Courses starting at just ₹999.",
+                  "Build projects. Get certified. Get hired."
                 ]} />
               </p>
 
@@ -417,8 +415,8 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-14">
               <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">How It Works</span>
-              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Three Simple Steps</h2>
-              <p className="mt-3 text-muted-foreground max-w-md mx-auto">Get started in minutes. No commitments. No hidden fees.</p>
+              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">How It Works</h2>
+              <p className="mt-3 text-muted-foreground max-w-md mx-auto">Start learning in 3 simple steps. No commitments, no hidden charges.</p>
             </div>
           </ScrollReveal>
 
@@ -456,7 +454,7 @@ const Index = () => {
             <div className="flex items-end justify-between mb-10">
               <div>
                 <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">Top Trainers</span>
-                <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Meet Our Expert Trainers</h2>
+                <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Our Top Trainers</h2>
               </div>
               <Link to="/browse" className="hidden md:flex items-center gap-1 text-sm font-semibold text-primary hover:text-[hsl(221,79%,38%)] transition-colors group">
                 View all <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -546,8 +544,8 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">Why Choose Us</span>
-              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Why Students Trust SkillMitra</h2>
+              <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">Why SkillMitra</span>
+              <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Why Students Choose Us</h2>
             </div>
           </ScrollReveal>
 
@@ -633,10 +631,10 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
           <ScrollReveal>
             <h2 className="text-3xl md:text-[44px] font-extrabold text-white leading-tight">
-              Start Teaching. Start Earning.
+              Got Skills? Start Teaching.
             </h2>
             <p className="mt-4 text-base md:text-lg text-white/60 max-w-xl mx-auto leading-relaxed">
-              Join our growing community of verified trainers. Teach from home on your own schedule. Earn up to ₹50,000/month.
+              Teach students across India from home, on your own schedule. Trainers on SkillMitra earn up to ₹50,000/month.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/trainer/signup">

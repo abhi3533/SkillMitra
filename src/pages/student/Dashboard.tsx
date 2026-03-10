@@ -158,7 +158,7 @@ const StudentDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome Back, {firstName}! 👋</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Here's your training progress overview</p>
+          <p className="mt-1 text-sm text-muted-foreground">Here's how your learning is going</p>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/student/wallet" className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/15 transition-colors px-3 py-2 rounded-lg">
@@ -247,7 +247,7 @@ const StudentDashboard = () => {
             ) : data.enrollments.length === 0 ? (
               <div className="text-center py-8">
                 <GraduationCap className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No active courses yet</p>
+                <p className="text-sm text-muted-foreground mt-2">You haven't enrolled in any course yet. Browse trainers to get started!</p>
                 <Link to="/browse"><Button size="sm" className="mt-3 text-xs">Browse Trainers</Button></Link>
               </div>
             ) : data.enrollments.map((e: any) => (
@@ -284,7 +284,7 @@ const StudentDashboard = () => {
             ) : data.sessions.length === 0 ? (
               <div className="text-center py-8">
                 <Clock className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No upcoming sessions</p>
+                <p className="text-sm text-muted-foreground mt-2">No sessions coming up. Book a session to get started!</p>
               </div>
             ) : data.sessions.map((s: any) => (
               <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">

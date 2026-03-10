@@ -174,7 +174,7 @@ const TrainerDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome, {firstName}! 👋</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Manage your students, courses, and earnings</p>
+          <p className="mt-1 text-sm text-muted-foreground">Here's what's happening today</p>
         </div>
         <Link to="/trainer/courses">
           <Button size="sm" className="gap-1.5 text-xs hidden sm:flex">
@@ -188,8 +188,8 @@ const TrainerDashboard = () => {
         <div className="mt-4 bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-foreground">Complete your profile to go live</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Step {onboardingInfo.step + 1} of 6 remaining. Finish your onboarding to start receiving students.</p>
+            <h3 className="text-sm font-semibold text-foreground">Finish your profile to go live</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Step {onboardingInfo.step + 1} of 6 left. Complete your profile so students can find you.</p>
             <Link to="/trainer/onboarding">
               <Button size="sm" className="mt-2 hero-gradient border-0 text-xs">Continue Onboarding <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
             </Link>
@@ -202,8 +202,8 @@ const TrainerDashboard = () => {
         <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Application Under Review</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Your trainer profile is being reviewed by the admin team. You'll be notified once approved.</p>
+            <h3 className="text-sm font-semibold text-foreground">Your application is being reviewed</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">We're reviewing your profile. You'll get a notification once it's approved.</p>
           </div>
         </div>
       )}
@@ -211,8 +211,8 @@ const TrainerDashboard = () => {
         <div className="mt-4 bg-destructive/5 border border-destructive/20 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Application Not Approved</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then contact support to re-apply.</p>
+            <h3 className="text-sm font-semibold text-foreground">Application not approved</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then contact us to re-apply.</p>
           </div>
         </div>
       )}
@@ -279,7 +279,7 @@ const TrainerDashboard = () => {
             ) : data.todaySessions.length === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No sessions today. Enjoy your day! ☀️</p>
+                <p className="text-sm text-muted-foreground mt-2">No sessions scheduled for today. Take it easy! ☀️</p>
               </div>
             ) : data.todaySessions.map((s: any) => (
               <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">
@@ -314,7 +314,7 @@ const TrainerDashboard = () => {
             ) : data.recentEnrollments.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No enrollments yet</p>
+                <p className="text-sm text-muted-foreground mt-2">No students enrolled yet. They'll show up here once they join.</p>
               </div>
             ) : data.recentEnrollments.map((e: any) => (
               <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">
@@ -342,7 +342,7 @@ const TrainerDashboard = () => {
             ) : data.reviews.length === 0 ? (
               <div className="text-center py-8">
                 <Star className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No reviews yet. Complete sessions to receive student feedback.</p>
+                <p className="text-sm text-muted-foreground mt-2">No reviews yet. Once students rate their sessions, they'll appear here.</p>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-2">

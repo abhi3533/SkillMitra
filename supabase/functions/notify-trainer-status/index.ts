@@ -76,43 +76,43 @@ Deno.serve(async (req) => {
     let htmlBody: string
 
     if (status === 'approved') {
-      subject = 'Congratulations! Your SkillMitra Trainer Application is Approved'
+      subject = 'Good news — Your trainer profile is approved!'
       htmlBody = layout(`
-        <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Congratulations, ${trainerName}! 🎉</h1>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">We are excited to welcome you to <strong>SkillMitra</strong> as a verified trainer!</p>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">Your application has been reviewed and <strong style="color: #059669;">approved</strong>. You can now login and start creating courses.</p>
+        <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${trainerName} 🎉</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Good news — your trainer profile on SkillMitra has been <strong style="color: #059669;">approved</strong>!</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">You can now log in, create courses, and start accepting students.</p>
         
         <div style="text-align: center; margin: 28px 0;">
-          <a href="${APP_URL}/trainer/login" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Login to Your Dashboard</a>
+          <a href="${APP_URL}/trainer/login" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Go to Dashboard</a>
         </div>
 
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">Your profile is now live and visible to students. Start earning by creating your first course today!</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Your profile is live and students can see it now. Here's what to do next:</p>
         
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
-          <p style="font-size: 14px; color: #166534; margin: 0; font-weight: 600;">🚀 Quick Start Checklist:</p>
+          <p style="font-size: 14px; color: #166534; margin: 0; font-weight: 600;">Next steps:</p>
           <ul style="font-size: 14px; line-height: 1.8; color: #166534; padding-left: 20px; margin: 8px 0 0;">
             <li>Create your first course</li>
-            <li>Set your availability schedule</li>
-            <li>Share your profile link with students</li>
+            <li>Set your availability</li>
+            <li>Share your profile link</li>
           </ul>
         </div>
 
-        <p style="font-size: 14px; line-height: 1.6; color: #666;">Welcome aboard!</p>
+        <p style="font-size: 14px; line-height: 1.6; color: #666;">Welcome to SkillMitra!</p>
         <p style="font-size: 14px; color: #666; margin-top: 8px;">— Team SkillMitra</p>
       `)
     } else {
-      subject = 'Update on Your SkillMitra Trainer Application'
+      subject = 'Update on your SkillMitra trainer application'
       htmlBody = layout(`
-        <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Dear ${trainerName},</h1>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">Thank you for applying to become a trainer on <strong>SkillMitra</strong>.</p>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">After reviewing your application, we are unable to approve it at this time.</p>
+        <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${trainerName},</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Thank you for applying to become a trainer on SkillMitra.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">After reviewing your profile, we're unable to approve it right now.</p>
         
         ${rejection_reason ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0;">
           <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Reason:</strong> ${rejection_reason}</p>
         </div>` : ''}
         
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">You are welcome to reapply after 30 days with updated documents and an improved profile.</p>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">If you have any questions, contact us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a>.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">You're welcome to update your details and apply again after 30 days.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">If you have questions, write to us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a>.</p>
         
         <p style="font-size: 14px; color: #666; margin-top: 24px;">— Team SkillMitra</p>
       `)
@@ -143,11 +143,11 @@ Deno.serve(async (req) => {
 
     // Create in-app notification
     const notifTitle = status === 'approved'
-      ? 'Application Approved! 🎉'
-      : 'Application Update'
+      ? 'You're approved! 🎉'
+      : 'Application update'
     const notifBody = status === 'approved'
-      ? 'Your trainer application has been approved! Start creating courses and accepting students.'
-      : `Your application was not approved.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Please check your email for details.'}`
+      ? 'Your trainer profile is live! You can now create courses and start teaching.'
+      : `Your application wasn't approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
 
     await supabase.from('notifications').insert({
       user_id: trainer.user_id,

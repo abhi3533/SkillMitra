@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       const step = trainer.onboarding_step || 0
       const html = layout(`
         <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${profile.full_name || 'there'},</h1>
-        <p style="font-size: 15px; line-height: 1.6; color: #444;">Your SkillMitra trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% complete` : 'waiting to be set up'}. Complete your onboarding to start teaching and earning!</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'not set up yet'}. Finish it to start teaching and earning on SkillMitra!</p>
         ${btn(step > 0 ? 'Continue Where I Left Off' : 'Complete My Profile', `${APP_URL}/trainer/onboarding`)}
         <p style="font-size: 13px; color: #888; text-align: center;">Need help? Call us at +91 99855 12332</p>
       `)
@@ -104,8 +104,8 @@ Deno.serve(async (req) => {
         subject = 'Complete Your SkillMitra Profile'
         html = layout(`
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">You signed up as a trainer on SkillMitra but haven't completed your profile yet. It only takes a few minutes!</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Complete your profile to get verified and start teaching students across India.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">You signed up as a trainer on SkillMitra but your profile isn't complete yet. It only takes a few minutes!</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Finish your profile to get verified and start teaching students across India.</p>
           ${btn('Complete My Profile', `${APP_URL}/trainer/onboarding`)}
         `)
       }
@@ -114,8 +114,8 @@ Deno.serve(async (req) => {
         subject = 'Your SkillMitra Profile is Waiting'
         html = layout(`
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile on SkillMitra is ${step > 0 ? `${Math.round((step / 6) * 100)}% complete` : 'still waiting'}. Students are looking for trainers like you!</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Pick up right where you left off — it only takes a few minutes to complete.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'still waiting'}. Students are looking for trainers like you!</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Pick up where you left off — it only takes a few minutes.</p>
           ${btn('Continue Where I Left Off', `${APP_URL}/trainer/onboarding`)}
         `)
       }
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
         subject = 'Last Reminder — Complete Your SkillMitra Profile'
         html = layout(`
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">This is our final reminder to complete your SkillMitra trainer profile. Don't miss out on the opportunity to teach and earn!</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Just a last reminder — your trainer profile on SkillMitra is still incomplete. Don't miss out on teaching and earning!</p>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">If you're facing any issues, our support team is here to help:</p>
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
             <p style="font-size: 15px; color: ${BRAND_COLOR}; margin: 0; font-weight: 600;">📞 Call us: +91 99855 12332</p>

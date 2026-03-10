@@ -47,7 +47,7 @@ const TrainerCertificates = () => {
 
     setApproving(scoreDialog.id);
     try {
-      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user!.id).single();
+      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user!.id).maybeSingle();
       const overallScore = Math.round((techScore + commScore + punctScore) / 3);
       
       const { error } = await supabase.from("certificates").insert({

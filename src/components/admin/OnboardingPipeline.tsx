@@ -93,7 +93,7 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
                 {t.profiles?.email || "—"}
               </TableCell>
               <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
-                {new Date(t.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                {formatShortDateIST(t.created_at)}
               </TableCell>
               <TableCell>
                 <Badge variant="secondary" className={`text-xs ${stepColor(t.onboarding_step || 0)}`}>

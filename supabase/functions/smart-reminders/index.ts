@@ -275,8 +275,8 @@ Deno.serve(async (req) => {
       if (!existing?.length) {
         await supabase.from('notifications').insert({
           user_id: userId, type: 'payment_due',
-          title: '💳 Subscription Expiring Soon',
-          body: `Your ${sub.plan} plan expires on ${sub.end_date}. Renew to continue listing courses.`,
+          title: '💳 Your plan expires soon',
+          body: `Your ${sub.plan} plan expires on ${sub.end_date}. Renew it to keep your courses listed.`,
           action_url: sub.trainer_id, icon: 'credit-card',
         })
         results.push(`payment due → trainer ${userId}`)

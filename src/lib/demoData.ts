@@ -15,7 +15,7 @@ export const demoTrainers = [
     total_students: 45,
     subscription_plan: "elite",
     teaching_languages: ["Telugu", "English", "Hindi"],
-    bio: "I'm a Senior Software Engineer at TCS with 8 years of experience in Python and Machine Learning. I've trained 45+ students and helped many land roles at top tech companies. I believe in hands-on, project-based learning.",
+    bio: "Hi, I'm a software engineer at TCS with 8 years of experience in Python and ML. I've helped 45+ students learn through hands-on projects and many of them are now working at top companies.",
     profile: { full_name: "Rajesh Kumar", city: "Hyderabad" },
     avatarColor: "#1A56DB",
   },

@@ -161,6 +161,10 @@ const TrainerSignup = () => {
         toast({ title: "Please fill all required fields", variant: "warning" });
         return false;
       }
+      if (!isValidName(form.fullName)) {
+        toast({ title: "Please enter a valid name", variant: "warning" });
+        return false;
+      }
       if (!isValidEmail(form.email)) {
         toast({ title: "Please enter a valid email address", variant: "warning" });
         return false;

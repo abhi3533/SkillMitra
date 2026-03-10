@@ -24,7 +24,7 @@ const Receipt = () => {
           .from("students")
           .select("id")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (!student) {
           setError("Student record not found.");

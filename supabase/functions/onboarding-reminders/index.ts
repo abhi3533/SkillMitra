@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     const { data: draftTrainers } = await supabase
       .from('trainers')
       .select('*')
-      .in('onboarding_status', ['draft'])
+      .in('onboarding_status', ['draft', 'registered'])
       .order('created_at', { ascending: true })
 
     if (!draftTrainers?.length) {

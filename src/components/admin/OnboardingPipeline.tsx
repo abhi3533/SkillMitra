@@ -17,7 +17,7 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
   const [sendingTo, setSendingTo] = useState<string | null>(null);
 
   const pipeline = trainers
-    .filter(t => t.onboarding_status === "draft" || (t.onboarding_status === "pending" && (t.onboarding_step || 0) < 6))
+    .filter(t => t.onboarding_status === "draft" || t.onboarding_status === "registered")
     .map(t => {
       const createdAt = new Date(t.created_at);
       const now = new Date();

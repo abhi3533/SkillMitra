@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
     if (!RESEND_API_KEY) throw new Error('RESEND_API_KEY not configured')
 
-    const { user_id, trainer_name, email, phone, city, skills, experience_years } = await req.json()
+    const { user_id, trainer_name, email, phone, city, skills, experience_years, registration_only, application_submitted } = await req.json()
 
     if (!user_id) throw new Error('user_id is required')
 
@@ -45,30 +45,54 @@ Deno.serve(async (req) => {
     const appliedAt = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
     const skillsList = (skills && skills.length > 0) ? skills.join(', ') : 'Not specified'
 
-    // 1. Send email to admin
-    const subject = 'New Trainer Application — Action Required'
-    const htmlBody = layout(`
-      <h1 style="font-size: 20px; color: #111; margin-bottom: 16px;">🆕 New Trainer Application</h1>
-      <p style="font-size: 15px; line-height: 1.7; color: #444;">A new trainer has applied on SkillMitra and is waiting for your approval.</p>
-      
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
-        <table style="width: 100%; font-size: 14px; color: #444;">
-          <tr><td style="padding: 6px 0; font-weight: 600; width: 120px;">Trainer Name:</td><td>${name}</td></tr>
-          <tr><td style="padding: 6px 0; font-weight: 600;">Email:</td><td>${email || 'N/A'}</td></tr>
-          <tr><td style="padding: 6px 0; font-weight: 600;">Phone:</td><td>${phone || 'N/A'}</td></tr>
-          <tr><td style="padding: 6px 0; font-weight: 600;">City:</td><td>${city || 'N/A'}</td></tr>
-          <tr><td style="padding: 6px 0; font-weight: 600;">Skills:</td><td>${skillsList}</td></tr>
-          <tr><td style="padding: 6px 0; font-weight: 600;">Experience:</td><td>${experience_years || 0} years</td></tr>
-          <tr><td style="padding: 6px 0; font-weight: 600;">Applied at:</td><td>${appliedAt}</td></tr>
-        </table>
-      </div>
+    let subject: string
+    let htmlBody: string
 
-      <div style="text-align: center; margin: 28px 0;">
-        <a href="${APP_URL}/admin/trainers" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Review & Approve</a>
-      </div>
+    if (registration_only) {
+      // Phase 1: Basic signup only — trainer still needs to complete onboarding
+      subject = 'New Trainer Registered — Onboarding Pending'
+      htmlBody = layout(`
+        <h1 style="font-size: 20px; color: #111; margin-bottom: 16px;">📝 New Trainer Registered</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">A new trainer has registered on SkillMitra. They still need to complete their onboarding profile before review.</p>
+        
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <table style="width: 100%; font-size: 14px; color: #444;">
+            <tr><td style="padding: 6px 0; font-weight: 600; width: 120px;">Trainer Name:</td><td>${name}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Email:</td><td>${email || 'N/A'}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Phone:</td><td>${phone || 'N/A'}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Registered at:</td><td>${appliedAt}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Status:</td><td style="color: #d97706; font-weight: 600;">Onboarding Pending</td></tr>
+          </table>
+        </div>
 
-      <p style="font-size: 13px; color: #666;">Please review and approve or reject within 24 hours.</p>
-    `)
+        <p style="font-size: 13px; color: #666;">No action needed yet. You will be notified once the trainer submits their full application.</p>
+      `)
+    } else {
+      // Phase 2: Full application submitted — ready for admin review
+      subject = 'New Trainer Application — Action Required'
+      htmlBody = layout(`
+        <h1 style="font-size: 20px; color: #111; margin-bottom: 16px;">🆕 New Trainer Application</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">A trainer has completed their onboarding and submitted their application for your approval.</p>
+        
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <table style="width: 100%; font-size: 14px; color: #444;">
+            <tr><td style="padding: 6px 0; font-weight: 600; width: 120px;">Trainer Name:</td><td>${name}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Email:</td><td>${email || 'N/A'}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Phone:</td><td>${phone || 'N/A'}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">City:</td><td>${city || 'N/A'}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Skills:</td><td>${skillsList}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Experience:</td><td>${experience_years || 0} years</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">Submitted at:</td><td>${appliedAt}</td></tr>
+          </table>
+        </div>
+
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${APP_URL}/admin/trainers" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Review & Approve</a>
+        </div>
+
+        <p style="font-size: 13px; color: #666;">Please review and approve or reject within 24 hours.</p>
+      `)
+    }
 
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -93,12 +117,19 @@ Deno.serve(async (req) => {
 
     // 2. Send in-app notification to all admins
     const { data: admins } = await supabase.from('admins').select('user_id')
+    const notifTitle = registration_only
+      ? '📝 New Trainer Registered'
+      : '🆕 New Trainer Application'
+    const notifBody = registration_only
+      ? `${name} registered — onboarding pending.`
+      : `${name} submitted their application — review now.`
+
     for (const admin of admins || []) {
       await supabase.from('notifications').insert({
         user_id: admin.user_id,
-        title: '🆕 New Trainer Application',
-        body: `New trainer application from ${name} — review now.`,
-        type: 'new_trainer_application',
+        title: notifTitle,
+        body: notifBody,
+        type: registration_only ? 'new_trainer_registration' : 'new_trainer_application',
         action_url: '/admin/trainers',
         icon: 'user-plus',
       })

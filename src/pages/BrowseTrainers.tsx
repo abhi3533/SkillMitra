@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { motion } from "framer-motion";
 import { Search, Star, BadgeCheck, SlidersHorizontal, X, Clock, User } from "lucide-react";
+import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -441,6 +442,18 @@ const BrowseTrainers = () => {
                                 <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
                               ))}
                             </div>
+                            {/* Verification Badges */}
+                            {(() => {
+                              const badges = getTrainerBadges({
+                                aadhaar_url: t.aadhaar_url,
+                                govt_id_type: t.govt_id_type,
+                                demo_video_url: t.demo_video_url,
+                                intro_video_url: t.intro_video_url,
+                                experience_years: t.experience_years,
+                                total_students: t.total_students,
+                              });
+                              return badges.length > 0 ? <div className="mt-2"><TrainerBadges badges={badges} size="sm" maxShow={3} /></div> : null;
+                            })()}
                             {/* Course links */}
                             {demoCourse ? (
                               <div className="mt-2">

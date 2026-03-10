@@ -1,13 +1,14 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2, Camera, X, Gift, Shield, Info, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2, Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Webcam as WebcamIcon, Mic, Volume2, MessageSquare, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
@@ -15,6 +16,7 @@ import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion } from "
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
 
 const stateOptions = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
@@ -63,6 +65,10 @@ const TrainerSignup = () => {
   const [loading, setLoading] = useState(false);
   const [agreedTraining, setAgreedTraining] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [readinessChecks, setReadinessChecks] = useState<Record<string, boolean>>({
+    internet: false, webcam: false, microphone: false, environment: false, response: false, cancel: false,
+  });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
@@ -138,6 +144,15 @@ const TrainerSignup = () => {
   };
   const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); if (selfieRef.current) selfieRef.current.value = ""; };
 
+  const toggleReadiness = (key: string) => setReadinessChecks(p => ({ ...p, [key]: !p[key] }));
+  const allReadinessChecked = Object.values(readinessChecks).every(Boolean);
+
+  const previewBadges = getTrainerBadges({
+    hasAadhaar: !!docs["aadhaar"]?.file || !!form.govtIdType,
+    hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file),
+    hasDemoVideo: !!docs["demo_video"]?.file,
+  });
+
   const toggleExpertise = (e: string) => setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]);
   const toggleService = (s: string) => setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
 
@@ -188,6 +203,7 @@ const TrainerSignup = () => {
     if (s === 5) {
       if (!agreedTraining) { toast({ title: "Please confirm 1-on-1 training commitment", variant: "warning" }); return false; }
       if (!agreedTerms) { toast({ title: "Please agree to Terms and Conditions", variant: "warning" }); return false; }
+      if (!allReadinessChecked) { toast({ title: "Please confirm all teaching readiness items", variant: "warning" }); return false; }
     }
     return true;
   };
@@ -633,6 +649,11 @@ const TrainerSignup = () => {
                 <Textarea value={form.courseDescription} onChange={e => update("courseDescription", e.target.value)} onBlur={() => markTouched("courseDescription")} placeholder="Describe what students will learn, prerequisites, outcomes..." className="mt-1.5 min-h-[120px]" />
                 <p className="text-xs text-muted-foreground mt-1">{form.courseDescription.length}/100 characters minimum</p>
               </div>
+
+              {/* Preview Your Profile Button */}
+              <Button type="button" variant="outline" className="w-full mt-4 border-primary text-primary hover:bg-primary/5" onClick={() => setShowPreview(true)}>
+                <Eye className="w-4 h-4 mr-2" /> Preview Your Profile
+              </Button>
             </div>
           )}
 
@@ -730,6 +751,34 @@ const TrainerSignup = () => {
                   <span className="text-sm text-foreground">I agree to SkillMitra <Link to="/terms" className="text-primary underline" target="_blank">Terms and Conditions</Link>.<RequiredMark /></span>
                 </label>
               </div>
+
+              {/* Teaching Readiness Checklist */}
+              <div className="border-t border-border pt-5 mt-5">
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-primary" />
+                  Are You Ready to Teach?<RequiredMark />
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 mb-3">Please confirm all items below before submitting.</p>
+                <div className="space-y-2">
+                  {[
+                    { key: "internet", icon: <Wifi className="w-4 h-4" />, label: "I have a stable internet connection (minimum 10 Mbps)" },
+                    { key: "webcam", icon: <Camera className="w-4 h-4" />, label: "I have a working webcam" },
+                    { key: "microphone", icon: <Mic className="w-4 h-4" />, label: "I have a working microphone" },
+                    { key: "environment", icon: <Volume2 className="w-4 h-4" />, label: "I have a quiet, distraction-free environment" },
+                    { key: "response", icon: <MessageSquare className="w-4 h-4" />, label: "I will respond to student messages within 2 hours" },
+                    { key: "cancel", icon: <Clock className="w-4 h-4" />, label: "I will not cancel sessions less than 24 hours before scheduled time" },
+                  ].map(item => (
+                    <label key={item.key} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${readinessChecks[item.key] ? "bg-emerald-50 border-emerald-200" : "bg-secondary/50 border-border hover:bg-secondary/80"}`}>
+                      <Checkbox checked={readinessChecks[item.key]} onCheckedChange={() => toggleReadiness(item.key)} />
+                      <span className="text-muted-foreground">{item.icon}</span>
+                      <span className="text-sm text-foreground">{item.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {!allReadinessChecked && stepAttempted[5] && (
+                  <p className="text-xs text-destructive mt-2">All teaching readiness items must be confirmed</p>
+                )}
+              </div>
             </div>
           )}
 
@@ -741,7 +790,7 @@ const TrainerSignup = () => {
             {step < 5 ? (
               <Button onClick={nextStep} className="hero-gradient border-0">Next <ChevronRight className="w-4 h-4 ml-1" /></Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={loading || !agreedTraining || !agreedTerms} className="gold-gradient text-accent-foreground border-0 font-semibold">
+              <Button onClick={handleSubmit} disabled={loading || !agreedTraining || !agreedTerms || !allReadinessChecked} className="gold-gradient text-accent-foreground border-0 font-semibold">
                 {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <>Submit Application <ArrowRight className="ml-2 w-4 h-4" /></>}
               </Button>
             )}
@@ -752,6 +801,94 @@ const TrainerSignup = () => {
           </p>
         </motion.div>
       </div>
+
+      {/* Profile Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Profile Preview</DialogTitle>
+            <p className="text-xs text-muted-foreground">This is how students will see you. Make edits before submitting.</p>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            {/* Profile Header */}
+            <div className="flex items-start gap-4">
+              {profilePhotoPreview ? (
+                <img src={profilePhotoPreview} alt="Profile" className="w-16 h-16 rounded-xl object-cover" />
+              ) : (
+                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <span className="text-xl font-bold text-primary">
+                    {form.fullName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "TR"}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-foreground text-lg">{form.fullName || "Your Name"}</h3>
+                <p className="text-sm text-muted-foreground">{form.currentRole || "Your Role"}{form.currentCompany ? ` at ${form.currentCompany}` : ""}</p>
+                <p className="text-xs text-muted-foreground">{form.city}{form.state ? `, ${form.state}` : ""}</p>
+              </div>
+            </div>
+
+            {/* Badges */}
+            {previewBadges.length > 0 && <TrainerBadges badges={previewBadges} size="md" />}
+
+            {/* Skills */}
+            {(form.primarySkill || form.secondarySkill) && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Skills</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[form.primarySkill, form.secondarySkill].filter(Boolean).map(s => (
+                    <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Course Card */}
+            {form.courseTitle && (
+              <div className="border border-border rounded-xl p-4 bg-card">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Featured Course</p>
+                <h4 className="font-semibold text-foreground text-sm">{form.courseTitle}</h4>
+                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                  {form.courseDuration && <span>{form.courseDuration}</span>}
+                  {form.courseFee && <span className="font-semibold text-foreground">₹{parseInt(form.courseFee).toLocaleString()}</span>}
+                </div>
+              </div>
+            )}
+
+            {/* About */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About</p>
+              <p className="text-sm text-foreground leading-relaxed">
+                {form.courseDescription || "No bio added yet. Complete the Course Details step to add your description."}
+              </p>
+            </div>
+
+            {/* Experience */}
+            <div className="flex items-center gap-4 text-sm">
+              {form.experience && (
+                <div className="text-center">
+                  <p className="font-bold text-foreground">{form.experience}+</p>
+                  <p className="text-[10px] text-muted-foreground">Years Exp.</p>
+                </div>
+              )}
+              <div className="text-center">
+                <div className="flex items-center gap-0.5">
+                  <Star className="w-3.5 h-3.5 text-accent fill-accent" />
+                  <span className="font-bold text-foreground">New</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Rating</p>
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-foreground">0</p>
+                <p className="text-[10px] text-muted-foreground">Students</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Button variant="outline" className="w-full" onClick={() => setShowPreview(false)}>Close Preview</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

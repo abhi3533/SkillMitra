@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, BadgeCheck, Globe, Clock, Users, Calendar, ArrowRight, ChevronRight, Flag, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -436,6 +437,17 @@ const TrainerProfile = () => {
               <p className="text-primary-foreground/70 mt-1">
                 {trainer.current_role} {trainer.current_company ? `at ${trainer.current_company}` : ""} • {trainer.experience_years || 0} years experience
               </p>
+              {(() => {
+                const badges = getTrainerBadges({
+                  aadhaar_url: trainer.aadhaar_url,
+                  govt_id_type: trainer.govt_id_type,
+                  demo_video_url: trainer.demo_video_url,
+                  intro_video_url: trainer.intro_video_url,
+                  experience_years: trainer.experience_years,
+                  total_students: trainer.total_students,
+                });
+                return badges.length > 0 ? <div className="mt-2"><TrainerBadges badges={badges} size="md" /></div> : null;
+              })()}
               <div className="flex flex-wrap gap-4 mt-4 text-sm text-primary-foreground/60">
                 <span className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent" /> {trainer.average_rating} ({reviews.length} reviews)</span>
                 <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {trainer.total_students} students</span>

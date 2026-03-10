@@ -1,13 +1,14 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2, Camera, X, Gift, Shield, Info, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2, Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Webcam as WebcamIcon, Mic, Volume2, MessageSquare, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
@@ -15,6 +16,7 @@ import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion } from "
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
 
 const stateOptions = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 

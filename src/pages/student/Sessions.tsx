@@ -223,7 +223,7 @@ const StudentSessions = () => {
                       with {s.trainerName} • {s.duration_mins || 60} min
                     </p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Not scheduled"}
+                      {s.scheduled_at ? formatDateTimeWeekdayIST(s.scheduled_at) : "Not scheduled"}
                     </p>
                     {currTopic && (
                       <p className="text-[11px] text-primary mt-1 flex items-center gap-1">

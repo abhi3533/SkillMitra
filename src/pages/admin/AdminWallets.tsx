@@ -124,7 +124,7 @@ const AdminWallets = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{t.userName} — {t.description || t.type}</p>
-                  <p className="text-[11px] text-muted-foreground">{new Date(t.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                  <p className="text-[11px] text-muted-foreground">{formatDateTimeIST(t.created_at)}</p>
                 </div>
               </div>
               <p className={`text-sm font-semibold ${t.type === "credit" ? "text-emerald-600" : "text-destructive"}`}>

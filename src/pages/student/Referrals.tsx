@@ -190,7 +190,7 @@ const StudentReferrals = () => {
                       <div>
                         <p className="text-sm font-medium text-foreground">{r.referred_name || "Student"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(r.referred_date || r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          {formatDateIST(r.referred_date || r.created_at)}
                         </p>
                       </div>
                     </div>

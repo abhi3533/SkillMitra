@@ -134,7 +134,7 @@ const AdminRatings = () => {
               <tbody>
                 {ratings.map(r => (
                   <tr key={r.id} className="border-b border-border last:border-0 hover:bg-muted/20">
-                    <td className="p-3 text-foreground">{new Date(r.created_at).toLocaleDateString("en-IN")}</td>
+                    <td className="p-3 text-foreground">{formatDateIST(r.created_at)}</td>
                     <td className="p-3 text-foreground">{profiles.students?.[r.student_id] || "-"}</td>
                     <td className="p-3 text-foreground">{profiles.trainers?.[r.trainer_id] || "-"}</td>
                     <td className="p-3">

@@ -299,7 +299,7 @@ const TrainerAttendance = () => {
                 <div key={h.id} className="bg-card border rounded-lg p-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-foreground">{h.studentName}</p>
-                    <p className="text-[11px] text-muted-foreground">{h.marked_at ? new Date(h.marked_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</p>
+                    <p className="text-[11px] text-muted-foreground">{h.marked_at ? formatDateTimeIST(h.marked_at) : ""}</p>
                   </div>
                   <Badge className={`text-[10px] ${getStatusBadge(h.status)}`}>{h.status}</Badge>
                 </div>

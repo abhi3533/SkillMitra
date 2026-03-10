@@ -137,7 +137,7 @@ const AdminAttendance = () => {
                       {r.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{r.marked_at ? new Date(r.marked_at).toLocaleDateString("en-IN") : "-"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{r.marked_at ? formatDateIST(r.marked_at) : "-"}</td>
                 </tr>
               ))}
             </tbody>

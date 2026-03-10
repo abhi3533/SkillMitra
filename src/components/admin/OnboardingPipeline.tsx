@@ -101,7 +101,7 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
                 </Badge>
               </TableCell>
               <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
-                {t.lastActive.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                {formatShortDateIST(t.lastActive)}
               </TableCell>
               <TableCell>
                 <span className={`text-sm font-medium ${t.daysSince >= 3 ? "text-destructive" : t.daysSince >= 1 ? "text-amber-600" : "text-muted-foreground"}`}>

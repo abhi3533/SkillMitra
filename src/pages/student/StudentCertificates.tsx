@@ -48,7 +48,7 @@ const StudentCertificates = () => {
         <tr>
           <td style="padding:8px;border-bottom:1px solid #eee;">${i + 1}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${r.course_sessions?.title || `Session #${r.course_sessions?.session_number || i + 1}`}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;">${new Date(r.created_at).toLocaleDateString("en-IN")}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${formatDateIST(r.created_at)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${"⭐".repeat(r.confidence_level)}${"☆".repeat(5 - r.confidence_level)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${r.learned_today}</td>
         </tr>

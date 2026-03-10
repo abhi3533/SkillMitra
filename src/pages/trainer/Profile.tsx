@@ -169,7 +169,7 @@ const TrainerProfile = () => {
               student: "Student",
               rating: r.r_student_to_trainer_rating || 5,
               text: r.r_student_to_trainer_review || "Excellent training experience!",
-              date: r.r_student_rated_at ? new Date(r.r_student_rated_at).toLocaleDateString() : new Date(r.r_created_at || "").toLocaleDateString(),
+              date: r.r_student_rated_at ? formatDateIST(r.r_student_rated_at) : formatDateIST(r.r_created_at || ""),
             })));
           }
 

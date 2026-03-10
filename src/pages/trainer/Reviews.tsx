@@ -125,7 +125,7 @@ const TrainerReviews = () => {
                             <Star key={i} className={`w-3 h-3 ${i <= (r.student_to_trainer_rating || 0) ? "text-amber-400 fill-amber-400" : "text-muted-foreground/30"}`} />
                           ))}
                           <span className="text-[11px] text-muted-foreground ml-1">
-                            {r.student_rated_at ? new Date(r.student_rated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                            {r.student_rated_at ? formatDateIST(r.student_rated_at) : ""}
                           </span>
                         </div>
                       </div>

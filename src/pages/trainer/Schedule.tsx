@@ -153,7 +153,7 @@ const TrainerSchedule = () => {
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {new Date(s.scheduled_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                              {formatTimeIST(s.scheduled_at)}
                               {" · "}{s.duration_mins || 60} min
                             </span>
                             {s.meet_link && <span className="text-[10px] text-primary flex items-center gap-0.5"><Link2 className="w-3 h-3" />Meet</span>}

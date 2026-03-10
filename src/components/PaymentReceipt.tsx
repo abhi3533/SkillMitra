@@ -70,9 +70,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
     printWindow.print();
   };
 
-  const formattedDate = new Date(data.date).toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  const formattedDate = formatLongDateIST(data.date);
 
   return (
     <div className="space-y-4">

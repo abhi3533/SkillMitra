@@ -312,7 +312,7 @@ const AdminAnalytics = () => {
                   <p className="text-sm text-foreground">{s.search_query}</p>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground">{s.results_count} results</span>
-                    <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</span>
+                    <span className="text-xs text-muted-foreground">{formatDateIST(s.created_at)}</span>
                   </div>
                 </div>
               ))}

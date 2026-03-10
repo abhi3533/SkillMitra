@@ -107,7 +107,7 @@ const AdminSessions = () => {
                   {s.enrollments?.courses?.title || "Course"} • Trainer: {s.trainerName}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Not scheduled"}
+                  {s.scheduled_at ? formatDateTimeIST(s.scheduled_at) : "Not scheduled"}
                   {s.duration_mins ? ` • ${s.duration_mins} min` : ""}
                 </p>
               </div>

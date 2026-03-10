@@ -127,7 +127,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         meet_link: meetLink,
       });
 
-      const scheduledTimeStr = firstDate.toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
 
       // Notifications
       await supabase.from("notifications").insert({

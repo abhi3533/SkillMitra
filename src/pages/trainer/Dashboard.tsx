@@ -319,7 +319,7 @@ const TrainerDashboard = () => {
               <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{e.studentName}</p>
-                  <p className="text-xs text-muted-foreground">{e.courses?.title} • {new Date(e.enrollment_date).toLocaleDateString("en-IN")}</p>
+                  <p className="text-xs text-muted-foreground">{e.courses?.title} • {formatDateIST(e.enrollment_date)}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-3">
                   <Badge variant={e.status === "active" ? "default" : "secondary"} className="text-[11px]">{e.status}</Badge>

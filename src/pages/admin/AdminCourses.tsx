@@ -259,7 +259,7 @@ const AdminCourses = () => {
 
               {/* Submission date */}
               <Separator />
-              <p className="text-xs text-muted-foreground">Submitted on {new Date(selectedCourse.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}</p>
+              <p className="text-xs text-muted-foreground">Submitted on {formatLongDateIST(selectedCourse.created_at)}</p>
 
               {/* Actions */}
               {selectedCourse.approval_status === "pending" && (

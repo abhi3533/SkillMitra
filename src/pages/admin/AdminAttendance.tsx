@@ -58,7 +58,7 @@ const AdminAttendance = () => {
   const downloadCSV = () => {
     const headers = "Student,Trainer,Session,Status,Date\n";
     const rows = filtered.map(r =>
-      `"${r.studentName}","${r.trainerName}","${r.course_sessions?.title || `Session #${r.course_sessions?.session_number}`}","${r.status}","${new Date(r.marked_at).toLocaleDateString("en-IN")}"`
+      `"${r.studentName}","${r.trainerName}","${r.course_sessions?.title || `Session #${r.course_sessions?.session_number}`}","${r.status}","${formatDateIST(r.marked_at)}"`
     ).join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);

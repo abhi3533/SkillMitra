@@ -555,8 +555,9 @@ const TrainerSignup = () => {
                 <div>
                   <Label>Current Company<RequiredMark /></Label>
                   <Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} onBlur={() => markTouched("currentCompany")} placeholder="e.g. Google"
-                    className={`mt-1.5 h-11 ${touched.currentCompany ? (form.currentCompany.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                    className={`mt-1.5 h-11 ${touched.currentCompany ? (form.currentCompany.trim() && hasLetters(form.currentCompany) ? "border-green-500" : "border-destructive") : ""}`} />
                   {touched.currentCompany && !form.currentCompany.trim() && <p className="text-xs text-destructive mt-1">Current company is required</p>}
+                  {touched.currentCompany && form.currentCompany.trim() && !hasLetters(form.currentCompany) && <p className="text-xs text-destructive mt-1">Please enter a valid company name</p>}
                 </div>
                 <div>
                   <Label>LinkedIn Profile URL</Label>

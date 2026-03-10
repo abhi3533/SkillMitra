@@ -21,15 +21,26 @@ const AdminTrainers = () => {
 
   const fetchTrainers = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data: trainerRows } = await supabase
       .from("trainers")
-      .select("*, profiles(*)")
+      .select("*")
       .order("created_at", { ascending: false });
-    const trainerData = data || [];
-    setTrainers(trainerData);
-    // Default to pending tab if there are pending trainers
-    const hasPending = trainerData.some(t => t.approval_status === "pending");
-    if (hasPending && tab === "pending") setTab("pending");
+    const trainersArr = trainerRows || [];
+
+    // Manually join profiles via user_id since there's no FK
+    if (trainersArr.length > 0) {
+      const userIds = trainersArr.map(t => t.user_id);
+      const { data: profileRows } = await supabase
+        .from("profiles")
+        .select("*")
+        .in("id", userIds);
+      const profileMap: Record<string, any> = {};
+      (profileRows || []).forEach(p => { profileMap[p.id] = p; });
+      const enriched = trainersArr.map(t => ({ ...t, profiles: profileMap[t.user_id] || null }));
+      setTrainers(enriched);
+    } else {
+      setTrainers([]);
+    }
     setLoading(false);
   };
 

@@ -22,6 +22,8 @@ const CourseDetail = () => {
   const [curriculum, setCurriculum] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [enrollOpen, setEnrollOpen] = useState(false);
+  const [trialOpen, setTrialOpen] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [hasExistingEnrollment, setHasExistingEnrollment] = useState(false);
   const [hasTrialBooked, setHasTrialBooked] = useState(false);

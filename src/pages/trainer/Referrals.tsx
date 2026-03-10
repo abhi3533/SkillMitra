@@ -26,6 +26,16 @@ const TrainerReferrals = () => {
         supabase.from("trainers").select("*").eq("user_id", user.id).single(),
         supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
       ]);
+      if (t) {
+        let code = t.referral_code || "";
+        if (!code) {
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          code = "SM";
+          for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+          await supabase.from("trainers").update({ referral_code: code }).eq("id", t.id);
+          t.referral_code = code;
+        }
+      }
       setTrainer(t);
       setWalletBalance(Number(w?.balance || 0));
       if (t) {

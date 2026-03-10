@@ -35,6 +35,7 @@ const StudentProfile = () => {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [gender, setGender] = useState("");
+  const [fullName, setFullName] = useState("");
   const [trainerPref, setTrainerPref] = useState("no_preference");
 
   // Skills state
@@ -88,6 +89,7 @@ const StudentProfile = () => {
       setCity(profile.city || "");
       setState(profile.state || "");
       setGender(profile.gender || "");
+      setFullName(profile.full_name || "");
     }
   }, [profile]);
 
@@ -103,8 +105,15 @@ const StudentProfile = () => {
     if (!user?.id) return;
     setSaving(true);
     try {
+      // Validate name
+      if (fullName.trim() && !/^[a-zA-Z\s.'\-]+$/.test(fullName.trim())) {
+        toast({ title: "Name must contain only letters", variant: "warning" });
+        setSaving(false);
+        return;
+      }
       const [profileRes, studentRes] = await Promise.all([
         supabase.from('profiles').update({
+          full_name: fullName.trim() || undefined,
           city: city || null,
           state: state || null,
           gender: gender || null,
@@ -263,6 +272,25 @@ const StudentProfile = () => {
             <p className="text-sm text-muted-foreground">{profile?.email}</p>
           </div>
         </div>
+
+        {/* Editable Full Name */}
+        {editing && (
+          <div>
+            <Label className="text-muted-foreground">Full Name</Label>
+            <Input
+              value={fullName}
+              onChange={e => {
+                const val = e.target.value;
+                if (/^[a-zA-Z\s.'\-]*$/.test(val)) setFullName(val);
+              }}
+              className="mt-1"
+              placeholder="Your full name"
+            />
+            {fullName.trim() && !/^[a-zA-Z\s.'\-]+$/.test(fullName.trim()) && (
+              <p className="text-xs text-destructive mt-1">Name must contain only letters</p>
+            )}
+          </div>
+        )}
 
         <div className="grid sm:grid-cols-2 gap-4 text-sm">
           <div><span className="text-muted-foreground">Phone:</span> <span className="text-foreground ml-2">{profile?.phone || "-"}</span></div>

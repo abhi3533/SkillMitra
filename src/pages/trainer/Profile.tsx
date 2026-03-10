@@ -174,7 +174,7 @@ const TrainerProfile = () => {
 
           const skills = t.skills || [];
           if (skills.length > 0) {
-            const { data: similarData } = await supabase.rpc("get_approved_trainers_list");
+            const { data: similarData } = await supabase.rpc("get_approved_trainers_list") as { data: any[] | null };
             if (similarData) {
               const simTrainers = (similarData as any[])
                 .filter((s: any) => s.trainer_id !== resolvedId)

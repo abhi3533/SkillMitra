@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
           await supabase.from('notifications').insert({
             user_id: userId!, type: 'session_10m',
             title: '🔔 Session in 10 Minutes!',
-            body: `"${courseTitle}" starts in 10 minutes. Get ready to join!`,
+            body: `"${courseTitle}" starts in 10 minutes. Get ready!`,
             action_url: s.meet_link || s.id, icon: 'bell',
           })
           results.push(`10m notification → ${userId}`)

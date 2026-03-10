@@ -152,7 +152,7 @@ const Navbar = () => {
                 </DropdownMenu>
               ) : (
                 <>
-                  <Link to="/student/login">
+                  <Link to="/login">
                     <Button variant="ghost" size="sm" className="font-medium">Log in</Button>
                   </Link>
                   <Link to="/student/signup">
@@ -231,7 +231,7 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/student/login" onClick={() => setMobileOpen(false)}>
+                    <Link to="/login" onClick={() => setMobileOpen(false)}>
                       <Button variant="outline" className="w-full h-12 font-medium">Log in</Button>
                     </Link>
                     <Link to="/student/signup" onClick={() => setMobileOpen(false)}>

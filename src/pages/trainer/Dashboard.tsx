@@ -211,8 +211,8 @@ const TrainerDashboard = () => {
         <div className="mt-4 bg-destructive/5 border border-destructive/20 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Application Not Approved</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then contact support to re-apply.</p>
+            <h3 className="text-sm font-semibold text-foreground">Application not approved</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then contact us to re-apply.</p>
           </div>
         </div>
       )}

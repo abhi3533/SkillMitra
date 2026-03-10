@@ -134,11 +134,11 @@ const AdminTrainers = () => {
     });
 
   const counts = {
-    pending: trainers.filter(t => t.approval_status === "pending").length,
+    pending: trainers.filter(t => t.approval_status === "pending" && t.onboarding_status === "pending").length,
     approved: trainers.filter(t => t.approval_status === "approved").length,
     rejected: trainers.filter(t => t.approval_status === "rejected").length,
     suspended: trainers.filter(t => t.approval_status === "suspended").length,
-    all: trainers.length,
+    all: trainers.filter(t => t.onboarding_status === "pending" || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended").length,
   };
 
   return (

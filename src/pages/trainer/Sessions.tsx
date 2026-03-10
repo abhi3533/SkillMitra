@@ -57,7 +57,7 @@ const TrainerSessions = () => {
 
   const fetchSessions = async () => {
     if (!user) return;
-    const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
+    const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
     if (!trainer) { setLoading(false); return; }
     setTrainerId(trainer.id);
 

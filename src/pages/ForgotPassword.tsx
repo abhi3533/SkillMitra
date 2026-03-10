@@ -45,10 +45,17 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
+      // Add 10s timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Request timed out. Please try again.")), 10000)
+      );
+
       // Check if email exists in database
-      const { data } = await supabase.functions.invoke("check-email-exists", {
+      const checkPromise = supabase.functions.invoke("check-email-exists", {
         body: { email: email.trim().toLowerCase() },
       });
+
+      const { data } = await Promise.race([checkPromise, timeoutPromise]) as any;
 
       if (!data?.exists) {
         setNotFound(true);
@@ -56,14 +63,16 @@ const ForgotPassword = () => {
         return;
       }
 
-      // Email exists — send reset link
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      // Email exists — send reset link with timeout
+      const resetPromise = supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password?role=${role}`,
       });
+
+      const { error } = await Promise.race([resetPromise, timeoutPromise]) as any;
       if (error) throw error;
       setSent(true);
     } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to send reset email", variant: "destructive" });
+      toast({ title: "Error", description: err.message || "Please try again", variant: "destructive" });
     } finally {
       setLoading(false);
     }

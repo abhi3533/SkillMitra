@@ -108,6 +108,9 @@ const TrainerSignup = () => {
   const isPhoneFilled = isValidPhone(form.phone);
   const isEmailFilled = isValidEmail(form.email) && !emailError;
 
+  const hasLetters = (val: string) => /[a-zA-Z]/.test(val);
+  const isValidName = (val: string) => /^[a-zA-Z\s.'-]+$/.test(val.trim());
+
   const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -158,6 +161,10 @@ const TrainerSignup = () => {
         toast({ title: "Please fill all required fields", variant: "warning" });
         return false;
       }
+      if (!isValidName(form.fullName)) {
+        toast({ title: "Please enter a valid name", variant: "warning" });
+        return false;
+      }
       if (!isValidEmail(form.email)) {
         toast({ title: "Please enter a valid email address", variant: "warning" });
         return false;
@@ -180,7 +187,9 @@ const TrainerSignup = () => {
       if (skills.length === 0) { toast({ title: "Select at least one skill", variant: "warning" }); return false; }
       if (!form.experience.trim()) { toast({ title: "Years of experience is required", variant: "warning" }); return false; }
       if (!form.currentRole.trim()) { toast({ title: "Current role is required", variant: "warning" }); return false; }
+      if (!hasLetters(form.currentRole)) { toast({ title: "Please enter a valid job role", variant: "warning" }); return false; }
       if (!form.currentCompany.trim()) { toast({ title: "Current company is required", variant: "warning" }); return false; }
+      if (!hasLetters(form.currentCompany)) { toast({ title: "Please enter a valid company name", variant: "warning" }); return false; }
       if (teachLangs.length === 0) { toast({ title: "Select at least one teaching language", variant: "warning" }); return false; }
       if (!form.bio.trim()) { toast({ title: "Please add your bio", variant: "warning" }); return false; }
     }
@@ -438,8 +447,9 @@ const TrainerSignup = () => {
                 <div>
                   <Label>Full Name<RequiredMark /></Label>
                   <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} onBlur={() => markTouched("fullName")} placeholder="Your full name"
-                    className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                    className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() && isValidName(form.fullName) ? "border-green-500" : "border-destructive") : ""}`} />
                   {touched.fullName && !form.fullName.trim() && <p className="text-xs text-destructive mt-1">Full name is required</p>}
+                  {touched.fullName && form.fullName.trim() && !isValidName(form.fullName) && <p className="text-xs text-destructive mt-1">Please enter a valid name</p>}
                 </div>
                 <div>
                   <Label>Email<RequiredMark /></Label>
@@ -541,16 +551,18 @@ const TrainerSignup = () => {
                 <div>
                   <Label>Current Role<RequiredMark /></Label>
                   <Input value={form.currentRole} onChange={e => update("currentRole", e.target.value)} onBlur={() => markTouched("currentRole")} placeholder="e.g. Senior Developer"
-                    className={`mt-1.5 h-11 ${touched.currentRole ? (form.currentRole.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                    className={`mt-1.5 h-11 ${touched.currentRole ? (form.currentRole.trim() && hasLetters(form.currentRole) ? "border-green-500" : "border-destructive") : ""}`} />
                   {touched.currentRole && !form.currentRole.trim() && <p className="text-xs text-destructive mt-1">Current role is required</p>}
+                  {touched.currentRole && form.currentRole.trim() && !hasLetters(form.currentRole) && <p className="text-xs text-destructive mt-1">Please enter a valid job role</p>}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Current Company<RequiredMark /></Label>
                   <Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} onBlur={() => markTouched("currentCompany")} placeholder="e.g. Google"
-                    className={`mt-1.5 h-11 ${touched.currentCompany ? (form.currentCompany.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                    className={`mt-1.5 h-11 ${touched.currentCompany ? (form.currentCompany.trim() && hasLetters(form.currentCompany) ? "border-green-500" : "border-destructive") : ""}`} />
                   {touched.currentCompany && !form.currentCompany.trim() && <p className="text-xs text-destructive mt-1">Current company is required</p>}
+                  {touched.currentCompany && form.currentCompany.trim() && !hasLetters(form.currentCompany) && <p className="text-xs text-destructive mt-1">Please enter a valid company name</p>}
                 </div>
                 <div>
                   <Label>LinkedIn Profile URL</Label>
@@ -626,26 +638,28 @@ const TrainerSignup = () => {
               )}
               <div className="space-y-3">
                 {Object.entries(availability).map(([day, val]) => (
-                  <div key={day} className="flex items-center gap-4 p-3 rounded-lg bg-secondary/50">
-                    <input type="checkbox" className="accent-primary w-4 h-4" checked={val.checked} onChange={e => updateAvail(day, "checked", e.target.checked)} />
-                    <span className="text-sm font-medium text-foreground w-24">{day}</span>
-                    <Select value={val.start} onValueChange={v => updateAvail(day, "start", v)}>
-                      <SelectTrigger className="h-9 w-28 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"].map(t => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <span className="text-xs text-muted-foreground">to</span>
-                    <Select value={val.end} onValueChange={v => updateAvail(day, "end", v)}>
-                      <SelectTrigger className="h-9 w-28 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"].map(t => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div key={day} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <input type="checkbox" className="accent-primary w-4 h-4 shrink-0" checked={val.checked} onChange={e => updateAvail(day, "checked", e.target.checked)} />
+                    <span className="text-sm font-medium text-foreground w-20 shrink-0">{day}</span>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <Select value={val.start} onValueChange={v => updateAvail(day, "start", v)}>
+                        <SelectTrigger className="h-9 w-[100px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"].map(t => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-xs text-muted-foreground shrink-0">to</span>
+                      <Select value={val.end} onValueChange={v => updateAvail(day, "end", v)}>
+                        <SelectTrigger className="h-9 w-[100px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"].map(t => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 ))}
               </div>

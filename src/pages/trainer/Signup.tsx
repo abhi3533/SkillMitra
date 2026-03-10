@@ -38,6 +38,10 @@ const TrainerSignup = () => {
 
   const checkDuplicateEmail = async (email: string) => {
     if (!email || !isValidEmail(email)) { setEmailError(""); return; }
+    if (isDisposableEmail(email)) {
+      setEmailError("Temporary/disposable email addresses are not allowed.");
+      return;
+    }
     try {
       const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
       if (profile) {

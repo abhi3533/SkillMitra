@@ -18,14 +18,17 @@ interface LeaderboardEntry {
 }
 
 const ReferPage = () => {
-  const { user, role } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [student, setStudent] = useState<any>(null);
-  const [stats, setStats] = useState({ total: 0, earned: 0, pending: 0, used: 0 });
+  const [referralCode, setReferralCode] = useState("");
+  const [stats, setStats] = useState({ total: 0, earned: 0, pending: 0, walletBalance: 0 });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isLoggedIn = !!user && !!role;
+
   useEffect(() => {
+    if (authLoading) return;
     const load = async () => {
       // Load leaderboard (public)
       const { data: refs } = await supabase
@@ -62,11 +65,14 @@ const ReferPage = () => {
         })));
       }
 
-      // If logged in student, load personal data
+      // Load personal referral data for logged-in users
       if (user && role === "student") {
-        const { data: s } = await supabase.from("students").select("*").eq("user_id", user.id).single();
-        setStudent(s);
+        const [{ data: s }, { data: w }] = await Promise.all([
+          supabase.from("students").select("*").eq("user_id", user.id).single(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+        ]);
         if (s) {
+          setReferralCode(s.referral_code || "");
           const { data: myRefs } = await supabase
             .from("referrals")
             .select("reward_amount, status")
@@ -77,17 +83,50 @@ const ReferPage = () => {
             total: (myRefs || []).length,
             earned: paid.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
             pending: pending.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
-            used: Number(s.referral_credits || 0) > 0 ? 0 : 0, // credits used tracked separately
+            walletBalance: Number(w?.balance || 0),
+          });
+        }
+      } else if (user && role === "trainer") {
+        const [{ data: t }, { data: w }] = await Promise.all([
+          supabase.from("trainers").select("referral_code").eq("user_id", user.id).single(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+        ]);
+        if (t) {
+          setReferralCode(t.referral_code || "");
+          const { data: myRefs } = await supabase
+            .from("trainer_referrals")
+            .select("reward_amount, status")
+            .eq("referrer_id", t.referral_code || "___none___");
+          // Trainer referrals tracked by trainer id, need to get trainer row id first
+        }
+        // For trainers, fetch trainer_referrals by trainer row id
+        const { data: tFull } = await supabase.from("trainers").select("id, referral_code").eq("user_id", user.id).single();
+        if (tFull) {
+          setReferralCode(tFull.referral_code || "");
+          const { data: myRefs } = await supabase
+            .from("trainer_referrals")
+            .select("reward_amount, status")
+            .eq("referrer_id", tFull.id);
+          const paid = (myRefs || []).filter(r => r.status === "paid");
+          const pending = (myRefs || []).filter(r => r.status === "pending");
+          setStats({
+            total: (myRefs || []).length,
+            earned: paid.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
+            pending: pending.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
+            walletBalance: Number(w?.balance || 0),
           });
         }
       }
       setLoading(false);
     };
     load();
-  }, [user, role]);
+  }, [user, role, authLoading]);
 
-  const referralCode = student?.referral_code || "";
-  const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";
+  const referralLink = referralCode
+    ? role === "trainer"
+      ? `https://${APP_DOMAIN}/trainer/signup?ref=${referralCode}`
+      : `https://${APP_DOMAIN}/student/signup?ref=${referralCode}`
+    : "";
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);

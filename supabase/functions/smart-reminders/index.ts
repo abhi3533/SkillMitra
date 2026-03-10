@@ -250,8 +250,8 @@ Deno.serve(async (req) => {
         if (!existing?.length) {
           await supabase.from('notifications').insert({
             user_id: student.user_id, type: 'low_attendance',
-            title: '📉 Low Attendance Warning',
-            body: `Your attendance is at ${pct}%. Minimum 90% is required for certificate eligibility.`,
+            title: '📉 Your attendance is low',
+            body: `Your attendance is at ${pct}%. You need at least 90% to be eligible for your certificate.`,
             icon: 'alert-circle',
           })
           results.push(`low attendance warning → ${student.user_id} (${pct}%)`)

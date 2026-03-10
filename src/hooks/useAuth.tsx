@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from("profiles")
         .select("*")
         .eq("id", currentSession.user.id)
-        .single();
+        .maybeSingle();
       setProfile(profileData);
     } finally {
       fetchingRef.current = false;

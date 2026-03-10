@@ -56,8 +56,8 @@ const CertificateVerify = () => {
       if (cert) {
         // Fetch names via public RPCs
         const [studentRes, trainerRes] = await Promise.all([
-          supabase.from("students").select("user_id").eq("id", cert.c_student_id).single(),
-          supabase.from("trainers").select("user_id").eq("id", cert.c_trainer_id).single(),
+          supabase.from("students").select("user_id").eq("id", cert.c_student_id).maybeSingle(),
+          supabase.from("trainers").select("user_id").eq("id", cert.c_trainer_id).maybeSingle(),
         ]);
         const userIds = [studentRes.data?.user_id, trainerRes.data?.user_id].filter(Boolean);
         if (userIds.length > 0) {

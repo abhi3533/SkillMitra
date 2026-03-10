@@ -30,7 +30,7 @@ const TrainerDashboard = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     await (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status").eq("user_id", user.id).single();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
 
       // Check onboarding status
@@ -119,7 +119,7 @@ const TrainerDashboard = () => {
       setLoading(false);
 
       // Fetch students interested in trainer's skills
-      const trainerSkills = (await supabase.from("trainers").select("skills").eq("user_id", user.id).single()).data?.skills as string[] | null;
+      const trainerSkills = (await supabase.from("trainers").select("skills").eq("user_id", user.id).maybeSingle()).data?.skills as string[] | null;
       if (trainerSkills?.length) {
         const { data: allStudents } = await supabase
           .from("students")

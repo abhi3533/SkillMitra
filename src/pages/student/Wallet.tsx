@@ -20,7 +20,7 @@ const StudentWallet = () => {
     const load = async () => {
       setLoading(true);
       const [{ data: w }, { data: tx }] = await Promise.all([
-        supabase.from("wallets").select("*").eq("user_id", user.id).single(),
+        supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
       setWallet(w);

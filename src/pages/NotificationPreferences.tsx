@@ -39,7 +39,7 @@ const NotificationPreferences = () => {
         .from("notification_preferences" as any)
         .select("*")
         .eq("user_id", user.id)
-        .single() as any);
+        .maybeSingle() as any);
 
       if (data) {
         setPrefs({
@@ -67,7 +67,7 @@ const NotificationPreferences = () => {
       .from("notification_preferences" as any)
       .select("id")
       .eq("user_id", user.id)
-      .single() as any);
+      .maybeSingle() as any);
 
     if (existing) {
       await (supabase.from("notification_preferences" as any) as any).update({ [key]: value }).eq("user_id", user.id);

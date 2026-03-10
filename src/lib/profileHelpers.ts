@@ -24,7 +24,7 @@ export async function fetchTrainersWithProfiles(query?: any) {
  * Fetch profile name for a user_id
  */
 export async function fetchProfileName(userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("full_name").eq("id", userId).single();
+  const { data } = await supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle();
   return data?.full_name || "Unknown";
 }
 

@@ -24,7 +24,7 @@ const TrainerReviews = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating").eq("user_id", user.id).single();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
 
       setAvgRating(Number(trainer.average_rating) || 0);

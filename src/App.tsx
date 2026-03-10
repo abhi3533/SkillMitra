@@ -245,7 +245,7 @@ const AppContent = () => {
           <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><Notifications /></ProtectedRoute>} />
 
           {/* Parent Protected */}
-          <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><ParentDashboard /></ProtectedRoute>} />
+          <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={["student", "trainer", "admin"]}><ParentDashboard /></ProtectedRoute>} />
 
           {/* Notifications (any authenticated) */}
           <Route path="/notifications" element={<ProtectedRoute allowedRoles={["student", "trainer", "admin"]}><Notifications /></ProtectedRoute>} />

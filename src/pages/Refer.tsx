@@ -71,8 +71,8 @@ const ReferPage = () => {
       // Load personal referral data for logged-in users
       if (user && role === "student") {
         const [{ data: s }, { data: w }] = await Promise.all([
-          supabase.from("students").select("*").eq("user_id", user.id).single(),
-          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+          supabase.from("students").select("*").eq("user_id", user.id).maybeSingle(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
         ]);
         if (s) {
           let code = s.referral_code || "";
@@ -98,8 +98,8 @@ const ReferPage = () => {
         }
       } else if (user && role === "trainer") {
         const [{ data: tFull }, { data: w }] = await Promise.all([
-          supabase.from("trainers").select("id, referral_code").eq("user_id", user.id).single(),
-          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+          supabase.from("trainers").select("id, referral_code").eq("user_id", user.id).maybeSingle(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
         ]);
         if (tFull) {
           let code = tFull.referral_code || "";

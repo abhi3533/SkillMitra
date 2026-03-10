@@ -106,7 +106,7 @@ const TrainerOnboarding = () => {
         .from("trainers")
         .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (!trainer) { setInitialLoading(false); return; }
 
@@ -218,6 +218,8 @@ const TrainerOnboarding = () => {
       }
     };
     const handleBeforeUnload = () => {
+      // beforeunload can't reliably await async. Use visibilitychange instead (fires first).
+      // This is a best-effort fallback only.
       if (trainerId && user) saveDraft(false);
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);

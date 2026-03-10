@@ -73,10 +73,6 @@ const TrainerLogin = () => {
       }
 
       clearLoginAttempts(email);
-      const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
-      if (roleData === "student") navigate("/student/dashboard");
-      else if (roleData === "admin") navigate("/admin");
-      else navigate("/trainer/dashboard");
       toast({ title: "Signed in successfully", variant: "success" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });

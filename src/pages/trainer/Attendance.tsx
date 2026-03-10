@@ -32,7 +32,7 @@ const TrainerAttendance = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
+      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
       setTrainerId(trainer.id);
 
@@ -81,7 +81,7 @@ const TrainerAttendance = () => {
     const session = sessions.find(s => s.id === sessionId);
     if (!session) return;
 
-    const { data: enrollment } = await supabase.from("enrollments").select("id, student_id").eq("id", session.enrollment_id).single();
+    const { data: enrollment } = await supabase.from("enrollments").select("id, student_id").eq("id", session.enrollment_id).maybeSingle();
     if (!enrollment) return;
 
     const { data: studentRows } = await supabase.from("students").select("id, user_id").in("id", [enrollment.student_id]);

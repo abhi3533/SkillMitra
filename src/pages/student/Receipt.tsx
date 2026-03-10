@@ -24,7 +24,7 @@ const Receipt = () => {
           .from("students")
           .select("id")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (!student) {
           setError("Student record not found.");
@@ -38,7 +38,7 @@ const Receipt = () => {
           .select("*")
           .eq("id", enrollmentId)
           .eq("student_id", student.id)
-          .single();
+          .maybeSingle();
 
         if (enrollErr || !enrollment) {
           setError("Enrollment not found or access denied.");
@@ -51,14 +51,14 @@ const Receipt = () => {
           .from("courses")
           .select("title, total_sessions")
           .eq("id", enrollment.course_id)
-          .single();
+          .maybeSingle();
 
         // Get trainer profile
         const { data: trainer } = await supabase
           .from("trainers")
           .select("user_id")
           .eq("id", enrollment.trainer_id)
-          .single();
+          .maybeSingle();
 
         let trainerName = "Trainer";
         if (trainer?.user_id) {
@@ -73,7 +73,7 @@ const Receipt = () => {
           .from("profiles")
           .select("full_name, email")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         // Get payment info
         const { data: payment } = await supabase

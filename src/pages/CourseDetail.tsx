@@ -47,7 +47,7 @@ const CourseDetail = () => {
   const checkStudentStatus = async () => {
     if (!user) return;
     const { data: student } = await supabase
-      .from("students").select("id").eq("user_id", user.id).single();
+      .from("students").select("id").eq("user_id", user.id).maybeSingle();
     if (!student) return;
     setStudentId(student.id);
 
@@ -132,7 +132,7 @@ const CourseDetail = () => {
 
     // Real course
     const { data: courseData } = await supabase
-      .from("courses").select("*").eq("id", courseId!).single();
+      .from("courses").select("*").eq("id", courseId!).maybeSingle();
     if (!courseData) { setLoading(false); return; }
     setCourse(courseData);
 

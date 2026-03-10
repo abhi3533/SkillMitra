@@ -23,7 +23,7 @@ const TrainerEarnings = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: t } = await supabase.from("trainers").select("*").eq("user_id", user.id).single();
+      const { data: t } = await supabase.from("trainers").select("*").eq("user_id", user.id).maybeSingle();
       setTrainer(t);
       if (t) {
         const { data: p } = await supabase.from("payout_requests").select("*").eq("trainer_id", t.id).order("requested_at", { ascending: false });

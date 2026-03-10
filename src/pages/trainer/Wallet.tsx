@@ -28,9 +28,9 @@ const TrainerWallet = () => {
     const load = async () => {
       setLoading(true);
       const [{ data: w }, { data: tx }, { data: t }] = await Promise.all([
-        supabase.from("wallets").select("*").eq("user_id", user.id).single(),
+        supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("trainers").select("id, upi_id, bank_account_number, ifsc_code").eq("user_id", user.id).single(),
+        supabase.from("trainers").select("id, upi_id, bank_account_number, ifsc_code").eq("user_id", user.id).maybeSingle(),
       ]);
       setWallet(w);
       setTransactions(tx || []);

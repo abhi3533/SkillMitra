@@ -60,7 +60,7 @@ const TrainerProfile = () => {
     if (id) { setResolvedId(id); return; }
     if (!user) return;
     (async () => {
-      const { data: t } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
+      const { data: t } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
       if (t) setResolvedId(t.id);
       else setLoading(false);
     })();
@@ -123,10 +123,10 @@ const TrainerProfile = () => {
             }
           } else {
             // Fallback: try direct query (works if user is the trainer or admin)
-            const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).single();
+            const { data: directData } = await supabase.from("trainers").select("*").eq("id", resolvedId).maybeSingle();
             if (!directData) {
               // Try by user_id
-              const { data: byUserId } = await supabase.from("trainers").select("*").eq("user_id", resolvedId).single();
+              const { data: byUserId } = await supabase.from("trainers").select("*").eq("user_id", resolvedId).maybeSingle();
               t = byUserId;
             } else {
               t = directData;
@@ -210,7 +210,7 @@ const TrainerProfile = () => {
     if (!user || !resolvedId || isDemo(resolvedId)) return;
     setCheckingTrial(true);
     try {
-      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
       if (!student) { setCheckingTrial(false); return; }
 
       const { data: enrollments } = await supabase.from("enrollments").select("id").eq("student_id", student.id).eq("trainer_id", resolvedId);
@@ -273,7 +273,7 @@ const TrainerProfile = () => {
 
     setBookingTrial(true);
     try {
-      const { data: student } = await supabase.from("students").select("id").eq("user_id", user!.id).single();
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user!.id).maybeSingle();
       if (!student) throw new Error("Student profile not found");
 
       // Get or create enrollment for trial

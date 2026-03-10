@@ -14,7 +14,7 @@ const StudentCourses = () => {
   useEffect(() => {
     if (!user) return;
     const fetchEnrollments = async () => {
-      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
       if (!student) { setLoading(false); return; }
       const { data } = await supabase
         .from("enrollments")

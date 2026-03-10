@@ -16,7 +16,7 @@ const StudentAttendance = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
       if (!student) { setLoading(false); return; }
 
       const { data } = await supabase.from("attendance").select("*, course_sessions(title, session_number, scheduled_at, enrollments(courses(title)))").eq("student_id", student.id).order("marked_at", { ascending: false });

@@ -16,7 +16,7 @@ const TrainerStudents = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).single();
+      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
       if (trainer) {
         setTrainerId(trainer.id);
         const { data } = await supabase.from("enrollments").select("*, students(*, profiles(*)), courses(title)").eq("trainer_id", trainer.id);

@@ -24,8 +24,8 @@ const TrainerReferrals = () => {
     if (!user) { setLoading(false); return; }
     const load = async () => {
       const [{ data: t }, { data: w }] = await Promise.all([
-        supabase.from("trainers").select("*").eq("user_id", user.id).single(),
-        supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+        supabase.from("trainers").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
       ]);
       if (t) {
         let code = t.referral_code || "";

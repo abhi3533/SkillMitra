@@ -18,14 +18,17 @@ interface LeaderboardEntry {
 }
 
 const ReferPage = () => {
-  const { user, role } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [student, setStudent] = useState<any>(null);
-  const [stats, setStats] = useState({ total: 0, earned: 0, pending: 0, used: 0 });
+  const [referralCode, setReferralCode] = useState("");
+  const [stats, setStats] = useState({ total: 0, earned: 0, pending: 0, walletBalance: 0 });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isLoggedIn = !!user && !!role;
+
   useEffect(() => {
+    if (authLoading) return;
     const load = async () => {
       // Load leaderboard (public)
       const { data: refs } = await supabase
@@ -62,11 +65,14 @@ const ReferPage = () => {
         })));
       }
 
-      // If logged in student, load personal data
+      // Load personal referral data for logged-in users
       if (user && role === "student") {
-        const { data: s } = await supabase.from("students").select("*").eq("user_id", user.id).single();
-        setStudent(s);
+        const [{ data: s }, { data: w }] = await Promise.all([
+          supabase.from("students").select("*").eq("user_id", user.id).single(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+        ]);
         if (s) {
+          setReferralCode(s.referral_code || "");
           const { data: myRefs } = await supabase
             .from("referrals")
             .select("reward_amount, status")
@@ -77,17 +83,50 @@ const ReferPage = () => {
             total: (myRefs || []).length,
             earned: paid.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
             pending: pending.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
-            used: Number(s.referral_credits || 0) > 0 ? 0 : 0, // credits used tracked separately
+            walletBalance: Number(w?.balance || 0),
+          });
+        }
+      } else if (user && role === "trainer") {
+        const [{ data: t }, { data: w }] = await Promise.all([
+          supabase.from("trainers").select("referral_code").eq("user_id", user.id).single(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+        ]);
+        if (t) {
+          setReferralCode(t.referral_code || "");
+          const { data: myRefs } = await supabase
+            .from("trainer_referrals")
+            .select("reward_amount, status")
+            .eq("referrer_id", t.referral_code || "___none___");
+          // Trainer referrals tracked by trainer id, need to get trainer row id first
+        }
+        // For trainers, fetch trainer_referrals by trainer row id
+        const { data: tFull } = await supabase.from("trainers").select("id, referral_code").eq("user_id", user.id).single();
+        if (tFull) {
+          setReferralCode(tFull.referral_code || "");
+          const { data: myRefs } = await supabase
+            .from("trainer_referrals")
+            .select("reward_amount, status")
+            .eq("referrer_id", tFull.id);
+          const paid = (myRefs || []).filter(r => r.status === "paid");
+          const pending = (myRefs || []).filter(r => r.status === "pending");
+          setStats({
+            total: (myRefs || []).length,
+            earned: paid.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
+            pending: pending.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
+            walletBalance: Number(w?.balance || 0),
           });
         }
       }
       setLoading(false);
     };
     load();
-  }, [user, role]);
+  }, [user, role, authLoading]);
 
-  const referralCode = student?.referral_code || "";
-  const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";
+  const referralLink = referralCode
+    ? role === "trainer"
+      ? `https://${APP_DOMAIN}/trainer/signup?ref=${referralCode}`
+      : `https://${APP_DOMAIN}/student/signup?ref=${referralCode}`
+    : "";
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -125,7 +164,7 @@ const ReferPage = () => {
             </p>
 
             {/* CTA */}
-            {user && role === "student" && referralLink ? (
+            {isLoggedIn && referralLink ? (
               <div className="mt-8 max-w-md mx-auto">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card border rounded-xl p-2">
                   <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate min-w-0">{referralLink}</div>
@@ -140,7 +179,7 @@ const ReferPage = () => {
                   </Button>
                 </div>
               </div>
-            ) : (
+            ) : !isLoggedIn ? (
               <div className="mt-8">
                 <Link to="/student/signup">
                   <Button size="lg" className="gap-2 text-base px-8">
@@ -148,7 +187,7 @@ const ReferPage = () => {
                   </Button>
                 </Link>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </section>
@@ -175,16 +214,16 @@ const ReferPage = () => {
       </section>
 
       {/* Stats (logged in students only) */}
-      {user && role === "student" && !loading && (
+      {isLoggedIn && !loading && (
         <section className="py-12 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
             <h2 className="text-xl font-bold text-foreground text-center mb-8">Your Referral Stats</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               {[
-                { label: "Friends Referred", value: String(stats.total), icon: Users, color: "text-primary bg-primary/10" },
+                { label: "Total Referrals", value: String(stats.total), icon: Users, color: "text-primary bg-primary/10" },
                 { label: "Credits Earned", value: `₹${stats.earned.toLocaleString("en-IN")}`, icon: Gift, color: "text-emerald-600 bg-emerald-50" },
                 { label: "Pending Credits", value: `₹${stats.pending.toLocaleString("en-IN")}`, icon: Clock, color: "text-amber-600 bg-amber-50" },
-                { label: "Wallet Balance", value: `₹${Number(student?.referral_credits || 0).toLocaleString("en-IN")}`, icon: Wallet, color: "text-primary bg-primary/10" },
+                { label: "Wallet Balance", value: `₹${stats.walletBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "text-primary bg-primary/10" },
               ].map(s => (
                 <div key={s.label} className="bg-card rounded-xl border p-5 text-center">
                   <div className={`w-11 h-11 rounded-xl ${s.color} flex items-center justify-center mx-auto mb-3`}>
@@ -262,7 +301,7 @@ const ReferPage = () => {
       </section>
 
       {/* Final CTA */}
-      {(!user || role !== "student") && (
+      {!isLoggedIn && (
         <section className="py-16">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Start Earning?</h2>

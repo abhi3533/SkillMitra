@@ -104,8 +104,8 @@ Deno.serve(async (req) => {
         subject = 'Complete Your SkillMitra Profile'
         html = layout(`
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">You signed up as a trainer on SkillMitra but haven't completed your profile yet. It only takes a few minutes!</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Complete your profile to get verified and start teaching students across India.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">You signed up as a trainer on SkillMitra but your profile isn't complete yet. It only takes a few minutes!</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Finish your profile to get verified and start teaching students across India.</p>
           ${btn('Complete My Profile', `${APP_URL}/trainer/onboarding`)}
         `)
       }

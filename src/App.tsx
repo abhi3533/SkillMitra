@@ -179,6 +179,7 @@ const AppContent = () => {
           <Route path="/student/signup" element={<StudentSignup />} />
           <Route path="/trainer/login" element={<TrainerLogin />} />
           <Route path="/trainer/signup" element={<TrainerSignup />} />
+          <Route path="/trainer/onboarding" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerOnboarding /></ProtectedRoute>} />
           <Route path="/trainer/signup/thankyou" element={<TrainerThankYou />} />
           <Route path="/trainer/signup/success" element={<TrainerThankYou />} />
           <Route path="/admin/login" element={<AdminLogin />} />

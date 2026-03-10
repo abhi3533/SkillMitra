@@ -114,8 +114,8 @@ Deno.serve(async (req) => {
         subject = 'Your SkillMitra Profile is Waiting'
         html = layout(`
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile on SkillMitra is ${step > 0 ? `${Math.round((step / 6) * 100)}% complete` : 'still waiting'}. Students are looking for trainers like you!</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Pick up right where you left off — it only takes a few minutes to complete.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'still waiting'}. Students are looking for trainers like you!</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Pick up where you left off — it only takes a few minutes.</p>
           ${btn('Continue Where I Left Off', `${APP_URL}/trainer/onboarding`)}
         `)
       }

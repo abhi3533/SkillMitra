@@ -81,8 +81,42 @@ const AdminTrainers = () => {
     });
   };
 
-  const handleRejectClick = (trainer: any) => {
-    setRejectTarget(trainer);
+  const handleRejectClick = (trainer: any) => setRejectTarget(trainer);
+  const handleSuspendClick = (trainer: any) => setSuspendTarget(trainer);
+  const handleRemoveClick = (trainer: any) => setRemoveTarget(trainer);
+
+  const handleSuspendConfirm = async () => {
+    if (!suspendTarget) return;
+    await updateStatus(suspendTarget.id, "suspended");
+    setSuspendTarget(null);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!removeTarget) return;
+    const trainerName = removeTarget.profiles?.full_name || "Trainer";
+    const trainerId = removeTarget.id;
+    
+    // Delete trainer record
+    const { error } = await supabase.from("trainers").delete().eq("id", trainerId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setRemoveTarget(null);
+      return;
+    }
+    setTrainers(prev => prev.filter(t => t.id !== trainerId));
+    setDrawerOpen(false);
+    setRemoveTarget(null);
+
+    // Send removal notification
+    supabase.functions.invoke("notify-trainer-status", {
+      body: { trainer_id: trainerId, status: "removed", rejection_reason: "Your account has been removed from the platform." },
+    }).then(({ error: fnErr }) => {
+      if (fnErr) {
+        toast({ title: "Trainer removed", description: "Removed but email notification failed.", variant: "warning" });
+      } else {
+        toast({ title: "Trainer removed", description: `${trainerName} has been removed and notified.`, variant: "success" });
+      }
+    });
   };
 
   const filtered = trainers

@@ -87,7 +87,7 @@ const AdminReferrals = () => {
     const headers = ["Referrer", "Referred", "Code", "Reward", "Status", "Date"];
     const rows = currentRefs.map(r => [
       r.referrerName, r.referredName || "Pending", r.referral_code || "-",
-      r.reward_amount, r.status, new Date(r.created_at).toLocaleDateString("en-IN"),
+      r.reward_amount, r.status, formatDateIST(r.created_at),
     ]);
     const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });

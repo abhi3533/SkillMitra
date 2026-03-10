@@ -663,7 +663,7 @@ const TrainerOnboarding = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <Label>City<RequiredMark /></Label>
-                  <Input value={form.city} onChange={e => update("city", e.target.value)} onBlur={() => markTouched("city")} placeholder="City" className="mt-1.5 h-11" />
+                  <Input value={form.city} onChange={e => update("city", e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} onBlur={() => markTouched("city")} placeholder="City" className="mt-1.5 h-11" />
                 </div>
                 <div>
                   <Label>State<RequiredMark /></Label>

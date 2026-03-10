@@ -1505,7 +1505,11 @@ export type Database = {
           ifsc_code: string | null
           intro_video_url: string | null
           is_job_seeker: boolean | null
+          last_saved_at: string | null
           linkedin_url: string | null
+          onboarding_data: Json | null
+          onboarding_status: string | null
+          onboarding_step: number | null
           pan_number: string | null
           pincode: string | null
           portfolio_url: string | null
@@ -1559,7 +1563,11 @@ export type Database = {
           ifsc_code?: string | null
           intro_video_url?: string | null
           is_job_seeker?: boolean | null
+          last_saved_at?: string | null
           linkedin_url?: string | null
+          onboarding_data?: Json | null
+          onboarding_status?: string | null
+          onboarding_step?: number | null
           pan_number?: string | null
           pincode?: string | null
           portfolio_url?: string | null
@@ -1613,7 +1621,11 @@ export type Database = {
           ifsc_code?: string | null
           intro_video_url?: string | null
           is_job_seeker?: boolean | null
+          last_saved_at?: string | null
           linkedin_url?: string | null
+          onboarding_data?: Json | null
+          onboarding_status?: string | null
+          onboarding_step?: number | null
           pan_number?: string | null
           pincode?: string | null
           portfolio_url?: string | null

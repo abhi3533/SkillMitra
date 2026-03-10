@@ -107,6 +107,11 @@ const StudentSignup = () => {
       setTimeout(scrollToFirstError, 100);
       return;
     }
+    if (!isNameLettersOnly(form.fullName)) {
+      toast({ title: "Please enter a valid name", variant: "warning" });
+      setTimeout(scrollToFirstError, 100);
+      return;
+    }
     if (!isValidEmail(form.email)) {
       toast({ title: "Please enter a valid email address", variant: "warning" });
       return;

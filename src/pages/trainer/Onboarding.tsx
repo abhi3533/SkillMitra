@@ -751,8 +751,8 @@ const TrainerOnboarding = () => {
               </div>
 
               <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-3">
-                <Label className="flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Professional Verification<RequiredMark /></Label>
-                <p className="text-xs text-muted-foreground">At least one verification method is required</p>
+                <Label className="flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Professional Verification <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
+                <p className="text-xs text-muted-foreground">Add verification for faster approval</p>
                 <Select value={form.verificationMethod} onValueChange={v => update("verificationMethod", v)}>
                   <SelectTrigger className="h-11"><SelectValue placeholder="Select verification method" /></SelectTrigger>
                   <SelectContent>

@@ -656,7 +656,7 @@ const TrainerOnboarding = () => {
               </div>
 
               <div>
-                <Label>Complete Address<RequiredMark /></Label>
+                <Label>Complete Address <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
                 <Textarea value={form.address} onChange={e => update("address", e.target.value)} onBlur={() => markTouched("address")} placeholder="House/Flat No, Street, Area, Landmark" className="mt-1.5 min-h-[70px]" />
               </div>
 

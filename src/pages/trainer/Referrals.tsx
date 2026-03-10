@@ -12,7 +12,7 @@ const APP_DOMAIN = "skillmitra.online";
 const REWARD_AMOUNT = 1200;
 
 const TrainerReferrals = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [trainer, setTrainer] = useState<any>(null);
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -20,7 +20,8 @@ const TrainerReferrals = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) { setLoading(false); return; }
     const load = async () => {
       const [{ data: t }, { data: w }] = await Promise.all([
         supabase.from("trainers").select("*").eq("user_id", user.id).single(),

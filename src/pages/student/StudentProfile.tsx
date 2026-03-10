@@ -89,6 +89,7 @@ const StudentProfile = () => {
       setCity(profile.city || "");
       setState(profile.state || "");
       setGender(profile.gender || "");
+      setFullName(profile.full_name || "");
     }
   }, [profile]);
 

@@ -377,10 +377,10 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {showEnrollModal && trainer && (
+      {(enrollOpen || trialOpen) && trainer && (
         <EnrollmentModal
-          open={showEnrollModal}
-          onClose={() => setShowEnrollModal(false)}
+          open={enrollOpen || trialOpen}
+          onClose={() => { setEnrollOpen(false); setTrialOpen(false); }}
           course={course}
           trainer={trainer}
           trainerProfile={trainerProfile}

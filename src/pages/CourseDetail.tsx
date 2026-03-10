@@ -22,6 +22,8 @@ const CourseDetail = () => {
   const [curriculum, setCurriculum] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [enrollOpen, setEnrollOpen] = useState(false);
+  const [trialOpen, setTrialOpen] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [hasExistingEnrollment, setHasExistingEnrollment] = useState(false);
   const [hasTrialBooked, setHasTrialBooked] = useState(false);
@@ -67,31 +69,28 @@ const CourseDetail = () => {
     }
   };
 
-  const handleEnrollClick = async () => {
-    console.log("[Enroll] clicked. user:", !!user, "role:", role, "trainer:", !!trainer, "studentId:", studentId);
+  const handleEnrollClick = () => {
     if (!user) { 
       navigate(`/student/login?redirect=${encodeURIComponent(window.location.pathname)}`); 
       return; 
     }
     if (role !== "student") {
-      console.log("[Enroll] Not a student role, aborting");
       navigate(`/student/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
-    let sid = studentId;
-    if (!sid) {
-      const { data: s, error } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
-      console.log("[Enroll] fetched student:", s, "error:", error);
-      if (s) { 
-        sid = s.id;
-        setStudentId(s.id); 
-      } else {
-        console.log("[Enroll] No student record found");
-        return;
-      }
+    setEnrollOpen(true);
+  };
+
+  const handleTrialClick = () => {
+    if (!user) { 
+      navigate(`/student/login?redirect=${encodeURIComponent(window.location.pathname)}`); 
+      return; 
     }
-    console.log("[Enroll] Opening modal. sid:", sid);
-    setShowEnrollModal(true);
+    if (role !== "student") {
+      navigate(`/student/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+    setTrialOpen(true);
   };
 
   const loadCourseData = async () => {
@@ -312,7 +311,7 @@ const CourseDetail = () => {
                   ) : (
                     <div className="space-y-3">
                       {course.has_free_trial && !hasTrialBooked && (
-                        <Button className="w-full" size="lg" onClick={() => handleEnrollClick()}>
+                        <Button className="w-full" size="lg" onClick={() => handleTrialClick()}>
                           Book Free Trial
                         </Button>
                       )}
@@ -378,10 +377,10 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {showEnrollModal && trainer && (
+      {(enrollOpen || trialOpen) && trainer && (
         <EnrollmentModal
-          open={showEnrollModal}
-          onClose={() => setShowEnrollModal(false)}
+          open={enrollOpen || trialOpen}
+          onClose={() => { setEnrollOpen(false); setTrialOpen(false); }}
           course={course}
           trainer={trainer}
           trainerProfile={trainerProfile}

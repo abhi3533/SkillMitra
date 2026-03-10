@@ -100,7 +100,7 @@ const AdminWallets = () => {
                     <td className="px-4 py-3 text-sm font-semibold text-foreground">₹{Number(w.balance).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3 text-sm text-emerald-600">₹{Number(w.total_earned).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">₹{Number(w.total_withdrawn).toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{w.last_updated ? new Date(w.last_updated).toLocaleDateString("en-IN") : "-"}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{w.last_updated ? formatDateIST(w.last_updated) : "-"}</td>
                   </tr>
                 ))}
               </tbody>

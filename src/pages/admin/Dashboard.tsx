@@ -271,7 +271,7 @@ const AdminDashboard = () => {
                   <div key={d.id} className="p-3 rounded-lg bg-destructive/5 border border-destructive/10">
                     <p className="text-sm font-medium text-foreground">{d.subject || "Dispute"}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{d.description || "No description"}</p>
-                    <p className="text-[11px] text-muted-foreground mt-1">{new Date(d.created_at).toLocaleDateString("en-IN")}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">{formatDateIST(d.created_at)}</p>
                   </div>
                 ))}
               </div>

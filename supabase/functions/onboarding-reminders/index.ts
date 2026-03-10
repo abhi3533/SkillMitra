@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       const step = trainer.onboarding_step || 0
       const html = layout(`
         <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${profile.full_name || 'there'},</h1>
-        <p style="font-size: 15px; line-height: 1.6; color: #444;">Your SkillMitra trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% complete` : 'waiting to be set up'}. Complete your onboarding to start teaching and earning!</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'not set up yet'}. Finish it to start teaching and earning on SkillMitra!</p>
         ${btn(step > 0 ? 'Continue Where I Left Off' : 'Complete My Profile', `${APP_URL}/trainer/onboarding`)}
         <p style="font-size: 13px; color: #888; text-align: center;">Need help? Call us at +91 99855 12332</p>
       `)

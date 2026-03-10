@@ -716,6 +716,9 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Current/Previous Company<RequiredMark /></Label>
                   <Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} placeholder="e.g. Google" className="mt-1.5 h-11" />
+                  {stepAttempted[1] && form.currentCompany.trim() && !hasLetters(form.currentCompany) && (
+                    <p className="text-xs text-destructive mt-1">Company name must contain at least one letter</p>
+                  )}
                 </div>
                 <div>
                   <Label>Work Email <span className="text-muted-foreground font-normal">(optional)</span></Label>

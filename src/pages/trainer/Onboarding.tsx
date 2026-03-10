@@ -210,6 +210,24 @@ const TrainerOnboarding = () => {
     autoSaveTimer.current = setTimeout(() => saveDraft(false), 3000);
   }, []);
 
+  // Save draft when user switches away from tab (Bug-4 fix)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && trainerId && user) {
+        saveDraft(false);
+      }
+    };
+    const handleBeforeUnload = () => {
+      if (trainerId && user) saveDraft(false);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [trainerId, user]);
+
   const saveDraft = async (showToast = false) => {
     if (!trainerId || !user) return;
     setSaving(true);

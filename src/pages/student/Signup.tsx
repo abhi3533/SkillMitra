@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/lib/authErrors";
-import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion } from "@/lib/formValidation";
+import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
@@ -62,6 +62,10 @@ const StudentSignup = () => {
 
   const checkDuplicateEmail = async (email: string) => {
     if (!email || !isValidEmail(email)) { setEmailError(""); return; }
+    if (isDisposableEmail(email)) {
+      setEmailError("Temporary/disposable email addresses are not allowed.");
+      return;
+    }
     try {
       const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
       if (profile) {

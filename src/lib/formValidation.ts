@@ -9,6 +9,22 @@ export const isValidPhone = (phone: string): boolean => /^[6-9]\d{9}$/.test(clea
 /** Basic email format check */
 export const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
+/** Known disposable/temporary email domains */
+const disposableDomains = new Set([
+  "mailinator.com", "guerrillamail.com", "tempmail.com", "throwaway.email",
+  "yopmail.com", "10minutemail.com", "trashmail.com", "fakeinbox.com",
+  "sharklasers.com", "guerrillamailblock.com", "grr.la", "dispostable.com",
+  "maildrop.cc", "mailnesia.com", "tempail.com", "tempr.email",
+  "discard.email", "discardmail.com", "mailcatch.com", "trash-mail.com",
+  "getnada.com", "mohmal.com", "burnermail.io", "temp-mail.org",
+]);
+
+/** Check if email uses a disposable/temporary domain */
+export const isDisposableEmail = (email: string): boolean => {
+  const domain = email.trim().split("@")[1]?.toLowerCase();
+  return domain ? disposableDomains.has(domain) : false;
+};
+
 /** Common email typo suggestions */
 const typoMap: Record<string, string> = {
   "gamil.com": "gmail.com",

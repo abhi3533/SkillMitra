@@ -210,6 +210,24 @@ const TrainerOnboarding = () => {
     autoSaveTimer.current = setTimeout(() => saveDraft(false), 3000);
   }, []);
 
+  // Save draft when user switches away from tab (Bug-4 fix)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && trainerId && user) {
+        saveDraft(false);
+      }
+    };
+    const handleBeforeUnload = () => {
+      if (trainerId && user) saveDraft(false);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [trainerId, user]);
+
   const saveDraft = async (showToast = false) => {
     if (!trainerId || !user) return;
     setSaving(true);
@@ -304,7 +322,7 @@ const TrainerOnboarding = () => {
       if (!form.gender) { toast({ title: "Gender is required", variant: "warning" }); return false; }
       if (!isValidPhone(form.phone)) { toast({ title: "Valid 10-digit Indian mobile number required", variant: "warning" }); return false; }
       if (!selfie && !selfiePreview) { toast({ title: "Selfie upload is required for verification", variant: "warning" }); return false; }
-      if (!form.city.trim()) { toast({ title: "City is required", variant: "warning" }); return false; }
+      if (!form.city.trim() || !/^[a-zA-Z\s'-]+$/.test(form.city.trim())) { toast({ title: "Please enter a valid city name (letters only)", variant: "warning" }); return false; }
       if (!form.state) { toast({ title: "State is required", variant: "warning" }); return false; }
     }
     if (s === 1) {
@@ -663,7 +681,7 @@ const TrainerOnboarding = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <Label>City<RequiredMark /></Label>
-                  <Input value={form.city} onChange={e => update("city", e.target.value)} onBlur={() => markTouched("city")} placeholder="City" className="mt-1.5 h-11" />
+                  <Input value={form.city} onChange={e => update("city", e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} onBlur={() => markTouched("city")} placeholder="City" className="mt-1.5 h-11" />
                 </div>
                 <div>
                   <Label>State<RequiredMark /></Label>

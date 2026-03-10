@@ -54,7 +54,7 @@ const TrainerDashboard = () => {
         supabase.from("ratings").select("id, student_id, trainer_id, student_to_trainer_rating, student_to_trainer_review, student_rated_at, created_at").eq("trainer_id", trainer.id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
         supabase.from("courses").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
         supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_read", false),
-        supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+        supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
       ]);
 
       const monthTotal = (earningsRes.data || []).reduce((s: number, e: any) => s + Number(e.trainer_payout || 0), 0);

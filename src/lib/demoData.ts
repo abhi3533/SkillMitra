@@ -49,7 +49,7 @@ export const demoTrainers = [
     total_students: 28,
     subscription_plan: "pro",
     teaching_languages: ["Tamil", "English", "Urdu"],
-    bio: "Full Stack Developer at Wipro with 6 years of experience building scalable web applications. Expert in MERN stack and modern JavaScript.",
+    bio: "Hi, I'm a full stack developer at Wipro with 6 years of experience. I teach the MERN stack (React, Node, MongoDB) with a focus on building real projects you can show in interviews.",
     profile: { full_name: "Mohammed Irfan", city: "Chennai" },
     avatarColor: "#059669",
   },

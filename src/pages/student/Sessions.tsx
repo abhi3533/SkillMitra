@@ -156,7 +156,7 @@ const StudentSessions = () => {
         await supabase.from("notifications").insert({
           user_id: trainer.user_id,
           title: "Session Rescheduled",
-          body: `A student has rescheduled a session to ${newDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} at ${postponeData.time}. Reason: ${postponeData.reason || "Not specified"}`,
+          body: `A student has rescheduled a session to ${formatDateTimeWeekdayIST(newDate)}. Reason: ${postponeData.reason || "Not specified"}`,
           type: "session_rescheduled",
           action_url: "/trainer/sessions",
         });

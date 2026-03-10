@@ -284,7 +284,7 @@ const StudentDashboard = () => {
             ) : data.sessions.length === 0 ? (
               <div className="text-center py-8">
                 <Clock className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No upcoming sessions</p>
+                <p className="text-sm text-muted-foreground mt-2">No sessions coming up. Book a session to get started!</p>
               </div>
             ) : data.sessions.map((s: any) => (
               <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">

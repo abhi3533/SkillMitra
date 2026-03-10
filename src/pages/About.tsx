@@ -7,12 +7,12 @@ import { Link } from "react-router-dom";
 import { UserCheck, ShieldCheck, Languages, Lightbulb, IndianRupee, CalendarClock, Users, GraduationCap, Star, BookOpen, Mail, Clock } from "lucide-react";
 
 const differentiators = [
-  { icon: UserCheck, title: "Personal 1:1 Training", desc: "Not group classes. Every session is dedicated to you alone. Your pace, your goals, your questions." },
-  { icon: ShieldCheck, title: "Verified Expert Trainers", desc: "Every trainer is verified with document check, skill assessment, and personal interview before approval." },
-  { icon: Languages, title: "Learn In Your Language", desc: "Sessions available in Telugu, Hindi, Tamil, Malayalam, Kannada, Marathi, Bengali, and English." },
-  { icon: Lightbulb, title: "Any Skill, Any Goal", desc: "Python, Data Science, UI/UX, Digital Marketing, Finance, GST, Communication, Interview Prep and 50+ more skills." },
-  { icon: IndianRupee, title: "Money Back Guarantee", desc: "Not satisfied after first session? Get full refund within 48 hours. Zero questions asked." },
-  { icon: CalendarClock, title: "From Home, On Your Schedule", desc: "No commute. No fixed batch timings. Book sessions at times that work for you." },
+  { icon: UserCheck, title: "Just You & Your Trainer", desc: "No group classes. Every session is one-on-one. Your pace, your questions, your goals." },
+  { icon: ShieldCheck, title: "Verified Trainers", desc: "Every trainer goes through ID check, skill review, and a personal interview before they can teach." },
+  { icon: Languages, title: "Learn in Your Language", desc: "Sessions in Telugu, Hindi, Tamil, Malayalam, Kannada, Marathi, Bengali, and English." },
+  { icon: Lightbulb, title: "50+ Skills Available", desc: "Python, Data Science, UI/UX, Digital Marketing, Finance, GST, Communication, Interview Prep and more." },
+  { icon: IndianRupee, title: "Money Back Guarantee", desc: "Not happy after your first session? Get a full refund within 48 hours. No questions." },
+  { icon: CalendarClock, title: "Learn From Home", desc: "No commute. No fixed batch timings. Book sessions whenever it works for you." },
 ];
 
 const stats = [
@@ -24,8 +24,8 @@ const stats = [
 
 const About = () => {
   usePageMeta({
-    title: "About SkillMitra — India's #1 Personal 1:1 Skill Training Platform",
-    description: "SkillMitra by Learnvate Solutions connects students with verified industry experts for affordable 1:1 personal skill training across India.",
+    title: "About SkillMitra — Personal 1:1 Skill Training for India",
+    description: "SkillMitra connects students with verified trainers for affordable 1:1 skill training across India. Built by Learnvate Solutions.",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "AboutPage",
@@ -39,7 +39,7 @@ const About = () => {
         logo: "https://skillmitra.online/icons/icon-512x512.png",
         founder: { "@type": "Person", name: "Abhilash" },
         foundingLocation: { "@type": "Place", name: "Karimnagar, Telangana, India" },
-        description: "India's first personal 1:1 skill training platform connecting students with verified expert trainers.",
+        description: "India's personal 1:1 skill training platform connecting students with verified trainers.",
       },
     },
   });
@@ -52,24 +52,24 @@ const About = () => {
       <section className="pt-28 pb-12 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">About SkillMitra</h1>
-          <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">India's most trusted personal 1:1 skill training platform</p>
+          <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">Personal 1:1 skill training for students and professionals across India</p>
         </div>
       </section>
 
       {/* About */}
       <section className="py-12">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl space-y-5">
-          <p className="text-muted-foreground leading-relaxed">SkillMitra is India's first personal 1:1 skill training platform that connects students and working professionals with verified expert trainers for personalized, one-on-one learning — from home, in their own language, at their own pace.</p>
-          <p className="text-muted-foreground leading-relaxed">We believe every person deserves access to high-quality skill training — not just those in big cities or who can afford expensive coaching institutes. SkillMitra brings verified industry experts directly to students across India through live online sessions.</p>
+          <p className="text-muted-foreground leading-relaxed">SkillMitra is a platform where students and working professionals can find verified trainers for personal, one-on-one skill training — from home, in their own language, at their own pace.</p>
+          <p className="text-muted-foreground leading-relaxed">We started SkillMitra because we believe everyone in India deserves access to quality training — not just people in big cities or those who can afford expensive coaching centres.</p>
         </div>
       </section>
 
       {/* Our Story */}
       <section className="py-12 bg-muted/30">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Our Story</h2>
-          <p className="text-muted-foreground leading-relaxed mb-4">SkillMitra was born from a simple observation — millions of Indians want to learn new skills but struggle to find quality, affordable, personalized training. Traditional courses are theory-heavy and one-size-fits-all. Coaching institutes are expensive and limited to big cities. YouTube is free but has no accountability or personalization.</p>
-          <p className="text-muted-foreground leading-relaxed">SkillMitra bridges this gap by enabling direct 1:1 mentorship from verified industry experts across any skill — technology, design, finance, marketing, communication, and more.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Why We Built This</h2>
+          <p className="text-muted-foreground leading-relaxed mb-4">Here's the problem — millions of people in India want to learn new skills. But most online courses are pre-recorded, one-size-fits-all, and have zero accountability. Coaching institutes are expensive and only available in a few cities. YouTube is free but nobody guides you or checks your progress.</p>
+          <p className="text-muted-foreground leading-relaxed">SkillMitra fixes this. We connect you directly with a verified trainer who teaches you 1:1 — in your language, at your pace, focused on your goals. Whether it's tech, design, finance, marketing, or communication — we've got trainers for it.</p>
         </div>
       </section>
 
@@ -79,13 +79,13 @@ const About = () => {
           <Card className="border-primary/20">
             <CardContent className="p-6">
               <h2 className="text-xl font-bold text-foreground mb-3">Our Mission</h2>
-              <p className="text-muted-foreground leading-relaxed">To make high-quality personalized skill training accessible to every Indian — regardless of their city, background, or budget.</p>
+              <p className="text-muted-foreground leading-relaxed">Make quality skill training available to every Indian — no matter where they live, what language they speak, or what their budget is.</p>
             </CardContent>
           </Card>
           <Card className="border-primary/20">
             <CardContent className="p-6">
               <h2 className="text-xl font-bold text-foreground mb-3">Our Vision</h2>
-              <p className="text-muted-foreground leading-relaxed">To become India's most trusted skill development platform — where every student finds their perfect trainer and every expert shares their knowledge.</p>
+              <p className="text-muted-foreground leading-relaxed">Become the go-to platform in India where every student finds the right trainer and every skilled professional can teach and earn.</p>
             </CardContent>
           </Card>
         </div>
@@ -132,8 +132,8 @@ const About = () => {
       {/* Team */}
       <section className="py-12 bg-muted/30">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Our Team</h2>
-          <p className="text-muted-foreground leading-relaxed">Founded by <span className="font-semibold text-foreground">Abhilash</span> — EdTech entrepreneur from Karimnagar, Telangana. Built SkillMitra to make quality skill training accessible to every Indian.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Who's Behind This</h2>
+          <p className="text-muted-foreground leading-relaxed">SkillMitra was started by <span className="font-semibold text-foreground">Abhilash</span> from Karimnagar, Telangana. He saw how hard it was for students in smaller cities to get good training, and built SkillMitra to solve that problem.</p>
         </div>
       </section>
 
@@ -155,8 +155,8 @@ const About = () => {
       {/* CTA */}
       <section className="py-16 bg-primary/5">
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-3">Ready to Start Learning?</h2>
-          <p className="text-muted-foreground mb-8">Find your perfect trainer or share your expertise with students across India.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-3">Ready to Get Started?</h2>
+          <p className="text-muted-foreground mb-8">Find a trainer who matches your goals, or start teaching your skills to students across India.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg">
               <Link to="/browse">Browse Trainers</Link>

@@ -631,10 +631,10 @@ const Index = () => {
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
           <ScrollReveal>
             <h2 className="text-3xl md:text-[44px] font-extrabold text-white leading-tight">
-              Start Teaching. Start Earning.
+              Got Skills? Start Teaching.
             </h2>
             <p className="mt-4 text-base md:text-lg text-white/60 max-w-xl mx-auto leading-relaxed">
-              Join our growing community of verified trainers. Teach from home on your own schedule. Earn up to ₹50,000/month.
+              Teach students across India from home, on your own schedule. Trainers on SkillMitra earn up to ₹50,000/month.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/trainer/signup">

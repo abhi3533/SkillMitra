@@ -342,7 +342,7 @@ const TrainerDashboard = () => {
             ) : data.reviews.length === 0 ? (
               <div className="text-center py-8">
                 <Star className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No reviews yet. Complete sessions to receive student feedback.</p>
+                <p className="text-sm text-muted-foreground mt-2">No reviews yet. Once students rate their sessions, they'll appear here.</p>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-2">

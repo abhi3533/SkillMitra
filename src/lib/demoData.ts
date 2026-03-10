@@ -100,7 +100,7 @@ export const demoTrainers = [
     total_students: 62,
     subscription_plan: "elite",
     teaching_languages: ["Hindi", "English", "Marathi"],
-    bio: "Dedicated Communication and Soft Skills Trainer with 5 years of experience. Helped 62+ students ace interviews and build confidence.",
+    bio: "Hi, I've been teaching communication and soft skills for 5 years. I've helped 62+ students improve their speaking skills and do well in job interviews.",
     profile: { full_name: "Divya Menon", city: "Mumbai" },
     avatarColor: "#0D9488",
   },

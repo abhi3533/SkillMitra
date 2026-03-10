@@ -164,7 +164,7 @@ const ReferPage = () => {
             </p>
 
             {/* CTA */}
-            {user && role === "student" && referralLink ? (
+            {isLoggedIn && referralLink ? (
               <div className="mt-8 max-w-md mx-auto">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-card border rounded-xl p-2">
                   <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate min-w-0">{referralLink}</div>
@@ -179,7 +179,7 @@ const ReferPage = () => {
                   </Button>
                 </div>
               </div>
-            ) : (
+            ) : !isLoggedIn ? (
               <div className="mt-8">
                 <Link to="/student/signup">
                   <Button size="lg" className="gap-2 text-base px-8">
@@ -187,7 +187,7 @@ const ReferPage = () => {
                   </Button>
                 </Link>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </section>

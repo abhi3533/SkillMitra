@@ -1,6 +1,15 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CreditCard, Check, Star, Zap, Crown } from "lucide-react";
+import { CreditCard, Check, Star, Zap, Crown, ArrowLeft, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const plans = [
   {
@@ -35,9 +44,21 @@ const plans = [
 ];
 
 const TrainerSubscription = () => {
+  const navigate = useNavigate();
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("");
+
   return (
     <div className="min-h-screen bg-background p-6 lg:p-8">
       <div className="max-w-5xl mx-auto pt-16">
+        <Button
+          variant="ghost"
+          className="gap-2 mb-6"
+          onClick={() => navigate("/trainer/dashboard")}
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+        </Button>
+
         <div className="text-center mb-12">
           <div className="w-14 h-14 mx-auto rounded-2xl hero-gradient flex items-center justify-center mb-4">
             <CreditCard className="w-7 h-7 text-primary-foreground" />
@@ -80,6 +101,12 @@ const TrainerSubscription = () => {
                 className={`w-full mt-6 ${plan.current ? "" : plan.name === "Pro" ? "hero-gradient border-0" : plan.name === "Elite" ? "gold-gradient text-accent-foreground border-0" : ""}`}
                 variant={plan.current ? "outline" : "default"}
                 disabled={plan.current}
+                onClick={() => {
+                  if (!plan.current) {
+                    setSelectedPlan(plan.name);
+                    setComingSoonOpen(true);
+                  }
+                }}
               >
                 {plan.current ? "Current Plan" : "Upgrade Now"}
               </Button>
@@ -87,6 +114,22 @@ const TrainerSubscription = () => {
           ))}
         </div>
       </div>
+
+      <Dialog open={comingSoonOpen} onOpenChange={setComingSoonOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" /> Coming Soon
+            </DialogTitle>
+            <DialogDescription>
+              The {selectedPlan} plan upgrade with Razorpay payment integration is currently being added. You will be able to subscribe to this plan very soon. Stay tuned!
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setComingSoonOpen(false)} className="w-full mt-2">
+            Got it
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

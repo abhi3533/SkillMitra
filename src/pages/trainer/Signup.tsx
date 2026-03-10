@@ -546,8 +546,9 @@ const TrainerSignup = () => {
                 <div>
                   <Label>Current Role<RequiredMark /></Label>
                   <Input value={form.currentRole} onChange={e => update("currentRole", e.target.value)} onBlur={() => markTouched("currentRole")} placeholder="e.g. Senior Developer"
-                    className={`mt-1.5 h-11 ${touched.currentRole ? (form.currentRole.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                    className={`mt-1.5 h-11 ${touched.currentRole ? (form.currentRole.trim() && hasLetters(form.currentRole) ? "border-green-500" : "border-destructive") : ""}`} />
                   {touched.currentRole && !form.currentRole.trim() && <p className="text-xs text-destructive mt-1">Current role is required</p>}
+                  {touched.currentRole && form.currentRole.trim() && !hasLetters(form.currentRole) && <p className="text-xs text-destructive mt-1">Please enter a valid job role</p>}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

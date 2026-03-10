@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import TrainerDetailDrawer from "@/components/admin/TrainerDetailDrawer";
 import RejectTrainerModal from "@/components/admin/RejectTrainerModal";
+import OnboardingPipeline from "@/components/admin/OnboardingPipeline";
 
 const AdminTrainers = () => {
   const { toast } = useToast();
@@ -30,7 +31,6 @@ const AdminTrainers = () => {
       .order("created_at", { ascending: false });
     const trainersArr = trainerRows || [];
 
-    // Manually join profiles via user_id since there's no FK
     if (trainersArr.length > 0) {
       const userIds = trainersArr.map(t => t.user_id);
       const { data: profileRows } = await supabase
@@ -64,19 +64,13 @@ const AdminTrainers = () => {
     const trainer = trainers.find(t => t.id === id);
     const trainerName = trainer?.profiles?.full_name || "Trainer";
 
-    // Send email + in-app notification via notify-trainer-status (single function handles both)
     supabase.functions.invoke("notify-trainer-status", {
       body: { trainer_id: id, status, rejection_reason: rejectionReason },
     }).then(({ data, error: fnErr }) => {
       if (fnErr) {
-        console.error("Notification error:", fnErr);
         toast({ title: `Trainer ${status}`, description: "Status updated but email notification failed.", variant: "warning" });
       } else {
-        toast({ 
-          title: `Trainer ${status}!`, 
-          description: `Email notification sent to ${trainerName}.`,
-          variant: "success",
-        });
+        toast({ title: `Trainer ${status}!`, description: `Email notification sent to ${trainerName}.`, variant: "success" });
       }
     });
   };
@@ -95,8 +89,6 @@ const AdminTrainers = () => {
     if (!removeTarget) return;
     const trainerName = removeTarget.profiles?.full_name || "Trainer";
     const trainerId = removeTarget.id;
-    
-    // Delete trainer record
     const { error } = await supabase.from("trainers").delete().eq("id", trainerId);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -107,7 +99,6 @@ const AdminTrainers = () => {
     setDrawerOpen(false);
     setRemoveTarget(null);
 
-    // Send removal notification
     supabase.functions.invoke("notify-trainer-status", {
       body: { trainer_id: trainerId, status: "removed", rejection_reason: "Your account has been removed from the platform." },
     }).then(({ error: fnErr }) => {
@@ -119,8 +110,15 @@ const AdminTrainers = () => {
     });
   };
 
+  const pipelineCount = trainers.filter(t => 
+    t.onboarding_status === "draft" || (t.onboarding_status === "pending" && (t.onboarding_step || 0) < 6)
+  ).length;
+
   const filtered = trainers
-    .filter(t => tab === "all" || t.approval_status === tab)
+    .filter(t => {
+      if (tab === "pipeline") return false; // pipeline handled separately
+      return tab === "all" || t.approval_status === tab;
+    })
     .filter(t => {
       if (!search) return true;
       const q = search.toLowerCase();
@@ -153,7 +151,10 @@ const AdminTrainers = () => {
 
       <div className="mt-5 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="pipeline">
+              Pipeline {pipelineCount > 0 && <span className="ml-1 bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full">{pipelineCount}</span>}
+            </TabsTrigger>
             <TabsTrigger value="pending">Pending ({counts.pending})</TabsTrigger>
             <TabsTrigger value="approved">Approved ({counts.approved})</TabsTrigger>
             <TabsTrigger value="suspended">Suspended ({counts.suspended})</TabsTrigger>
@@ -161,14 +162,18 @@ const AdminTrainers = () => {
             <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
           </TabsList>
         </Tabs>
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search name, email, skill..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
-        </div>
+        {tab !== "pipeline" && (
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search name, email, skill..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+          </div>
+        )}
       </div>
 
       <div className="mt-4">
-        {loading ? (
+        {tab === "pipeline" ? (
+          <OnboardingPipeline trainers={trainers} loading={loading} />
+        ) : loading ? (
           <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-card rounded-xl border animate-pulse" />)}</div>
         ) : filtered.length === 0 ? (
           <p className="text-center text-muted-foreground py-12">No trainers found</p>
@@ -243,7 +248,6 @@ const AdminTrainers = () => {
         )}
       </div>
 
-      {/* Detail Drawer */}
       <TrainerDetailDrawer
         trainer={selectedTrainer}
         open={drawerOpen}
@@ -255,7 +259,6 @@ const AdminTrainers = () => {
         }}
       />
 
-      {/* Reject Modal */}
       <RejectTrainerModal
         open={!!rejectTarget}
         onClose={() => setRejectTarget(null)}
@@ -263,7 +266,6 @@ const AdminTrainers = () => {
         onConfirm={(reason) => updateStatus(rejectTarget.id, "rejected", reason)}
       />
 
-      {/* Suspend Confirmation Dialog */}
       <Dialog open={!!suspendTarget} onOpenChange={() => setSuspendTarget(null)}>
         <DialogContent>
           <DialogHeader>
@@ -279,7 +281,6 @@ const AdminTrainers = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Remove Confirmation Dialog */}
       <Dialog open={!!removeTarget} onOpenChange={() => setRemoveTarget(null)}>
         <DialogContent>
           <DialogHeader>

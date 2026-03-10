@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatShortDateIST } from "@/lib/dateUtils";
 import { CheckCircle, XCircle, AlertCircle, AlertTriangle, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";

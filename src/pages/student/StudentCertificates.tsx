@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateIST, formatLongDateIST } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";

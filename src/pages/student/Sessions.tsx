@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateTimeWeekdayIST } from "@/lib/dateUtils";
 import { Calendar, Video, Clock, Star, MessageSquare, CalendarClock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
 import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages } from "lucide-react";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";

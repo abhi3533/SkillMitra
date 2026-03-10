@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatShortDateIST } from "@/lib/dateUtils";
 import { TrendingUp, Brain, FileText, Flame } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { supabase } from "@/integrations/supabase/client";

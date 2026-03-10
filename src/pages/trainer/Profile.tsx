@@ -51,6 +51,9 @@ const TrainerProfile = () => {
   const [existingTrial, setExistingTrial] = useState<any>(null);
   const [checkingTrial, setCheckingTrial] = useState(false);
 
+  // Determine if ID is a slug (demo), UUID (real), or self-profile (no id)
+  const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
   useEffect(() => {
     if (id) { setResolvedId(id); return; }
     if (!user) return;
@@ -64,21 +67,26 @@ const TrainerProfile = () => {
   useEffect(() => {
     if (!resolvedId) return;
 
-    if (isDemo(resolvedId)) {
-      const demo = getDemoTrainer(resolvedId);
-      if (demo) {
-        setTrainer(demo);
-        setCourses(getDemoCourse(resolvedId));
-        setReviews(demoTestimonials.slice(0, 2));
-        setAvailability([
-          { day_of_week: 1, start_time: "09:00", end_time: "12:00", is_available: true },
-          { day_of_week: 2, start_time: "14:00", end_time: "18:00", is_available: true },
-          { day_of_week: 3, start_time: "09:00", end_time: "12:00", is_available: true },
-          { day_of_week: 5, start_time: "10:00", end_time: "16:00", is_available: true },
-          { day_of_week: 6, start_time: "09:00", end_time: "13:00", is_available: true },
-        ]);
-        setSimilarTrainers(demoTrainers.filter(t => t.id !== resolvedId).slice(0, 3));
-      }
+    // Check if it's a demo trainer (by slug or demo-id)
+    const demoTrainer = getDemoTrainer(resolvedId);
+    if (demoTrainer) {
+      setTrainer(demoTrainer);
+      setCourses(getDemoCourse(demoTrainer.id));
+      setReviews(demoTestimonials.slice(0, 2));
+      setAvailability([
+        { day_of_week: 1, start_time: "09:00", end_time: "12:00", is_available: true },
+        { day_of_week: 2, start_time: "14:00", end_time: "18:00", is_available: true },
+        { day_of_week: 3, start_time: "09:00", end_time: "12:00", is_available: true },
+        { day_of_week: 5, start_time: "10:00", end_time: "16:00", is_available: true },
+        { day_of_week: 6, start_time: "09:00", end_time: "13:00", is_available: true },
+      ]);
+      setSimilarTrainers(demoTrainers.filter(t => t.id !== demoTrainer.id).slice(0, 3));
+      setLoading(false);
+      return;
+    }
+
+    // Must be a real trainer UUID
+    if (!isUUID(resolvedId)) {
       setLoading(false);
       return;
     }

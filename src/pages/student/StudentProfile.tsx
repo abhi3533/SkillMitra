@@ -105,8 +105,15 @@ const StudentProfile = () => {
     if (!user?.id) return;
     setSaving(true);
     try {
+      // Validate name
+      if (fullName.trim() && !/^[a-zA-Z\s.'\-]+$/.test(fullName.trim())) {
+        toast({ title: "Name must contain only letters", variant: "warning" });
+        setSaving(false);
+        return;
+      }
       const [profileRes, studentRes] = await Promise.all([
         supabase.from('profiles').update({
+          full_name: fullName.trim() || undefined,
           city: city || null,
           state: state || null,
           gender: gender || null,

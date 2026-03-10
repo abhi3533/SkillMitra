@@ -39,7 +39,7 @@ const StudentCertificates = () => {
 
       const refs = reflections || [];
       const name = profile?.full_name || "Student";
-      const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+      const date = formatLongDateIST(new Date());
 
       // Build HTML for printing
       const avgConfidence = refs.length > 0 ? (refs.reduce((s, r) => s + r.confidence_level, 0) / refs.length).toFixed(1) : "N/A";

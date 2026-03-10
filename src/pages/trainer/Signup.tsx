@@ -65,6 +65,10 @@ const TrainerSignup = () => {
   const [loading, setLoading] = useState(false);
   const [agreedTraining, setAgreedTraining] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [readinessChecks, setReadinessChecks] = useState<Record<string, boolean>>({
+    internet: false, webcam: false, microphone: false, environment: false, response: false, cancel: false,
+  });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);

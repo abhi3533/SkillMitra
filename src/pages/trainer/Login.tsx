@@ -72,6 +72,7 @@ const TrainerLogin = () => {
         throw error;
       }
 
+      clearLoginAttempts(email);
       toast({ title: "Signed in successfully", variant: "success" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });

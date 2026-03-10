@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { formatDateTimeWeekdayIST } from "@/lib/dateUtils";
-import { Calendar, Video, Clock, Star, MessageSquare, CalendarClock, Loader2 } from "lucide-react";
+import { formatDateTimeWeekdayIST, generateGoogleCalendarUrl, generateOutlookCalendarUrl } from "@/lib/dateUtils";
+import { Calendar, Video, Clock, Star, MessageSquare, CalendarClock, Loader2, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

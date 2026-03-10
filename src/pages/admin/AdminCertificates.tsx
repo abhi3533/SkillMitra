@@ -38,7 +38,7 @@ const AdminCertificates = () => {
                   <td className="px-4 py-3 text-sm font-mono text-foreground">{c.certificate_id}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{c.course_name || "-"}</td>
                   <td className="px-4 py-3 text-sm text-foreground">{c.overall_score || "-"}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(c.issue_date).toLocaleDateString("en-IN")}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateIST(c.issue_date)}</td>
                 </tr>
               ))}</tbody>
             </table>

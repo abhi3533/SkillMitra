@@ -46,7 +46,7 @@ const AdminPayments = () => {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{p.enrollments?.courses?.title || "-"}</td>
                   <td className="px-4 py-3 text-sm font-semibold text-foreground">₹{Number(p.amount).toLocaleString()}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "completed" ? "bg-success/10 text-success" : "bg-accent/10 text-accent"}`}>{p.status}</span></td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateIST(p.created_at)}</td>
                 </tr>
               ))}
             </tbody>

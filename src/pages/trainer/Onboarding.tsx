@@ -816,7 +816,8 @@ const TrainerOnboarding = () => {
           {step === 3 && (
             <div className="mt-6 space-y-5">
               <div>
-                <Label>Additional Services You Offer</Label>
+                <Label>Additional Services You Offer<RequiredMark /></Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Select at least one service</p>
                 <div className="space-y-3 mt-3">
                   {["Resume Review and Optimization", "Mock Interview Sessions", "Real Time Project Guidance"].map(s => (
                     <label key={s} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 cursor-pointer hover:bg-secondary/80 transition-colors">

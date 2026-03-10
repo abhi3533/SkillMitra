@@ -213,8 +213,8 @@ Deno.serve(async (req) => {
         if (!existing?.length) {
           await supabase.from('notifications').insert({
             user_id: studentUserId, type: 'missed_session',
-            title: '⚠️ Trainer Missed Session',
-            body: `Your trainer did not join the "${courseTitle}" session. We've been notified and will follow up.`,
+            title: '⚠️ Trainer missed your session',
+            body: `Your trainer didn't join the "${courseTitle}" session. We've been notified and will follow up with them.`,
             action_url: s.id, icon: 'alert-triangle',
           })
           results.push(`missed session notif → student ${studentUserId}`)

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 
 const APP_DOMAIN = "skillmitra.online";
+const REWARD_AMOUNT = 1200;
 
 const TrainerReferrals = () => {
   const { user } = useAuth();
@@ -61,8 +62,8 @@ const TrainerReferrals = () => {
 
   const referralCode = trainer?.referral_code || "";
   const referralLink = referralCode ? `https://${APP_DOMAIN}/trainer/signup?ref=${referralCode}` : "";
-  const totalPaid = referrals.filter(r => r.status === "paid").length * 500;
-  const totalPending = referrals.filter(r => r.status === "pending").length * 500;
+  const totalPaid = referrals.filter(r => r.status === "paid").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
+  const totalPending = referrals.filter(r => r.status === "pending" || r.status === "eligible").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -70,7 +71,7 @@ const TrainerReferrals = () => {
   };
 
   const shareWhatsApp = () => {
-    const msg = `Become a trainer on SkillMitra! 🎓 Use my referral code and earn ₹500 when you complete your first session.\n\n${referralLink}`;
+    const msg = `Become a trainer on SkillMitra! 🎓 Use my referral code and earn ₹${REWARD_AMOUNT} when you complete your first session.\n\n${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -82,10 +83,21 @@ const TrainerReferrals = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-emerald-50 text-emerald-700";
+      case "eligible":
+        return "bg-blue-50 text-blue-700";
+      default:
+        return "bg-amber-50 text-amber-700";
+    }
+  };
+
   return (
     <TrainerLayout>
       <h1 className="text-2xl font-bold text-foreground">Trainer Referral Program</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Invite trainers and earn ₹500 per successful referral</p>
+      <p className="mt-1 text-sm text-muted-foreground">Invite trainers and earn ₹{REWARD_AMOUNT} per successful referral</p>
 
       {loading ? (
         <div className="mt-6 space-y-4">
@@ -99,7 +111,7 @@ const TrainerReferrals = () => {
           {/* Referral Link */}
           <div className="mt-6 bg-card rounded-xl border p-6">
             <h3 className="font-semibold text-foreground mb-1">Your Referral Link</h3>
-            <p className="text-xs text-muted-foreground mb-3">When a referred trainer completes their first paid session, you earn ₹500</p>
+            <p className="text-xs text-muted-foreground mb-3">When a referred trainer completes their first paid session, you earn ₹{REWARD_AMOUNT}</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate">
                 {referralLink || "No code available"}
@@ -147,7 +159,7 @@ const TrainerReferrals = () => {
               {[
                 { step: "1", title: "Share Your Link", desc: "Send your referral link to fellow professionals" },
                 { step: "2", title: "They Sign Up", desc: "They create a trainer account using your referral code" },
-                { step: "3", title: "Earn ₹500", desc: "You get ₹500 when they complete their first paid session" },
+                { step: "3", title: `Earn ₹${REWARD_AMOUNT}`, desc: `You get ₹${REWARD_AMOUNT} when they complete their first paid session` },
               ].map(s => (
                 <div key={s.step} className="text-center">
                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mx-auto mb-3">
@@ -186,9 +198,7 @@ const TrainerReferrals = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold text-foreground">₹{r.reward_amount}</p>
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                        r.status === "paid" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-                      }`}>
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${getStatusBadge(r.status)}`}>
                         {r.status}
                       </span>
                     </div>

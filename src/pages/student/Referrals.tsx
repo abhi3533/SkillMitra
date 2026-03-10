@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import StudentLayout from "@/components/layouts/StudentLayout";
 
 const APP_DOMAIN = "skillmitra.online";
+const REWARD_AMOUNT = 400;
 
 const StudentReferrals = () => {
   const { user } = useAuth();
@@ -34,7 +35,6 @@ const StudentReferrals = () => {
           .eq("referrer_id", s.id)
           .order("created_at", { ascending: false });
 
-        // Fetch referred student names
         if (refs && refs.length > 0) {
           const userIds = refs.map((r: any) => r.referred?.user_id).filter(Boolean);
           if (userIds.length > 0) {
@@ -64,7 +64,7 @@ const StudentReferrals = () => {
   const referralCode = student?.referral_code || "";
   const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";
   const totalEarned = referrals.filter(r => r.status === "paid").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
-  const totalPending = referrals.filter(r => r.status === "pending").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
+  const totalPending = referrals.filter(r => r.status === "pending" || r.status === "eligible").reduce((sum, r) => sum + Number(r.reward_amount || 0), 0);
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -72,7 +72,7 @@ const StudentReferrals = () => {
   };
 
   const shareWhatsApp = () => {
-    const msg = `Hey! I use SkillMitra for personal 1:1 skill training. Use my referral code ${referralCode} and we both get ₹200 credit! Sign up at ${referralLink}`;
+    const msg = `Hey! I use SkillMitra for personal 1:1 skill training. Use my referral code ${referralCode} and we both get ₹${REWARD_AMOUNT} credit! Sign up at ${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -80,7 +80,7 @@ const StudentReferrals = () => {
     if (navigator.share) {
       await navigator.share({
         title: "Join SkillMitra",
-        text: `Use my referral code ${referralCode} and we both get ₹200!`,
+        text: `Use my referral code ${referralCode} and we both get ₹${REWARD_AMOUNT}!`,
         url: referralLink,
       });
     } else {
@@ -88,10 +88,21 @@ const StudentReferrals = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-emerald-50 text-emerald-700";
+      case "eligible":
+        return "bg-blue-50 text-blue-700";
+      default:
+        return "bg-amber-50 text-amber-700";
+    }
+  };
+
   return (
     <StudentLayout>
       <h1 className="text-2xl font-bold text-foreground">Referral Program</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Invite friends and earn ₹200 for each signup</p>
+      <p className="mt-1 text-sm text-muted-foreground">Invite friends and earn ₹{REWARD_AMOUNT} for each successful referral</p>
 
       {loading ? (
         <div className="mt-6 space-y-4">
@@ -106,7 +117,7 @@ const StudentReferrals = () => {
           {/* Referral Link Card */}
           <div className="mt-6 bg-card rounded-xl border p-6">
             <h3 className="font-semibold text-foreground mb-1">Your Referral Link</h3>
-            <p className="text-xs text-muted-foreground mb-3">Share this link — when someone signs up, you both get ₹200 wallet credit</p>
+            <p className="text-xs text-muted-foreground mb-3">Share this link — when someone signs up and completes a paid course (₹5,000+), you both get ₹{REWARD_AMOUNT}</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate">
                 {referralLink || "No code available"}
@@ -119,7 +130,6 @@ const StudentReferrals = () => {
               Your code: <span className="font-bold text-foreground font-mono">{referralCode}</span>
             </p>
 
-            {/* Share buttons */}
             <div className="flex gap-2 mt-4">
               <Button onClick={shareWhatsApp} size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-sm">
                 <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
@@ -137,7 +147,7 @@ const StudentReferrals = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             {[
               { label: "Total Referred", value: String(referrals.length), icon: Users, color: "bg-primary/10 text-primary" },
-              { label: "Pending", value: String(referrals.filter(r => r.status === "pending").length), icon: Clock, color: "bg-amber-50 text-amber-600" },
+              { label: "Pending", value: String(referrals.filter(r => r.status === "pending" || r.status === "eligible").length), icon: Clock, color: "bg-amber-50 text-amber-600" },
               { label: "Rewards Earned", value: `₹${totalEarned.toLocaleString("en-IN")}`, icon: Gift, color: "bg-emerald-50 text-emerald-600" },
               { label: "Wallet Balance", value: `₹${walletBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-primary/10 text-primary" },
             ].map(s => (
@@ -158,7 +168,7 @@ const StudentReferrals = () => {
               {[
                 { step: "1", title: "Share Your Link", desc: "Send your referral link to friends via WhatsApp or social media" },
                 { step: "2", title: "Friend Signs Up", desc: "Your friend creates a student account using your referral link" },
-                { step: "3", title: "Both Get ₹200", desc: "Both you and your friend receive ₹200 wallet credit instantly" },
+                { step: "3", title: `Both Get ₹${REWARD_AMOUNT}`, desc: "Both earn ₹400 when they complete their first paid course worth ₹5,000+" },
               ].map(s => (
                 <div key={s.step} className="text-center">
                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mx-auto mb-3">
@@ -197,9 +207,7 @@ const StudentReferrals = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold text-foreground">₹{r.reward_amount}</p>
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                        r.status === "paid" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-                      }`}>
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${getStatusBadge(r.status)}`}>
                         {r.status}
                       </span>
                     </div>

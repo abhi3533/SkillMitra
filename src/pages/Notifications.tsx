@@ -4,6 +4,7 @@ import { Bell, Check, ArrowLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { timeAgoIST } from "@/lib/dateUtils";
 
 const Notifications = () => {
   const { user, role } = useAuth();

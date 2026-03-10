@@ -26,7 +26,7 @@ const AdminSettings = () => {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("platform_settings" as any).select("*").limit(1).single();
+      const { data } = await supabase.from("platform_settings" as any).select("*").limit(1).maybeSingle();
       if (data) {
         const d = data as any;
         setSettingsId(d.id);

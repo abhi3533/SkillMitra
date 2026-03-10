@@ -152,7 +152,7 @@ const StudentSessions = () => {
       }).eq("id", postponeModal.id);
 
       // Notify trainer
-      const { data: trainer } = await supabase.from("trainers").select("user_id").eq("id", postponeModal.trainer_id).single();
+      const { data: trainer } = await supabase.from("trainers").select("user_id").eq("id", postponeModal.trainer_id).maybeSingle();
       if (trainer) {
         await supabase.from("notifications").insert({
           user_id: trainer.user_id,

@@ -132,7 +132,7 @@ const CourseDetail = () => {
 
     // Real course
     const { data: courseData } = await supabase
-      .from("courses").select("*").eq("id", courseId!).single();
+      .from("courses").select("*").eq("id", courseId!).maybeSingle();
     if (!courseData) { setLoading(false); return; }
     setCourse(courseData);
 

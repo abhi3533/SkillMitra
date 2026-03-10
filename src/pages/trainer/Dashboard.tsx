@@ -119,7 +119,7 @@ const TrainerDashboard = () => {
       setLoading(false);
 
       // Fetch students interested in trainer's skills
-      const trainerSkills = (await supabase.from("trainers").select("skills").eq("user_id", user.id).single()).data?.skills as string[] | null;
+      const trainerSkills = (await supabase.from("trainers").select("skills").eq("user_id", user.id).maybeSingle()).data?.skills as string[] | null;
       if (trainerSkills?.length) {
         const { data: allStudents } = await supabase
           .from("students")

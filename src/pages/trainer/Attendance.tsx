@@ -81,7 +81,7 @@ const TrainerAttendance = () => {
     const session = sessions.find(s => s.id === sessionId);
     if (!session) return;
 
-    const { data: enrollment } = await supabase.from("enrollments").select("id, student_id").eq("id", session.enrollment_id).single();
+    const { data: enrollment } = await supabase.from("enrollments").select("id, student_id").eq("id", session.enrollment_id).maybeSingle();
     if (!enrollment) return;
 
     const { data: studentRows } = await supabase.from("students").select("id, user_id").in("id", [enrollment.student_id]);

@@ -108,6 +108,9 @@ const TrainerSignup = () => {
   const isPhoneFilled = isValidPhone(form.phone);
   const isEmailFilled = isValidEmail(form.email) && !emailError;
 
+  const hasLetters = (val: string) => /[a-zA-Z]/.test(val);
+  const isValidName = (val: string) => /^[a-zA-Z\s.'-]+$/.test(val.trim());
+
   const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

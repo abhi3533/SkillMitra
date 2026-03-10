@@ -279,7 +279,7 @@ const TrainerDashboard = () => {
             ) : data.todaySessions.length === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">No sessions today. Enjoy your day! ☀️</p>
+                <p className="text-sm text-muted-foreground mt-2">No sessions scheduled for today. Take it easy! ☀️</p>
               </div>
             ) : data.todaySessions.map((s: any) => (
               <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">

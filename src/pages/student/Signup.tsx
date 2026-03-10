@@ -80,6 +80,7 @@ const StudentSignup = () => {
   const isPhoneFilled = isValidPhone(form.phone);
   const isEmailValid = form.email.length === 0 || isValidEmail(form.email);
   const isEmailFilled = isValidEmail(form.email) && !emailError;
+  const isNameLettersOnly = (val: string) => /^[a-zA-Z\s.'-]+$/.test(val.trim());
 
   const getFieldClass = (key: string, isValid: boolean, isFilled: boolean) => {
     if (!touched[key]) return "";

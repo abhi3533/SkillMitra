@@ -45,7 +45,7 @@ const StudentDashboard = () => {
       supabase.from("course_sessions").select("id, enrollments!inner(student_id)", { count: "exact", head: true }).eq("status", "completed").eq("enrollments.student_id", student.id),
       supabase.from("certificates").select("id", { count: "exact", head: true }).eq("student_id", student.id),
       supabase.from("course_sessions").select("*, enrollments!inner(student_id, trainer_id, courses(title))").eq("enrollments.student_id", student.id).eq("status", "upcoming").order("scheduled_at", { ascending: true }).limit(5),
-      supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+      supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
     ]);
 
     const enrollments = enrollRes.data || [];

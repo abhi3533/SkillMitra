@@ -73,7 +73,7 @@ const Receipt = () => {
           .from("profiles")
           .select("full_name, email")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         // Get payment info
         const { data: payment } = await supabase

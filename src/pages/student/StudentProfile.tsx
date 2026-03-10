@@ -75,7 +75,7 @@ const StudentProfile = () => {
   // Load projects after we have studentId
   useEffect(() => {
     if (!studentId) return;
-    supabase.from('student_resumes').select('projects').eq('student_id', studentId).single()
+    supabase.from('student_resumes').select('projects').eq('student_id', studentId).maybeSingle()
       .then(({ data }) => {
         if (data?.projects) {
           setProjects(data.projects as unknown as Project[]);

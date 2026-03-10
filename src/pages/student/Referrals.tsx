@@ -29,8 +29,8 @@ const StudentReferrals = () => {
     const load = async () => {
       try {
         const [{ data: s, error: sErr }, { data: w }] = await Promise.all([
-          supabase.from("students").select("*").eq("user_id", user.id).single(),
-          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+          supabase.from("students").select("*").eq("user_id", user.id).maybeSingle(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
         ]);
         if (cancelled) return;
         console.log("Student data:", s, "Error:", sErr);

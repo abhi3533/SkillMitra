@@ -273,7 +273,7 @@ const TrainerProfile = () => {
 
     setBookingTrial(true);
     try {
-      const { data: student } = await supabase.from("students").select("id").eq("user_id", user!.id).single();
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user!.id).maybeSingle();
       if (!student) throw new Error("Student profile not found");
 
       // Get or create enrollment for trial

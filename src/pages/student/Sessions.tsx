@@ -43,7 +43,7 @@ const StudentSessions = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).single();
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
       if (!student) { setLoading(false); return; }
       setStudentId(student.id);
 

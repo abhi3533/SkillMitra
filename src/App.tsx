@@ -55,6 +55,7 @@ const StudentReceipt = lazy(() => import("./pages/student/Receipt"));
 // Lazy-loaded Trainer pages
 const TrainerLogin = lazy(() => import("./pages/trainer/Login"));
 const TrainerSignup = lazy(() => import("./pages/trainer/Signup"));
+const TrainerOnboarding = lazy(() => import("./pages/trainer/Onboarding"));
 const TrainerThankYou = lazy(() => import("./pages/trainer/ThankYou"));
 const TrainerDashboard = lazy(() => import("./pages/trainer/Dashboard"));
 const TrainerProfile = lazy(() => import("./pages/trainer/Profile"));

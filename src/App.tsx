@@ -55,6 +55,7 @@ const StudentReceipt = lazy(() => import("./pages/student/Receipt"));
 // Lazy-loaded Trainer pages
 const TrainerLogin = lazy(() => import("./pages/trainer/Login"));
 const TrainerSignup = lazy(() => import("./pages/trainer/Signup"));
+const TrainerOnboarding = lazy(() => import("./pages/trainer/Onboarding"));
 const TrainerThankYou = lazy(() => import("./pages/trainer/ThankYou"));
 const TrainerDashboard = lazy(() => import("./pages/trainer/Dashboard"));
 const TrainerProfile = lazy(() => import("./pages/trainer/Profile"));
@@ -178,6 +179,7 @@ const AppContent = () => {
           <Route path="/student/signup" element={<StudentSignup />} />
           <Route path="/trainer/login" element={<TrainerLogin />} />
           <Route path="/trainer/signup" element={<TrainerSignup />} />
+          <Route path="/trainer/onboarding" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerOnboarding /></ProtectedRoute>} />
           <Route path="/trainer/signup/thankyou" element={<TrainerThankYou />} />
           <Route path="/trainer/signup/success" element={<TrainerThankYou />} />
           <Route path="/admin/login" element={<AdminLogin />} />

@@ -66,7 +66,7 @@ export const demoTrainers = [
     total_students: 51,
     subscription_plan: "elite",
     teaching_languages: ["Telugu", "Hindi", "English"],
-    bio: "Digital Marketing Expert with 4 years of experience helping startups grow online. Specialist in SEO, paid ads, and social media strategy.",
+    bio: "Hi, I've been doing digital marketing for 4 years, helping startups grow online. I teach SEO, Google Ads, and social media marketing with real case studies.",
     profile: { full_name: "Sneha Reddy", city: "Hyderabad" },
     avatarColor: "#EA580C",
   },

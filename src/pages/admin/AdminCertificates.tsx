@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { Award } from "lucide-react";
+import { formatDateIST } from "@/lib/dateUtils";
 
 const AdminCertificates = () => {
   const [certs, setCerts] = useState<any[]>([]);

@@ -751,6 +751,34 @@ const TrainerSignup = () => {
                   <span className="text-sm text-foreground">I agree to SkillMitra <Link to="/terms" className="text-primary underline" target="_blank">Terms and Conditions</Link>.<RequiredMark /></span>
                 </label>
               </div>
+
+              {/* Teaching Readiness Checklist */}
+              <div className="border-t border-border pt-5 mt-5">
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-primary" />
+                  Are You Ready to Teach?<RequiredMark />
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 mb-3">Please confirm all items below before submitting.</p>
+                <div className="space-y-2">
+                  {[
+                    { key: "internet", icon: <Wifi className="w-4 h-4" />, label: "I have a stable internet connection (minimum 10 Mbps)" },
+                    { key: "webcam", icon: <Camera className="w-4 h-4" />, label: "I have a working webcam" },
+                    { key: "microphone", icon: <Mic className="w-4 h-4" />, label: "I have a working microphone" },
+                    { key: "environment", icon: <Volume2 className="w-4 h-4" />, label: "I have a quiet, distraction-free environment" },
+                    { key: "response", icon: <MessageSquare className="w-4 h-4" />, label: "I will respond to student messages within 2 hours" },
+                    { key: "cancel", icon: <Clock className="w-4 h-4" />, label: "I will not cancel sessions less than 24 hours before scheduled time" },
+                  ].map(item => (
+                    <label key={item.key} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${readinessChecks[item.key] ? "bg-emerald-50 border-emerald-200" : "bg-secondary/50 border-border hover:bg-secondary/80"}`}>
+                      <Checkbox checked={readinessChecks[item.key]} onCheckedChange={() => toggleReadiness(item.key)} />
+                      <span className="text-muted-foreground">{item.icon}</span>
+                      <span className="text-sm text-foreground">{item.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {!allReadinessChecked && stepAttempted[5] && (
+                  <p className="text-xs text-destructive mt-2">All teaching readiness items must be confirmed</p>
+                )}
+              </div>
             </div>
           )}
 

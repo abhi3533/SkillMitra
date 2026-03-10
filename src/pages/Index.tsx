@@ -95,9 +95,9 @@ const useCountUp = (end: number, duration = 2000) => {
 
 /* ─── Steps data ─── */
 const steps = [
-  { num: "01", title: "Browse & Choose", desc: "Explore verified trainers by skill, language, and budget. Find the perfect match.", icon: BookOpen },
-  { num: "02", title: "Book a Free Trial", desc: "Schedule a free 1:1 trial session. Meet your trainer, no commitment.", icon: Video },
-  { num: "03", title: "Learn & Grow", desc: "Attend live sessions, build real projects, earn verified certificates.", icon: Sparkles },
+  { num: "01", title: "Pick a Trainer", desc: "Search by skill, language, or budget. Find someone who fits your learning style.", icon: BookOpen },
+  { num: "02", title: "Try a Free Session", desc: "Book a free 1:1 trial. Meet your trainer, ask questions — no payment needed.", icon: Video },
+  { num: "03", title: "Start Learning", desc: "Attend live sessions, work on real projects, and get a verified certificate.", icon: Sparkles },
 ];
 
 const benefits = [

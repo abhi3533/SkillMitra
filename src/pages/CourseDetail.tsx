@@ -311,7 +311,7 @@ const CourseDetail = () => {
                   ) : (
                     <div className="space-y-3">
                       {course.has_free_trial && !hasTrialBooked && (
-                        <Button className="w-full" size="lg" onClick={() => handleEnrollClick()}>
+                        <Button className="w-full" size="lg" onClick={() => handleTrialClick()}>
                           Book Free Trial
                         </Button>
                       )}

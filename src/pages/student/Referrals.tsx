@@ -12,7 +12,7 @@ const APP_DOMAIN = "skillmitra.online";
 const REWARD_AMOUNT = 400;
 
 const StudentReferrals = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [student, setStudent] = useState<any>(null);
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -20,56 +20,69 @@ const StudentReferrals = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      const [{ data: s }, { data: w }] = await Promise.all([
-        supabase.from("students").select("*").eq("user_id", user.id).single(),
-        supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
-      ]);
-      if (s) {
-        let code = s.referral_code || "";
-        if (!code) {
-          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-          code = "SM";
-          for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-          await supabase.from("students").update({ referral_code: code }).eq("id", s.id);
-          s.referral_code = code;
-        }
-      }
-      setStudent(s);
-      setWalletBalance(Number(w?.balance || 0));
-      if (s) {
-        const { data: refs } = await supabase
-          .from("referrals")
-          .select("*, referred:referred_id(user_id)")
-          .eq("referrer_id", s.id)
-          .order("created_at", { ascending: false });
-
-        if (refs && refs.length > 0) {
-          const userIds = refs.map((r: any) => r.referred?.user_id).filter(Boolean);
-          if (userIds.length > 0) {
-            const { data: profiles } = await supabase
-              .from("profiles")
-              .select("id, full_name, created_at")
-              .in("id", userIds);
-            const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
-            const enriched = refs.map((r: any) => ({
-              ...r,
-              referred_name: profileMap[r.referred?.user_id]?.full_name || "Student",
-              referred_date: profileMap[r.referred?.user_id]?.created_at || r.created_at,
-            }));
-            setReferrals(enriched);
-          } else {
-            setReferrals(refs || []);
-          }
-        } else {
-          setReferrals([]);
-        }
-      }
+    if (authLoading) return;
+    if (!user) {
       setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const [{ data: s, error: sErr }, { data: w }] = await Promise.all([
+          supabase.from("students").select("*").eq("user_id", user.id).single(),
+          supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
+        ]);
+        if (cancelled) return;
+        console.log("Student data:", s, "Error:", sErr);
+        if (s) {
+          let code = s.referral_code || "";
+          if (!code) {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            code = "SM-";
+            for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            const { error: updateErr } = await supabase.from("students").update({ referral_code: code }).eq("id", s.id);
+            if (!updateErr) s.referral_code = code;
+            console.log("Generated referral code:", code, "Update error:", updateErr);
+          }
+          setStudent(s);
+          setWalletBalance(Number(w?.balance || 0));
+
+          const { data: refs } = await supabase
+            .from("referrals")
+            .select("*, referred:referred_id(user_id)")
+            .eq("referrer_id", s.id)
+            .order("created_at", { ascending: false });
+
+          if (cancelled) return;
+          if (refs && refs.length > 0) {
+            const userIds = refs.map((r: any) => r.referred?.user_id).filter(Boolean);
+            if (userIds.length > 0) {
+              const { data: profiles } = await supabase
+                .from("profiles")
+                .select("id, full_name, created_at")
+                .in("id", userIds);
+              const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+              const enriched = refs.map((r: any) => ({
+                ...r,
+                referred_name: profileMap[r.referred?.user_id]?.full_name || "Student",
+                referred_date: profileMap[r.referred?.user_id]?.created_at || r.created_at,
+              }));
+              setReferrals(enriched);
+            } else {
+              setReferrals(refs || []);
+            }
+          } else {
+            setReferrals([]);
+          }
+        }
+      } catch (err) {
+        console.error("Referral load error:", err);
+      }
+      if (!cancelled) setLoading(false);
     };
     load();
-  }, [user]);
+    return () => { cancelled = true; };
+  }, [user, authLoading]);
 
   const referralCode = student?.referral_code || "";
   const referralLink = referralCode ? `https://${APP_DOMAIN}/student/signup?ref=${referralCode}` : "";

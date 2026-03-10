@@ -55,7 +55,7 @@ const StudentProfile = () => {
 
   useEffect(() => {
     if (!user?.id) return;
-    supabase.from('students').select('id, course_interests, trainer_gender_preference, skills_learning').eq('user_id', user.id).single()
+    supabase.from('students').select('id, course_interests, trainer_gender_preference, skills_learning').eq('user_id', user.id).maybeSingle()
       .then(({ data }) => {
         if (data) {
           setStudentId(data.id);

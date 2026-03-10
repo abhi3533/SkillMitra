@@ -155,8 +155,8 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
   usePageMeta({
-    title: "SkillMitra — Learn Any Skill From India's Best Experts",
-    description: "Find verified expert trainers for 1:1 personal skill training in Python, Data Science, UI/UX Design, Digital Marketing and more. Starting ₹999 per course.",
+    title: "SkillMitra — Learn Real Skills From Working Professionals",
+    description: "Find verified trainers for 1:1 personal skill training in Python, Data Science, UI/UX, Digital Marketing and more. Starting ₹999.",
     ogType: "website",
     jsonLd: {
       "@context": "https://schema.org",
@@ -164,7 +164,7 @@ const Index = () => {
       name: "SkillMitra",
       url: "https://skillmitra.online",
       logo: "https://skillmitra.online/icons/icon-512x512.png",
-      description: "India's premier 1:1 personal skill training platform",
+      description: "India's personal 1:1 skill training platform",
       contactPoint: { "@type": "ContactPoint", email: "contact@skillmitra.online", contactType: "customer service" },
       sameAs: ["https://linkedin.com/company/skillmitra", "https://twitter.com/skillmitra", "https://instagram.com/skillmitra"],
     },

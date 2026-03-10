@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, BadgeCheck, Globe, Clock, Users, Calendar, ArrowRight, ChevronRight, Flag, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

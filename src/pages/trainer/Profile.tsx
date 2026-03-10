@@ -504,7 +504,9 @@ const TrainerProfile = () => {
                 {trainerCourses.length === 0 ? (
                   <div className="text-center py-12 bg-card rounded-xl border border-border">
                     <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                    <p className="text-sm text-muted-foreground mt-2">No courses available yet</p>
+                    <p className="text-sm text-muted-foreground mt-2">This trainer has not added courses yet.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Check back soon or Book a Free Trial to discuss your learning goals.</p>
+                    <Button size="sm" className="mt-4 hero-gradient border-0" onClick={handleTrialClick}>Book a Free Trial</Button>
                   </div>
                 ) : trainerCourses.map((c: any) => {
                   const fee = c.fee || c.course_fee || 0;

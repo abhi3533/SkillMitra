@@ -132,6 +132,7 @@ const TrainerProfile = () => {
           }
         }
         if (t) {
+          const trainerId = t.id; // Always use trainer table ID for related queries
           // Use public RPC for profile to bypass RLS
           const { data: profileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: [t.user_id] });
           const profileMap: Record<string, any> = {};
@@ -141,13 +142,13 @@ const TrainerProfile = () => {
           setTrainer({ ...t, profile: profileMap[t.user_id] });
 
           const [coursesRes, availRes, docsRes] = await Promise.all([
-            supabase.from("courses").select("*").eq("trainer_id", resolvedId).eq("approval_status", "approved"),
-            supabase.from("trainer_availability").select("*").eq("trainer_id", resolvedId).eq("is_available", true),
-            supabase.from("trainer_documents").select("verification_status").eq("trainer_id", resolvedId),
+            supabase.from("courses").select("*").eq("trainer_id", trainerId).eq("approval_status", "approved"),
+            supabase.from("trainer_availability").select("*").eq("trainer_id", trainerId).eq("is_available", true),
+            supabase.from("trainer_documents").select("verification_status").eq("trainer_id", trainerId),
           ]);
 
           // Use public RPC for ratings
-          const { data: ratingsData } = await supabase.rpc("get_public_ratings", { p_trainer_id: resolvedId });
+          const { data: ratingsData } = await supabase.rpc("get_public_ratings", { p_trainer_id: trainerId });
 
           setCourses(coursesRes.data || []);
           setAvailability(availRes.data || []);
@@ -173,10 +174,10 @@ const TrainerProfile = () => {
 
           const skills = t.skills || [];
           if (skills.length > 0) {
-            const { data: similarData } = await supabase.rpc("get_approved_trainers_list");
+            const { data: similarData } = await supabase.rpc("get_approved_trainers_list") as { data: any[] | null };
             if (similarData) {
               const simTrainers = (similarData as any[])
-                .filter((s: any) => s.trainer_id !== resolvedId)
+                .filter((s: any) => s.trainer_id !== trainerId)
                 .map((s: any) => ({
                   id: s.trainer_id, user_id: s.trainer_user_id, skills: s.trainer_skills,
                   current_role: s.trainer_current_role, current_company: s.trainer_current_company,
@@ -469,12 +470,12 @@ const TrainerProfile = () => {
               </TabsList>
 
               <TabsContent value="about" className="space-y-6">
-                {trainer.bio && (
-                  <section className="bg-card rounded-xl border border-border p-6">
-                    <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
-                    <p className="text-muted-foreground leading-relaxed">{trainer.bio}</p>
-                  </section>
-                )}
+                <section className="bg-card rounded-xl border border-border p-6">
+                  <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {trainer.bio || "Please check back soon — this trainer is setting up their profile."}
+                  </p>
+                </section>
 
                 {availability.length > 0 && (
                   <section className="bg-card rounded-xl border border-border p-6">
@@ -503,7 +504,9 @@ const TrainerProfile = () => {
                 {trainerCourses.length === 0 ? (
                   <div className="text-center py-12 bg-card rounded-xl border border-border">
                     <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto" />
-                    <p className="text-sm text-muted-foreground mt-2">No courses available yet</p>
+                    <p className="text-sm text-muted-foreground mt-2">This trainer has not added courses yet.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Check back soon or Book a Free Trial to discuss your learning goals.</p>
+                    <Button size="sm" className="mt-4 hero-gradient border-0" onClick={handleTrialClick}>Book a Free Trial</Button>
                   </div>
                 ) : trainerCourses.map((c: any) => {
                   const fee = c.fee || c.course_fee || 0;

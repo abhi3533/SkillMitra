@@ -12,7 +12,7 @@ const APP_DOMAIN = "skillmitra.online";
 const REWARD_AMOUNT = 400;
 
 const StudentReferrals = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [student, setStudent] = useState<any>(null);
   const [referrals, setReferrals] = useState<any[]>([]);

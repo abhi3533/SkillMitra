@@ -303,19 +303,16 @@ const TrainerOnboarding = () => {
       if (!form.dob) { toast({ title: "Date of birth is required", variant: "warning" }); return false; }
       if (!form.gender) { toast({ title: "Gender is required", variant: "warning" }); return false; }
       if (!isValidPhone(form.phone)) { toast({ title: "Valid 10-digit Indian mobile number required", variant: "warning" }); return false; }
-      if (!isValidPhone(form.whatsapp)) { toast({ title: "Valid WhatsApp number required", variant: "warning" }); return false; }
       if (!selfie && !selfiePreview) { toast({ title: "Selfie upload is required for verification", variant: "warning" }); return false; }
-      if (!form.address.trim()) { toast({ title: "Complete address is required", variant: "warning" }); return false; }
       if (!form.city.trim()) { toast({ title: "City is required", variant: "warning" }); return false; }
       if (!form.state) { toast({ title: "State is required", variant: "warning" }); return false; }
-      if (!isValidPincode(form.pincode)) { toast({ title: "Valid 6-digit PIN code required", variant: "warning" }); return false; }
     }
     if (s === 1) {
       if (!form.experience.trim()) { toast({ title: "Total experience is required", variant: "warning" }); return false; }
       if (!form.currentRole.trim() || !hasLetters(form.currentRole)) { toast({ title: "Valid current role is required", variant: "warning" }); return false; }
       if (!form.currentCompany.trim() || !hasLetters(form.currentCompany)) { toast({ title: "Valid company name is required", variant: "warning" }); return false; }
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
-      if (!form.verificationMethod || !form.verificationValue.trim()) { toast({ title: "At least one professional verification is required", variant: "warning" }); return false; }
+      if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
     }
     if (s === 2) {
       if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
@@ -323,6 +320,9 @@ const TrainerOnboarding = () => {
       if (!form.courseDuration.trim()) { toast({ title: "Course duration is required", variant: "warning" }); return false; }
       if (!form.courseFee.trim() || parseInt(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
+    }
+    if (s === 3) {
+      if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }
     }
     if (s === 4) {
       if (!form.bankAccount.trim()) { toast({ title: "Bank account number is required", variant: "warning" }); return false; }

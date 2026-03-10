@@ -790,7 +790,7 @@ const TrainerSignup = () => {
             {step < 5 ? (
               <Button onClick={nextStep} className="hero-gradient border-0">Next <ChevronRight className="w-4 h-4 ml-1" /></Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={loading || !agreedTraining || !agreedTerms} className="gold-gradient text-accent-foreground border-0 font-semibold">
+              <Button onClick={handleSubmit} disabled={loading || !agreedTraining || !agreedTerms || !allReadinessChecked} className="gold-gradient text-accent-foreground border-0 font-semibold">
                 {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <>Submit Application <ArrowRight className="ml-2 w-4 h-4" /></>}
               </Button>
             )}

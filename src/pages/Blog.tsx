@@ -34,7 +34,7 @@ const Blog = () => {
     });
   }, [search, activeCategory]);
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const formatDate = (d: string) => formatDateIST(d);
 
   return (
     <div className="min-h-screen bg-background">

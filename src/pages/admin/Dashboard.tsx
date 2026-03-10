@@ -299,7 +299,7 @@ const AdminDashboard = () => {
                   <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-50/50 border border-amber-100">
                     <div>
                       <p className="text-sm font-medium text-foreground">{p.trainerName}</p>
-                      <p className="text-xs text-muted-foreground">{p.upi_id || "Bank transfer"} • {new Date(p.requested_at).toLocaleDateString("en-IN")}</p>
+                      <p className="text-xs text-muted-foreground">{p.upi_id || "Bank transfer"} • {formatDateIST(p.requested_at)}</p>
                     </div>
                     <span className="text-sm font-semibold text-foreground">{formatINR(Number(p.requested_amount || 0))}</span>
                   </div>

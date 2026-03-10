@@ -213,7 +213,7 @@ const AdminReferrals = () => {
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === "paid" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{r.status}</span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("en-IN")}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateIST(r.created_at)}</td>
                   <td className="px-4 py-3">
                     {r.status === "pending" && (
                       <Button

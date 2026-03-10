@@ -63,7 +63,7 @@ const BlogPost = () => {
     );
   }
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  const formatDate = (d: string) => formatLongDateIST(d);
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = post.title;
 

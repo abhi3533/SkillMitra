@@ -114,8 +114,8 @@ const AdminSubscriptions = () => {
                   <td className="px-4 py-3 text-sm text-foreground capitalize">{s.plan || "basic"}</td>
                   <td className="px-4 py-3 text-sm text-foreground">₹{Number(s.amount || 0).toLocaleString("en-IN")}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(s.status)}`}>{s.status}</span></td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{s.start_date ? new Date(s.start_date).toLocaleDateString("en-IN") : "-"}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{s.end_date ? new Date(s.end_date).toLocaleDateString("en-IN") : "-"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{s.start_date ? formatDateIST(s.start_date) : "-"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{s.end_date ? formatDateIST(s.end_date) : "-"}</td>
                 </tr>
               ))}
             </tbody>

@@ -218,6 +218,8 @@ const TrainerOnboarding = () => {
       }
     };
     const handleBeforeUnload = () => {
+      // beforeunload can't reliably await async. Use visibilitychange instead (fires first).
+      // This is a best-effort fallback only.
       if (trainerId && user) saveDraft(false);
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);

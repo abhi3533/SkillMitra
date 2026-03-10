@@ -731,7 +731,8 @@ const TrainerOnboarding = () => {
               </div>
 
               <div>
-                <Label>Areas of Expertise</Label>
+                <Label>Areas of Expertise<RequiredMark /></Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Select at least one area</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {expertiseOptions.map(e => (
                     <button key={e} type="button" onClick={() => toggleExpertise(e)}

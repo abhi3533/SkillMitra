@@ -69,7 +69,6 @@ Deno.serve(async (req) => {
       .in('status', ['pending', 'eligible'])
       .single()
 
-    console.log('Referral lookup:', { student_id, referral, refErr })
 
     if (!referral) {
       return new Response(JSON.stringify({ success: false, message: 'No pending referral found' }), {

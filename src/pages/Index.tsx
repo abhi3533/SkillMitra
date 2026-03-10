@@ -235,26 +235,24 @@ const Index = () => {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-semibold text-primary tracking-wide">India's #1 Personal 1:1 Training — Verified Experts</span>
+                <span className="text-xs font-semibold text-primary tracking-wide">1:1 Skill Training — Verified Trainers Across India</span>
               </div>
 
               <h1 className="text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.08] tracking-tight">
+                <span className="text-foreground">Learn Real Skills</span>
+                <br />
+                <span className="text-foreground">From </span>
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  Skill
+                  Working Professionals
                 </span>
-                <span className="text-foreground">Mitra</span>
-                <br />
-                <span className="text-foreground">Learn Any Skill From</span>
-                <br />
-                <span className="text-primary">India's Best Experts</span>
               </h1>
 
               <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
                 <TypingText texts={[
-                  "Personal 1:1 training from verified industry experts.",
-                  "Learn in your own language, from home.",
-                  "Starting from just ₹999 per course.",
-                  "Earn certificates. Get placed."
+                  "1:1 training with verified industry experts.",
+                  "Learn in your language, from home.",
+                  "Courses starting at just ₹999.",
+                  "Build projects. Get certified. Get hired."
                 ]} />
               </p>
 

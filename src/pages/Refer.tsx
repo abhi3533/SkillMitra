@@ -157,7 +157,7 @@ const ReferPage = () => {
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-2xl lg:text-3xl font-bold text-foreground text-center mb-12">How It Works</h2>
-          <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start gap-0">
+          <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start gap-8 sm:gap-0">
             {steps.map((step, i) => (
               <div key={step.title} className="flex-1 flex flex-col items-center text-center relative">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 relative z-10">

@@ -219,7 +219,12 @@ export const demoStats = {
   skills: 15,
 };
 
-export const isDemo = (id: string) => id.startsWith("demo-");
+export const isDemo = (id: string) => id.startsWith("demo-") || demoTrainers.some(t => t.slug === id);
 
-export const getDemoTrainer = (id: string) => demoTrainers.find((t) => t.id === id);
-export const getDemoCourse = (trainerId: string) => demoCourses.filter((c) => c.trainerId === trainerId);
+export const getDemoTrainer = (id: string) => demoTrainers.find((t) => t.id === id || t.slug === id);
+export const getDemoCourse = (trainerId: string) => {
+  const trainer = demoTrainers.find(t => t.id === trainerId || t.slug === trainerId);
+  if (!trainer) return [];
+  return demoCourses.filter((c) => c.trainerId === trainer.id);
+};
+export const getDemoTrainerSlug = (id: string) => demoTrainers.find(t => t.id === id)?.slug || id;

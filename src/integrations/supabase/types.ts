@@ -1477,28 +1477,46 @@ export type Database = {
       }
       trainers: {
         Row: {
+          aadhaar_url: string | null
           account_holder_name: string | null
+          additional_services_details: string | null
+          address: string | null
           approval_status: string | null
           available_balance: number | null
           average_rating: number | null
           bank_account_number: string | null
           bio: string | null
           boost_score: number | null
+          course_description: string | null
+          course_duration: string | null
+          course_fee: number | null
+          course_materials: string | null
+          course_title: string | null
           created_at: string | null
           current_company: string | null
           current_role: string | null
+          curriculum_pdf_url: string | null
+          demo_video_url: string | null
+          dob: string | null
           experience_years: number | null
+          expertise_areas: string[] | null
+          govt_id_type: string | null
           id: string
           ifsc_code: string | null
           intro_video_url: string | null
           is_job_seeker: boolean | null
           linkedin_url: string | null
           pan_number: string | null
+          pincode: string | null
+          portfolio_url: string | null
           previous_companies: string[] | null
           referral_code: string | null
           referral_credits: number | null
           referred_by: string | null
           rejection_reason: string | null
+          secondary_skill: string | null
+          selfie_url: string | null
+          services_offered: string[] | null
           skills: string[] | null
           subscription_plan: string | null
           teaching_languages: string[] | null
@@ -1507,30 +1525,52 @@ export type Database = {
           total_withdrawn: number | null
           upi_id: string | null
           user_id: string
+          verification_method: string | null
+          verification_value: string | null
+          whatsapp: string | null
+          work_email: string | null
         }
         Insert: {
+          aadhaar_url?: string | null
           account_holder_name?: string | null
+          additional_services_details?: string | null
+          address?: string | null
           approval_status?: string | null
           available_balance?: number | null
           average_rating?: number | null
           bank_account_number?: string | null
           bio?: string | null
           boost_score?: number | null
+          course_description?: string | null
+          course_duration?: string | null
+          course_fee?: number | null
+          course_materials?: string | null
+          course_title?: string | null
           created_at?: string | null
           current_company?: string | null
           current_role?: string | null
+          curriculum_pdf_url?: string | null
+          demo_video_url?: string | null
+          dob?: string | null
           experience_years?: number | null
+          expertise_areas?: string[] | null
+          govt_id_type?: string | null
           id?: string
           ifsc_code?: string | null
           intro_video_url?: string | null
           is_job_seeker?: boolean | null
           linkedin_url?: string | null
           pan_number?: string | null
+          pincode?: string | null
+          portfolio_url?: string | null
           previous_companies?: string[] | null
           referral_code?: string | null
           referral_credits?: number | null
           referred_by?: string | null
           rejection_reason?: string | null
+          secondary_skill?: string | null
+          selfie_url?: string | null
+          services_offered?: string[] | null
           skills?: string[] | null
           subscription_plan?: string | null
           teaching_languages?: string[] | null
@@ -1539,30 +1579,52 @@ export type Database = {
           total_withdrawn?: number | null
           upi_id?: string | null
           user_id: string
+          verification_method?: string | null
+          verification_value?: string | null
+          whatsapp?: string | null
+          work_email?: string | null
         }
         Update: {
+          aadhaar_url?: string | null
           account_holder_name?: string | null
+          additional_services_details?: string | null
+          address?: string | null
           approval_status?: string | null
           available_balance?: number | null
           average_rating?: number | null
           bank_account_number?: string | null
           bio?: string | null
           boost_score?: number | null
+          course_description?: string | null
+          course_duration?: string | null
+          course_fee?: number | null
+          course_materials?: string | null
+          course_title?: string | null
           created_at?: string | null
           current_company?: string | null
           current_role?: string | null
+          curriculum_pdf_url?: string | null
+          demo_video_url?: string | null
+          dob?: string | null
           experience_years?: number | null
+          expertise_areas?: string[] | null
+          govt_id_type?: string | null
           id?: string
           ifsc_code?: string | null
           intro_video_url?: string | null
           is_job_seeker?: boolean | null
           linkedin_url?: string | null
           pan_number?: string | null
+          pincode?: string | null
+          portfolio_url?: string | null
           previous_companies?: string[] | null
           referral_code?: string | null
           referral_credits?: number | null
           referred_by?: string | null
           rejection_reason?: string | null
+          secondary_skill?: string | null
+          selfie_url?: string | null
+          services_offered?: string[] | null
           skills?: string[] | null
           subscription_plan?: string | null
           teaching_languages?: string[] | null
@@ -1571,6 +1633,10 @@ export type Database = {
           total_withdrawn?: number | null
           upi_id?: string | null
           user_id?: string
+          verification_method?: string | null
+          verification_value?: string | null
+          whatsapp?: string | null
+          work_email?: string | null
         }
         Relationships: []
       }

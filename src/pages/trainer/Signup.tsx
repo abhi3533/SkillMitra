@@ -443,8 +443,9 @@ const TrainerSignup = () => {
                 <div>
                   <Label>Full Name<RequiredMark /></Label>
                   <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} onBlur={() => markTouched("fullName")} placeholder="Your full name"
-                    className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() ? "border-green-500" : "border-destructive") : ""}`} />
+                    className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() && isValidName(form.fullName) ? "border-green-500" : "border-destructive") : ""}`} />
                   {touched.fullName && !form.fullName.trim() && <p className="text-xs text-destructive mt-1">Full name is required</p>}
+                  {touched.fullName && form.fullName.trim() && !isValidName(form.fullName) && <p className="text-xs text-destructive mt-1">Please enter a valid name</p>}
                 </div>
                 <div>
                   <Label>Email<RequiredMark /></Label>

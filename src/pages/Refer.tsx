@@ -102,7 +102,14 @@ const ReferPage = () => {
           supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
         ]);
         if (tFull) {
-          setReferralCode(tFull.referral_code || "");
+          let code = tFull.referral_code || "";
+          if (!code) {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            code = "SM";
+            for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            await supabase.from("trainers").update({ referral_code: code }).eq("id", tFull.id);
+          }
+          setReferralCode(code);
           const { data: myRefs } = await supabase
             .from("trainer_referrals")
             .select("reward_amount, status")

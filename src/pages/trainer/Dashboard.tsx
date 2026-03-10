@@ -202,8 +202,8 @@ const TrainerDashboard = () => {
         <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Application Under Review</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Your trainer profile is being reviewed by the admin team. You'll be notified once approved.</p>
+            <h3 className="text-sm font-semibold text-foreground">Your application is being reviewed</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">We're reviewing your profile. You'll get a notification once it's approved.</p>
           </div>
         </div>
       )}

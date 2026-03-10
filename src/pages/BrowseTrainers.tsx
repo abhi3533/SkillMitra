@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { demoTrainers, getDemoCourse } from "@/lib/demoData";
+import { demoTrainers, getDemoCourse, getDemoTrainerSlug } from "@/lib/demoData";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TrainerCardSkeleton from "@/components/TrainerCardSkeleton";

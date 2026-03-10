@@ -187,6 +187,7 @@ const AppContent = () => {
           <Route path="/parent/login" element={<ParentLogin />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/email-verified" element={<EmailVerified />} />
 
           {/* Student Protected */}
           <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />

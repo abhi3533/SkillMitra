@@ -44,6 +44,7 @@ interface DocFile { file: File | null; name: string; }
 const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
 
 const TrainerSignup = () => {
+  const [pageReady, setPageReady] = useState(false);
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({

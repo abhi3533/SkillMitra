@@ -77,7 +77,7 @@ const StudentProfile = () => {
     supabase.from('student_resumes').select('projects').eq('student_id', studentId).single()
       .then(({ data }) => {
         if (data?.projects) {
-          setProjects(data.projects as Project[]);
+          setProjects(data.projects as unknown as Project[]);
         }
       });
   }, [studentId]);

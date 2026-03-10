@@ -174,7 +174,7 @@ const TrainerDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome, {firstName}! 👋</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Manage your students, courses, and earnings</p>
+          <p className="mt-1 text-sm text-muted-foreground">Here's what's happening today</p>
         </div>
         <Link to="/trainer/courses">
           <Button size="sm" className="gap-1.5 text-xs hidden sm:flex">

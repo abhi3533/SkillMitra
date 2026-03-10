@@ -454,7 +454,7 @@ const Index = () => {
             <div className="flex items-end justify-between mb-10">
               <div>
                 <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">Top Trainers</span>
-                <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Meet Our Expert Trainers</h2>
+                <h2 className="text-2xl md:text-[36px] font-bold text-foreground">Our Top Trainers</h2>
               </div>
               <Link to="/browse" className="hidden md:flex items-center gap-1 text-sm font-semibold text-primary hover:text-[hsl(221,79%,38%)] transition-colors group">
                 View all <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />

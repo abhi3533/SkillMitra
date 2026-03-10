@@ -11,7 +11,7 @@ const TrainerThankYou = () => (
       </div>
       <h1 className="text-2xl font-bold text-foreground">Application Submitted!</h1>
       <p className="mt-4 text-muted-foreground leading-relaxed">
-        Thank you for applying to become a SkillMitra trainer. Our team will review your profile and documents within <span className="font-semibold text-foreground">48 hours</span>.
+        Your application has been submitted successfully. Our team will review and respond within <span className="font-semibold text-foreground">24 hours</span>.
       </p>
       <div className="mt-6 p-4 rounded-xl bg-gold-light border border-accent/20">
         <div className="flex items-center gap-2 justify-center">

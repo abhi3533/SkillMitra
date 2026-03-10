@@ -801,6 +801,94 @@ const TrainerSignup = () => {
           </p>
         </motion.div>
       </div>
+
+      {/* Profile Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Profile Preview</DialogTitle>
+            <p className="text-xs text-muted-foreground">This is how students will see you. Make edits before submitting.</p>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            {/* Profile Header */}
+            <div className="flex items-start gap-4">
+              {profilePhotoPreview ? (
+                <img src={profilePhotoPreview} alt="Profile" className="w-16 h-16 rounded-xl object-cover" />
+              ) : (
+                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <span className="text-xl font-bold text-primary">
+                    {form.fullName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "TR"}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-foreground text-lg">{form.fullName || "Your Name"}</h3>
+                <p className="text-sm text-muted-foreground">{form.currentRole || "Your Role"}{form.currentCompany ? ` at ${form.currentCompany}` : ""}</p>
+                <p className="text-xs text-muted-foreground">{form.city}{form.state ? `, ${form.state}` : ""}</p>
+              </div>
+            </div>
+
+            {/* Badges */}
+            {previewBadges.length > 0 && <TrainerBadges badges={previewBadges} size="md" />}
+
+            {/* Skills */}
+            {(form.primarySkill || form.secondarySkill) && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Skills</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[form.primarySkill, form.secondarySkill].filter(Boolean).map(s => (
+                    <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Course Card */}
+            {form.courseTitle && (
+              <div className="border border-border rounded-xl p-4 bg-card">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Featured Course</p>
+                <h4 className="font-semibold text-foreground text-sm">{form.courseTitle}</h4>
+                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                  {form.courseDuration && <span>{form.courseDuration}</span>}
+                  {form.courseFee && <span className="font-semibold text-foreground">₹{parseInt(form.courseFee).toLocaleString()}</span>}
+                </div>
+              </div>
+            )}
+
+            {/* About */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About</p>
+              <p className="text-sm text-foreground leading-relaxed">
+                {form.courseDescription || "No bio added yet. Complete the Course Details step to add your description."}
+              </p>
+            </div>
+
+            {/* Experience */}
+            <div className="flex items-center gap-4 text-sm">
+              {form.experience && (
+                <div className="text-center">
+                  <p className="font-bold text-foreground">{form.experience}+</p>
+                  <p className="text-[10px] text-muted-foreground">Years Exp.</p>
+                </div>
+              )}
+              <div className="text-center">
+                <div className="flex items-center gap-0.5">
+                  <Star className="w-3.5 h-3.5 text-accent fill-accent" />
+                  <span className="font-bold text-foreground">New</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Rating</p>
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-foreground">0</p>
+                <p className="text-[10px] text-muted-foreground">Students</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Button variant="outline" className="w-full" onClick={() => setShowPreview(false)}>Close Preview</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

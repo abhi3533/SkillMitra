@@ -633,26 +633,28 @@ const TrainerSignup = () => {
               )}
               <div className="space-y-3">
                 {Object.entries(availability).map(([day, val]) => (
-                  <div key={day} className="flex items-center gap-4 p-3 rounded-lg bg-secondary/50">
-                    <input type="checkbox" className="accent-primary w-4 h-4" checked={val.checked} onChange={e => updateAvail(day, "checked", e.target.checked)} />
-                    <span className="text-sm font-medium text-foreground w-24">{day}</span>
-                    <Select value={val.start} onValueChange={v => updateAvail(day, "start", v)}>
-                      <SelectTrigger className="h-9 w-28 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"].map(t => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <span className="text-xs text-muted-foreground">to</span>
-                    <Select value={val.end} onValueChange={v => updateAvail(day, "end", v)}>
-                      <SelectTrigger className="h-9 w-28 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"].map(t => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div key={day} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <input type="checkbox" className="accent-primary w-4 h-4 shrink-0" checked={val.checked} onChange={e => updateAvail(day, "checked", e.target.checked)} />
+                    <span className="text-sm font-medium text-foreground w-20 shrink-0">{day}</span>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <Select value={val.start} onValueChange={v => updateAvail(day, "start", v)}>
+                        <SelectTrigger className="h-9 w-[100px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"].map(t => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-xs text-muted-foreground shrink-0">to</span>
+                      <Select value={val.end} onValueChange={v => updateAvail(day, "end", v)}>
+                        <SelectTrigger className="h-9 w-[100px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"].map(t => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 ))}
               </div>

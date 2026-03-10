@@ -112,13 +112,16 @@ const AdminTrainers = () => {
   };
 
   const pipelineCount = trainers.filter(t => 
-    t.onboarding_status === "draft" || (t.onboarding_status === "pending" && (t.onboarding_step || 0) < 6)
+    t.onboarding_status === "draft" || t.onboarding_status === "registered"
   ).length;
 
   const filtered = trainers
     .filter(t => {
       if (tab === "pipeline") return false; // pipeline handled separately
-      return tab === "all" || t.approval_status === tab;
+      // Only show trainers who completed onboarding (onboarding_status === "pending" or beyond) in status tabs
+      if (tab === "pending") return t.approval_status === "pending" && t.onboarding_status === "pending";
+      if (tab === "all") return t.onboarding_status === "pending" || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
+      return t.approval_status === tab;
     })
     .filter(t => {
       if (!search) return true;

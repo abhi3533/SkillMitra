@@ -51,7 +51,7 @@ const Receipt = () => {
           .from("courses")
           .select("title, total_sessions")
           .eq("id", enrollment.course_id)
-          .single();
+          .maybeSingle();
 
         // Get trainer profile
         const { data: trainer } = await supabase

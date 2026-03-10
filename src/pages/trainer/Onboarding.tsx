@@ -303,19 +303,16 @@ const TrainerOnboarding = () => {
       if (!form.dob) { toast({ title: "Date of birth is required", variant: "warning" }); return false; }
       if (!form.gender) { toast({ title: "Gender is required", variant: "warning" }); return false; }
       if (!isValidPhone(form.phone)) { toast({ title: "Valid 10-digit Indian mobile number required", variant: "warning" }); return false; }
-      if (!isValidPhone(form.whatsapp)) { toast({ title: "Valid WhatsApp number required", variant: "warning" }); return false; }
       if (!selfie && !selfiePreview) { toast({ title: "Selfie upload is required for verification", variant: "warning" }); return false; }
-      if (!form.address.trim()) { toast({ title: "Complete address is required", variant: "warning" }); return false; }
       if (!form.city.trim()) { toast({ title: "City is required", variant: "warning" }); return false; }
       if (!form.state) { toast({ title: "State is required", variant: "warning" }); return false; }
-      if (!isValidPincode(form.pincode)) { toast({ title: "Valid 6-digit PIN code required", variant: "warning" }); return false; }
     }
     if (s === 1) {
       if (!form.experience.trim()) { toast({ title: "Total experience is required", variant: "warning" }); return false; }
       if (!form.currentRole.trim() || !hasLetters(form.currentRole)) { toast({ title: "Valid current role is required", variant: "warning" }); return false; }
       if (!form.currentCompany.trim() || !hasLetters(form.currentCompany)) { toast({ title: "Valid company name is required", variant: "warning" }); return false; }
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
-      if (!form.verificationMethod || !form.verificationValue.trim()) { toast({ title: "At least one professional verification is required", variant: "warning" }); return false; }
+      if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
     }
     if (s === 2) {
       if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
@@ -323,6 +320,9 @@ const TrainerOnboarding = () => {
       if (!form.courseDuration.trim()) { toast({ title: "Course duration is required", variant: "warning" }); return false; }
       if (!form.courseFee.trim() || parseInt(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
+    }
+    if (s === 3) {
+      if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }
     }
     if (s === 4) {
       if (!form.bankAccount.trim()) { toast({ title: "Bank account number is required", variant: "warning" }); return false; }
@@ -642,9 +642,9 @@ const TrainerOnboarding = () => {
                   <Input value={form.phone} onChange={e => handlePhoneChange(e.target.value)} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
                     className={`mt-1.5 h-11 ${touched.phone ? (isPhoneFilled ? "border-green-500" : "border-destructive") : ""}`} />
                 </div>
-                <div>
+                 <div>
                   <div className="flex items-center justify-between">
-                    <Label>WhatsApp<RequiredMark /></Label>
+                    <Label>WhatsApp <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
                     <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                       <Checkbox checked={sameAsPhone} onCheckedChange={handleSameAsPhone} className="w-3.5 h-3.5" />
                       Same as phone
@@ -656,7 +656,7 @@ const TrainerOnboarding = () => {
               </div>
 
               <div>
-                <Label>Complete Address<RequiredMark /></Label>
+                <Label>Complete Address <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
                 <Textarea value={form.address} onChange={e => update("address", e.target.value)} onBlur={() => markTouched("address")} placeholder="House/Flat No, Street, Area, Landmark" className="mt-1.5 min-h-[70px]" />
               </div>
 
@@ -673,7 +673,7 @@ const TrainerOnboarding = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label>PIN Code<RequiredMark /></Label>
+                  <Label>PIN Code <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
                   <Input value={form.pincode} onChange={e => update("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))} onBlur={() => markTouched("pincode")} placeholder="6 digits" maxLength={6} inputMode="numeric" className="mt-1.5 h-11" />
                 </div>
               </div>
@@ -731,7 +731,8 @@ const TrainerOnboarding = () => {
               </div>
 
               <div>
-                <Label>Areas of Expertise</Label>
+                <Label>Areas of Expertise<RequiredMark /></Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Select at least one area</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {expertiseOptions.map(e => (
                     <button key={e} type="button" onClick={() => toggleExpertise(e)}
@@ -750,8 +751,8 @@ const TrainerOnboarding = () => {
               </div>
 
               <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-3">
-                <Label className="flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Professional Verification<RequiredMark /></Label>
-                <p className="text-xs text-muted-foreground">At least one verification method is required</p>
+                <Label className="flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Professional Verification <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
+                <p className="text-xs text-muted-foreground">Add verification for faster approval</p>
                 <Select value={form.verificationMethod} onValueChange={v => update("verificationMethod", v)}>
                   <SelectTrigger className="h-11"><SelectValue placeholder="Select verification method" /></SelectTrigger>
                   <SelectContent>
@@ -815,7 +816,8 @@ const TrainerOnboarding = () => {
           {step === 3 && (
             <div className="mt-6 space-y-5">
               <div>
-                <Label>Additional Services You Offer</Label>
+                <Label>Additional Services You Offer<RequiredMark /></Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Select at least one service</p>
                 <div className="space-y-3 mt-3">
                   {["Resume Review and Optimization", "Mock Interview Sessions", "Real Time Project Guidance"].map(s => (
                     <label key={s} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 cursor-pointer hover:bg-secondary/80 transition-colors">

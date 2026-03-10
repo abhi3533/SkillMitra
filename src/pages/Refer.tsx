@@ -301,7 +301,7 @@ const ReferPage = () => {
       </section>
 
       {/* Final CTA */}
-      {(!user || role !== "student") && (
+      {!isLoggedIn && (
         <section className="py-16">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Start Earning?</h2>

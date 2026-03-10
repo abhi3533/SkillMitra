@@ -408,7 +408,7 @@ const BrowseTrainers = () => {
 
                   return (
                     <motion.div key={t.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                      <Link to={`/trainer/${t.id}`} className="block group">
+                      <Link to={`/trainer/${t.slug || t.id}`} className="block group">
                         <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300">
                           <div className="p-5">
                           <div className="flex items-start gap-3">

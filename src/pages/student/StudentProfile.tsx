@@ -66,7 +66,7 @@ const StudentProfile = () => {
       });
 
     // Load projects from student_resumes
-    supabase.from('student_resumes').select('projects').eq('student_id', user.id).single()
+    supabase.from('student_resumes').select('projects').eq('student_id', user.id).maybeSingle()
       .then(({ data }) => {
         // student_resumes uses student_id which references students.id, need to find by student id
       });

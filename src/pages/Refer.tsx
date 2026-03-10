@@ -131,11 +131,11 @@ const ReferPage = () => {
                   <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate min-w-0">{referralLink}</div>
                   <Button onClick={copyLink} size="icon" variant="outline" className="shrink-0 self-end sm:self-auto"><Copy className="w-4 h-4" /></Button>
                 </div>
-                <div className="flex justify-center gap-3 mt-4">
-                  <Button onClick={shareWhatsApp} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
+                  <Button onClick={shareWhatsApp} className="gap-2 bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto">
                     <MessageCircle className="w-4 h-4" /> Share on WhatsApp
                   </Button>
-                  <Button onClick={copyLink} variant="outline" className="gap-2">
+                  <Button onClick={copyLink} variant="outline" className="gap-2 w-full sm:w-auto">
                     <Copy className="w-4 h-4" /> Copy Link
                   </Button>
                 </div>

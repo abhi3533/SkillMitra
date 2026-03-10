@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { student_id, session_id } = await req.json()
+    const { student_id, session_id, course_value } = await req.json()
     if (!student_id) throw new Error('student_id is required')
 
     const supabase = createClient(
@@ -75,7 +75,18 @@ Deno.serve(async (req) => {
       })
     }
 
-    const REWARD = Number(referral.reward_amount || 200)
+    // Validate course value ≥ ₹5000
+    const courseVal = Number(course_value || 0)
+    if (courseVal < 5000) {
+      // Mark as eligible but don't pay yet — course value too low
+      await supabase.from('referrals').update({ status: 'eligible' }).eq('id', referral.id)
+      console.log(`⏳ Referral ${referral.id} marked eligible but course value ₹${courseVal} < ₹5000`)
+      return new Response(JSON.stringify({ success: false, message: 'Course value must be ≥ ₹5,000 to unlock referral reward' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const REWARD = Number(referral.reward_amount || 400)
 
     // Update referral status to paid
     await supabase.from('referrals').update({ status: 'paid' }).eq('id', referral.id)
@@ -83,7 +94,7 @@ Deno.serve(async (req) => {
     // Credit referrer wallet
     const referrerUserId = (referral.referrer as any)?.user_id
     if (referrerUserId) {
-      await creditWallet(supabase, referrerUserId, REWARD, 'Referral reward — referred student completed first paid session', student_id)
+      await creditWallet(supabase, referrerUserId, REWARD, 'Referral reward — referred student completed first paid course (₹5,000+)', student_id)
 
       // Update referral_credits on students table
       const { data: referrerStudent } = await supabase
@@ -102,20 +113,20 @@ Deno.serve(async (req) => {
       await supabase.from('notifications').insert({
         user_id: referrerUserId,
         title: 'Referral Reward Credited! 🎉',
-        body: `Your referral completed their first paid session! ₹${REWARD} has been added to your wallet.`,
+        body: `Your referral completed their first paid course! ₹${REWARD} has been added to your wallet.`,
         type: 'referral',
         action_url: '/student/wallet',
       })
     }
 
     // Credit referred student wallet
-    await creditWallet(supabase, student.user_id, REWARD, 'Referral bonus — completed first paid session', referral.referrer_id)
+    await creditWallet(supabase, student.user_id, REWARD, 'Referral bonus — completed first paid course (₹5,000+)', referral.referrer_id)
 
     // Notify referred student
     await supabase.from('notifications').insert({
       user_id: student.user_id,
       title: 'Welcome Reward! 🎉',
-      body: `Congratulations on completing your first session! ₹${REWARD} referral bonus has been added to your wallet.`,
+      body: `Congratulations on completing your first course! ₹${REWARD} referral bonus has been added to your wallet.`,
       type: 'referral',
       action_url: '/student/wallet',
     })

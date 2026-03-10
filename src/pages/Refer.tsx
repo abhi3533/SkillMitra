@@ -9,6 +9,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const APP_DOMAIN = "skillmitra.online";
+const STUDENT_REWARD = 400;
+const TRAINER_REWARD = 1200;
 
 interface LeaderboardEntry {
   rank: number;
@@ -26,6 +28,7 @@ const ReferPage = () => {
   const [loading, setLoading] = useState(true);
 
   const isLoggedIn = !!user && !!role;
+  const rewardAmount = role === "trainer" ? TRAINER_REWARD : STUDENT_REWARD;
 
   useEffect(() => {
     if (authLoading) return;
@@ -78,7 +81,7 @@ const ReferPage = () => {
             .select("reward_amount, status")
             .eq("referrer_id", s.id);
           const paid = (myRefs || []).filter(r => r.status === "paid");
-          const pending = (myRefs || []).filter(r => r.status === "pending");
+          const pending = (myRefs || []).filter(r => r.status === "pending" || r.status === "eligible");
           setStats({
             total: (myRefs || []).length,
             earned: paid.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
@@ -87,20 +90,10 @@ const ReferPage = () => {
           });
         }
       } else if (user && role === "trainer") {
-        const [{ data: t }, { data: w }] = await Promise.all([
-          supabase.from("trainers").select("referral_code").eq("user_id", user.id).single(),
+        const [{ data: tFull }, { data: w }] = await Promise.all([
+          supabase.from("trainers").select("id, referral_code").eq("user_id", user.id).single(),
           supabase.from("wallets").select("balance").eq("user_id", user.id).single(),
         ]);
-        if (t) {
-          setReferralCode(t.referral_code || "");
-          const { data: myRefs } = await supabase
-            .from("trainer_referrals")
-            .select("reward_amount, status")
-            .eq("referrer_id", t.referral_code || "___none___");
-          // Trainer referrals tracked by trainer id, need to get trainer row id first
-        }
-        // For trainers, fetch trainer_referrals by trainer row id
-        const { data: tFull } = await supabase.from("trainers").select("id, referral_code").eq("user_id", user.id).single();
         if (tFull) {
           setReferralCode(tFull.referral_code || "");
           const { data: myRefs } = await supabase
@@ -108,7 +101,7 @@ const ReferPage = () => {
             .select("reward_amount, status")
             .eq("referrer_id", tFull.id);
           const paid = (myRefs || []).filter(r => r.status === "paid");
-          const pending = (myRefs || []).filter(r => r.status === "pending");
+          const pending = (myRefs || []).filter(r => r.status === "pending" || r.status === "eligible");
           setStats({
             total: (myRefs || []).length,
             earned: paid.reduce((sum, r) => sum + Number(r.reward_amount || 0), 0),
@@ -134,14 +127,16 @@ const ReferPage = () => {
   };
 
   const shareWhatsApp = () => {
-    const msg = `Hey! I use SkillMitra for personal 1:1 skill training. Use my referral code ${referralCode} and we both get ₹200 credit! Sign up at ${referralLink}`;
+    const msg = role === "trainer"
+      ? `Become a trainer on SkillMitra! 🎓 Use my referral code and earn ₹${TRAINER_REWARD} when you complete your first session.\n\n${referralLink}`
+      : `Hey! I use SkillMitra for personal 1:1 skill training. Use my referral code ${referralCode} and we both get ₹${STUDENT_REWARD} credit! Sign up at ${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
   const steps = [
     { icon: Share2, title: "Share Your Link", desc: "Send your unique referral link to friends via WhatsApp, social media, or directly." },
-    { icon: UserPlus, title: "Friend Signs Up", desc: "Your friend creates a free SkillMitra student account using your referral link." },
-    { icon: Gift, title: "You Both Earn ₹200", desc: "Once your friend completes their first paid session, you both get ₹200 wallet credit." },
+    { icon: UserPlus, title: "Friend Signs Up", desc: "Your friend creates a free SkillMitra account using your referral link." },
+    { icon: Gift, title: `Earn ₹${rewardAmount}`, desc: role === "trainer" ? `You get ₹${TRAINER_REWARD} when they complete their first paid session.` : `You both get ₹${STUDENT_REWARD} when they complete their first paid course (₹5,000+).` },
   ];
 
   return (
@@ -157,10 +152,13 @@ const ReferPage = () => {
               <Gift className="w-4 h-4" /> Referral Program
             </div>
             <h1 className="text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
-              Earn <span className="text-primary">₹200</span> for Every Friend You Refer
+              Earn <span className="text-primary">₹{rewardAmount}</span> for Every Successful Referral
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-lg mx-auto">
-              Both you and your friend get ₹200 wallet credit when they complete their first paid session on SkillMitra.
+              {role === "trainer"
+                ? `Refer fellow trainers and earn ₹${TRAINER_REWARD} when they complete their first paid session on SkillMitra.`
+                : `Both you and your friend get ₹${STUDENT_REWARD} wallet credit when they complete their first paid course (₹5,000+) on SkillMitra.`
+              }
             </p>
 
             {/* CTA */}
@@ -213,7 +211,7 @@ const ReferPage = () => {
         </div>
       </section>
 
-      {/* Stats (logged in students only) */}
+      {/* Stats (logged in only) */}
       {isLoggedIn && !loading && (
         <section className="py-12 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
@@ -244,7 +242,7 @@ const ReferPage = () => {
           <div className="max-w-lg mx-auto">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-sm font-medium mb-3">
-                <Trophy className="w-4 h-4" /> Top Referrers This Month
+                <Trophy className="w-4 h-4" /> Top Referrers
               </div>
               <h2 className="text-2xl font-bold text-foreground">Referral Leaderboard</h2>
             </div>
@@ -286,9 +284,11 @@ const ReferPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { icon: Clock, text: "Credits are valid for 90 days from the date of issuance" },
-                { icon: CheckCircle, text: "Friend must complete at least 1 paid session to unlock rewards" },
-                { icon: Users, text: "Maximum 50 referrals per account" },
+                { icon: CheckCircle, text: "Student referrals: friend must complete a paid course worth ₹5,000+" },
+                { icon: CheckCircle, text: "Trainer referrals: referred trainer must complete their first paid session" },
+                { icon: Users, text: "Maximum 50 successful referrals per account" },
                 { icon: Wallet, text: "Credits can be used to pay for any course on SkillMitra" },
+                { icon: Gift, text: `Students earn ₹${STUDENT_REWARD} per referral, trainers earn ₹${TRAINER_REWARD}` },
               ].map((term, i) => (
                 <div key={i} className="flex items-start gap-3 bg-card rounded-xl border p-4">
                   <term.icon className="w-5 h-5 text-primary mt-0.5 shrink-0" />

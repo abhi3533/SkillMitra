@@ -80,9 +80,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    const REWARD = 200
+    const REWARD = 400
 
-    // Create referral record — status PENDING until first paid session
+    // Create referral record — status PENDING until first paid course ≥ ₹5000
     await supabase.from('referrals').insert({
       referrer_id: referrer.id,
       referred_id: newStudent.id,
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     await supabase.from('notifications').insert({
       user_id: referrer.user_id,
       title: 'New Referral! 🎉',
-      body: `Someone signed up using your referral code! You'll earn ₹${REWARD} when they complete their first paid session.`,
+      body: `Someone signed up using your referral code! You'll earn ₹${REWARD} when they complete their first paid course (₹5,000+).`,
       type: 'referral',
       action_url: '/student/referrals',
     })

@@ -77,12 +77,14 @@ Deno.serve(async (req) => {
       })
     }
 
+    const REWARD = 1200
+
     // Create referral (status pending — paid when referred trainer completes first paid session)
     await supabase.from('trainer_referrals').insert({
       referrer_id: referrer.id,
       referred_id: newTrainer.id,
       referral_code: referral_code.toUpperCase().trim(),
-      reward_amount: 500,
+      reward_amount: REWARD,
       status: 'pending',
     })
 
@@ -93,7 +95,7 @@ Deno.serve(async (req) => {
     await supabase.from('notifications').insert({
       user_id: referrer.user_id,
       title: 'New Trainer Referral! 🎯',
-      body: `A trainer signed up using your referral code! You'll earn ₹500 when they complete their first paid session.`,
+      body: `A trainer signed up using your referral code! You'll earn ₹${REWARD} when they complete their first paid session.`,
       type: 'referral',
       action_url: '/trainer/referrals',
     })

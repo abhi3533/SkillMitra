@@ -27,7 +27,6 @@ serve(async (req) => {
     );
 
     if (role === "trainer" && trainer_data) {
-      // Get the trainer record
       const { data: trainer, error: trainerErr } = await supabaseAdmin
         .from("trainers")
         .select("id")
@@ -42,7 +41,6 @@ serve(async (req) => {
         });
       }
 
-      // Update trainer details
       const { error: updateErr } = await supabaseAdmin.from("trainers").update({
         bio: trainer_data.bio || null,
         skills: trainer_data.skills || [],
@@ -58,6 +56,29 @@ serve(async (req) => {
         pan_number: trainer_data.pan_number || null,
         account_holder_name: trainer_data.account_holder_name || null,
         intro_video_url: trainer_data.intro_video_url || null,
+        // New fields
+        dob: trainer_data.dob || null,
+        whatsapp: trainer_data.whatsapp || null,
+        selfie_url: trainer_data.selfie_url || null,
+        address: trainer_data.address || null,
+        pincode: trainer_data.pincode || null,
+        portfolio_url: trainer_data.portfolio_url || null,
+        secondary_skill: trainer_data.secondary_skill || null,
+        work_email: trainer_data.work_email || null,
+        expertise_areas: trainer_data.expertise_areas || [],
+        demo_video_url: trainer_data.demo_video_url || null,
+        curriculum_pdf_url: trainer_data.curriculum_pdf_url || null,
+        services_offered: trainer_data.services_offered || [],
+        course_materials: trainer_data.course_materials || null,
+        govt_id_type: trainer_data.govt_id_type || null,
+        aadhaar_url: trainer_data.aadhaar_url || null,
+        additional_services_details: trainer_data.additional_services_details || null,
+        course_title: trainer_data.course_title || null,
+        course_duration: trainer_data.course_duration || null,
+        course_fee: trainer_data.course_fee || 0,
+        course_description: trainer_data.course_description || null,
+        verification_method: trainer_data.verification_method || null,
+        verification_value: trainer_data.verification_value || null,
       }).eq("id", trainer.id);
 
       if (updateErr) {
@@ -107,7 +128,6 @@ serve(async (req) => {
     }
 
     if (role === "student" && student_data) {
-      // Update student course interests
       if (student_data.course_interests && student_data.course_interests.length > 0) {
         const { error: updateErr } = await supabaseAdmin
           .from("students")

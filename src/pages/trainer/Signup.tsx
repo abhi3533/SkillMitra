@@ -74,7 +74,7 @@ const TrainerSignup = () => {
         email: form.email,
         password: form.password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/email-verified`,
           data: {
             full_name: form.fullName,
             phone: form.phone,

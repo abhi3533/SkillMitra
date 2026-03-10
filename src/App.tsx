@@ -36,6 +36,7 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const NotificationPreferences = lazy(() => import("./pages/NotificationPreferences"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const EmailVerified = lazy(() => import("./pages/EmailVerified"));
 
 // Lazy-loaded Student pages
 const StudentLogin = lazy(() => import("./pages/student/Login"));
@@ -186,6 +187,7 @@ const AppContent = () => {
           <Route path="/parent/login" element={<ParentLogin />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/email-verified" element={<EmailVerified />} />
 
           {/* Student Protected */}
           <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />

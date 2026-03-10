@@ -152,7 +152,7 @@ const Navbar = () => {
                 </DropdownMenu>
               ) : (
                 <>
-                  <Link to="/student/login">
+                  <Link to="/login">
                     <Button variant="ghost" size="sm" className="font-medium">Log in</Button>
                   </Link>
                   <Link to="/student/signup">

@@ -182,6 +182,20 @@ const TrainerDashboard = () => {
         </Link>
       </div>
 
+      {/* Incomplete Onboarding Banner */}
+      {onboardingInfo && onboardingInfo.status === "draft" && !loading && (
+        <div className="mt-4 bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-foreground">Complete your profile to go live</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Step {onboardingInfo.step + 1} of 6 remaining. Finish your onboarding to start receiving students.</p>
+            <Link to="/trainer/onboarding">
+              <Button size="sm" className="mt-2 hero-gradient border-0 text-xs">Continue Onboarding <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Approval Status Banner */}
       {data.approvalStatus === "pending" && !loading && (
         <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">

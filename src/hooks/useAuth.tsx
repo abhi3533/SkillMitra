@@ -36,7 +36,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!currentSession?.user) {
       setRole(null);
       setProfile(null);
-      setNeedsRoleSelection(false);
       return;
     }
 

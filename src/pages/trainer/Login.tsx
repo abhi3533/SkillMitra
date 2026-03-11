@@ -120,13 +120,6 @@ const TrainerLogin = () => {
             </div>
           )}
 
-          <div className="mt-8 space-y-4">
-            <GoogleSignInButton label="Sign in with Google" />
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-background px-3 text-muted-foreground">OR</span></div>
-            </div>
-          </div>
 
           <form onSubmit={handleLogin} className="mt-4 space-y-5">
             <div>

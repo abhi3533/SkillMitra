@@ -46,8 +46,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: currentSession.user.id });
       if (!roleData) {
-        // New OAuth user — no role assigned yet
-        setNeedsRoleSelection(true);
         setRole(null);
         setProfile(null);
         return;

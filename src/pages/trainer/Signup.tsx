@@ -172,11 +172,6 @@ const TrainerSignup = () => {
           <p className="text-sm text-muted-foreground mt-1">Quick signup — complete your full profile after email verification</p>
 
           <div className="mt-6 space-y-4">
-            <GoogleSignInButton label="Sign up with Google" />
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-background px-3 text-muted-foreground">OR</span></div>
-            </div>
 
             <div>
               <Label>Full Name<span className="text-destructive ml-0.5">*</span></Label>

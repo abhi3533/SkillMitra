@@ -187,7 +187,7 @@ const StudentLogin = () => {
           )}
 
 
-          <form onSubmit={handleLogin} className="mt-4 space-y-5">
+          <form onSubmit={handleLogin} className="mt-8 space-y-5">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={email} onChange={e => { setEmail(e.target.value); setLocked({ locked: false, minutesLeft: 0 }); }} placeholder="you@example.com" className="mt-1.5 h-11" required />

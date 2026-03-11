@@ -51,7 +51,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       setRole(roleData as AppRole);
-      setNeedsRoleSelection(false);
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")

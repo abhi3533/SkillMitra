@@ -11,11 +11,9 @@ interface AuthContextType {
   loading: boolean;
   profile: any;
   signOut: () => Promise<void>;
-  needsRoleSelection: boolean;
-  setNeedsRoleSelection: (v: boolean) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {}, needsRoleSelection: false, setNeedsRoleSelection: () => {} });
+const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {} });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -23,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<AppRole>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
-  const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
+  
   const fetchingRef = useRef(false);
 
   const handleSignOut = async () => {
@@ -38,7 +36,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!currentSession?.user) {
       setRole(null);
       setProfile(null);
-      setNeedsRoleSelection(false);
       return;
     }
 
@@ -49,14 +46,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: currentSession.user.id });
       if (!roleData) {
-        // New OAuth user — no role assigned yet
-        setNeedsRoleSelection(true);
         setRole(null);
         setProfile(null);
         return;
       }
       setRole(roleData as AppRole);
-      setNeedsRoleSelection(false);
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
@@ -110,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchUserData]);
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, profile, signOut: handleSignOut, needsRoleSelection, setNeedsRoleSelection }}>
+    <AuthContext.Provider value={{ user, session, role, loading, profile, signOut: handleSignOut }}>
       {children}
     </AuthContext.Provider>
   );

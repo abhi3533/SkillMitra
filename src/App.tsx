@@ -9,7 +9,7 @@ import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import CookieConsent from "@/components/CookieConsent";
 import ScrollToTop from "@/components/ScrollToTop";
 import AIChatBot from "@/components/AIChatBot";
-import RoleSelectionModal from "@/components/auth/RoleSelectionModal";
+
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
 
@@ -140,21 +140,11 @@ const useAuthRedirect = () => {
 };
 
 const AppContent = () => {
-  const { user, needsRoleSelection, setNeedsRoleSelection } = useAuth();
   useAuthRedirect();
   return (
     <>
       <PWAInstallPrompt />
       <CookieConsent />
-      {user && needsRoleSelection && (
-        <RoleSelectionModal
-          open={needsRoleSelection}
-          onClose={() => setNeedsRoleSelection(false)}
-          userId={user.id}
-          userEmail={user.email || ""}
-          userName={user.user_metadata?.full_name || user.user_metadata?.name || ""}
-        />
-      )}
       <Suspense fallback={<LazyFallback />}>
         <Routes>
           {/* Public */}

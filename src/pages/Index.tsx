@@ -200,7 +200,7 @@ const Index = () => {
             sProfileMap[p.p_id] = { id: p.p_id, full_name: p.p_full_name, city: p.p_city, profile_picture_url: p.p_profile_picture_url };
           });
           const studentMap: Record<string, any> = {};
-          (studentData || []).forEach(s => { studentMap[s.id] = sProfileMap[s.user_id]; });
+          (studentData || []).forEach(s => { studentMap[s.student_id] = sProfileMap[s.user_id]; });
           setRealReviews(ratingsData.map(r => ({ ...r, studentProfile: studentMap[r.student_id] })));
         }
       } catch (err) { console.error("Failed to fetch homepage data:", err); }

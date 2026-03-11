@@ -66,7 +66,8 @@ const RoleSelectionModal = ({ open, onClose, userId, userEmail, userName }: Role
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md p-0 gap-0 [&>button]:hidden" onPointerDownOutside={e => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md p-0 gap-0 [&>button]:hidden" onPointerDownOutside={e => e.preventDefault()} aria-describedby={undefined}>
+        <VisuallyHidden><DialogTitle>Select your role</DialogTitle></VisuallyHidden>
         <div className="p-6 text-center">
           <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-8 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-foreground">Welcome to SkillMitra!</h2>

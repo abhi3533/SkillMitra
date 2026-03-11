@@ -11,7 +11,7 @@ import { getAuthErrorMessage } from "@/lib/authErrors";
 import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
-import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+
 
 const TrainerSignup = () => {
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "" });

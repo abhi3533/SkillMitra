@@ -192,7 +192,7 @@ const Index = () => {
         const { data: ratingsData } = await supabase.from("ratings").select("id, student_id, trainer_id, student_to_trainer_rating, student_to_trainer_review, student_review_text, student_rated_at, created_at, enrollment_id").not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5);
         if (ratingsData && ratingsData.length > 0) {
           const studentIds = ratingsData.map(r => r.student_id);
-          const { data: studentData } = await supabase.from("students").select("id, user_id").in("id", studentIds);
+          const { data: studentData } = await supabase.rpc("get_student_user_ids", { student_ids: studentIds });
           const sUserIds = (studentData || []).map(s => s.user_id);
           const { data: sProfileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: sUserIds });
           const sProfileMap: Record<string, any> = {};

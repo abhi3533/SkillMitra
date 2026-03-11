@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<AppRole>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
-  const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
+  
   const fetchingRef = useRef(false);
 
   const handleSignOut = async () => {

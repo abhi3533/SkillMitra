@@ -12,8 +12,28 @@ const AdminStudents = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase.from("students").select("*, profiles(*)").order("created_at", { ascending: false });
-      setStudents(data || []);
+      // Join with profiles using user_id to get all students including those just signed up
+      const { data: studentData } = await supabase.from("students").select("*").order("created_at", { ascending: false });
+      if (!studentData || studentData.length === 0) {
+        setStudents([]);
+        setLoading(false);
+        return;
+      }
+      // Fetch profiles separately using user_ids for reliability
+      const userIds = studentData.map(s => s.user_id);
+      const { data: profileData } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: userIds });
+      const profileMap: Record<string, any> = {};
+      (profileData || []).forEach((p: any) => {
+        profileMap[p.p_id] = { full_name: p.p_full_name, email: null, city: p.p_city, profile_picture_url: p.p_profile_picture_url };
+      });
+      // Also get emails from profiles table (admin has access)
+      const { data: emailData } = await supabase.from("profiles").select("id, email").in("id", userIds);
+      (emailData || []).forEach((p: any) => {
+        if (profileMap[p.id]) profileMap[p.id].email = p.email;
+        else profileMap[p.id] = { full_name: null, email: p.email, city: null };
+      });
+      const merged = studentData.map(s => ({ ...s, profiles: profileMap[s.user_id] || {} }));
+      setStudents(merged);
       setLoading(false);
     };
     fetch();

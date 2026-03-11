@@ -577,6 +577,22 @@ const StudentProfile = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Logout Button */}
+      <div className="mt-8 pt-6 border-t border-border">
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+          onClick={async () => {
+            await signOut();
+            navigate("/", { replace: true });
+            toast({ title: "Logged out successfully", variant: "success" });
+          }}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Log Out
+        </Button>
+      </div>
     </StudentLayout>
   );
 };

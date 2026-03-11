@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import StudentLayout from "@/components/layouts/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Save, X, Plus, Trash2, ExternalLink } from "lucide-react";
+import { Pencil, Save, X, Plus, Trash2, ExternalLink, LogOut } from "lucide-react";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 
 const courseInterestOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
@@ -26,7 +27,8 @@ interface Project {
 }
 
 const StudentProfile = () => {
-  const { profile, user } = useAuth();
+  const { profile, user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -575,6 +577,22 @@ const StudentProfile = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Logout Button */}
+      <div className="mt-8 pt-6 border-t border-border">
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+          onClick={async () => {
+            await signOut();
+            navigate("/", { replace: true });
+            toast({ title: "Logged out successfully", variant: "success" });
+          }}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Log Out
+        </Button>
+      </div>
     </StudentLayout>
   );
 };

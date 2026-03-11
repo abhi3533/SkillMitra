@@ -239,21 +239,15 @@ const Index = () => {
               </div>
 
               <h1 className="text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.08] tracking-tight">
-                <span className="text-foreground">Learn Real Skills</span>
+                <span className="text-foreground">Find Your Perfect</span>
                 <br />
-                <span className="text-foreground">From </span>
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  Working Professionals
+                  1-on-1 Trainer
                 </span>
               </h1>
 
               <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
-                <TypingText texts={[
-                  "1:1 training with verified industry experts.",
-                  "Learn in your language, from home.",
-                  "Courses starting at just ₹999.",
-                  "Build projects. Get certified. Get hired."
-                ]} />
+                Learn Any Skill from India's Best and Verified Experts. Book a free trial today.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">

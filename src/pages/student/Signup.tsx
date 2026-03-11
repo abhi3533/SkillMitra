@@ -299,7 +299,7 @@ const StudentSignup = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>City<RequiredMark /></Label>
-                <Input value={form.city} onChange={e => update("city", e.target.value)} onBlur={() => markTouched("city")} placeholder="Your city"
+                <Input value={form.city} onChange={e => update("city", e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} onBlur={() => markTouched("city")} placeholder="Your city"
                   className={`mt-1.5 h-11 ${touched.city ? (form.city.trim() ? "border-green-500" : "border-destructive") : ""}`} required />
                 {touched.city && !form.city.trim() && <p className="text-xs text-destructive mt-1">City is required</p>}
               </div>

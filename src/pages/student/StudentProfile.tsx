@@ -298,7 +298,7 @@ const StudentProfile = () => {
             <>
               <div>
                 <Label className="text-muted-foreground">City</Label>
-                <Input value={city} onChange={e => setCity(e.target.value)} className="mt-1" />
+                <Input value={city} onChange={e => setCity(e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} className="mt-1" />
               </div>
               <div>
                 <Label className="text-muted-foreground">State</Label>

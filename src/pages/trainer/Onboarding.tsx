@@ -923,7 +923,7 @@ const TrainerOnboarding = () => {
                     <SelectItem value="driving_license">Driving License</SelectItem>
                   </SelectContent>
                 </Select>
-                <FileUploadBox docKey="aadhaar" label="Aadhaar Document Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="PDF or image, up to 10MB" />
+                <FileUploadBox docKey="aadhaar" label="Aadhaar Document Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="JPG, PNG or PDF only, max 5MB" />
               </div>
             </div>
           )}

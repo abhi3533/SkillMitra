@@ -218,6 +218,14 @@ const TrainerSignup = () => {
               <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
             </div>
 
+            <div>
+              <Label className="flex items-center gap-1.5">
+                <Gift className="w-3.5 h-3.5 text-primary" />
+                Have a referral code? Enter it here <span className="text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-ABC123" className="mt-1.5 h-11" maxLength={12} />
+            </div>
+
             <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
               <Shield className="w-4 h-4 text-primary shrink-0" />
               <p className="text-xs text-muted-foreground">Your data is encrypted and protected.</p>

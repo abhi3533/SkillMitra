@@ -162,7 +162,7 @@ const TrainerMyProfile = () => {
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <Camera className="w-4 h-4 text-primary" /> Profile Picture
           </h2>
-          <ProfilePictureUpload />
+          <ProfilePictureUpload userId={user?.id || ""} currentUrl={profileData?.profile_picture_url || null} fullName={form.full_name} />
         </div>
 
         {/* Personal Info */}

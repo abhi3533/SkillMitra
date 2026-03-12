@@ -205,7 +205,7 @@ const AppContent = () => {
           <Route path="/trainer/certificates" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerCertificates /></ProtectedRoute>} />
           <Route path="/trainer/subscription" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSubscription /></ProtectedRoute>} />
           <Route path="/trainer/schedule" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSchedule /></ProtectedRoute>} />
-          <Route path="/trainer/profile" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerProfile /></ProtectedRoute>} />
+          <Route path="/trainer/profile" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerMyProfile /></ProtectedRoute>} />
           <Route path="/trainer/wallet" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerWallet /></ProtectedRoute>} />
           <Route path="/trainer/referrals" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerReferrals /></ProtectedRoute>} />
           <Route path="/trainer/attendance" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerAttendance /></ProtectedRoute>} />

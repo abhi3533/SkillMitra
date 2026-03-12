@@ -107,7 +107,7 @@ const TrainerSignup = () => {
         supabase.functions.invoke("process-trainer-referral", {
           body: {
             referral_code: referralCode.trim(),
-            referred_user_id: authData.user.id,
+            new_user_id: authData.user.id,
           },
         }).catch(console.error);
       }

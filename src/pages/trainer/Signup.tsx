@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,9 @@ import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 
 const TrainerSignup = () => {
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "" });
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -99,6 +101,16 @@ const TrainerSignup = () => {
           registration_only: true,
         },
       }).catch(console.error);
+
+      // Process trainer referral code if provided
+      if (referralCode.trim()) {
+        supabase.functions.invoke("process-trainer-referral", {
+          body: {
+            referral_code: referralCode.trim(),
+            new_user_id: authData.user.id,
+          },
+        }).catch(console.error);
+      }
 
       setSubmitted(true);
       toast({ title: "Account created!", description: "Check your email to verify your account.", variant: "success" });
@@ -214,6 +226,14 @@ const TrainerSignup = () => {
             <div>
               <Label>Confirm Password<span className="text-destructive ml-0.5">*</span></Label>
               <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
+            </div>
+
+            <div>
+              <Label className="flex items-center gap-1.5">
+                <Gift className="w-3.5 h-3.5 text-primary" />
+                Have a referral code? Enter it here <span className="text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-ABC123" className="mt-1.5 h-11" maxLength={12} />
             </div>
 
             <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">

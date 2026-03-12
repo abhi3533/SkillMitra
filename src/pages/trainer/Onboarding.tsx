@@ -276,7 +276,24 @@ const TrainerOnboarding = () => {
   };
 
   const handleFileSelect = (docKey: string, file: File | null) => {
-    if (file) setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
+    if (!file) return;
+
+    // Strict validation for Aadhaar document
+    if (docKey === "aadhaar") {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+      const allowedExts = [".jpg", ".jpeg", ".png", ".pdf"];
+      const ext = file.name.toLowerCase().substring(file.name.lastIndexOf("."));
+      if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+        toast({ title: "Invalid file format", description: "Please upload only JPG, PNG or PDF format. Aadhaar card image or PDF only.", variant: "destructive" });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Maximum file size is 5MB for Aadhaar document.", variant: "destructive" });
+        return;
+      }
+    }
+
+    setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
   };
 
   const isPhoneFilled = isValidPhone(form.phone);
@@ -906,7 +923,7 @@ const TrainerOnboarding = () => {
                     <SelectItem value="driving_license">Driving License</SelectItem>
                   </SelectContent>
                 </Select>
-                <FileUploadBox docKey="aadhaar" label="Aadhaar Document Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="PDF or image, up to 10MB" />
+                <FileUploadBox docKey="aadhaar" label="Aadhaar Document Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="JPG, PNG or PDF only, max 5MB" />
               </div>
             </div>
           )}

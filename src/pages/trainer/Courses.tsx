@@ -21,11 +21,17 @@ interface CurriculumWeek {
   sessionCount: string;
 }
 
+const PRESET_DURATIONS = ["30", "45", "90"];
+const PRESET_SESSION_DURATIONS = ["30", "45", "60", "90"];
+const PRESET_FREQUENCIES = ["daily", "3x/week", "2x/week", "weekly"];
+const PRESET_LANGUAGES = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"];
+
 const defaultForm = {
   title: "", description: "", duration_days: "30", total_sessions: "12",
   course_fee: "", language: "English", level: "beginner",
   session_duration_mins: "60", session_frequency: "3x/week",
   has_free_trial: true, what_you_learn: "", who_is_it_for: "",
+  custom_duration: "", custom_session_duration: "", custom_frequency: "", custom_language: "",
 };
 
 const TrainerCourses = () => {

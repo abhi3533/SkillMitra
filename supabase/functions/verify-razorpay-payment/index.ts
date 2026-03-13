@@ -276,6 +276,16 @@ Deno.serve(async (req) => {
       .update({ total_enrolled: (course.total_enrolled || 0) + 1 })
       .eq("id", course_id);
 
+    console.log(JSON.stringify({
+      event: "payment_verified",
+      order_id: razorpay_order_id,
+      payment_id: razorpay_payment_id,
+      enrollment_id: enrollment.id,
+      student_id: student_id,
+      course_id: course_id,
+      amount: courseFee,
+    }));
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -285,7 +295,12 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("Verification error:", err);
+    // Log with payment context so failures are traceable in Supabase logs.
+    console.error(JSON.stringify({
+      event: "verify_payment_error",
+      error: err instanceof Error ? err.message : String(err),
+      // razorpay_order_id and userId may be undefined if error happened before parsing
+    }));
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

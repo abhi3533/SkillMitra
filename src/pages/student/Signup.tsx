@@ -161,26 +161,32 @@ const StudentSignup = () => {
           if (!allInterests.includes(s)) allInterests.push(s);
         });
       }
+      // Save course interests — await so we can warn the user if it fails.
       if (signupData?.user?.id && allInterests.length > 0) {
-        supabase.functions.invoke("complete-signup", {
+        const { error: signupFnErr } = await supabase.functions.invoke("complete-signup", {
           body: { user_id: signupData.user.id, role: "student", student_data: { course_interests: allInterests } },
-        }).catch(e => console.error("Course interests save error:", e));
+        });
+        if (signupFnErr) {
+          console.error("Course interests save error:", signupFnErr);
+          toast({ title: "Account created", description: "Your course interests couldn't be saved — you can update them from your profile.", variant: "warning" });
+        }
       }
 
+      // Process referral — important for reward credit, so log clearly on failure.
       const trimmedCode = referralCode.trim().toUpperCase();
       if (trimmedCode && signupData?.user?.id) {
         supabase.functions.invoke("process-referral", {
           body: { referral_code: trimmedCode, new_user_id: signupData.user.id },
         }).then(({ error: fnErr }) => {
-          if (fnErr) console.error("Referral processing error:", fnErr);
+          if (fnErr) console.error("Referral processing failed (code:", trimmedCode, "):", fnErr);
         });
       }
 
+      // Welcome email and profile matching are best-effort — failure is non-critical.
       supabase.functions.invoke("send-email", {
         body: { type: "student_welcome", to: form.email, data: { name: form.fullName } },
       }).then(({ error: fnErr }) => { if (fnErr) console.error("Welcome email error:", fnErr); });
 
-      // Trigger profile matching to recommend trainers
       if (signupData?.user?.id) {
         supabase.functions.invoke("profile-matching", {
           body: { new_user_id: signupData.user.id, role: "student" },

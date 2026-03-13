@@ -32,7 +32,7 @@ const StudentDashboard = () => {
   const [recommendedTrainers, setRecommendedTrainers] = useState<any[]>([]);
   useLoadingTitle(loading);
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = useCallback(async () => {
     if (!user) return;
     const { data: student } = await supabase.from("students").select("id, referral_credits, course_interests, trainer_gender_preference").eq("user_id", user.id).maybeSingle();
     if (!student) { setLoading(false); return; }
@@ -52,9 +52,10 @@ const StudentDashboard = () => {
     let enrichedEnrollments = enrollments;
     if (enrollments.length > 0) {
       const trainerIds = enrollments.map(e => e.trainer_id);
-      const { data: trainers } = await supabase.from("trainers").select("id, user_id").in("id", trainerIds);
+      const { data: trainers, error: trainersErr } = await supabase.from("trainers").select("id, user_id").in("id", trainerIds);
+      if (trainersErr) console.error("Failed to load trainer data for enrollments:", trainersErr);
       const userIds = (trainers || []).map(t => t.user_id);
-      const profileMap = await fetchProfilesMap(userIds);
+      const profileMap = userIds.length > 0 ? await fetchProfilesMap(userIds) : {};
       const trainerNameMap: Record<string, string> = {};
       (trainers || []).forEach(t => { trainerNameMap[t.id] = profileMap[t.user_id]?.full_name || "Trainer"; });
       enrichedEnrollments = enrollments.map(e => ({ ...e, trainerName: trainerNameMap[e.trainer_id] || "Trainer" }));
@@ -64,9 +65,10 @@ const StudentDashboard = () => {
     let enrichedSessions = upcomingSessions.data || [];
     if (enrichedSessions.length > 0) {
       const trainerIds = [...new Set(enrichedSessions.map(s => s.trainer_id))];
-      const { data: trainers } = await supabase.from("trainers").select("id, user_id").in("id", trainerIds);
+      const { data: trainers, error: sessionTrainersErr } = await supabase.from("trainers").select("id, user_id").in("id", trainerIds);
+      if (sessionTrainersErr) console.error("Failed to load trainer data for sessions:", sessionTrainersErr);
       const userIds = (trainers || []).map(t => t.user_id);
-      const profileMap = await fetchProfilesMap(userIds);
+      const profileMap = userIds.length > 0 ? await fetchProfilesMap(userIds) : {};
       const trainerNameMap: Record<string, string> = {};
       (trainers || []).forEach(t => { trainerNameMap[t.id] = profileMap[t.user_id]?.full_name || "Trainer"; });
       enrichedSessions = enrichedSessions.map(s => ({ ...s, trainerName: trainerNameMap[s.trainer_id] || "Trainer" }));
@@ -138,11 +140,11 @@ const StudentDashboard = () => {
     }
 
     setLoading(false);
-  };
+  }, [user]);
 
-  useEffect(() => { fetchDashboard(); }, [user]);
+  useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
 
-  const handleRefresh = useCallback(async () => { await fetchDashboard(); }, [user]);
+  const handleRefresh = useCallback(async () => { await fetchDashboard(); }, [fetchDashboard]);
   const { pulling, refreshing } = usePullToRefresh(handleRefresh);
 
   const firstName = profile?.full_name?.split(" ")[0] || "Student";

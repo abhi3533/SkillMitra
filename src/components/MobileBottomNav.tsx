@@ -1,5 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Search, Calendar, User, Users } from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Search, Calendar, User, Users, LogOut, MoreHorizontal, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const studentItems = [
   { label: "Home", icon: LayoutDashboard, path: "/student/dashboard" },
@@ -17,23 +19,53 @@ const trainerItems = [
 
 const MobileBottomNav = ({ role }: { role: "student" | "trainer" }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showMore, setShowMore] = useState(false);
   const items = role === "student" ? studentItems : trainerItems;
 
+  const handleLogout = async () => {
+    setShowMore(false);
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border flex lg:hidden safe-area-bottom">
-      {items.map(item => {
-        const active = location.pathname === item.path;
-        return (
-          <Link key={item.path} to={item.path}
-            className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] transition-colors ${
-              active ? "text-primary" : "text-muted-foreground"
-            }`}>
-            <item.icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
-            <span className="text-[10px] font-medium mt-0.5">{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
+    <>
+      {showMore && (
+        <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setShowMore(false)}>
+          <div className="absolute bottom-[60px] right-3 bg-card border border-border rounded-xl shadow-xl p-1 min-w-[160px]" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border flex lg:hidden safe-area-bottom">
+        {items.map(item => {
+          const active = location.pathname === item.path;
+          return (
+            <Link key={item.path} to={item.path}
+              className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] transition-colors ${
+                active ? "text-primary" : "text-muted-foreground"
+              }`}>
+              <item.icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
+              <span className="text-[10px] font-medium mt-0.5">{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          onClick={() => setShowMore(!showMore)}
+          className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] transition-colors ${showMore ? "text-primary" : "text-muted-foreground"}`}
+        >
+          {showMore ? <X className="w-5 h-5" /> : <MoreHorizontal className="w-5 h-5" />}
+          <span className="text-[10px] font-medium mt-0.5">More</span>
+        </button>
+      </nav>
+    </>
   );
 };
 

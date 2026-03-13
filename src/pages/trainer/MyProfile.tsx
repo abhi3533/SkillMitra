@@ -12,7 +12,7 @@ import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { useToast } from "@/hooks/use-toast";
 
 const TrainerMyProfile = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

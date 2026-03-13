@@ -33,6 +33,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(null);
   };
 
+  const updateProfile = useCallback((updates: Record<string, any>) => {
+    setProfile((prev: any) => prev ? { ...prev, ...updates } : updates);
+  }, []);
+
   const fetchUserData = useCallback(async (currentSession: Session | null) => {
     if (!currentSession?.user) {
       setRole(null);

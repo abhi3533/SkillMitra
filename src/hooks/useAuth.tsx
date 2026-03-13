@@ -14,7 +14,7 @@ interface AuthContextType {
   updateProfile: (updates: Record<string, any>) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {} });
+const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {}, updateProfile: () => {} });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

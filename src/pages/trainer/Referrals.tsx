@@ -146,18 +146,18 @@ const TrainerReferrals = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 mt-6">
             {[
               { label: "Referred", value: String(referrals.length), icon: Users, color: "bg-primary/10 text-primary" },
               { label: "Earned", value: `₹${totalPaid.toLocaleString("en-IN")}`, icon: Gift, color: "bg-emerald-50 text-emerald-600" },
               { label: "Pending", value: `₹${totalPending.toLocaleString("en-IN")}`, icon: Clock, color: "bg-amber-50 text-amber-600" },
               { label: "Wallet", value: `₹${walletBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-primary/10 text-primary" },
             ].map(s => (
-              <div key={s.label} className="bg-card rounded-xl border p-4 text-center">
-                <div className={`w-9 h-9 rounded-lg ${s.color} flex items-center justify-center mx-auto mb-2`}>
+              <div key={s.label} className="bg-card rounded-xl border p-3 sm:p-4 text-center">
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg ${s.color} flex items-center justify-center mx-auto mb-2`}>
                   <s.icon className="w-4 h-4" />
                 </div>
-                <p className="text-lg font-bold text-foreground">{s.value}</p>
+                <p className="text-base sm:text-lg font-bold text-foreground truncate">{s.value}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
               </div>
             ))}

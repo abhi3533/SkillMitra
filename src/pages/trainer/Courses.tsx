@@ -278,8 +278,12 @@ const TrainerCourses = () => {
                     <SelectItem value="30">30 days</SelectItem>
                     <SelectItem value="45">45 days</SelectItem>
                     <SelectItem value="90">90 days</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.duration_days === "custom" && (
+                  <Input type="number" value={form.custom_duration} onChange={e => setField("custom_duration", e.target.value)} className="mt-1.5" placeholder="Days (1-365)" min={1} max={365} />
+                )}
               </div>
               <div>
                 <Label>Total Sessions</Label>
@@ -296,8 +300,12 @@ const TrainerCourses = () => {
                     <SelectItem value="45">45 min</SelectItem>
                     <SelectItem value="60">60 min</SelectItem>
                     <SelectItem value="90">90 min</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.session_duration_mins === "custom" && (
+                  <Input type="number" value={form.custom_session_duration} onChange={e => setField("custom_session_duration", e.target.value)} className="mt-1.5" placeholder="Minutes (15-180)" min={15} max={180} />
+                )}
               </div>
               <div>
                 <Label>Frequency</Label>
@@ -308,8 +316,12 @@ const TrainerCourses = () => {
                     <SelectItem value="3x/week">3x / week</SelectItem>
                     <SelectItem value="2x/week">2x / week</SelectItem>
                     <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.session_frequency === "custom" && (
+                  <Input value={form.custom_frequency} onChange={e => setField("custom_frequency", e.target.value)} className="mt-1.5" placeholder="e.g. 4x/week, Weekends only" maxLength={50} />
+                )}
               </div>
             </div>
 

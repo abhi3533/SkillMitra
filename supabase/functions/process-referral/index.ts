@@ -1,12 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-}
+import { getCorsHeaders } from "../_shared/cors.ts"
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -82,14 +79,26 @@ Deno.serve(async (req) => {
 
     const REWARD = 400
 
-    // Create referral record — status PENDING until first paid course ≥ ₹5000
-    await supabase.from('referrals').insert({
+    // Create referral record — status PENDING until first paid course ≥ ₹5000.
+    // The DB enforces UNIQUE (referred_id) so a race condition between concurrent
+    // requests will result in a constraint violation rather than a duplicate row.
+    const { error: insertErr } = await supabase.from('referrals').insert({
       referrer_id: referrer.id,
       referred_id: newStudent.id,
       referral_code: referral_code.toUpperCase().trim(),
       reward_amount: REWARD,
       status: 'pending',
     })
+
+    if (insertErr) {
+      // Unique violation (23505) means a concurrent request already created the referral.
+      if (insertErr.code === '23505') {
+        return new Response(JSON.stringify({ success: false, error: 'Already referred' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      throw insertErr
+    }
 
     // Update referred_by on new student
     await supabase.from('students').update({ referred_by: referral_code.toUpperCase().trim() }).eq('id', newStudent.id)

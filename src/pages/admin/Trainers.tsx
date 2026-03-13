@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import TrainerDetailDrawer from "@/components/admin/TrainerDetailDrawer";
 import RejectTrainerModal from "@/components/admin/RejectTrainerModal";
@@ -14,6 +15,7 @@ import OnboardingPipeline from "@/components/admin/OnboardingPipeline";
 
 const AdminTrainers = () => {
   const { toast } = useToast();
+  const { role } = useAuth();
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("pending");
@@ -51,6 +53,10 @@ const AdminTrainers = () => {
   useEffect(() => { fetchTrainers(); }, []);
 
   const updateStatus = async (id: string, status: string, rejectionReason?: string) => {
+    if (role !== "admin") {
+      toast({ title: "Unauthorized", description: "Only admins can perform this action.", variant: "destructive" });
+      return;
+    }
     const update: any = { approval_status: status };
     if (rejectionReason) update.rejection_reason = rejectionReason;
     const { error } = await supabase.from("trainers").update(update).eq("id", id);
@@ -88,6 +94,11 @@ const AdminTrainers = () => {
 
   const handleRemoveConfirm = async () => {
     if (!removeTarget) return;
+    if (role !== "admin") {
+      toast({ title: "Unauthorized", description: "Only admins can perform this action.", variant: "destructive" });
+      setRemoveTarget(null);
+      return;
+    }
     const trainerName = removeTarget.profiles?.full_name || "Trainer";
     const trainerId = removeTarget.id;
     const { error } = await supabase.from("trainers").delete().eq("id", trainerId);

@@ -25,6 +25,23 @@ const ProfilePictureUpload = ({ userId, currentUrl, fullName, size = "md", onUpl
 
   const initials = (fullName || "U").split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
+  // Read the first 12 bytes of the file and verify they match a known image magic number.
+  // This prevents a file named "evil.exe" with type="image/jpeg" from being uploaded.
+  const validateImageMagicBytes = (file: File): Promise<boolean> =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const bytes = new Uint8Array(e.target?.result as ArrayBuffer);
+        const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+        const isPng  = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+        const isGif  = bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46;
+        const isWebP = bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+        resolve(isJpeg || isPng || isGif || isWebP);
+      };
+      reader.onerror = () => resolve(false);
+      reader.readAsArrayBuffer(file.slice(0, 12));
+    });
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -35,6 +52,12 @@ const ProfilePictureUpload = ({ userId, currentUrl, fullName, size = "md", onUpl
     }
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: "Image must be under 5MB", variant: "warning" });
+      return;
+    }
+
+    const isValidImage = await validateImageMagicBytes(file);
+    if (!isValidImage) {
+      toast({ title: "Invalid file", description: "File content does not match an image format.", variant: "destructive" });
       return;
     }
 

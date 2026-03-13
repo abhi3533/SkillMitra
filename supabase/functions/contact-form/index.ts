@@ -1,12 +1,14 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { getCorsHeaders } from "../_shared/cors.ts"
 
 const TIMEOUT_MS = 10000;
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] ?? c)
+  );
+}
 
 function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
   return Promise.race([
@@ -18,6 +20,7 @@ function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> 
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -104,14 +107,14 @@ Deno.serve(async (req) => {
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #1a1a1a; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">New Contact Message</h2>
                 <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555; width: 120px;">Name:</td><td style="padding: 8px 0; color: #1a1a1a;">${name}</td></tr>
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${email}" style="color: #6366f1;">${email}</a></td></tr>
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Phone:</td><td style="padding: 8px 0; color: #1a1a1a;">${phone || "Not provided"}</td></tr>
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Subject:</td><td style="padding: 8px 0; color: #1a1a1a;">${subject}</td></tr>
+                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555; width: 120px;">Name:</td><td style="padding: 8px 0; color: #1a1a1a;">${escapeHtml(name)}</td></tr>
+                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #6366f1;">${escapeHtml(email)}</a></td></tr>
+                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Phone:</td><td style="padding: 8px 0; color: #1a1a1a;">${escapeHtml(phone || "Not provided")}</td></tr>
+                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Subject:</td><td style="padding: 8px 0; color: #1a1a1a;">${escapeHtml(subject)}</td></tr>
                 </table>
                 <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px;">
                   <p style="font-weight: bold; color: #555; margin: 0 0 8px 0;">Message:</p>
-                  <p style="color: #1a1a1a; margin: 0; white-space: pre-wrap;">${message}</p>
+                  <p style="color: #1a1a1a; margin: 0; white-space: pre-wrap;">${escapeHtml(message)}</p>
                 </div>
               </div>
             `,
@@ -131,7 +134,7 @@ Deno.serve(async (req) => {
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #1a1a1a;">Thank you for contacting SkillMitra</h2>
-                <p style="color: #333; line-height: 1.6;">Dear ${name},</p>
+                <p style="color: #333; line-height: 1.6;">Dear ${escapeHtml(name)},</p>
                 <p style="color: #333; line-height: 1.6;">We have received your message and will respond within 24 hours.</p>
                 <p style="color: #333; line-height: 1.6;">If you have any urgent concerns, feel free to reach us directly at <a href="mailto:contact@skillmitra.online" style="color: #6366f1;">contact@skillmitra.online</a>.</p>
                 <p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team</p>

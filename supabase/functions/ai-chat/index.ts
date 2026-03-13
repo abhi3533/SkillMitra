@@ -1,10 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { getCorsHeaders } from "../_shared/cors.ts"
 
 const SYSTEM_PROMPT = `You are SkillMitra's friendly assistant. Help visitors find the right trainer, understand how the platform works, answer questions about pricing, courses, and the signup process.
 
@@ -28,6 +24,7 @@ If you cannot answer a question, say: "I'd love to help! Let me connect you with
 Keep responses short, friendly, and under 100 words. Use emojis sparingly for warmth.`;
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {

@@ -25,7 +25,10 @@ const StudentLogin = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectUrl = searchParams.get("redirect");
+  // Prevent open redirect: only allow relative paths starting with "/"
+  const rawRedirect = searchParams.get("redirect");
+  const redirectUrl =
+    rawRedirect && /^\/[^/\\]/.test(rawRedirect) ? rawRedirect : null;
   const { user, role } = useAuth();
 
   useEffect(() => {
@@ -70,7 +73,7 @@ const StudentLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const lockStatus = checkLoginLocked(email);
+    const lockStatus = await checkLoginLocked(email);
     if (lockStatus.locked) {
       setLocked(lockStatus);
       return;
@@ -103,7 +106,7 @@ const StudentLogin = () => {
           }
           // Auth errors (wrong password etc) — don't retry
           if (error.message?.includes("Invalid login") || error.message?.includes("invalid_credentials")) {
-            const result = recordFailedAttempt(email);
+            const result = await recordFailedAttempt(email);
             if (result.locked) {
               setLocked(result);
               setLoading(false);
@@ -117,7 +120,7 @@ const StudentLogin = () => {
           throw error;
         }
 
-        clearLoginAttempts(email);
+        await clearLoginAttempts(email);
         const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: data.user.id });
         if (redirectUrl && roleData === "student") navigate(redirectUrl);
         else if (roleData === "trainer") navigate("/trainer/dashboard");

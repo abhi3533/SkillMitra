@@ -1,10 +1,21 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://skillmitra.online",
+  "https://www.skillmitra.online",
+  "http://localhost:5173", // dev only
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") ?? "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "Vary": "Origin",
+  };
+}
 
 async function verifySignature(
   orderId: string,
@@ -29,6 +40,8 @@ async function verifySignature(
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -96,6 +109,23 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Verify the student_id from the request actually belongs to the authenticated user.
+    // This prevents IDOR: an attacker cannot supply another user's student_id to
+    // create an enrollment on their behalf after a single valid payment.
+    const userId = claimsData.claims.sub;
+    const { data: studentCheck, error: studentCheckErr } = await serviceClient
+      .from("students")
+      .select("id, user_id")
+      .eq("id", student_id)
+      .single();
+
+    if (studentCheckErr || !studentCheck || studentCheck.user_id !== userId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Update payment record
     await serviceClient
@@ -232,7 +262,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const userId = claimsData.claims.sub;
     await serviceClient.from("notifications").insert({
       user_id: userId,
       title: "Enrollment Confirmed! 🎉",

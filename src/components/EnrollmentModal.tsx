@@ -221,6 +221,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
             navigate(`/student/receipt/${verifyData.enrollment_id}`);
           } catch (err: any) {
             console.error("Verification error:", err);
+            setSubmitting(false);
             toast({ title: "Verification Issue", description: "Payment received but verification failed. Please contact support.", variant: "destructive" });
           }
         },

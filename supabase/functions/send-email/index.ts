@@ -1,8 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { getCorsHeaders } from "../_shared/cors.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] ?? c)
+  );
 }
 
 const BRAND_COLOR = '#1A56DB'
@@ -51,7 +53,7 @@ function btn(text: string, url: string): string {
 }
 
 function buildEmail(type: EmailType, data: Record<string, any>): { subject: string; html: string } {
-  const name = data.name || 'there'
+  const name = escapeHtml(String(data.name || 'there'))
 
   switch (type) {
     case 'trainer_approved':
@@ -77,7 +79,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">Thank you for applying to be a trainer on <strong>SkillMitra</strong>. After reviewing your application, we are unable to approve it at this time.</p>
           ${data.reason ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 16px 0;">
-            <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Reason:</strong> ${data.reason}</p>
+            <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Reason:</strong> ${escapeHtml(String(data.reason))}</p>
           </div>` : ''}
           <p style="font-size: 15px; line-height: 1.6; color: #444;">You are welcome to update your profile and re-apply. If you have questions, reach out via our contact page.</p>
         `)
@@ -221,6 +223,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }

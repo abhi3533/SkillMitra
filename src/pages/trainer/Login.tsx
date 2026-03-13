@@ -36,7 +36,7 @@ const TrainerLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const lockStatus = checkLoginLocked(email);
+    const lockStatus = await checkLoginLocked(email);
     if (lockStatus.locked) {
       setLocked(lockStatus);
       return;
@@ -63,7 +63,7 @@ const TrainerLogin = () => {
           setLoading(false);
           return;
         }
-        const result = recordFailedAttempt(email);
+        const result = await recordFailedAttempt(email);
         if (result.locked) {
           setLocked(result);
           setLoading(false);
@@ -72,7 +72,7 @@ const TrainerLogin = () => {
         throw error;
       }
 
-      clearLoginAttempts(email);
+      await clearLoginAttempts(email);
       toast({ title: "Signed in successfully", variant: "success" });
     } catch (err: any) {
       toast({ title: "Login failed", description: getAuthErrorMessage(err), variant: "destructive" });

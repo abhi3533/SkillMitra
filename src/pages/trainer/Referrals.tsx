@@ -164,20 +164,22 @@ const TrainerReferrals = () => {
           </div>
 
           {/* How it works */}
-          <div className="mt-6 bg-card rounded-xl border p-6">
+          <div className="mt-6 bg-card rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold text-foreground mb-4">How It Works</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-4">
               {[
                 { step: "1", title: "Share Your Link", desc: "Send your referral link to fellow professionals" },
                 { step: "2", title: "They Sign Up", desc: "They create a trainer account using your referral code" },
                 { step: "3", title: `Earn ₹${REWARD_AMOUNT}`, desc: `You get ₹${REWARD_AMOUNT} when they complete their first paid session` },
               ].map(s => (
-                <div key={s.step} className="text-center">
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mx-auto mb-3">
+                <div key={s.step} className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-0">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 sm:mx-auto sm:mb-3">
                     <span className="text-primary-foreground font-bold">{s.step}</span>
                   </div>
-                  <h4 className="font-semibold text-foreground text-sm">{s.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{s.desc}</p>
+                  <div>
+                    <h4 className="font-semibold text-foreground text-sm">{s.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1">{s.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>

@@ -351,11 +351,15 @@ const TrainerCourses = () => {
                 <Select value={form.language} onValueChange={v => setField("language", v)}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"].map(l => (
+                    {PRESET_LANGUAGES.map(l => (
                       <SelectItem key={l} value={l}>{l}</SelectItem>
                     ))}
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.language === "other" && (
+                  <Input value={form.custom_language} onChange={e => setField("custom_language", e.target.value)} className="mt-1.5" placeholder="Enter language" maxLength={50} />
+                )}
               </div>
               <div className="flex items-end gap-2 pb-1">
                 <Switch checked={form.has_free_trial} onCheckedChange={v => setField("has_free_trial", v)} id="trial" />

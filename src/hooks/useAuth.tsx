@@ -11,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   profile: any;
   signOut: () => Promise<void>;
+  updateProfile: (updates: Record<string, any>) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {} });

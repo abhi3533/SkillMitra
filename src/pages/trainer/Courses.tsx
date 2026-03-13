@@ -21,11 +21,17 @@ interface CurriculumWeek {
   sessionCount: string;
 }
 
+const PRESET_DURATIONS = ["30", "45", "90"];
+const PRESET_SESSION_DURATIONS = ["30", "45", "60", "90"];
+const PRESET_FREQUENCIES = ["daily", "3x/week", "2x/week", "weekly"];
+const PRESET_LANGUAGES = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"];
+
 const defaultForm = {
   title: "", description: "", duration_days: "30", total_sessions: "12",
   course_fee: "", language: "English", level: "beginner",
   session_duration_mins: "60", session_frequency: "3x/week",
   has_free_trial: true, what_you_learn: "", who_is_it_for: "",
+  custom_duration: "", custom_session_duration: "", custom_frequency: "", custom_language: "",
 };
 
 const TrainerCourses = () => {
@@ -64,19 +70,28 @@ const TrainerCourses = () => {
 
   const openEdit = async (course: any) => {
     setEditingCourse(course);
+    const durationVal = String(course.duration_days || 30);
+    const sessionDurVal = String(course.session_duration_mins || 60);
+    const freqVal = course.session_frequency || "3x/week";
+    const langVal = course.language || "English";
+
     setForm({
       title: course.title || "",
       description: course.description || "",
-      duration_days: String(course.duration_days || 30),
+      duration_days: PRESET_DURATIONS.includes(durationVal) ? durationVal : "custom",
       total_sessions: String(course.total_sessions || 12),
       course_fee: String(course.course_fee || ""),
-      language: course.language || "English",
+      language: PRESET_LANGUAGES.includes(langVal) ? langVal : "other",
       level: course.level || "beginner",
-      session_duration_mins: String(course.session_duration_mins || 60),
-      session_frequency: course.session_frequency || "3x/week",
+      session_duration_mins: PRESET_SESSION_DURATIONS.includes(sessionDurVal) ? sessionDurVal : "custom",
+      session_frequency: PRESET_FREQUENCIES.includes(freqVal) ? freqVal : "custom",
       has_free_trial: course.has_free_trial ?? true,
       what_you_learn: (course.what_you_learn || []).join("\n"),
       who_is_it_for: course.who_is_it_for || "",
+      custom_duration: PRESET_DURATIONS.includes(durationVal) ? "" : durationVal,
+      custom_session_duration: PRESET_SESSION_DURATIONS.includes(sessionDurVal) ? "" : sessionDurVal,
+      custom_frequency: PRESET_FREQUENCIES.includes(freqVal) ? "" : freqVal,
+      custom_language: PRESET_LANGUAGES.includes(langVal) ? "" : langVal,
     });
     // Load curriculum
     const { data: weeks } = await supabase.from("course_curriculum").select("*").eq("course_id", course.id).order("week_number", { ascending: true });
@@ -107,17 +122,27 @@ const TrainerCourses = () => {
 
     setCreating(true);
     try {
+      const resolvedDuration = form.duration_days === "custom" ? parseInt(form.custom_duration) : parseInt(form.duration_days);
+      const resolvedSessionDur = form.session_duration_mins === "custom" ? parseInt(form.custom_session_duration) : parseInt(form.session_duration_mins);
+      const resolvedFrequency = form.session_frequency === "custom" ? form.custom_frequency.trim() : form.session_frequency;
+      const resolvedLanguage = form.language === "other" ? form.custom_language.trim() : form.language;
+
+      if (!resolvedDuration || resolvedDuration < 1 || resolvedDuration > 365) { toast({ title: "Duration must be between 1 and 365 days", variant: "warning" }); setCreating(false); return; }
+      if (!resolvedSessionDur || resolvedSessionDur < 15 || resolvedSessionDur > 180) { toast({ title: "Session duration must be between 15 and 180 minutes", variant: "warning" }); setCreating(false); return; }
+      if (!resolvedFrequency) { toast({ title: "Frequency is required", variant: "warning" }); setCreating(false); return; }
+      if (!resolvedLanguage) { toast({ title: "Language is required", variant: "warning" }); setCreating(false); return; }
+
       const courseData = {
         trainer_id: trainerId,
         title: form.title.trim(),
         description: form.description.trim(),
-        duration_days: parseInt(form.duration_days),
+        duration_days: resolvedDuration,
         total_sessions: parseInt(form.total_sessions),
         course_fee: parseFloat(form.course_fee),
-        language: form.language,
+        language: resolvedLanguage,
         level: form.level,
-        session_duration_mins: parseInt(form.session_duration_mins),
-        session_frequency: form.session_frequency,
+        session_duration_mins: resolvedSessionDur,
+        session_frequency: resolvedFrequency,
         has_free_trial: form.has_free_trial,
         what_you_learn: form.what_you_learn.split("\n").map(l => l.trim()).filter(Boolean),
         who_is_it_for: form.who_is_it_for.trim(),
@@ -253,8 +278,12 @@ const TrainerCourses = () => {
                     <SelectItem value="30">30 days</SelectItem>
                     <SelectItem value="45">45 days</SelectItem>
                     <SelectItem value="90">90 days</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.duration_days === "custom" && (
+                  <Input type="number" value={form.custom_duration} onChange={e => setField("custom_duration", e.target.value)} className="mt-1.5" placeholder="Days (1-365)" min={1} max={365} />
+                )}
               </div>
               <div>
                 <Label>Total Sessions</Label>
@@ -271,8 +300,12 @@ const TrainerCourses = () => {
                     <SelectItem value="45">45 min</SelectItem>
                     <SelectItem value="60">60 min</SelectItem>
                     <SelectItem value="90">90 min</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.session_duration_mins === "custom" && (
+                  <Input type="number" value={form.custom_session_duration} onChange={e => setField("custom_session_duration", e.target.value)} className="mt-1.5" placeholder="Minutes (15-180)" min={15} max={180} />
+                )}
               </div>
               <div>
                 <Label>Frequency</Label>
@@ -283,8 +316,12 @@ const TrainerCourses = () => {
                     <SelectItem value="3x/week">3x / week</SelectItem>
                     <SelectItem value="2x/week">2x / week</SelectItem>
                     <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.session_frequency === "custom" && (
+                  <Input value={form.custom_frequency} onChange={e => setField("custom_frequency", e.target.value)} className="mt-1.5" placeholder="e.g. 4x/week, Weekends only" maxLength={50} />
+                )}
               </div>
             </div>
 
@@ -314,11 +351,15 @@ const TrainerCourses = () => {
                 <Select value={form.language} onValueChange={v => setField("language", v)}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"].map(l => (
+                    {PRESET_LANGUAGES.map(l => (
                       <SelectItem key={l} value={l}>{l}</SelectItem>
                     ))}
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+                {form.language === "other" && (
+                  <Input value={form.custom_language} onChange={e => setField("custom_language", e.target.value)} className="mt-1.5" placeholder="Enter language" maxLength={50} />
+                )}
               </div>
               <div className="flex items-end gap-2 pb-1">
                 <Switch checked={form.has_free_trial} onCheckedChange={v => setField("has_free_trial", v)} id="trial" />

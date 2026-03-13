@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check, Gift, Loader2, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Check, Gift, Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { getAuthErrorMessage } from "@/lib/authErrors";
 import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import { verifyPhoneWithOTP } from "@/lib/msg91";
 
 
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
@@ -31,6 +32,7 @@ const StudentSignup = () => {
   const [courseInterests, setCourseInterests] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [otherSelected, setOtherSelected] = useState(false);
   const [otherSkill, setOtherSkill] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -47,9 +49,11 @@ const StudentSignup = () => {
     setCourseInterests(prev => prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]);
   };
 
-  // Phone auto-clean
+  // Phone auto-clean — reset verification if number changes
   const handlePhoneChange = (val: string) => {
-    update("phone", cleanPhone(val));
+    const cleaned = cleanPhone(val);
+    update("phone", cleaned);
+    if (phoneVerified) setPhoneVerified(false);
   };
 
   // Email validation on blur
@@ -135,6 +139,13 @@ const StudentSignup = () => {
     }
     setLoading(true);
     try {
+      // Verify phone number via MSG91 OTP before creating account
+      if (!phoneVerified) {
+        toast({ title: "Verify your mobile number", description: "An OTP will be sent to your phone.", variant: "info" });
+        await verifyPhoneWithOTP(form.phone);
+        setPhoneVerified(true);
+      }
+
       const { data: signupData, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -275,11 +286,16 @@ const StudentSignup = () => {
                 <Label>Phone<RequiredMark /></Label>
                 <div className="relative">
                   <Input value={form.phone} onChange={e => handlePhoneChange(e.target.value)} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
-                    className={`mt-1.5 h-11 pr-8 ${touched.phone ? (isPhoneFilled ? "border-green-500" : (form.phone.length > 0 && !isPhoneValid ? "border-destructive" : (!form.phone ? "border-destructive" : ""))) : ""}`} required />
-                  {isPhoneFilled && <CheckCircle2 className="w-4 h-4 text-green-500 absolute right-3 top-1/2 mt-[3px] -translate-y-1/2" />}
+                    disabled={phoneVerified}
+                    className={`mt-1.5 h-11 pr-8 ${phoneVerified ? "border-green-500 bg-green-50" : touched.phone ? (isPhoneFilled ? "border-green-500" : (form.phone.length > 0 && !isPhoneValid ? "border-destructive" : (!form.phone ? "border-destructive" : ""))) : ""}`} required />
+                  {phoneVerified
+                    ? <ShieldCheck className="w-4 h-4 text-green-500 absolute right-3 top-1/2 mt-[3px] -translate-y-1/2" />
+                    : isPhoneFilled && <CheckCircle2 className="w-4 h-4 text-green-500 absolute right-3 top-1/2 mt-[3px] -translate-y-1/2" />
+                  }
                 </div>
-                {touched.phone && form.phone.length > 0 && !isPhoneFilled && <p className="text-xs text-destructive mt-1">Please enter a valid 10-digit Indian mobile number</p>}
-                {touched.phone && !form.phone && <p className="text-xs text-destructive mt-1">Phone number is required</p>}
+                {phoneVerified && <p className="text-xs text-green-600 mt-1 font-medium">Phone verified via OTP</p>}
+                {!phoneVerified && touched.phone && form.phone.length > 0 && !isPhoneFilled && <p className="text-xs text-destructive mt-1">Please enter a valid 10-digit Indian mobile number</p>}
+                {!phoneVerified && touched.phone && !form.phone && <p className="text-xs text-destructive mt-1">Phone number is required</p>}
               </div>
               <div>
                 <Label>Gender<RequiredMark /></Label>
@@ -416,7 +432,12 @@ const StudentSignup = () => {
             </div>
 
             <Button type="submit" disabled={loading || !isFormValid} className="w-full h-11 hero-gradient font-semibold border-0">
-              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : <>Create Account <ArrowRight className="ml-2 w-4 h-4" /></>}
+              {loading
+                ? phoneVerified
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</>
+                  : <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying phone...</>
+                : <>Create Account <ArrowRight className="ml-2 w-4 h-4" /></>
+              }
             </Button>
           </form>
 

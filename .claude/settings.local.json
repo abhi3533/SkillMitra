@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/abhil/SkillMitra -name \"*.ts\" -o -name \"*.tsx\" | xargs grep -l \"MSG91\\\\|msg91\" 2>/dev/null | head -20)",
+      "Bash(find /c/Users/abhil/SkillMitra -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) | xargs grep -l \"signInWithOtp\\\\|phoneNumber\\\\|phone.*password\\\\|sms\" 2>/dev/null | head -10)",
+      "Bash(find /c/Users/abhil/SkillMitra -type f -name \"*.json\" | xargs grep -l \"functions\\\\|supabase\" 2>/dev/null | head -5)",
+      "Bash(find /c/Users/abhil/SkillMitra/supabase/functions -type f -name \"*.ts\" | xargs grep -l \"sms\\\\|otp\\\\|OTP\\\\|SMS\" 2>/dev/null)",
+      "Bash(cd \"C:\\\\Users\\\\abhil\\\\SkillMitra\" && npm run build 2>&1 | tail -40)",
+      "Bash(cd \"C:\\\\Users\\\\abhil\\\\SkillMitra\" && npx tsc --noEmit 2>&1 | head -50)",
+      "Bash(cd \"C:\\\\Users\\\\abhil\\\\SkillMitra\" && node_modules/.bin/tsc --noEmit 2>&1 | head -60)",
+      "Bash(node_modules/.bin/tsc --noEmit 2>&1 | head -60)",
+      "Bash(cmd.exe /c \"dir C:\\\\Users\\\\abhil\\\\SkillMitra\\\\node_modules\\\\.bin\\\\tsc* 2>&1\" 2>&1 | head -10)",
+      "Bash(cmd.exe /c \"grep -n \\\\\"verifyPhoneWithOTP\\\\|phoneVerified\\\\|ShieldCheck\\\\\" C:\\\\Users\\\\abhil\\\\SkillMitra\\\\src\\\\pages\\\\student\\\\Signup.tsx\" 2>&1)",
+      "Bash(npx supabase:*)"
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone, Gift } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone, Gift, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { getAuthErrorMessage } from "@/lib/authErrors";
 import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import { verifyPhoneWithOTP } from "@/lib/msg91";
 
 
 const TrainerSignup = () => {
@@ -20,6 +21,7 @@ const TrainerSignup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [emailTypo, setEmailTypo] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -76,6 +78,13 @@ const TrainerSignup = () => {
 
     setLoading(true);
     try {
+      // Verify phone number via MSG91 OTP before creating account
+      if (!phoneVerified) {
+        toast({ title: "Verify your mobile number", description: "An OTP will be sent to your phone.", variant: "info" });
+        await verifyPhoneWithOTP(form.phone);
+        setPhoneVerified(true);
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -204,12 +213,23 @@ const TrainerSignup = () => {
 
             <div>
               <Label className="flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5" />
+                {phoneVerified ? <ShieldCheck className="w-3.5 h-3.5 text-green-500" /> : <Phone className="w-3.5 h-3.5" />}
                 Mobile Number<span className="text-destructive ml-0.5">*</span>
               </Label>
-              <Input value={form.phone} onChange={e => update("phone", cleanPhone(e.target.value))} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
-                className={`mt-1.5 h-11 ${touched.phone ? (isValidPhone(form.phone) ? "border-green-500" : "border-destructive") : ""}`} />
-              <p className="text-xs text-muted-foreground mt-1">Required for admin follow-up and verification</p>
+              <Input
+                value={form.phone}
+                onChange={e => { update("phone", cleanPhone(e.target.value)); if (phoneVerified) setPhoneVerified(false); }}
+                onBlur={() => markTouched("phone")}
+                placeholder="9876543210"
+                maxLength={10}
+                inputMode="numeric"
+                disabled={phoneVerified}
+                className={`mt-1.5 h-11 ${phoneVerified ? "border-green-500 bg-green-50" : touched.phone ? (isValidPhone(form.phone) ? "border-green-500" : "border-destructive") : ""}`}
+              />
+              {phoneVerified
+                ? <p className="text-xs text-green-600 mt-1 font-medium">Phone verified via OTP</p>
+                : <p className="text-xs text-muted-foreground mt-1">Required for admin follow-up and verification</p>
+              }
             </div>
 
             <div>
@@ -242,7 +262,12 @@ const TrainerSignup = () => {
             </div>
 
             <Button onClick={handleSubmit} disabled={loading} className="w-full h-11 hero-gradient border-0 font-semibold text-base">
-              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Account...</> : <>Create Account & Verify Email <ArrowRight className="ml-2 w-4 h-4" /></>}
+              {loading
+                ? phoneVerified
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Account...</>
+                  : <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying phone...</>
+                : <>Create Account & Verify Email <ArrowRight className="ml-2 w-4 h-4" /></>
+              }
             </Button>
           </div>
 

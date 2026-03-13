@@ -120,19 +120,19 @@ const TrainerReferrals = () => {
       ) : (
         <>
           {/* Referral Link */}
-          <div className="mt-6 bg-card rounded-xl border p-6">
+          <div className="mt-6 bg-card rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold text-foreground mb-1">Your Referral Link</h3>
             <p className="text-xs text-muted-foreground mb-3">When a referred trainer completes their first paid session, you earn ₹{REWARD_AMOUNT}</p>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate">
+              <div className="flex-1 min-w-0 bg-muted rounded-lg px-3 sm:px-4 py-3 text-xs sm:text-sm text-foreground font-mono truncate overflow-hidden">
                 {referralLink || "No code available"}
               </div>
-              <Button onClick={copyLink} variant="outline" size="icon"><Copy className="w-4 h-4" /></Button>
+              <Button onClick={copyLink} variant="outline" size="icon" className="shrink-0"><Copy className="w-4 h-4" /></Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               Your code: <span className="font-bold text-foreground font-mono">{referralCode}</span>
             </p>
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
               <Button onClick={shareWhatsApp} size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-sm">
                 <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
               </Button>

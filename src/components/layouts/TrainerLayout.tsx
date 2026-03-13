@@ -66,9 +66,13 @@ const TrainerLayout = ({ children }: { children: React.ReactNode }) => {
             </span>
           )}
         </Link>
-        <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-          <span className="text-accent text-xs font-bold">{profile?.full_name?.[0] || "T"}</span>
-        </div>
+        {profile?.profile_picture_url ? (
+          <img src={profile.profile_picture_url} alt={profile.full_name || "Trainer"} className="w-8 h-8 rounded-full object-cover" />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+            <span className="text-accent text-xs font-bold">{profile?.full_name?.[0] || "T"}</span>
+          </div>
+        )}
       </header>
 
       <div className="flex pt-16">

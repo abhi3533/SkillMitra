@@ -12,7 +12,7 @@ import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { useToast } from "@/hooks/use-toast";
 
 const TrainerMyProfile = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -162,7 +162,7 @@ const TrainerMyProfile = () => {
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <Camera className="w-4 h-4 text-primary" /> Profile Picture
           </h2>
-          <ProfilePictureUpload userId={user?.id || ""} currentUrl={profileData?.profile_picture_url || null} fullName={form.full_name} />
+          <ProfilePictureUpload userId={user?.id || ""} currentUrl={profileData?.profile_picture_url || null} fullName={form.full_name} onUpload={(url) => { setProfileData((p: any) => ({ ...p, profile_picture_url: url })); updateProfile({ profile_picture_url: url }); }} />
         </div>
 
         {/* Personal Info */}

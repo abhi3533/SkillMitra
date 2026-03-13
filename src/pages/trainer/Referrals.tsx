@@ -120,19 +120,19 @@ const TrainerReferrals = () => {
       ) : (
         <>
           {/* Referral Link */}
-          <div className="mt-6 bg-card rounded-xl border p-6">
+          <div className="mt-6 bg-card rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold text-foreground mb-1">Your Referral Link</h3>
             <p className="text-xs text-muted-foreground mb-3">When a referred trainer completes their first paid session, you earn ₹{REWARD_AMOUNT}</p>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-sm text-foreground font-mono truncate">
+              <div className="flex-1 min-w-0 bg-muted rounded-lg px-3 sm:px-4 py-3 text-xs sm:text-sm text-foreground font-mono truncate overflow-hidden">
                 {referralLink || "No code available"}
               </div>
-              <Button onClick={copyLink} variant="outline" size="icon"><Copy className="w-4 h-4" /></Button>
+              <Button onClick={copyLink} variant="outline" size="icon" className="shrink-0"><Copy className="w-4 h-4" /></Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               Your code: <span className="font-bold text-foreground font-mono">{referralCode}</span>
             </p>
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
               <Button onClick={shareWhatsApp} size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-sm">
                 <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
               </Button>
@@ -146,45 +146,47 @@ const TrainerReferrals = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 mt-6">
             {[
               { label: "Referred", value: String(referrals.length), icon: Users, color: "bg-primary/10 text-primary" },
               { label: "Earned", value: `₹${totalPaid.toLocaleString("en-IN")}`, icon: Gift, color: "bg-emerald-50 text-emerald-600" },
               { label: "Pending", value: `₹${totalPending.toLocaleString("en-IN")}`, icon: Clock, color: "bg-amber-50 text-amber-600" },
               { label: "Wallet", value: `₹${walletBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-primary/10 text-primary" },
             ].map(s => (
-              <div key={s.label} className="bg-card rounded-xl border p-4 text-center">
-                <div className={`w-9 h-9 rounded-lg ${s.color} flex items-center justify-center mx-auto mb-2`}>
+              <div key={s.label} className="bg-card rounded-xl border p-3 sm:p-4 text-center">
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg ${s.color} flex items-center justify-center mx-auto mb-2`}>
                   <s.icon className="w-4 h-4" />
                 </div>
-                <p className="text-lg font-bold text-foreground">{s.value}</p>
+                <p className="text-base sm:text-lg font-bold text-foreground truncate">{s.value}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
 
           {/* How it works */}
-          <div className="mt-6 bg-card rounded-xl border p-6">
+          <div className="mt-6 bg-card rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold text-foreground mb-4">How It Works</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-4">
               {[
                 { step: "1", title: "Share Your Link", desc: "Send your referral link to fellow professionals" },
                 { step: "2", title: "They Sign Up", desc: "They create a trainer account using your referral code" },
                 { step: "3", title: `Earn ₹${REWARD_AMOUNT}`, desc: `You get ₹${REWARD_AMOUNT} when they complete their first paid session` },
               ].map(s => (
-                <div key={s.step} className="text-center">
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mx-auto mb-3">
+                <div key={s.step} className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-0">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 sm:mx-auto sm:mb-3">
                     <span className="text-primary-foreground font-bold">{s.step}</span>
                   </div>
-                  <h4 className="font-semibold text-foreground text-sm">{s.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{s.desc}</p>
+                  <div>
+                    <h4 className="font-semibold text-foreground text-sm">{s.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1">{s.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Referred Trainers */}
-          <div className="mt-6 bg-card rounded-xl border p-6">
+          <div className="mt-6 bg-card rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold text-foreground mb-4">Referred Trainers</h3>
             {referrals.length === 0 ? (
               <div className="text-center py-8">
@@ -195,19 +197,19 @@ const TrainerReferrals = () => {
             ) : (
               <div className="space-y-2">
                 {referrals.map(r => (
-                  <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div key={r.id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <span className="text-primary font-bold text-xs">{(r.referred_name || "T")[0]}</span>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{r.referred_name || "Trainer"}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{r.referred_name || "Trainer"}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDateIST(r.referred_date || r.created_at)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <p className="text-sm font-semibold text-foreground">₹{r.reward_amount}</p>
                       <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${getStatusBadge(r.status)}`}>
                         {r.status}

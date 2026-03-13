@@ -11,9 +11,10 @@ interface AuthContextType {
   loading: boolean;
   profile: any;
   signOut: () => Promise<void>;
+  updateProfile: (updates: Record<string, any>) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {} });
+const AuthContext = createContext<AuthContextType>({ user: null, session: null, role: null, loading: true, profile: null, signOut: async () => {}, updateProfile: () => {} });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -31,6 +32,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
     setProfile(null);
   };
+
+  const updateProfile = useCallback((updates: Record<string, any>) => {
+    setProfile((prev: any) => prev ? { ...prev, ...updates } : updates);
+  }, []);
 
   const fetchUserData = useCallback(async (currentSession: Session | null) => {
     if (!currentSession?.user) {
@@ -104,7 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchUserData]);
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, profile, signOut: handleSignOut }}>
+    <AuthContext.Provider value={{ user, session, role, loading, profile, signOut: handleSignOut, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

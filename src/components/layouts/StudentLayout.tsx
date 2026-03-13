@@ -93,7 +93,7 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </aside>
 
-        <main className="flex-1 p-4 lg:p-8 pb-20 lg:pb-8 min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 p-4 lg:p-8 pb-40 lg:pb-8 min-h-[calc(100vh-4rem)]">
           {children}
         </main>
       </div>

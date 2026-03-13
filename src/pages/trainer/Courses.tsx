@@ -122,17 +122,27 @@ const TrainerCourses = () => {
 
     setCreating(true);
     try {
+      const resolvedDuration = form.duration_days === "custom" ? parseInt(form.custom_duration) : parseInt(form.duration_days);
+      const resolvedSessionDur = form.session_duration_mins === "custom" ? parseInt(form.custom_session_duration) : parseInt(form.session_duration_mins);
+      const resolvedFrequency = form.session_frequency === "custom" ? form.custom_frequency.trim() : form.session_frequency;
+      const resolvedLanguage = form.language === "other" ? form.custom_language.trim() : form.language;
+
+      if (!resolvedDuration || resolvedDuration < 1 || resolvedDuration > 365) { toast({ title: "Duration must be between 1 and 365 days", variant: "warning" }); setCreating(false); return; }
+      if (!resolvedSessionDur || resolvedSessionDur < 15 || resolvedSessionDur > 180) { toast({ title: "Session duration must be between 15 and 180 minutes", variant: "warning" }); setCreating(false); return; }
+      if (!resolvedFrequency) { toast({ title: "Frequency is required", variant: "warning" }); setCreating(false); return; }
+      if (!resolvedLanguage) { toast({ title: "Language is required", variant: "warning" }); setCreating(false); return; }
+
       const courseData = {
         trainer_id: trainerId,
         title: form.title.trim(),
         description: form.description.trim(),
-        duration_days: parseInt(form.duration_days),
+        duration_days: resolvedDuration,
         total_sessions: parseInt(form.total_sessions),
         course_fee: parseFloat(form.course_fee),
-        language: form.language,
+        language: resolvedLanguage,
         level: form.level,
-        session_duration_mins: parseInt(form.session_duration_mins),
-        session_frequency: form.session_frequency,
+        session_duration_mins: resolvedSessionDur,
+        session_frequency: resolvedFrequency,
         has_free_trial: form.has_free_trial,
         what_you_learn: form.what_you_learn.split("\n").map(l => l.trim()).filter(Boolean),
         who_is_it_for: form.who_is_it_for.trim(),

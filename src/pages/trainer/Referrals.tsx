@@ -186,7 +186,7 @@ const TrainerReferrals = () => {
           </div>
 
           {/* Referred Trainers */}
-          <div className="mt-6 bg-card rounded-xl border p-6">
+          <div className="mt-6 bg-card rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold text-foreground mb-4">Referred Trainers</h3>
             {referrals.length === 0 ? (
               <div className="text-center py-8">
@@ -197,19 +197,19 @@ const TrainerReferrals = () => {
             ) : (
               <div className="space-y-2">
                 {referrals.map(r => (
-                  <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div key={r.id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <span className="text-primary font-bold text-xs">{(r.referred_name || "T")[0]}</span>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{r.referred_name || "Trainer"}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{r.referred_name || "Trainer"}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDateIST(r.referred_date || r.created_at)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <p className="text-sm font-semibold text-foreground">₹{r.reward_amount}</p>
                       <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${getStatusBadge(r.status)}`}>
                         {r.status}

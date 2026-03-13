@@ -70,19 +70,28 @@ const TrainerCourses = () => {
 
   const openEdit = async (course: any) => {
     setEditingCourse(course);
+    const durationVal = String(course.duration_days || 30);
+    const sessionDurVal = String(course.session_duration_mins || 60);
+    const freqVal = course.session_frequency || "3x/week";
+    const langVal = course.language || "English";
+
     setForm({
       title: course.title || "",
       description: course.description || "",
-      duration_days: String(course.duration_days || 30),
+      duration_days: PRESET_DURATIONS.includes(durationVal) ? durationVal : "custom",
       total_sessions: String(course.total_sessions || 12),
       course_fee: String(course.course_fee || ""),
-      language: course.language || "English",
+      language: PRESET_LANGUAGES.includes(langVal) ? langVal : "other",
       level: course.level || "beginner",
-      session_duration_mins: String(course.session_duration_mins || 60),
-      session_frequency: course.session_frequency || "3x/week",
+      session_duration_mins: PRESET_SESSION_DURATIONS.includes(sessionDurVal) ? sessionDurVal : "custom",
+      session_frequency: PRESET_FREQUENCIES.includes(freqVal) ? freqVal : "custom",
       has_free_trial: course.has_free_trial ?? true,
       what_you_learn: (course.what_you_learn || []).join("\n"),
       who_is_it_for: course.who_is_it_for || "",
+      custom_duration: PRESET_DURATIONS.includes(durationVal) ? "" : durationVal,
+      custom_session_duration: PRESET_SESSION_DURATIONS.includes(sessionDurVal) ? "" : sessionDurVal,
+      custom_frequency: PRESET_FREQUENCIES.includes(freqVal) ? "" : freqVal,
+      custom_language: PRESET_LANGUAGES.includes(langVal) ? "" : langVal,
     });
     // Load curriculum
     const { data: weeks } = await supabase.from("course_curriculum").select("*").eq("course_id", course.id).order("week_number", { ascending: true });

@@ -390,6 +390,45 @@ const StudentDashboard = () => {
       {/* Referral Leaderboard */}
       {studentId && <ReferralLeaderboardWidget currentStudentId={studentId} />}
 
+      {/* Referral Code Widget */}
+      {data.referralCode && (
+        <div className="mt-6 bg-card rounded-xl border p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Gift className="w-4 h-4 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">Your Referral Code</h2>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-sm font-mono font-semibold text-foreground truncate">
+                {data.referralCode}
+              </div>
+              <Button variant="outline" size="icon" className="shrink-0" onClick={() => {
+                navigator.clipboard.writeText(data.referralCode);
+                toast({ title: "Copied!", description: "Referral code copied", variant: "success" as any });
+              }}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-xs font-mono text-muted-foreground truncate">
+                https://skillmitra.online/student/signup?ref={data.referralCode}
+              </div>
+              <Button variant="outline" size="icon" className="shrink-0" onClick={() => {
+                navigator.clipboard.writeText(`https://skillmitra.online/student/signup?ref=${data.referralCode}`);
+                toast({ title: "Copied!", description: "Referral link copied", variant: "success" as any });
+              }}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+            <Link to="/student/referrals">
+              <Button variant="outline" size="sm" className="text-xs gap-1.5 w-full">
+                <Share2 className="w-3.5 h-3.5" /> View Referral Dashboard
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="mt-6 bg-card rounded-xl border p-5">
         <h2 className="text-base font-semibold text-foreground mb-3">Quick Actions</h2>

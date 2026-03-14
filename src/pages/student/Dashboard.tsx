@@ -20,6 +20,7 @@ import { RefreshCw } from "lucide-react";
 
 const StudentDashboard = () => {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     activeCourses: 0, sessionsDone: 0, totalSessions: 0,

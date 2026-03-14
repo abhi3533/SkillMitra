@@ -28,6 +28,7 @@ const StudentDashboard = () => {
     enrollments: [] as any[], sessions: [] as any[], unratedSessions: [] as any[],
     certificates: 0, referralCredits: 0, walletBalance: 0,
     attendancePercent: null as number | null,
+    referralCode: "" as string,
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
   const [studentId, setStudentId] = useState<string | null>(null);

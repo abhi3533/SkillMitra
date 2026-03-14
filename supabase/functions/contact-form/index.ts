@@ -102,19 +102,28 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from: "SkillMitra <contact@skillmitra.online>",
             to: ["contact@skillmitra.online"],
-            subject: `New Contact: ${subject}`,
+            subject: `New Contact: ${escapeHtml(subject)}`,
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #1a1a1a; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">New Contact Message</h2>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555; width: 120px;">Name:</td><td style="padding: 8px 0; color: #1a1a1a;">${escapeHtml(name)}</td></tr>
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #6366f1;">${escapeHtml(email)}</a></td></tr>
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Phone:</td><td style="padding: 8px 0; color: #1a1a1a;">${escapeHtml(phone || "Not provided")}</td></tr>
-                  <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Subject:</td><td style="padding: 8px 0; color: #1a1a1a;">${escapeHtml(subject)}</td></tr>
-                </table>
-                <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px;">
-                  <p style="font-weight: bold; color: #555; margin: 0 0 8px 0;">Message:</p>
-                  <p style="color: #1a1a1a; margin: 0; white-space: pre-wrap;">${escapeHtml(message)}</p>
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden;">
+                <div style="background: #1A56DB; padding: 24px 32px; text-align: center;">
+                  <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">Skill<span style="color: rgba(255,255,255,0.8);">Mitra</span></h2>
+                  <p style="margin: 4px 0 0; font-size: 12px; color: rgba(255,255,255,0.7);">Contact Form Submission</p>
+                </div>
+                <div style="padding: 28px 32px;">
+                  <h3 style="margin: 0 0 16px; font-size: 18px; color: #0F172A;">New Message Received</h3>
+                  <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+                    <tr><td style="padding: 8px 0; font-weight: 600; color: #64748B; width: 100px; vertical-align: top;">Name:</td><td style="padding: 8px 0; color: #0F172A;">${escapeHtml(name)}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: 600; color: #64748B; vertical-align: top;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #1A56DB;">${escapeHtml(email)}</a></td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: 600; color: #64748B; vertical-align: top;">Phone:</td><td style="padding: 8px 0; color: #0F172A;">${escapeHtml(phone || "Not provided")}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: 600; color: #64748B; vertical-align: top;">Subject:</td><td style="padding: 8px 0; color: #0F172A;">${escapeHtml(subject)}</td></tr>
+                  </table>
+                  <div style="margin-top: 16px; padding: 16px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    <p style="font-weight: 600; color: #64748B; margin: 0 0 8px; font-size: 13px;">Message:</p>
+                    <p style="color: #0F172A; margin: 0; white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${escapeHtml(message)}</p>
+                  </div>
+                </div>
+                <div style="padding: 16px 32px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                  <p style="font-size: 12px; color: #9ca3af; margin: 0;">SkillMitra · <a href="https://skillmitra.online" style="color: #9ca3af;">skillmitra.online</a></p>
                 </div>
               </div>
             `,
@@ -130,14 +139,24 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from: "SkillMitra <contact@skillmitra.online>",
             to: [email],
-            subject: "Thank you for contacting SkillMitra",
+            subject: "We've received your message — SkillMitra",
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #1a1a1a;">Thank you for contacting SkillMitra</h2>
-                <p style="color: #333; line-height: 1.6;">Dear ${escapeHtml(name)},</p>
-                <p style="color: #333; line-height: 1.6;">We have received your message and will respond within 24 hours.</p>
-                <p style="color: #333; line-height: 1.6;">If you have any urgent concerns, feel free to reach us directly at <a href="mailto:contact@skillmitra.online" style="color: #6366f1;">contact@skillmitra.online</a>.</p>
-                <p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team</p>
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden;">
+                <div style="background: #1A56DB; padding: 24px 32px; text-align: center;">
+                  <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">Skill<span style="color: rgba(255,255,255,0.8);">Mitra</span></h2>
+                  <p style="margin: 4px 0 0; font-size: 12px; color: rgba(255,255,255,0.7);">Learn. Grow. Excel.</p>
+                </div>
+                <div style="padding: 32px 32px 24px;">
+                  <h3 style="margin: 0 0 16px; font-size: 20px; color: #0F172A;">Thanks for reaching out, ${escapeHtml(name)}!</h3>
+                  <p style="font-size: 15px; color: #64748B; line-height: 1.6; margin: 0 0 16px;">We've received your message and will get back to you within <strong>24 hours</strong>.</p>
+                  <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                    <p style="font-size: 13px; color: #1A56DB; margin: 0; font-weight: 600;">Your subject: ${escapeHtml(subject)}</p>
+                  </div>
+                  <p style="font-size: 14px; color: #64748B; line-height: 1.6; margin: 16px 0 0;">For urgent matters, email us directly at <a href="mailto:contact@skillmitra.online" style="color: #1A56DB;">contact@skillmitra.online</a>.</p>
+                </div>
+                <div style="padding: 16px 32px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                  <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} SkillMitra · <a href="https://skillmitra.online" style="color: #9ca3af;">skillmitra.online</a> · <a href="https://skillmitra.online/privacy" style="color: #9ca3af;">Privacy</a></p>
+                </div>
               </div>
             `,
           }),

@@ -45,7 +45,7 @@ const TrainerDashboard = () => {
 
       const [enrollActive, enrollAll, sessAll, sessCompleted, sessUpcoming, earningsRes, todayRes, reviewsRes, coursesRes, notifRes, walletRes] = await Promise.all([
         supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "active"),
-        supabase.from("enrollments").select("*, courses(title), students(id, user_id, profiles(full_name))").eq("trainer_id", trainer.id).order("enrollment_date", { ascending: false }).limit(5),
+        supabase.from("enrollments").select("*, courses(title), students(id, user_id)").eq("trainer_id", trainer.id).order("enrollment_date", { ascending: false }).limit(5),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "completed"),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "upcoming"),

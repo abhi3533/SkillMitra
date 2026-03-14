@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 import { isDemo, getDemoTrainer, getDemoCourse, demoTestimonials, demoTrainers } from "@/lib/demoData";
 import { usePageMeta } from "@/hooks/usePageMeta";
@@ -678,7 +679,7 @@ const TrainerProfile = () => {
       <Dialog open={showAuthPrompt} onOpenChange={setShowAuthPrompt}>
         <DialogContent className="max-w-sm text-center bg-background shadow-xl border">
           <div className="flex flex-col items-center gap-5 py-4">
-            <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-10 object-contain" />
+            <SkillMitraLogo darkText height={40} linkTo="" />
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-foreground">Join SkillMitra to Get Started</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">

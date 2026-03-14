@@ -350,7 +350,7 @@ const TrainerDashboard = () => {
                   <div key={r.id} className="p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-foreground">{r.studentName}</span>
-                      <span className="text-amber-500 text-xs">{"★".repeat(r.student_to_trainer_rating || 0)}{"☆".repeat(5 - (r.student_to_trainer_rating || 0))}</span>
+                      <span className="text-accent text-xs">{"★".repeat(r.student_to_trainer_rating || 0)}{"☆".repeat(5 - (r.student_to_trainer_rating || 0))}</span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">{r.student_review_text || r.student_to_trainer_review || "No comment"}</p>
                   </div>

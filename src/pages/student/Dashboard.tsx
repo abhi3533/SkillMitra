@@ -111,6 +111,7 @@ const StudentDashboard = () => {
       referralCredits: Number(student.referral_credits) || 0,
       walletBalance: Number(walletRes.data?.balance) || 0,
       attendancePercent,
+      referralCode,
     });
 
     // Fetch recommended trainers based on course interests

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { formatDateTimeIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages } from "lucide-react";
+import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages, Copy, Share2, Gift } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ import { RefreshCw } from "lucide-react";
 
 const StudentDashboard = () => {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     activeCourses: 0, sessionsDone: 0, totalSessions: 0,
@@ -26,6 +28,7 @@ const StudentDashboard = () => {
     enrollments: [] as any[], sessions: [] as any[], unratedSessions: [] as any[],
     certificates: 0, referralCredits: 0, walletBalance: 0,
     attendancePercent: null as number | null,
+    referralCode: "" as string,
   });
   const [ratingModal, setRatingModal] = useState<any>(null);
   const [studentId, setStudentId] = useState<string | null>(null);
@@ -34,9 +37,18 @@ const StudentDashboard = () => {
 
   const fetchDashboard = useCallback(async () => {
     if (!user) return;
-    const { data: student } = await supabase.from("students").select("id, referral_credits, course_interests, trainer_gender_preference").eq("user_id", user.id).maybeSingle();
+    const { data: student } = await supabase.from("students").select("id, referral_credits, referral_code, course_interests, trainer_gender_preference").eq("user_id", user.id).maybeSingle();
     if (!student) { setLoading(false); return; }
     setStudentId(student.id);
+
+    // Auto-generate referral code if missing
+    let referralCode = student.referral_code || "";
+    if (!referralCode) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      referralCode = "SM-";
+      for (let i = 0; i < 6; i++) referralCode += chars[Math.floor(Math.random() * chars.length)];
+      await supabase.from("students").update({ referral_code: referralCode }).eq("id", student.id);
+    }
 
     const [enrollRes, aiRes, resumeRes, completedSessions, certsRes, upcomingSessions, walletRes] = await Promise.all([
       supabase.from("enrollments").select("*, courses(title, total_sessions)").eq("student_id", student.id).eq("status", "active"),
@@ -99,6 +111,7 @@ const StudentDashboard = () => {
       referralCredits: Number(student.referral_credits) || 0,
       walletBalance: Number(walletRes.data?.balance) || 0,
       attendancePercent,
+      referralCode,
     });
 
     // Fetch recommended trainers based on course interests
@@ -376,6 +389,45 @@ const StudentDashboard = () => {
 
       {/* Referral Leaderboard */}
       {studentId && <ReferralLeaderboardWidget currentStudentId={studentId} />}
+
+      {/* Referral Code Widget */}
+      {data.referralCode && (
+        <div className="mt-6 bg-card rounded-xl border p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Gift className="w-4 h-4 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">Your Referral Code</h2>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-sm font-mono font-semibold text-foreground truncate">
+                {data.referralCode}
+              </div>
+              <Button variant="outline" size="icon" className="shrink-0" onClick={() => {
+                navigator.clipboard.writeText(data.referralCode);
+                toast({ title: "Copied!", description: "Referral code copied", variant: "success" as any });
+              }}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-xs font-mono text-muted-foreground truncate">
+                https://skillmitra.online/student/signup?ref={data.referralCode}
+              </div>
+              <Button variant="outline" size="icon" className="shrink-0" onClick={() => {
+                navigator.clipboard.writeText(`https://skillmitra.online/student/signup?ref=${data.referralCode}`);
+                toast({ title: "Copied!", description: "Referral link copied", variant: "success" as any });
+              }}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+            <Link to="/student/referrals">
+              <Button variant="outline" size="sm" className="text-xs gap-1.5 w-full">
+                <Share2 className="w-3.5 h-3.5" /> View Referral Dashboard
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="mt-6 bg-card rounded-xl border p-5">

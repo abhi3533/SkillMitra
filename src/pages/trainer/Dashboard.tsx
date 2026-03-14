@@ -45,7 +45,7 @@ const TrainerDashboard = () => {
 
       const [enrollActive, enrollAll, sessAll, sessCompleted, sessUpcoming, earningsRes, todayRes, reviewsRes, coursesRes, notifRes, walletRes] = await Promise.all([
         supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "active"),
-        supabase.from("enrollments").select("*, courses(title), students(id, user_id, profiles(full_name))").eq("trainer_id", trainer.id).order("enrollment_date", { ascending: false }).limit(5),
+        supabase.from("enrollments").select("*, courses(title), students(id, user_id)").eq("trainer_id", trainer.id).order("enrollment_date", { ascending: false }).limit(5),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "completed"),
         supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id).eq("status", "upcoming"),
@@ -85,13 +85,14 @@ const TrainerDashboard = () => {
         }
       }
 
-      // Enrich recent enrollments — profile is already joined via students(profiles(full_name)),
-      // so no additional round-trip is needed.
+      // Enrich recent enrollments with student names
       let enrichedEnrollments: any[] = [];
       if (enrollAll.data && enrollAll.data.length > 0) {
+        const studentUserIds = enrollAll.data.map((e: any) => e.students?.user_id).filter(Boolean);
+        const enrollProfileMap = await fetchProfilesMap(studentUserIds);
         enrichedEnrollments = enrollAll.data.map(e => ({
           ...e,
-          studentName: e.students?.profiles?.full_name || "Student",
+          studentName: enrollProfileMap[e.students?.user_id]?.full_name || "Student",
         }));
       }
 
@@ -198,8 +199,8 @@ const TrainerDashboard = () => {
 
       {/* Approval Status Banner */}
       {data.approvalStatus === "pending" && !loading && (
-        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="mt-4 bg-accent/10 border border-accent/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-accent shrink-0 mt-0.5" />
           <div>
             <h3 className="text-sm font-semibold text-foreground">Your application is being reviewed</h3>
             <p className="text-xs text-muted-foreground mt-0.5">We're reviewing your profile. You'll get a notification once it's approved.</p>
@@ -349,7 +350,7 @@ const TrainerDashboard = () => {
                   <div key={r.id} className="p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-foreground">{r.studentName}</span>
-                      <span className="text-amber-500 text-xs">{"★".repeat(r.student_to_trainer_rating || 0)}{"☆".repeat(5 - (r.student_to_trainer_rating || 0))}</span>
+                      <span className="text-accent text-xs">{"★".repeat(r.student_to_trainer_rating || 0)}{"☆".repeat(5 - (r.student_to_trainer_rating || 0))}</span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">{r.student_review_text || r.student_to_trainer_review || "No comment"}</p>
                   </div>

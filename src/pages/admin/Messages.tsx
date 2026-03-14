@@ -55,7 +55,7 @@ const AdminMessages = () => {
               <h2 style="color: #1a1a1a;">Reply from SkillMitra</h2>
               <p style="color: #333; line-height: 1.6;">Dear ${selectedMessage.name},</p>
               <div style="color: #333; line-height: 1.6; white-space: pre-wrap;">${replyText}</div>
-              <p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team<br/><a href="mailto:contact@skillmitra.online" style="color: #6366f1;">contact@skillmitra.online</a></p>
+              <p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team<br/><p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team<br/><a href="mailto:contact@skillmitra.online" style="color: #1A56DB;">contact@skillmitra.online</a></p></p>
             </div>
           `,
         },

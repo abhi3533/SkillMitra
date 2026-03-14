@@ -38,7 +38,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
           body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1a1a1a; background: #fff; padding: 40px; }
           .receipt { max-width: 640px; margin: 0 auto; }
           .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 24px; }
-          .logo-section h1 { font-size: 22px; font-weight: 800; color: #7c3aed; }
+          .logo-section h1 { font-size: 22px; font-weight: 800; color: #1A56DB; }
           .logo-section p { font-size: 11px; color: #6b7280; margin-top: 2px; }
           .receipt-meta { text-align: right; }
           .receipt-meta .receipt-title { font-size: 18px; font-weight: 700; color: #1a1a1a; }
@@ -57,7 +57,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
           .total-row td { border-bottom: none; border-top: 2px solid #e5e7eb; font-weight: 700; font-size: 15px; padding-top: 12px; }
           .footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; }
           .footer p { font-size: 11px; color: #9ca3af; line-height: 1.6; }
-          .footer a { color: #7c3aed; text-decoration: none; }
+          .footer a { color: #1A56DB; text-decoration: none; }
           @media print { body { padding: 20px; } .no-print { display: none !important; } }
         </style>
       </head>
@@ -96,7 +96,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
           <div className="text-right">
             <p className="text-lg font-bold text-foreground">RECEIPT</p>
             <p className="text-xs text-muted-foreground mt-1">#{data.receiptNumber}</p>
-            <span className="inline-block mt-1.5 bg-green-500/10 text-green-600 text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+            <span className="inline-block mt-1.5 bg-success/10 text-success text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
               <CheckCircle2 className="w-3 h-3 inline mr-1 -mt-0.5" />
               {data.enrollmentStatus === "trial" ? "Trial" : "Paid"}
             </span>

@@ -148,10 +148,43 @@ serve(async (req) => {
     }
 
     if (role === "student" && student_data) {
+      // Check if the student row already has a referral_code; generate one if not.
+      const { data: studentRow } = await supabaseAdmin
+        .from("students")
+        .select("referral_code")
+        .eq("user_id", user_id)
+        .single();
+
+      const updates: Record<string, unknown> = {};
+
+      if (!studentRow?.referral_code) {
+        // Generate a unique referral code, retrying on the rare collision.
+        let referralCode: string | null = null;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const candidate =
+            "SM-" +
+            Math.random().toString(36).toUpperCase().slice(2, 8);
+          const { data: existing } = await supabaseAdmin
+            .from("students")
+            .select("id")
+            .eq("referral_code", candidate)
+            .maybeSingle();
+          if (!existing) {
+            referralCode = candidate;
+            break;
+          }
+        }
+        if (referralCode) updates.referral_code = referralCode;
+      }
+
       if (student_data.course_interests && student_data.course_interests.length > 0) {
+        updates.course_interests = student_data.course_interests;
+      }
+
+      if (Object.keys(updates).length > 0) {
         const { error: updateErr } = await supabaseAdmin
           .from("students")
-          .update({ course_interests: student_data.course_interests })
+          .update(updates)
           .eq("user_id", user_id);
         if (updateErr) console.error("Student update failed:", updateErr);
       }

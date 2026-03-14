@@ -62,7 +62,30 @@ Deno.serve(async (req) => {
 
     const attempts = Math.max(emailCount ?? 0, ipCount ?? 0);
     const locked = attempts >= MAX_ATTEMPTS;
-    const minutesLeft = locked ? LOCKOUT_MINUTES : 0;
+
+    // Calculate actual minutes remaining based on when the oldest attempt in the
+    // window will expire, not a static LOCKOUT_MINUTES. This ensures the countdown
+    // decreases and the lockout genuinely lifts after 15 minutes.
+    let minutesLeft = 0;
+    if (locked) {
+      const { data: oldest } = await serviceClient
+        .from("login_attempts")
+        .select("attempted_at")
+        .eq("email", normalizedEmail)
+        .gte("attempted_at", windowStart)
+        .order("attempted_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (oldest?.attempted_at) {
+        const expiresAt =
+          new Date(oldest.attempted_at).getTime() +
+          LOCKOUT_MINUTES * 60 * 1000;
+        minutesLeft = Math.max(1, Math.ceil((expiresAt - Date.now()) / 60_000));
+      } else {
+        minutesLeft = LOCKOUT_MINUTES;
+      }
+    }
 
     if (action === "record") {
       // Purge stale records first (keep table small)
@@ -71,9 +94,13 @@ Deno.serve(async (req) => {
         .delete()
         .lt("attempted_at", new Date(Date.now() - 60 * 60 * 1000).toISOString());
 
-      await serviceClient
-        .from("login_attempts")
-        .insert({ email: normalizedEmail, ip_address: ip });
+      // Do NOT insert a new record when already locked — doing so would push the
+      // oldest-attempt timestamp forward and extend the lockout indefinitely.
+      if (!locked) {
+        await serviceClient
+          .from("login_attempts")
+          .insert({ email: normalizedEmail, ip_address: ip });
+      }
     }
 
     return new Response(JSON.stringify({ locked, minutesLeft, attempts }), {

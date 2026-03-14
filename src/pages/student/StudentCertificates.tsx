@@ -45,7 +45,7 @@ const StudentCertificates = () => {
       // Build HTML for printing
       const avgConfidence = refs.length > 0 ? (refs.reduce((s, r) => s + r.confidence_level, 0) / refs.length).toFixed(1) : "N/A";
 
-      let sessionsHtml = refs.map((r, i) => `
+      const sessionsHtml = refs.map((r, i) => `
         <tr>
           <td style="padding:8px;border-bottom:1px solid #eee;">${i + 1}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${r.course_sessions?.title || `Session #${r.course_sessions?.session_number || i + 1}`}</td>

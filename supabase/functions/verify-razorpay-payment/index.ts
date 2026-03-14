@@ -110,6 +110,24 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Idempotency guard: reject duplicate payment processing for the same order
+    const { data: existingPayment } = await serviceClient
+      .from("payments")
+      .select("status, enrollment_id")
+      .eq("razorpay_order_id", razorpay_order_id)
+      .single();
+
+    if (existingPayment?.status === "captured" && existingPayment?.enrollment_id) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          enrollment_id: existingPayment.enrollment_id,
+          message: "Payment already processed",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Verify the student_id from the request actually belongs to the authenticated user.
     // This prevents IDOR: an attacker cannot supply another user's student_id to
     // create an enrollment on their behalf after a single valid payment.
@@ -270,11 +288,8 @@ Deno.serve(async (req) => {
       action_url: "/student/sessions",
     });
 
-    // Update course enrolled count
-    await serviceClient
-      .from("courses")
-      .update({ total_enrolled: (course.total_enrolled || 0) + 1 })
-      .eq("id", course_id);
+    // Atomically increment enrolled count — avoids read-then-write race condition
+    await serviceClient.rpc("increment_course_enrolled", { course_id_param: course_id });
 
     console.log(JSON.stringify({
       event: "payment_verified",

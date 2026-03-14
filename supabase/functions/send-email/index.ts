@@ -9,7 +9,7 @@ function escapeHtml(text: string): string {
 
 const BRAND_COLOR = '#1A56DB'
 const FROM_EMAIL = 'SkillMitra <contact@skillmitra.online>'
-const APP_URL = 'https://skillmitra-learn-grow.lovable.app'
+const APP_URL = 'https://skillmitra.online'
 
 type EmailType = 
   | 'trainer_approved' 
@@ -179,7 +179,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
         `)
       }
 
-    case 'trainer_student_match':
+    case 'trainer_student_match': {
       const reasons = data.match_reasons?.length
         ? `<p style="font-size: 14px; color: #444; margin-top: 8px;"><strong>Why you matched:</strong> ${data.match_reasons.join(' · ')}</p>`
         : ''
@@ -198,6 +198,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           ${btn('View Your Dashboard', `${APP_URL}/trainer/dashboard`)}
         `)
       }
+    }
 
     case 'student_new_trainer_match':
       return {
@@ -247,7 +248,14 @@ Deno.serve(async (req) => {
       subject = built.subject
       html = built.html
     } else if (body.to && body.subject && body.html) {
-      // Direct email (for admin replies etc.)
+      // Direct email (admin replies etc.) — require service-role Authorization
+      const authHeader = req.headers.get('Authorization') ?? ''
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      if (!serviceKey || authHeader !== `Bearer ${serviceKey}`) {
+        return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
       to = body.to
       subject = body.subject
       html = body.html

@@ -108,7 +108,7 @@ const StudentProfile = () => {
     setSaving(true);
     try {
       // Validate name
-      if (fullName.trim() && !/^[a-zA-Z\s.'\-]+$/.test(fullName.trim())) {
+      if (fullName.trim() && !/^[a-zA-Z\s.'\\-]+$/.test(fullName.trim())) {
         toast({ title: "Name must contain only letters", variant: "warning" });
         setSaving(false);
         return;
@@ -283,12 +283,12 @@ const StudentProfile = () => {
               value={fullName}
               onChange={e => {
                 const val = e.target.value;
-                if (/^[a-zA-Z\s.'\-]*$/.test(val)) setFullName(val);
+                if (/^[a-zA-Z\s.'\\-]*$/.test(val)) setFullName(val);
               }}
               className="mt-1"
               placeholder="Your full name"
             />
-            {fullName.trim() && !/^[a-zA-Z\s.'\-]+$/.test(fullName.trim()) && (
+            {fullName.trim() && !/^[a-zA-Z\s.'\\-]+$/.test(fullName.trim()) && (
               <p className="text-xs text-destructive mt-1">Name must contain only letters</p>
             )}
           </div>

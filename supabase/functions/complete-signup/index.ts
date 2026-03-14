@@ -9,6 +9,15 @@ serve(async (req) => {
   }
 
   try {
+    // Verify the caller is authenticated and matches the user_id in the body
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { user_id, role, trainer_data, student_data } = await req.json();
 
     if (!user_id || !role) {
@@ -22,6 +31,20 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Verify the token belongs to the claimed user_id (prevents IDOR)
+    const anonClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user: callerUser }, error: authErr } = await anonClient.auth.getUser();
+    if (authErr || !callerUser || callerUser.id !== user_id) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (role === "trainer" && trainer_data) {
       const { data: trainer, error: trainerErr } = await supabaseAdmin

@@ -21,7 +21,7 @@ const AdminAttendance = () => {
 
       // Get student names
       const studentIds = [...new Set(attData.map(a => a.student_id))];
-      let nameMap: Record<string, string> = {};
+      const nameMap: Record<string, string> = {};
       if (studentIds.length > 0) {
         const { data: students } = await supabase.from("students").select("id, user_id").in("id", studentIds);
         const userIds = (students || []).map(s => s.user_id);

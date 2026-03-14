@@ -75,7 +75,7 @@ const TrainerSessions = () => {
 
     // Get student names
     const studentIds = [...new Set(sessions.map(s => s.enrollments?.student_id).filter(Boolean))];
-    let nameMap: Record<string, string> = {};
+    const nameMap: Record<string, string> = {};
     if (studentIds.length > 0) {
       const { data: studs } = await supabase.from("students").select("id, user_id").in("id", studentIds);
       const uIds = (studs || []).map(s => s.user_id);

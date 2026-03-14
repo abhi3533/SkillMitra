@@ -40,7 +40,7 @@ const TrainerReviews = () => {
 
       // Enrich with student names
       const sIds = [...new Set(allRatings.map(r => r.student_id))];
-      let nameMap: Record<string, string> = {};
+      const nameMap: Record<string, string> = {};
       if (sIds.length > 0) {
         const { data: studs } = await supabase.from("students").select("id, user_id").in("id", sIds);
         const uIds = (studs || []).map(s => s.user_id);

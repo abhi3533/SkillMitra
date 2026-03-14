@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
         .single()
 
       // Find matching trainers: approved, matching language/city/gender pref
-      let trainerQuery = supabase
+      const trainerQuery = supabase
         .from('trainers')
         .select('id, user_id, skills, teaching_languages, average_rating, current_role, current_company, experience_years')
         .eq('approval_status', 'approved')

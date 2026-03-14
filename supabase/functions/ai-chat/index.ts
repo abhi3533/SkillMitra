@@ -37,17 +37,18 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    let activeSessionId = sessionId;
     if (sessionId) {
       await supabase.from("ai_chat_sessions").update({
         messages,
         updated_at: new Date().toISOString(),
       }).eq("id", sessionId);
     } else {
-      const { data: session } = await supabase.from("ai_chat_sessions").insert({
+      const { data: newSession } = await supabase.from("ai_chat_sessions").insert({
         user_id: userId || null,
         messages,
       }).select("id").single();
-      // We'll return the session ID in non-streaming mode or via header
+      activeSessionId = newSession?.id ?? null;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -85,7 +86,11 @@ Deno.serve(async (req) => {
     }
 
     return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream",
+        ...(activeSessionId ? { "X-Session-Id": activeSessionId } : {}),
+      },
     });
   } catch (e) {
     console.error("ai-chat error:", e);

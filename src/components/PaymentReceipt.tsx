@@ -96,7 +96,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
           <div className="text-right">
             <p className="text-lg font-bold text-foreground">RECEIPT</p>
             <p className="text-xs text-muted-foreground mt-1">#{data.receiptNumber}</p>
-            <span className="inline-block mt-1.5 bg-green-500/10 text-green-600 text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+            <span className="inline-block mt-1.5 bg-success/10 text-success text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
               <CheckCircle2 className="w-3 h-3 inline mr-1 -mt-0.5" />
               {data.enrollmentStatus === "trial" ? "Trial" : "Paid"}
             </span>

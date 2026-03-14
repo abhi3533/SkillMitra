@@ -154,7 +154,7 @@ const StudentReferrals = () => {
             </p>
 
             <div className="flex gap-2 mt-4">
-              <Button onClick={shareWhatsApp} size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-sm">
+              <Button onClick={shareWhatsApp} size="sm" className="gap-1.5 bg-success hover:bg-success/90 text-success-foreground text-sm">
                 <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
               </Button>
               <Button onClick={copyLink} size="sm" variant="outline" className="gap-1.5 text-sm">

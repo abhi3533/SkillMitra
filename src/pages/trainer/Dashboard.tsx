@@ -85,13 +85,14 @@ const TrainerDashboard = () => {
         }
       }
 
-      // Enrich recent enrollments — profile is already joined via students(profiles(full_name)),
-      // so no additional round-trip is needed.
+      // Enrich recent enrollments with student names
       let enrichedEnrollments: any[] = [];
       if (enrollAll.data && enrollAll.data.length > 0) {
+        const studentUserIds = enrollAll.data.map((e: any) => e.students?.user_id).filter(Boolean);
+        const enrollProfileMap = await fetchProfilesMap(studentUserIds);
         enrichedEnrollments = enrollAll.data.map(e => ({
           ...e,
-          studentName: e.students?.profiles?.full_name || "Student",
+          studentName: enrollProfileMap[e.students?.user_id]?.full_name || "Student",
         }));
       }
 

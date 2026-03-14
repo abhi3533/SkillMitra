@@ -51,11 +51,18 @@ const AdminMessages = () => {
           to: selectedMessage.email,
           subject: `Re: ${selectedMessage.subject} — SkillMitra`,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #1a1a1a;">Reply from SkillMitra</h2>
-              <p style="color: #333; line-height: 1.6;">Dear ${selectedMessage.name},</p>
-              <div style="color: #333; line-height: 1.6; white-space: pre-wrap;">${replyText}</div>
-              <p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team<br/><p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team<br/><a href="mailto:contact@skillmitra.online" style="color: #1A56DB;">contact@skillmitra.online</a></p></p>
+            <div style="font-family: Inter, Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden;">
+              <div style="background: #1A56DB; padding: 24px 32px; text-align: center;">
+                <img src="https://skillmitra.online/logo.png" alt="SkillMitra" width="140" height="40" style="display: block; margin: 0 auto;" />
+              </div>
+              <div style="padding: 32px;">
+                <p style="color: #333; line-height: 1.6; margin: 0 0 16px;">Dear ${selectedMessage.name},</p>
+                <div style="color: #333; line-height: 1.6; white-space: pre-wrap;">${replyText}</div>
+                <p style="color: #333; line-height: 1.6; margin-top: 24px;">Best regards,<br/>The SkillMitra Team<br/><a href="mailto:contact@skillmitra.online" style="color: #1A56DB;">contact@skillmitra.online</a></p>
+              </div>
+              <div style="padding: 20px 32px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} SkillMitra · Learnvate Solutions Pvt. Ltd.</p>
+              </div>
             </div>
           `,
         },

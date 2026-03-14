@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { formatDateTimeIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages } from "lucide-react";
+import { BookOpen, GraduationCap, Star, Brain, FileText, Award, Users, ArrowRight, Clock, Calendar, TrendingUp, Wallet, IndianRupee, CheckCircle, Sparkles, MapPin, Languages, Copy, Share2, Gift } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

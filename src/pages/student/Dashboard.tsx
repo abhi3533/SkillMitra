@@ -37,9 +37,18 @@ const StudentDashboard = () => {
 
   const fetchDashboard = useCallback(async () => {
     if (!user) return;
-    const { data: student } = await supabase.from("students").select("id, referral_credits, course_interests, trainer_gender_preference").eq("user_id", user.id).maybeSingle();
+    const { data: student } = await supabase.from("students").select("id, referral_credits, referral_code, course_interests, trainer_gender_preference").eq("user_id", user.id).maybeSingle();
     if (!student) { setLoading(false); return; }
     setStudentId(student.id);
+
+    // Auto-generate referral code if missing
+    let referralCode = student.referral_code || "";
+    if (!referralCode) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      referralCode = "SM-";
+      for (let i = 0; i < 6; i++) referralCode += chars[Math.floor(Math.random() * chars.length)];
+      await supabase.from("students").update({ referral_code: referralCode }).eq("id", student.id);
+    }
 
     const [enrollRes, aiRes, resumeRes, completedSessions, certsRes, upcomingSessions, walletRes] = await Promise.all([
       supabase.from("enrollments").select("*, courses(title, total_sessions)").eq("student_id", student.id).eq("status", "active"),

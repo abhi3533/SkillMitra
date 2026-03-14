@@ -114,11 +114,11 @@ const StudentReferrals = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "paid":
-        return "bg-emerald-50 text-emerald-700";
+        return "bg-success/10 text-success";
       case "eligible":
-        return "bg-blue-50 text-blue-700";
+        return "bg-primary/10 text-primary";
       default:
-        return "bg-amber-50 text-amber-700";
+        return "bg-accent/10 text-accent-foreground";
     }
   };
 

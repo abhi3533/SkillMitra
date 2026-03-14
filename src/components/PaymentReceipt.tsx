@@ -57,7 +57,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
           .total-row td { border-bottom: none; border-top: 2px solid #e5e7eb; font-weight: 700; font-size: 15px; padding-top: 12px; }
           .footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; }
           .footer p { font-size: 11px; color: #9ca3af; line-height: 1.6; }
-          .footer a { color: #7c3aed; text-decoration: none; }
+          .footer a { color: #1A56DB; text-decoration: none; }
           @media print { body { padding: 20px; } .no-print { display: none !important; } }
         </style>
       </head>

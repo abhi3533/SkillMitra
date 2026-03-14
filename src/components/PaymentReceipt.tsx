@@ -38,7 +38,7 @@ const PaymentReceipt = ({ data }: { data: ReceiptData }) => {
           body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1a1a1a; background: #fff; padding: 40px; }
           .receipt { max-width: 640px; margin: 0 auto; }
           .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 24px; }
-          .logo-section h1 { font-size: 22px; font-weight: 800; color: #7c3aed; }
+          .logo-section h1 { font-size: 22px; font-weight: 800; color: #1A56DB; }
           .logo-section p { font-size: 11px; color: #6b7280; margin-top: 2px; }
           .receipt-meta { text-align: right; }
           .receipt-meta .receipt-title { font-size: 18px; font-weight: 700; color: #1a1a1a; }

@@ -70,7 +70,7 @@ const RoleSelectionModal = ({ open, onClose, userId, userEmail, userName }: Role
       <DialogContent className="sm:max-w-md p-0 gap-0 [&>button]:hidden" onPointerDownOutside={e => e.preventDefault()} aria-describedby={undefined}>
         <VisuallyHidden><DialogTitle>Select your role</DialogTitle></VisuallyHidden>
         <div className="p-6 text-center">
-          <img src="/skillmitra-logo.png" alt="SkillMitra" className="h-8 mx-auto mb-4" />
+          <div className="flex justify-center mb-4"><SkillMitraLogo darkText height={32} linkTo="" /></div>
           <h2 className="text-xl font-bold text-foreground">Welcome to SkillMitra!</h2>
           <p className="text-sm text-muted-foreground mt-2">How would you like to use SkillMitra?</p>
         </div>

@@ -160,7 +160,7 @@ const AIChatBot = () => {
           >
             {/* Header */}
             <div className="bg-primary px-4 py-3 flex items-center gap-3">
-              <img src="/skillmitra-logo-white.png" alt="SkillMitra" className="h-6" />
+              <SkillMitraLogo darkText={false} height={24} linkTo="" />
               <div className="flex-1 min-w-0">
                 <p className="text-primary-foreground text-sm font-semibold">SkillMitra Assistant</p>
                 <p className="text-primary-foreground/70 text-[11px] flex items-center gap-1">

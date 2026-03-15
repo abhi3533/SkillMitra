@@ -30,7 +30,7 @@ export const EmailLayout = ({ previewText, children }: EmailLayoutProps) => (
         {/* Brand header */}
         <Section style={headerSection}>
           <Img
-            src="https://skillmitra.online/logo.png"
+            src="https://skillmitra.online/skillmitra-logo.png"
             alt="SkillMitra"
             width="140"
             height="40"

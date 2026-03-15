@@ -12,7 +12,7 @@ import { getAuthErrorMessage } from "@/lib/authErrors";
 import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
-import { verifyPhoneWithOTP } from "@/lib/msg91";
+// Phone OTP verification removed — was blocking signup flow
 
 
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
@@ -139,13 +139,6 @@ const StudentSignup = () => {
     }
     setLoading(true);
     try {
-      // Verify phone number via MSG91 OTP before creating account
-      if (!phoneVerified) {
-        toast({ title: "Verify your mobile number", description: "An OTP will be sent to your phone.", variant: "info" });
-        await verifyPhoneWithOTP(form.phone);
-        setPhoneVerified(true);
-      }
-
       const { data: signupData, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,

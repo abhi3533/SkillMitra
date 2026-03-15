@@ -139,13 +139,6 @@ const StudentSignup = () => {
     }
     setLoading(true);
     try {
-      // Verify phone number via MSG91 OTP before creating account
-      if (!phoneVerified) {
-        toast({ title: "Verify your mobile number", description: "An OTP will be sent to your phone.", variant: "info" });
-        await verifyPhoneWithOTP(form.phone);
-        setPhoneVerified(true);
-      }
-
       const { data: signupData, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,

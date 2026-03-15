@@ -173,7 +173,7 @@ const BlogPost = () => {
 
             <div className="lg:grid lg:grid-cols-[1fr_220px] lg:gap-8">
               {/* Article */}
-              <article className="prose-custom">
+              <article className="prose-custom text-justify">
                 {renderContent(firstHalf)}
 
                 {/* CTA Box */}

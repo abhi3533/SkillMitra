@@ -53,7 +53,7 @@ const AdminMessages = () => {
           html: `
             <div style="font-family: Inter, Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden;">
               <div style="background: #1A56DB; padding: 24px 32px; text-align: center;">
-                <img src="https://skillmitra.online/logo.png" alt="SkillMitra" width="140" height="40" style="display: block; margin: 0 auto;" />
+                <img src="https://skillmitra.online/skillmitra-logo.png" alt="SkillMitra" width="140" height="40" style="display: block; margin: 0 auto;" />
               </div>
               <div style="padding: 32px;">
                 <p style="color: #333; line-height: 1.6; margin: 0 0 16px;">Dear ${selectedMessage.name},</p>

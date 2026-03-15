@@ -119,7 +119,7 @@ const BlogPost = () => {
       } else if (line.match(/^\d+\. /)) {
         const text = line.replace(/^\d+\.\s/, "");
         const rendered = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground">$1</strong>');
-        elements.push(<li key={i} className="ml-4 mb-2 text-muted-foreground list-decimal" dangerouslySetInnerHTML={{ __html: rendered }} />);
+        elements.push(<li key={i} className="ml-4 mb-2 text-muted-foreground list-disc" dangerouslySetInnerHTML={{ __html: rendered }} />);
       } else if (line.startsWith("- ")) {
         const text = line.slice(2).replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground">$1</strong>');
         elements.push(<li key={i} className="ml-4 mb-2 text-muted-foreground list-disc" dangerouslySetInnerHTML={{ __html: text }} />);

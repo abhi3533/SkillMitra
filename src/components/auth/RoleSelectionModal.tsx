@@ -6,6 +6,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 interface RoleSelectionModalProps {
   open: boolean;

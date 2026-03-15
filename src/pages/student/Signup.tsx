@@ -12,7 +12,7 @@ import { getAuthErrorMessage } from "@/lib/authErrors";
 import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
-import { verifyPhoneWithOTP } from "@/lib/msg91";
+// Phone OTP verification removed — was blocking signup flow
 
 
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];

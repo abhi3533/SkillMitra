@@ -192,7 +192,7 @@ const AdminDashboard = () => {
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
         {/* Pending Trainer Applications */}
-        <div className="bg-white rounded-xl border border-border">
+        <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">Pending Trainer Applications</h2>
             <Link to="/admin/trainers" className="text-xs font-medium text-primary hover:underline">View all</Link>

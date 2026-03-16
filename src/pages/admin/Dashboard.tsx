@@ -137,7 +137,8 @@ const AdminDashboard = () => {
     { label: "Open Disputes", value: stats.openDisputes, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10", link: "/admin/disputes" },
     { label: "Pending Payouts", value: stats.pendingPayouts, icon: CreditCard, color: "text-amber-600", bg: "bg-amber-50", link: "/admin/payouts" },
     { label: "Unread Messages", value: stats.contactUnread, icon: MessageSquare, color: "text-primary", bg: "bg-primary/10", link: "/admin/messages" },
-    { label: "Approved Trainers", value: stats.approvedTrainers, icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50", link: "/admin/trainers" },
+    { label: "Total Referrals", value: stats.totalReferrals, icon: Gift, color: "text-primary", bg: "bg-primary/10", link: "/admin/referrals" },
+    { label: "Approved Trainers", value: stats.approvedTrainers, icon: UserCheck, color: "text-success", bg: "bg-success/10", link: "/admin/trainers" },
   ];
 
   return (

@@ -414,14 +414,14 @@ const Index = () => {
             </div>
           </ScrollReveal>
 
-          <div className="relative max-w-4xl mx-auto">
+          <div className="relative max-w-4xl mx-auto overflow-hidden">
             {/* Connecting dotted line */}
             <div className="hidden md:block absolute top-[56px] left-[16.67%] right-[16.67%] h-[2px] border-t-2 border-dashed border-primary/20" />
 
             <div className="grid md:grid-cols-3 gap-8 md:gap-6">
               {steps.map((s, i) => (
                 <ScrollReveal key={s.num} delay={i * 0.12}>
-                  <div className="text-center relative">
+                  <div className="text-center relative px-2">
                     {/* Number circle */}
                     <div className="relative z-10 w-[72px] h-[72px] rounded-full mx-auto mb-6 flex items-center justify-center bg-gradient-to-br from-primary to-[hsl(221,79%,38%)] shadow-[0_4px_20px_hsl(221_79%_49%/0.3)]">
                       <span className="text-2xl font-extrabold text-primary-foreground">{s.num}</span>
@@ -432,7 +432,7 @@ const Index = () => {
                     </div>
 
                     <h3 className="text-lg font-bold text-foreground mb-2">{s.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mx-auto max-w-[240px]">{s.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
                   </div>
                 </ScrollReveal>
               ))}

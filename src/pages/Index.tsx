@@ -432,7 +432,7 @@ const Index = () => {
                     </div>
 
                     <h3 className="text-lg font-bold text-foreground mb-2">{s.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mx-auto whitespace-nowrap">{s.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed mx-auto max-w-[240px]">{s.desc}</p>
                   </div>
                 </ScrollReveal>
               ))}

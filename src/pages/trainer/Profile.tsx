@@ -292,15 +292,17 @@ const TrainerProfile = () => {
       if (existingEnrollment) {
         enrollmentId = existingEnrollment.id;
       } else {
-        const { data: newEnrollment, error: enrollErr } = await supabase.from("enrollments").insert({
-          student_id: student.id,
-          trainer_id: resolvedId!,
-          course_id: courseToUse.id,
-          status: "trial",
-          amount_paid: 0,
-        }).select("id").single();
+        const { data: newEnrollmentId, error: enrollErr } = await supabase.rpc("create_verified_enrollment", {
+          p_course_id: courseToUse.id,
+          p_student_id: student.id,
+          p_trainer_id: resolvedId!,
+          p_payment_id: null,
+          p_amount_paid: 0,
+          p_sessions_total: null,
+          p_is_trial: true,
+        });
         if (enrollErr) throw enrollErr;
-        enrollmentId = newEnrollment.id;
+        enrollmentId = newEnrollmentId;
       }
 
       // Create trial session

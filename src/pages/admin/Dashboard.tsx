@@ -316,7 +316,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-8 bg-white rounded-xl border border-border p-5">
+      <div className="mt-8 bg-card rounded-xl border border-border p-5">
         <h2 className="text-base font-semibold text-foreground mb-3">Quick Actions</h2>
         <div className="flex flex-wrap gap-2">
           {[

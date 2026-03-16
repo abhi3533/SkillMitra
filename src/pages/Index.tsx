@@ -410,7 +410,7 @@ const Index = () => {
             <div className="text-center mb-14">
               <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary bg-primary/[0.06] px-4 py-1.5 rounded-full mb-4">How It Works</span>
               <h2 className="text-2xl md:text-[36px] font-bold text-foreground">How It Works</h2>
-              <p className="mt-3 text-muted-foreground whitespace-nowrap">Start learning in 3 simple steps. No commitments, no hidden charges.</p>
+              <p className="mt-3 text-muted-foreground md:whitespace-nowrap">Start learning in 3 simple steps. No commitments, no hidden charges.</p>
             </div>
           </ScrollReveal>
 
@@ -432,7 +432,7 @@ const Index = () => {
                     </div>
 
                     <h3 className="text-lg font-bold text-foreground mb-2">{s.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mx-auto whitespace-nowrap">{s.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed mx-auto max-w-[240px]">{s.desc}</p>
                   </div>
                 </ScrollReveal>
               ))}

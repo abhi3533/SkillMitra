@@ -15,6 +15,7 @@ const AdminDashboard = () => {
     students: 0, revenue: 0, activeSessions: 0,
     certificates: 0, openDisputes: 0, pendingPayouts: 0,
     totalCourses: 0, activeEnrollments: 0, contactUnread: 0,
+    totalReferrals: 0,
   });
   useLoadingTitle(loading);
   const [recentTrainers, setRecentTrainers] = useState<any[]>([]);

@@ -32,13 +32,10 @@ export const EmailLayout = ({ previewText, children }: EmailLayoutProps) => (
           <Img
             src="https://skillmitra.online/skillmitra-logo.png"
             alt="SkillMitra"
-            width="140"
-            height="40"
+            width="160"
+            height="46"
             style={logoImg}
           />
-          <Text style={logoText}>
-            Skill<span style={{ color: '#1A56DB' }}>Mitra</span>
-          </Text>
           <Text style={taglineText}>Learn. Grow. Excel.</Text>
         </Section>
 

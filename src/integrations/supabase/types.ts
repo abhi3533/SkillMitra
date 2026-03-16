@@ -1743,6 +1743,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_verified_enrollment: {
+        Args: {
+          p_amount_paid: number
+          p_course_id: string
+          p_is_trial?: boolean
+          p_payment_id: string
+          p_sessions_total?: number
+          p_student_id: string
+          p_trainer_id: string
+        }
+        Returns: string
+      }
       get_approved_trainers_list: {
         Args: never
         Returns: {

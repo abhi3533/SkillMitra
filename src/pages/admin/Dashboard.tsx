@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { formatDateIST, formatLongDateIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
-import { Users, IndianRupee, BookOpen, Award, Clock, AlertTriangle, TrendingUp, UserCheck, UserX, MessageSquare, CreditCard, ArrowUpRight } from "lucide-react";
+import { Users, IndianRupee, BookOpen, Award, Clock, AlertTriangle, TrendingUp, UserCheck, UserX, MessageSquare, CreditCard, ArrowUpRight, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
@@ -15,6 +15,7 @@ const AdminDashboard = () => {
     students: 0, revenue: 0, activeSessions: 0,
     certificates: 0, openDisputes: 0, pendingPayouts: 0,
     totalCourses: 0, activeEnrollments: 0, contactUnread: 0,
+    totalReferrals: 0,
   });
   useLoadingTitle(loading);
   const [recentTrainers, setRecentTrainers] = useState<any[]>([]);
@@ -30,6 +31,7 @@ const AdminDashboard = () => {
           studentsAll, revenueData, sessionsToday,
           certsAll, disputesOpen, payoutsPending,
           coursesAll, enrollmentsActive, contactUnread,
+          referralsAll,
         ] = await Promise.all([
           supabase.from("trainers").select("id", { count: "exact", head: true }),
           supabase.from("trainers").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
@@ -43,6 +45,7 @@ const AdminDashboard = () => {
           supabase.from("courses").select("id", { count: "exact", head: true }),
           supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("status", "active"),
           supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("status", "unread"),
+          supabase.from("referrals").select("id", { count: "exact", head: true }),
         ]);
 
         const totalRevenue = (revenueData.data || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
@@ -60,6 +63,7 @@ const AdminDashboard = () => {
           totalCourses: coursesAll.count || 0,
           activeEnrollments: enrollmentsActive.count || 0,
           contactUnread: contactUnread.count || 0,
+          totalReferrals: referralsAll.count || 0,
         });
 
         // Fetch recent data in parallel
@@ -133,7 +137,8 @@ const AdminDashboard = () => {
     { label: "Open Disputes", value: stats.openDisputes, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10", link: "/admin/disputes" },
     { label: "Pending Payouts", value: stats.pendingPayouts, icon: CreditCard, color: "text-amber-600", bg: "bg-amber-50", link: "/admin/payouts" },
     { label: "Unread Messages", value: stats.contactUnread, icon: MessageSquare, color: "text-primary", bg: "bg-primary/10", link: "/admin/messages" },
-    { label: "Approved Trainers", value: stats.approvedTrainers, icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50", link: "/admin/trainers" },
+    { label: "Total Referrals", value: stats.totalReferrals, icon: Gift, color: "text-primary", bg: "bg-primary/10", link: "/admin/referrals" },
+    { label: "Approved Trainers", value: stats.approvedTrainers, icon: UserCheck, color: "text-success", bg: "bg-success/10", link: "/admin/trainers" },
   ];
 
   return (
@@ -187,7 +192,7 @@ const AdminDashboard = () => {
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
         {/* Pending Trainer Applications */}
-        <div className="bg-white rounded-xl border border-border">
+        <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">Pending Trainer Applications</h2>
             <Link to="/admin/trainers" className="text-xs font-medium text-primary hover:underline">View all</Link>
@@ -222,7 +227,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Enrollments */}
-        <div className="bg-white rounded-xl border border-border">
+        <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">Recent Enrollments</h2>
             <Link to="/admin/payments" className="text-xs font-medium text-primary hover:underline">View all</Link>
@@ -252,7 +257,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Open Disputes */}
-        <div className="bg-white rounded-xl border border-border">
+        <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">Open Disputes</h2>
             <Link to="/admin/disputes" className="text-xs font-medium text-primary hover:underline">View all</Link>
@@ -280,7 +285,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Pending Payouts */}
-        <div className="bg-white rounded-xl border border-border">
+        <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">Pending Payouts</h2>
             <Link to="/admin/payouts" className="text-xs font-medium text-primary hover:underline">View all</Link>
@@ -311,7 +316,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-8 bg-white rounded-xl border border-border p-5">
+      <div className="mt-8 bg-card rounded-xl border border-border p-5">
         <h2 className="text-base font-semibold text-foreground mb-3">Quick Actions</h2>
         <div className="flex flex-wrap gap-2">
           {[

@@ -101,15 +101,19 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         return;
       }
 
-      const { data: enrollment, error: enrollError } = await supabase.from("enrollments").insert({
-        student_id: studentId,
-        course_id: course.id,
-        trainer_id: trainer.id,
-        status: "trial",
-        amount_paid: 0,
-        sessions_total: 1,
-        start_date: new Date().toISOString().split("T")[0],
-      }).select().single();
+      const { data: enrollmentId, error: enrollError } = await supabase.rpc("create_verified_enrollment", {
+        p_course_id: course.id,
+        p_student_id: studentId,
+        p_trainer_id: trainer.id,
+        p_payment_id: null,
+        p_amount_paid: 0,
+        p_sessions_total: 1,
+        p_is_trial: true,
+      });
+
+      if (enrollError) throw enrollError;
+
+      const enrollment = { id: enrollmentId };
 
       if (enrollError) throw enrollError;
 

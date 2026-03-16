@@ -31,6 +31,7 @@ const AdminDashboard = () => {
           studentsAll, revenueData, sessionsToday,
           certsAll, disputesOpen, payoutsPending,
           coursesAll, enrollmentsActive, contactUnread,
+          referralsAll,
         ] = await Promise.all([
           supabase.from("trainers").select("id", { count: "exact", head: true }),
           supabase.from("trainers").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
@@ -44,6 +45,7 @@ const AdminDashboard = () => {
           supabase.from("courses").select("id", { count: "exact", head: true }),
           supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("status", "active"),
           supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("status", "unread"),
+          supabase.from("referrals").select("id", { count: "exact", head: true }),
         ]);
 
         const totalRevenue = (revenueData.data || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
@@ -61,6 +63,7 @@ const AdminDashboard = () => {
           totalCourses: coursesAll.count || 0,
           activeEnrollments: enrollmentsActive.count || 0,
           contactUnread: contactUnread.count || 0,
+          totalReferrals: referralsAll.count || 0,
         });
 
         // Fetch recent data in parallel

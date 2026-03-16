@@ -1740,9 +1740,84 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_ratings: {
+        Row: {
+          created_at: string | null
+          enrollment_id: string | null
+          id: string | null
+          student_communication_rating: number | null
+          student_id: string | null
+          student_punctuality_rating: number | null
+          student_rated_at: string | null
+          student_teaching_quality: number | null
+          student_to_trainer_rating: number | null
+          student_to_trainer_review: string | null
+          trainer_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enrollment_id?: string | null
+          id?: string | null
+          student_communication_rating?: number | null
+          student_id?: string | null
+          student_punctuality_rating?: number | null
+          student_rated_at?: string | null
+          student_teaching_quality?: number | null
+          student_to_trainer_rating?: number | null
+          student_to_trainer_review?: string | null
+          trainer_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enrollment_id?: string | null
+          id?: string | null
+          student_communication_rating?: number | null
+          student_id?: string | null
+          student_punctuality_rating?: number | null
+          student_rated_at?: string | null
+          student_teaching_quality?: number | null
+          student_to_trainer_rating?: number | null
+          student_to_trainer_review?: string | null
+          trainer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      create_verified_enrollment: {
+        Args: {
+          p_amount_paid: number
+          p_course_id: string
+          p_is_trial?: boolean
+          p_payment_id: string
+          p_sessions_total?: number
+          p_student_id: string
+          p_trainer_id: string
+        }
+        Returns: string
+      }
       get_approved_trainers_list: {
         Args: never
         Returns: {

@@ -227,7 +227,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Enrollments */}
-        <div className="bg-white rounded-xl border border-border">
+        <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">Recent Enrollments</h2>
             <Link to="/admin/payments" className="text-xs font-medium text-primary hover:underline">View all</Link>

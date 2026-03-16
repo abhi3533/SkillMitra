@@ -29,13 +29,27 @@ export const EmailLayout = ({ previewText, children }: EmailLayoutProps) => (
       <Container style={container}>
         {/* Brand header */}
         <Section style={headerSection}>
-          <Img
-            src="https://skillmitra.online/skillmitra-logo.png"
-            alt="SkillMitra"
-            width="160"
-            height="46"
-            style={logoImg}
-          />
+          {/* Graduation cap + SkillMitra text — matches navbar */}
+          <table cellPadding="0" cellSpacing="0" role="presentation" style={{ margin: '0 auto' }}>
+            <tr>
+              <td style={{ verticalAlign: 'middle', paddingRight: '8px' }}>
+                {/* Graduation cap icon as inline SVG data URI for max compatibility */}
+                <img
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M12 3L1 9L5 11.18V17.18L12 21L19 17.18V11.18L21 10.09V17H23V9L12 3ZM18.82 9L12 12.72L5.18 9L12 5.28L18.82 9ZM17 15.99L12 18.72L7 15.99V12.27L12 15L17 12.27V15.99Z' fill='white'/%3E%3C/svg%3E"
+                  alt=""
+                  width="28"
+                  height="28"
+                  style={{ display: 'block' }}
+                />
+              </td>
+              <td style={{ verticalAlign: 'middle' }}>
+                <span style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
+                  <span style={{ color: '#ffffff' }}>Skill</span>
+                  <span style={{ color: '#BFDBFE' }}>Mitra</span>
+                </span>
+              </td>
+            </tr>
+          </table>
           <Text style={taglineText}>Learn. Grow. Excel.</Text>
         </Section>
 

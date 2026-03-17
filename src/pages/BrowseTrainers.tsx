@@ -207,6 +207,25 @@ const BrowseTrainers = () => {
         if (trainerGender !== genderPref.toLowerCase()) return false;
       }
 
+      // Experience filter
+      if (experienceFilter && experienceFilter !== "any") {
+        const exp = t.experience_years || 0;
+        if (experienceFilter === "1-2" && (exp < 1 || exp > 2)) return false;
+        if (experienceFilter === "3-5" && (exp < 3 || exp > 5)) return false;
+        if (experienceFilter === "5+" && exp < 5) return false;
+      }
+
+      // Budget filter
+      if (budgetFilter && budgetFilter !== "any") {
+        const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
+        const fee = demoCourse ? demoCourse.fee : courseFeeMap[t.id];
+        if (fee === undefined) return false;
+        if (budgetFilter === "under500" && fee >= 500) return false;
+        if (budgetFilter === "500-1000" && (fee < 500 || fee > 1000)) return false;
+        if (budgetFilter === "1000-2000" && (fee < 1000 || fee > 2000)) return false;
+        if (budgetFilter === "above2000" && fee <= 2000) return false;
+      }
+
       // Price filter for both demo and real trainers
       if (priceRange[0] !== 500 || priceRange[1] !== 10000) {
         const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;

@@ -189,6 +189,7 @@ const TrainerSignup = () => {
               <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} onBlur={() => markTouched("fullName")} placeholder="Your full name"
                 className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() && isValidName(form.fullName) ? "border-green-500" : "border-destructive") : ""}`} />
               {touched.fullName && !form.fullName.trim() && <p className="text-xs text-destructive mt-1">Required</p>}
+              {touched.fullName && form.fullName.trim() && !isValidName(form.fullName) && <p className="text-xs text-destructive mt-1">Name must contain only letters</p>}
             </div>
 
             <div>
@@ -247,7 +248,7 @@ const TrainerSignup = () => {
               <p className="text-xs text-muted-foreground">Your data is encrypted and protected.</p>
             </div>
 
-            <Button onClick={handleSubmit} disabled={loading} className="w-full h-11 hero-gradient border-0 font-semibold text-base">
+            <Button onClick={handleSubmit} disabled={loading || !!(form.fullName.trim() && !isValidName(form.fullName))} className="w-full h-11 hero-gradient border-0 font-semibold text-base">
               {loading
                 ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Account...</>
                 : <>Create Account & Verify Email <ArrowRight className="ml-2 w-4 h-4" /></>

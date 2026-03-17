@@ -196,7 +196,7 @@ const StudentSignup = () => {
     }
   };
 
-  const isFormValid = form.fullName.trim() && isEmailFilled && isPhoneFilled && form.city.trim() && form.state && form.gender && isPasswordValid(form.password) && form.password === confirmPassword && !emailError;
+  const isFormValid = form.fullName.trim() && isNameLettersOnly(form.fullName) && isEmailFilled && isPhoneFilled && form.city.trim() && form.state && form.gender && isPasswordValid(form.password) && form.password === confirmPassword && !emailError;
 
   return (
     <div className="min-h-screen bg-background">
@@ -246,7 +246,7 @@ const StudentSignup = () => {
                 <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} onBlur={() => markTouched("fullName")} placeholder="Your full name"
                   className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() && isNameLettersOnly(form.fullName) ? "border-green-500" : "border-destructive") : ""}`} required />
                 {touched.fullName && !form.fullName.trim() && <p className="text-xs text-destructive mt-1">Full name is required</p>}
-                {touched.fullName && form.fullName.trim() && !isNameLettersOnly(form.fullName) && <p className="text-xs text-destructive mt-1">Please enter a valid name</p>}
+                {touched.fullName && form.fullName.trim() && !isNameLettersOnly(form.fullName) && <p className="text-xs text-destructive mt-1">Name must contain only letters</p>}
               </div>
               <div>
                 <Label>Email<RequiredMark /></Label>

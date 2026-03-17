@@ -281,7 +281,7 @@ const BrowseTrainers = () => {
 
       return true;
     });
-  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, availabilityMap, courseFeeMap]);
+  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, experienceFilter, budgetFilter, selectedTimeSlots, selectedSchedule, availabilityMap, courseFeeMap]);
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {

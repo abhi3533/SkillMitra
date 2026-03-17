@@ -1262,12 +1262,15 @@ export type Database = {
           course_interests: string[] | null
           course_of_study: string | null
           created_at: string | null
+          education_level: string | null
           graduation_year: number | null
           id: string
           referral_code: string | null
           referral_credits: number | null
           referred_by: string | null
+          skill_experience: string | null
           skills_learning: string[] | null
+          student_status: string | null
           total_sessions_attended: number | null
           total_spent: number | null
           trainer_gender_preference: string | null
@@ -1278,12 +1281,15 @@ export type Database = {
           course_interests?: string[] | null
           course_of_study?: string | null
           created_at?: string | null
+          education_level?: string | null
           graduation_year?: number | null
           id?: string
           referral_code?: string | null
           referral_credits?: number | null
           referred_by?: string | null
+          skill_experience?: string | null
           skills_learning?: string[] | null
+          student_status?: string | null
           total_sessions_attended?: number | null
           total_spent?: number | null
           trainer_gender_preference?: string | null
@@ -1294,12 +1300,15 @@ export type Database = {
           course_interests?: string[] | null
           course_of_study?: string | null
           created_at?: string | null
+          education_level?: string | null
           graduation_year?: number | null
           id?: string
           referral_code?: string | null
           referral_credits?: number | null
           referred_by?: string | null
+          skill_experience?: string | null
           skills_learning?: string[] | null
+          student_status?: string | null
           total_sessions_attended?: number | null
           total_spent?: number | null
           trainer_gender_preference?: string | null

@@ -62,6 +62,8 @@ const BrowseTrainers = () => {
   });
   const [genderPref, setGenderPref] = useState<string>(searchParams.get("gender") || "");
   const [minRating, setMinRating] = useState<number>(() => parseFloat(searchParams.get("rating") || "0") || 0);
+  const [experienceFilter, setExperienceFilter] = useState<string>(searchParams.get("exp") || "any");
+  const [budgetFilter, setBudgetFilter] = useState<string>(searchParams.get("budget") || "any");
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>(() => {
     const ts = searchParams.get("time");
     return ts ? ts.split(",") : [];
@@ -85,10 +87,12 @@ const BrowseTrainers = () => {
     if (selectedLanguages.length > 0) params.set("lang", selectedLanguages.join(","));
     if (genderPref) params.set("gender", genderPref);
     if (minRating > 0) params.set("rating", String(minRating));
+    if (experienceFilter && experienceFilter !== "any") params.set("exp", experienceFilter);
+    if (budgetFilter && budgetFilter !== "any") params.set("budget", budgetFilter);
     if (selectedTimeSlots.length > 0) params.set("time", selectedTimeSlots.join(","));
     if (selectedSchedule.length > 0) params.set("sched", selectedSchedule.join(","));
     setSearchParams(params, { replace: true });
-  }, [search, sortBy, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, setSearchParams]);
+  }, [search, sortBy, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, experienceFilter, budgetFilter, selectedTimeSlots, selectedSchedule, setSearchParams]);
 
   useEffect(() => {
     syncFiltersToUrl();
@@ -172,12 +176,15 @@ const BrowseTrainers = () => {
   const activeFilterCount = [
     selectedSkill, selectedLanguages.length > 0, genderPref, minRating > 0,
     selectedTimeSlots.length > 0, selectedSchedule.length > 0,
+    experienceFilter && experienceFilter !== "any",
+    budgetFilter && budgetFilter !== "any",
     priceRange[0] !== 500 || priceRange[1] !== 10000,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setSelectedSkill(""); setPriceRange([500, 10000]); setSelectedLanguages([]);
     setGenderPref(""); setMinRating(0); setSelectedTimeSlots([]); setSelectedSchedule([]);
+    setExperienceFilter("any"); setBudgetFilter("any");
     setVisibleCount(ITEMS_PER_PAGE);
   };
 
@@ -198,6 +205,25 @@ const BrowseTrainers = () => {
       if (genderPref && genderPref !== "any") {
         const trainerGender = t.profile?.gender?.toLowerCase() || "";
         if (trainerGender !== genderPref.toLowerCase()) return false;
+      }
+
+      // Experience filter
+      if (experienceFilter && experienceFilter !== "any") {
+        const exp = t.experience_years || 0;
+        if (experienceFilter === "1-2" && (exp < 1 || exp > 2)) return false;
+        if (experienceFilter === "3-5" && (exp < 3 || exp > 5)) return false;
+        if (experienceFilter === "5+" && exp < 5) return false;
+      }
+
+      // Budget filter
+      if (budgetFilter && budgetFilter !== "any") {
+        const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
+        const fee = demoCourse ? demoCourse.fee : courseFeeMap[t.id];
+        if (fee === undefined) return false;
+        if (budgetFilter === "under500" && fee >= 500) return false;
+        if (budgetFilter === "500-1000" && (fee < 500 || fee > 1000)) return false;
+        if (budgetFilter === "1000-2000" && (fee < 1000 || fee > 2000)) return false;
+        if (budgetFilter === "above2000" && fee <= 2000) return false;
       }
 
       // Price filter for both demo and real trainers
@@ -255,7 +281,7 @@ const BrowseTrainers = () => {
 
       return true;
     });
-  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, availabilityMap, courseFeeMap]);
+  }, [trainers, search, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, experienceFilter, budgetFilter, selectedTimeSlots, selectedSchedule, availabilityMap, courseFeeMap]);
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
@@ -303,14 +329,42 @@ const BrowseTrainers = () => {
       {/* Language */}
       <div>
         <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Language</label>
-        <div className="mt-2 space-y-2">
-          {ALL_LANGUAGES.map(lang => (
-            <label key={lang} className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={selectedLanguages.includes(lang)} onCheckedChange={() => toggleLang(lang)} />
-              <span className="text-sm text-foreground">{lang}</span>
-            </label>
-          ))}
-        </div>
+        <Select value={selectedLanguages[0] || "all"} onValueChange={v => setSelectedLanguages(v === "all" ? [] : [v])}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="All Languages" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Languages</SelectItem>
+            {ALL_LANGUAGES.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Experience */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Experience</label>
+        <Select value={experienceFilter} onValueChange={setExperienceFilter}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Any" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any</SelectItem>
+            <SelectItem value="1-2">1-2 years</SelectItem>
+            <SelectItem value="3-5">3-5 years</SelectItem>
+            <SelectItem value="5+">5+ years</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Budget */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Budget</label>
+        <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Any" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any</SelectItem>
+            <SelectItem value="under500">Under ₹500/hr</SelectItem>
+            <SelectItem value="500-1000">₹500-1000/hr</SelectItem>
+            <SelectItem value="1000-2000">₹1000-2000/hr</SelectItem>
+            <SelectItem value="above2000">Above ₹2000/hr</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Gender Preference */}

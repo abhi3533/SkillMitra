@@ -147,8 +147,8 @@ serve(async (req) => {
       });
     }
 
-    if (role === "student" && student_data) {
-      // Check if the student row already has a referral_code; generate one if not.
+    if (role === "student") {
+      // Always ensure the student has a referral_code; also save any course interests.
       const { data: studentRow } = await supabaseAdmin
         .from("students")
         .select("referral_code")
@@ -177,7 +177,7 @@ serve(async (req) => {
         if (referralCode) updates.referral_code = referralCode;
       }
 
-      if (student_data.course_interests && student_data.course_interests.length > 0) {
+      if (student_data?.course_interests && student_data.course_interests.length > 0) {
         updates.course_interests = student_data.course_interests;
       }
 

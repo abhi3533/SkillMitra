@@ -159,15 +159,12 @@ const StudentSignup = () => {
           if (!allInterests.includes(s)) allInterests.push(s);
         });
       }
-      // Save course interests — await so we can warn the user if it fails.
-      if (signupData?.user?.id && allInterests.length > 0) {
+      // Always call complete-signup: generates referral code + saves course interests.
+      if (signupData?.user?.id) {
         const { error: signupFnErr } = await supabase.functions.invoke("complete-signup", {
           body: { user_id: signupData.user.id, role: "student", student_data: { course_interests: allInterests } },
         });
-        if (signupFnErr) {
-          console.error("Course interests save error:", signupFnErr);
-          toast({ title: "Account created", description: "Your course interests couldn't be saved — you can update them from your profile.", variant: "warning" });
-        }
+        if (signupFnErr) console.error("complete-signup error:", signupFnErr);
       }
 
       // Process referral — important for reward credit, so log clearly on failure.

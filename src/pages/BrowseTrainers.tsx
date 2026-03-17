@@ -303,14 +303,42 @@ const BrowseTrainers = () => {
       {/* Language */}
       <div>
         <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Language</label>
-        <div className="mt-2 space-y-2">
-          {ALL_LANGUAGES.map(lang => (
-            <label key={lang} className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={selectedLanguages.includes(lang)} onCheckedChange={() => toggleLang(lang)} />
-              <span className="text-sm text-foreground">{lang}</span>
-            </label>
-          ))}
-        </div>
+        <Select value={selectedLanguages[0] || "all"} onValueChange={v => setSelectedLanguages(v === "all" ? [] : [v])}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="All Languages" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Languages</SelectItem>
+            {ALL_LANGUAGES.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Experience */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Experience</label>
+        <Select value={experienceFilter} onValueChange={setExperienceFilter}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Any" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any</SelectItem>
+            <SelectItem value="1-2">1-2 years</SelectItem>
+            <SelectItem value="3-5">3-5 years</SelectItem>
+            <SelectItem value="5+">5+ years</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Budget */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Budget</label>
+        <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Any" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any</SelectItem>
+            <SelectItem value="under500">Under ₹500/hr</SelectItem>
+            <SelectItem value="500-1000">₹500-1000/hr</SelectItem>
+            <SelectItem value="1000-2000">₹1000-2000/hr</SelectItem>
+            <SelectItem value="above2000">Above ₹2000/hr</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Gender Preference */}

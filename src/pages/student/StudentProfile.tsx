@@ -366,6 +366,82 @@ const StudentProfile = () => {
           )}
         </div>
 
+        {/* Education & Experience Section */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium text-muted-foreground">Education Level</Label>
+            {editing ? (
+              <Select value={educationLevel} onValueChange={setEducationLevel}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select education level" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high_school">High School</SelectItem>
+                  <SelectItem value="graduate">Graduate</SelectItem>
+                  <SelectItem value="post_graduate">Post Graduate</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-foreground mt-1">{educationLevel ? educationLevel.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "-"}</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-muted-foreground">Graduation Year</Label>
+            {editing ? (
+              <Select value={graduationYear} onValueChange={setGraduationYear}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select year" /></SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 11 }, (_, i) => 2020 + i).map(y => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-foreground mt-1">{graduationYear || "-"}</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-muted-foreground">College / University Name</Label>
+            {editing ? (
+              <Input value={collegeName} onChange={e => setCollegeName(e.target.value)} className="mt-1" placeholder="Enter college name" />
+            ) : (
+              <p className="text-sm text-foreground mt-1">{collegeName || "-"}</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-muted-foreground">Years of Skill Experience</Label>
+            {editing ? (
+              <Select value={skillExperience} onValueChange={setSkillExperience}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select experience" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="1-2_years">1-2 years</SelectItem>
+                  <SelectItem value="3-5_years">3-5 years</SelectItem>
+                  <SelectItem value="5+_years">5+ years</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-foreground mt-1">{skillExperience ? skillExperience.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "-"}</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+            {editing ? (
+              <Select value={studentStatus} onValueChange={setStudentStatus}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="working_professional">Working Professional</SelectItem>
+                  <SelectItem value="freelancer">Freelancer</SelectItem>
+                  <SelectItem value="job_seeker">Job Seeker</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-foreground mt-1">{studentStatus ? studentStatus.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "-"}</p>
+            )}
+          </div>
+        </div>
+
         {/* Languages */}
         <div>
           <Label className="text-sm font-medium text-muted-foreground">Preferred Learning Languages</Label>

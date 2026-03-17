@@ -248,7 +248,7 @@ const TrainerSignup = () => {
               <p className="text-xs text-muted-foreground">Your data is encrypted and protected.</p>
             </div>
 
-            <Button onClick={handleSubmit} disabled={loading} className="w-full h-11 hero-gradient border-0 font-semibold text-base">
+            <Button onClick={handleSubmit} disabled={loading || !!(form.fullName.trim() && !isValidName(form.fullName))} className="w-full h-11 hero-gradient border-0 font-semibold text-base">
               {loading
                 ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Account...</>
                 : <>Create Account & Verify Email <ArrowRight className="ml-2 w-4 h-4" /></>

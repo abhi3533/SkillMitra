@@ -196,7 +196,7 @@ const StudentSignup = () => {
     }
   };
 
-  const isFormValid = form.fullName.trim() && isEmailFilled && isPhoneFilled && form.city.trim() && form.state && form.gender && isPasswordValid(form.password) && form.password === confirmPassword && !emailError;
+  const isFormValid = form.fullName.trim() && isNameLettersOnly(form.fullName) && isEmailFilled && isPhoneFilled && form.city.trim() && form.state && form.gender && isPasswordValid(form.password) && form.password === confirmPassword && !emailError;
 
   return (
     <div className="min-h-screen bg-background">

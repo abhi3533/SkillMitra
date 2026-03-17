@@ -7,7 +7,6 @@ import {
   Container,
   Head,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -29,27 +28,16 @@ export const EmailLayout = ({ previewText, children }: EmailLayoutProps) => (
       <Container style={container}>
         {/* Brand header */}
         <Section style={headerSection}>
-          {/* Graduation cap + SkillMitra text — matches navbar SkillMitraLogo component */}
-          <table cellPadding="0" cellSpacing="0" role="presentation" style={{ margin: '0 auto' }}>
-            <tr>
-              <td style={{ verticalAlign: 'middle', paddingRight: '8px' }}>
-                <img
-                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M12 3L1 9L5 11.18V17.18L12 21L19 17.18V11.18L21 10.09V17H23V9L12 3ZM18.82 9L12 12.72L5.18 9L12 5.28L18.82 9ZM17 15.99L12 18.72L7 15.99V12.27L12 15L17 12.27V15.99Z' fill='%231A56DB'/%3E%3C/svg%3E"
-                  alt=""
-                  width="28"
-                  height="28"
-                  style={{ display: 'block' }}
-                />
-              </td>
-              <td style={{ verticalAlign: 'middle' }}>
-                <span style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
-                  <span style={{ color: '#0F172A' }}>Skill</span>
-                  <span style={{ color: '#1A56DB' }}>Mitra</span>
-                </span>
-              </td>
-            </tr>
-          </table>
-          <Text style={taglineText}>LEARN. GROW. SUCCEED.</Text>
+          <div style={{ textAlign: 'center', padding: '20px 0', background: '#ffffff' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+              style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }}
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3L1 9L12 15L21 10.09V17H23V9L12 3Z" fill="#1A56DB"/>
+              <path d="M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z" fill="#1A56DB"/>
+            </svg>
+            <span style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'Arial,sans-serif', color: '#0f172a' }}>Skill</span>
+            <span style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'Arial,sans-serif', color: '#1A56DB' }}>Mitra</span>
+          </div>
         </Section>
 
         {/* Main content */}
@@ -81,8 +69,7 @@ export default EmailLayout
 
 const main = { backgroundColor: '#f8fafc', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
 const container = { maxWidth: '560px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '12px', overflow: 'hidden' }
-const headerSection = { backgroundColor: '#ffffff', padding: '28px 32px', textAlign: 'center' as const, borderBottom: '1px solid #e5e7eb' }
-const taglineText = { margin: '4px 0 0', fontSize: '10px', color: '#64748B', letterSpacing: '1.2px', fontWeight: 600 as const }
+const headerSection = { backgroundColor: '#ffffff', padding: '0', textAlign: 'center' as const }
 const contentSection = { padding: '32px 32px 24px' }
 const footerSection = { padding: '20px 32px 28px', borderTop: '1px solid #e5e7eb', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px' }

@@ -92,7 +92,7 @@ const BrowseTrainers = () => {
     if (selectedTimeSlots.length > 0) params.set("time", selectedTimeSlots.join(","));
     if (selectedSchedule.length > 0) params.set("sched", selectedSchedule.join(","));
     setSearchParams(params, { replace: true });
-  }, [search, sortBy, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, selectedTimeSlots, selectedSchedule, setSearchParams]);
+  }, [search, sortBy, selectedSkill, priceRange, selectedLanguages, genderPref, minRating, experienceFilter, budgetFilter, selectedTimeSlots, selectedSchedule, setSearchParams]);
 
   useEffect(() => {
     syncFiltersToUrl();

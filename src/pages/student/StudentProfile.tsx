@@ -64,13 +64,18 @@ const StudentProfile = () => {
 
   useEffect(() => {
     if (!user?.id) return;
-    supabase.from('students').select('id, course_interests, trainer_gender_preference, skills_learning').eq('user_id', user.id).maybeSingle()
+    supabase.from('students').select('id, course_interests, trainer_gender_preference, skills_learning, education_level, graduation_year, college_name, skill_experience, student_status').eq('user_id', user.id).maybeSingle()
       .then(({ data }) => {
         if (data) {
           setStudentId(data.id);
           setCourseInterests((data.course_interests as string[]) || []);
           setTrainerPref(data.trainer_gender_preference || "no_preference");
           setSkills((data.skills_learning as string[]) || []);
+          setEducationLevel((data as any).education_level || "");
+          setGraduationYear((data as any).graduation_year ? String((data as any).graduation_year) : "");
+          setCollegeName((data as any).college_name || "");
+          setSkillExperience((data as any).skill_experience || "");
+          setStudentStatus((data as any).student_status || "");
         }
       });
 

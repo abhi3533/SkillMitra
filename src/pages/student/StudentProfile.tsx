@@ -136,7 +136,12 @@ const StudentProfile = () => {
         supabase.from('students').update({
           course_interests: courseInterests,
           trainer_gender_preference: trainerPref,
-        }).eq('user_id', user.id),
+          education_level: educationLevel || null,
+          graduation_year: graduationYear ? parseInt(graduationYear) : null,
+          college_name: collegeName.trim() || null,
+          skill_experience: skillExperience || null,
+          student_status: studentStatus || null,
+        } as any).eq('user_id', user.id),
       ]);
       if (profileRes.error) throw profileRes.error;
       if (studentRes.error) throw studentRes.error;

@@ -62,6 +62,8 @@ const BrowseTrainers = () => {
   });
   const [genderPref, setGenderPref] = useState<string>(searchParams.get("gender") || "");
   const [minRating, setMinRating] = useState<number>(() => parseFloat(searchParams.get("rating") || "0") || 0);
+  const [experienceFilter, setExperienceFilter] = useState<string>(searchParams.get("exp") || "any");
+  const [budgetFilter, setBudgetFilter] = useState<string>(searchParams.get("budget") || "any");
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>(() => {
     const ts = searchParams.get("time");
     return ts ? ts.split(",") : [];

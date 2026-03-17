@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Wifi, WifiOff, Loader2, ShieldAlert, Check, Smartphone } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, ShieldAlert, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 import { checkLoginLocked, recordFailedAttempt, clearLoginAttempts } from "@/lib/loginProtection";
-import { cleanPhone, isValidPhone } from "@/lib/formValidation";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
-import { verifyPhoneWithOTP } from "@/lib/msg91";
 
 
 const StudentLogin = () => {
@@ -22,11 +20,7 @@ const StudentLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [connStatus, setConnStatus] = useState<"checking" | "connected" | "failed">("checking");
   const [locked, setLocked] = useState<{ locked: boolean; minutesLeft: number }>({ locked: false, minutesLeft: 0 });
-  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
-  const [loginPhone, setLoginPhone] = useState("");
-  const [otpLoading, setOtpLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -44,18 +38,6 @@ const StudentLogin = () => {
       else navigate("/student/dashboard", { replace: true });
     }
   }, [user, role]);
-
-  useEffect(() => {
-    const testConnection = async () => {
-      try {
-        const { error } = await supabase.auth.getSession();
-        setConnStatus(error ? "failed" : "connected");
-      } catch {
-        setConnStatus("failed");
-      }
-    };
-    testConnection();
-  }, []);
 
   const signInWithTimeout = async (email: string, password: string, timeoutMs = 10000) => {
     const controller = new AbortController();
@@ -145,35 +127,6 @@ const StudentLogin = () => {
     setLoading(false);
   };
 
-  const handlePhoneOTPLogin = async () => {
-    if (!isValidPhone(loginPhone)) {
-      toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "warning" });
-      return;
-    }
-    setOtpLoading(true);
-    try {
-      const accessToken = await verifyPhoneWithOTP(loginPhone);
-
-      const { data, error: fnError } = await supabase.functions.invoke("phone-otp-login", {
-        body: { phone: loginPhone, accessToken },
-      });
-      if (fnError || data?.error) throw new Error(data?.error || fnError?.message || "Login failed");
-
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: data.token_hash,
-        type: "magiclink",
-      });
-      if (verifyError) throw verifyError;
-
-      toast({ title: "Signed in successfully", variant: "success" });
-      // Navigation handled by useEffect watching user/role
-    } catch (err: any) {
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
   // Safety timeout — never block spinner for more than 15s
   useEffect(() => {
     if (!loading) return;
@@ -223,81 +176,33 @@ const StudentLogin = () => {
             </div>
           )}
 
-          {/* Login method tabs */}
-          <div className="flex mt-6 rounded-lg bg-muted p-1 gap-1">
-            <button
-              type="button"
-              onClick={() => setLoginMethod("email")}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${loginMethod === "email" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Email & Password
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMethod("phone")}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-1.5 ${loginMethod === "phone" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              Phone OTP
-            </button>
-          </div>
-
-          {loginMethod === "email" ? (
-            <form onSubmit={handleLogin} className="mt-6 space-y-5">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => { setEmail(e.target.value); setLocked({ locked: false, minutesLeft: 0 }); }} placeholder="you@example.com" className="mt-1.5 h-11" required />
-              </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <div className="relative mt-1.5">
-                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="h-11 pr-10" required />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
-                  <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
-                </div>
-                <Link to="/forgot-password?role=student" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
-              </div>
-
-              <Button type="submit" disabled={loading || locked.locked} className="w-full h-11 hero-gradient font-semibold border-0">
-                {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
-              </Button>
-            </form>
-          ) : (
-            <div className="mt-6 space-y-5">
-              <div>
-                <Label htmlFor="login-phone">Mobile Number</Label>
-                <Input
-                  id="login-phone"
-                  value={loginPhone}
-                  onChange={e => setLoginPhone(cleanPhone(e.target.value))}
-                  placeholder="9876543210"
-                  maxLength={10}
-                  inputMode="numeric"
-                  className="mt-1.5 h-11"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Enter the phone number linked to your account</p>
-              </div>
-              <Button
-                type="button"
-                onClick={handlePhoneOTPLogin}
-                disabled={otpLoading || !isValidPhone(loginPhone)}
-                className="w-full h-11 hero-gradient font-semibold border-0"
-              >
-                {otpLoading
-                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</>
-                  : <>Verify & Sign In <ArrowRight className="ml-2 w-4 h-4" /></>
-                }
-              </Button>
+          <form onSubmit={handleLogin} className="mt-6 space-y-5">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={email} onChange={e => { setEmail(e.target.value); setLocked({ locked: false, minutesLeft: 0 }); }} placeholder="you@example.com" className="mt-1.5 h-11" required />
             </div>
-          )}
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <div className="relative mt-1.5">
+                <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="h-11 pr-10" required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
+                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
+              </div>
+              <Link to="/forgot-password?role=student" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
+            </div>
+
+            <Button type="submit" disabled={loading || locked.locked} className="w-full h-11 hero-gradient font-semibold border-0">
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
+            </Button>
+          </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account? <Link to="/student/signup" className="text-primary font-semibold hover:underline">Sign up free</Link>

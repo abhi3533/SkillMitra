@@ -81,8 +81,8 @@ export default EmailLayout
 
 const main = { backgroundColor: '#f8fafc', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
 const container = { maxWidth: '560px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '12px', overflow: 'hidden' }
-const headerSection = { backgroundColor: '#1A56DB', padding: '28px 32px', textAlign: 'center' as const }
-const taglineText = { margin: '4px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.75)', letterSpacing: '0.5px' }
+const headerSection = { backgroundColor: '#ffffff', padding: '28px 32px', textAlign: 'center' as const, borderBottom: '1px solid #e5e7eb' }
+const taglineText = { margin: '4px 0 0', fontSize: '10px', color: '#64748B', letterSpacing: '1.2px', fontWeight: 600 as const }
 const contentSection = { padding: '32px 32px 24px' }
 const footerSection = { padding: '20px 32px 28px', borderTop: '1px solid #e5e7eb', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px' }

@@ -176,6 +176,8 @@ const BrowseTrainers = () => {
   const activeFilterCount = [
     selectedSkill, selectedLanguages.length > 0, genderPref, minRating > 0,
     selectedTimeSlots.length > 0, selectedSchedule.length > 0,
+    experienceFilter && experienceFilter !== "any",
+    budgetFilter && budgetFilter !== "any",
     priceRange[0] !== 500 || priceRange[1] !== 10000,
   ].filter(Boolean).length;
 

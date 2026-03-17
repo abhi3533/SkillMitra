@@ -314,53 +314,91 @@ const StudentSignup = () => {
 
             <div>
               <Label>Preferred Learning Languages</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {languageOptions.map(lang => (
-                  <button
-                    key={lang}
-                    type="button"
-                    onClick={() => toggleLang(lang)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                      languages.includes(lang)
-                        ? "hero-gradient text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                    }`}
-                  >
-                    {lang}
-                  </button>
-                ))}
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" type="button" className={cn("w-full mt-1.5 h-auto min-h-[44px] justify-between font-normal", !languages.length && "text-muted-foreground")}>
+                    {languages.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 mr-2">
+                        {languages.map(lang => (
+                          <Badge key={lang} variant="secondary" className="text-xs">
+                            {lang}
+                            <button type="button" className="ml-1 rounded-full outline-none hover:bg-muted" onClick={e => { e.stopPropagation(); toggleLang(lang); }}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : "Select languages"}
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search languages..." />
+                    <CommandList>
+                      <CommandEmpty>No language found.</CommandEmpty>
+                      <CommandGroup>
+                        {languageOptions.map(lang => (
+                          <CommandItem key={lang} onSelect={() => toggleLang(lang)} className="cursor-pointer">
+                            <Check className={cn("mr-2 h-4 w-4", languages.includes(lang) ? "opacity-100" : "opacity-0")} />
+                            {lang}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
               <Label>Courses You're Interested In</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {courseInterestOptions.map(interest => (
-                  <button
-                    key={interest}
-                    type="button"
-                    onClick={() => toggleInterest(interest)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                      courseInterests.includes(interest)
-                        ? "hero-gradient text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                    }`}
-                  >
-                    {interest}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => { setOtherSelected(prev => { if (prev) setOtherSkill(""); return !prev; }); }}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    otherSelected
-                      ? "hero-gradient text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  }`}
-                >
-                  Other
-                </button>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" type="button" className={cn("w-full mt-1.5 h-auto min-h-[44px] justify-between font-normal", !courseInterests.length && !otherSelected && "text-muted-foreground")}>
+                    {courseInterests.length > 0 || otherSelected ? (
+                      <div className="flex flex-wrap gap-1 mr-2">
+                        {courseInterests.map(c => (
+                          <Badge key={c} variant="secondary" className="text-xs">
+                            {c}
+                            <button type="button" className="ml-1 rounded-full outline-none hover:bg-muted" onClick={e => { e.stopPropagation(); if (c === "Other") { setOtherSelected(false); setOtherSkill(""); } else toggleInterest(c); }}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                        {otherSelected && !courseInterests.includes("Other") && (
+                          <Badge variant="secondary" className="text-xs">
+                            Other
+                            <button type="button" className="ml-1 rounded-full outline-none hover:bg-muted" onClick={e => { e.stopPropagation(); setOtherSelected(false); setOtherSkill(""); }}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        )}
+                      </div>
+                    ) : "Select courses"}
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search courses..." />
+                    <CommandList>
+                      <CommandEmpty>No course found.</CommandEmpty>
+                      <CommandGroup>
+                        {courseInterestOptions.map(interest => (
+                          <CommandItem key={interest} onSelect={() => {
+                            if (interest === "Other") { setOtherSelected(prev => { if (prev) setOtherSkill(""); return !prev; }); }
+                            else toggleInterest(interest);
+                          }} className="cursor-pointer">
+                            <Check className={cn("mr-2 h-4 w-4", (interest === "Other" ? otherSelected : courseInterests.includes(interest)) ? "opacity-100" : "opacity-0")} />
+                            {interest}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               {otherSelected && (
                 <Input
                   value={otherSkill}
@@ -369,8 +407,9 @@ const StudentSignup = () => {
                   className="mt-2 h-11"
                 />
               )}
-              {otherSelected && <p className="text-xs text-muted-foreground mt-1">Please specify your course or skill</p>}
-              {!otherSelected && <p className="text-xs text-muted-foreground mt-1">Select skills you want to learn — helps us match you with the right trainers</p>}
+              <p className="text-xs text-muted-foreground mt-1">
+                {otherSelected ? "Please specify your course or skill" : "Select skills you want to learn — helps us match you with the right trainers"}
+              </p>
             </div>
 
             <div>

@@ -40,6 +40,13 @@ const StudentProfile = () => {
   const [fullName, setFullName] = useState("");
   const [trainerPref, setTrainerPref] = useState("no_preference");
 
+  // New profile fields
+  const [educationLevel, setEducationLevel] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+  const [collegeName, setCollegeName] = useState("");
+  const [skillExperience, setSkillExperience] = useState("");
+  const [studentStatus, setStudentStatus] = useState("");
+
   // Skills state
   const [skills, setSkills] = useState<string[]>([]);
   const [skillsModalOpen, setSkillsModalOpen] = useState(false);

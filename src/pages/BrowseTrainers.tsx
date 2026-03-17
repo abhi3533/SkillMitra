@@ -87,6 +87,8 @@ const BrowseTrainers = () => {
     if (selectedLanguages.length > 0) params.set("lang", selectedLanguages.join(","));
     if (genderPref) params.set("gender", genderPref);
     if (minRating > 0) params.set("rating", String(minRating));
+    if (experienceFilter && experienceFilter !== "any") params.set("exp", experienceFilter);
+    if (budgetFilter && budgetFilter !== "any") params.set("budget", budgetFilter);
     if (selectedTimeSlots.length > 0) params.set("time", selectedTimeSlots.join(","));
     if (selectedSchedule.length > 0) params.set("sched", selectedSchedule.join(","));
     setSearchParams(params, { replace: true });

@@ -184,6 +184,7 @@ const BrowseTrainers = () => {
   const clearFilters = () => {
     setSelectedSkill(""); setPriceRange([500, 10000]); setSelectedLanguages([]);
     setGenderPref(""); setMinRating(0); setSelectedTimeSlots([]); setSelectedSchedule([]);
+    setExperienceFilter("any"); setBudgetFilter("any");
     setVisibleCount(ITEMS_PER_PAGE);
   };
 

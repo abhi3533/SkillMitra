@@ -29,15 +29,7 @@ export const EmailLayout = ({ previewText, children }: EmailLayoutProps) => (
         {/* Brand header */}
         <Section style={headerSection}>
           <div style={{ textAlign: 'center', padding: '24px 0 16px 0' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"
-              viewBox="0 0 24 24" fill="none" stroke="#1A56DB" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round"
-              style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}>
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
-            <span style={{ fontSize: '22px', fontWeight: 700, fontFamily: 'Arial,sans-serif', color: '#0f172a' }}>Skill</span><span
-              style={{ fontSize: '22px', fontWeight: 700, fontFamily: 'Arial,sans-serif', color: '#1A56DB' }}>Mitra</span>
+            <span style={{ fontSize: '26px', fontWeight: 900, fontFamily: 'Arial,sans-serif', color: '#0f172a' }}>Skill</span><span style={{ fontSize: '26px', fontWeight: 900, fontFamily: 'Arial,sans-serif', color: '#1A56DB' }}>Mitra</span>
           </div>
         </Section>
 

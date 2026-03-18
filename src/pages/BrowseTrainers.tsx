@@ -168,9 +168,6 @@ const BrowseTrainers = () => {
     })();
   }, []);
 
-  const toggleLang = (lang: string) => setSelectedLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
-  const toggleTimeSlot = (slot: string) => setSelectedTimeSlots(prev => prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot]);
-  const toggleSchedule = (sched: string) => setSelectedSchedule(prev => prev.includes(sched) ? prev.filter(s => s !== sched) : [...prev, sched]);
 
   const activeFilterCount = [
     selectedSkill, selectedLanguages.length > 0, genderPref, minRating > 0,

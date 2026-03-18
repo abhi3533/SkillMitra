@@ -296,8 +296,37 @@ const BrowseTrainers = () => {
     });
   }, [filtered, sortBy, courseFeeMap]);
 
+  const AVAILABILITY_OPTIONS = [
+    { value: "all", label: "All" },
+    { value: "Early Morning", label: "Early Morning (6–9 AM)" },
+    { value: "Morning", label: "Morning (9 AM–12 PM)" },
+    { value: "Afternoon", label: "Afternoon (12–4 PM)" },
+    { value: "Evening", label: "Evening (4–8 PM)" },
+    { value: "Night", label: "Night (8–11 PM)" },
+    { value: "Weekend Only", label: "Weekend Only" },
+    { value: "Weekday Only", label: "Weekday Only" },
+  ];
+
+  const handleAvailabilityChange = (value: string) => {
+    if (value === "all") {
+      setSelectedTimeSlots([]);
+      setSelectedSchedule([]);
+      return;
+    }
+    const isSchedule = value === "Weekend Only" || value === "Weekday Only";
+    if (isSchedule) {
+      setSelectedSchedule([value]);
+      setSelectedTimeSlots([]);
+    } else {
+      setSelectedTimeSlots([value]);
+      setSelectedSchedule([]);
+    }
+  };
+
+  const currentAvailability = selectedSchedule[0] || selectedTimeSlots[0] || "all";
+
   const FilterSidebar = () => (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Skill */}
       <div>
         <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Skill</label>
@@ -310,32 +339,35 @@ const BrowseTrainers = () => {
         </Select>
       </div>
 
+      {/* Language */}
+      <div>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Language</label>
+        <Select value={selectedLanguages[0] || "all"} onValueChange={v => setSelectedLanguages(v === "all" ? [] : [v])}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Select Language" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Languages</SelectItem>
+            {ALL_LANGUAGES.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Price Range */}
       <div>
-        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Price Range</label>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Price Range</label>
+          <span className="text-xs font-medium text-primary">₹{priceRange[0].toLocaleString()} – ₹{priceRange[1].toLocaleString()}</span>
+        </div>
         <div className="mt-3 px-1">
           <Slider
             min={500} max={10000} step={500}
             value={priceRange}
             onValueChange={(v) => setPriceRange(v as [number, number])}
           />
-          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-            <span>₹{priceRange[0].toLocaleString()}</span>
-            <span>₹{priceRange[1].toLocaleString()}</span>
+          <div className="flex justify-between mt-1.5 text-[11px] text-muted-foreground">
+            <span>₹500</span>
+            <span>₹10,000</span>
           </div>
         </div>
-      </div>
-
-      {/* Language */}
-      <div>
-        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Language</label>
-        <Select value={selectedLanguages[0] || "all"} onValueChange={v => setSelectedLanguages(v === "all" ? [] : [v])}>
-          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="All Languages" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Languages</SelectItem>
-            {ALL_LANGUAGES.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Experience */}
@@ -352,17 +384,15 @@ const BrowseTrainers = () => {
         </Select>
       </div>
 
-      {/* Budget */}
+      {/* Availability */}
       <div>
-        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Budget</label>
-        <Select value={budgetFilter} onValueChange={setBudgetFilter}>
-          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Any" /></SelectTrigger>
+        <label className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5" /> Availability
+        </label>
+        <Select value={currentAvailability} onValueChange={handleAvailabilityChange}>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Select Time" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any</SelectItem>
-            <SelectItem value="under500">Under ₹500/hr</SelectItem>
-            <SelectItem value="500-1000">₹500-1000/hr</SelectItem>
-            <SelectItem value="1000-2000">₹1000-2000/hr</SelectItem>
-            <SelectItem value="above2000">Above ₹2000/hr</SelectItem>
+            {AVAILABILITY_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -393,35 +423,10 @@ const BrowseTrainers = () => {
         </div>
       </div>
 
-      {/* Availability - Time Slots */}
-      <div>
-        <label className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5" /> Availability
-        </label>
-        <p className="text-[11px] text-muted-foreground mt-1 mb-2.5">When can you learn?</p>
-        <div className="flex flex-wrap gap-1.5">
-          {TIME_SLOTS.map(slot => (
-            <button key={slot.label} onClick={() => toggleTimeSlot(slot.label)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${selectedTimeSlots.includes(slot.label) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:border-primary/30'}`}>
-              {slot.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {SCHEDULE_PREFS.map(sched => (
-            <button key={sched.label} onClick={() => toggleSchedule(sched.label)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${selectedSchedule.includes(sched.label) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:border-primary/30'}`}>
-              {sched.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {activeFilterCount > 0 && (
-        <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full text-xs text-muted-foreground">
-          Clear all filters
-        </Button>
-      )}
+      {/* Clear All Filters */}
+      <Button variant="outline" size="sm" onClick={clearFilters} className="w-full text-xs">
+        <X className="w-3.5 h-3.5 mr-1.5" /> Clear All Filters
+      </Button>
     </div>
   );
 

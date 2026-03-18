@@ -386,7 +386,7 @@ const BrowseTrainers = () => {
           <Clock className="w-3.5 h-3.5" /> Availability
         </label>
         <Select value={currentAvailability} onValueChange={handleAvailabilityChange}>
-          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Select Time" /></SelectTrigger>
+          <SelectTrigger className="mt-1.5 h-9 text-sm"><SelectValue placeholder="Select Availability" /></SelectTrigger>
           <SelectContent>
             {AVAILABILITY_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
           </SelectContent>

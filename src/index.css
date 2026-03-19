@@ -237,3 +237,8 @@
     @apply flex items-center justify-center py-3 text-sm text-muted-foreground;
   }
 }
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

@@ -247,7 +247,7 @@ const Index = () => {
               </h1>
 
               <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
-                Learn Any Skill from India's Best and Verified Experts. Book a free trial today.
+                Learn any skill with verified experts. Book your free trial and start today.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">

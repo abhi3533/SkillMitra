@@ -264,7 +264,21 @@ const Index = () => {
                 </Link>
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-6">
+              {/* ── Skills auto-scroll strip ── */}
+              <div className="mt-6 overflow-hidden relative group" style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}>
+                <div
+                  className="flex gap-3 whitespace-nowrap animate-[scroll-left_25s_linear_infinite] group-hover:[animation-play-state:paused]"
+                  style={{ width: "max-content" }}
+                >
+                  {[...skills, ...skills].map((s, i) => (
+                    <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-xs font-medium text-primary whitespace-nowrap">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-6">
                 {[
                   { icon: Shield, text: "Verified Experts" },
                   { icon: Star, text: "4.8★ Average Rating" },

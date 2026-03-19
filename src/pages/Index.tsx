@@ -147,6 +147,7 @@ const Index = () => {
   const [realReviews, setRealReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTrainer, setActiveTrainer] = useState(0);
+  const [skills, setSkills] = useState<string[]>(["Python", "Data Science", "UI/UX", "Spoken English", "Coding", "Interview Prep", "Digital Marketing"]);
 
   useEffect(() => {
     const interval = setInterval(() => {

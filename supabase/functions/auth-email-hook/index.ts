@@ -17,7 +17,7 @@ const corsHeaders = {
 const SITE_NAME = 'SkillMitra'
 const SITE_URL = 'https://skillmitra.online'
 const FROM_EMAIL = 'SkillMitra <contact@skillmitra.online>'
-const SUPABASE_URL = 'https://gxrxyjjvlicuphoubbdv.supabase.co'
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://huszmetnqxrividclgad.supabase.co'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirm your SkillMitra email',

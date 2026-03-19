@@ -239,10 +239,10 @@ const Index = () => {
               </div>
 
               <h1 className="text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.08] tracking-tight">
-                <span className="text-foreground">Find Your Perfect</span>
+                <span className="text-foreground">Get Matched with India's</span>
                 <br />
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  1-on-1 Trainer
+                  Top Trainers in 30 Minutes
                 </span>
               </h1>
 

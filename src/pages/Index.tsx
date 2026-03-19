@@ -235,25 +235,25 @@ const Index = () => {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-semibold text-primary tracking-wide">1:1 Skill Training — Verified Trainers Across India</span>
+                <span className="text-xs font-semibold text-primary tracking-wide">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
               </div>
 
               <h1 className="text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.08] tracking-tight">
-                <span className="text-foreground">Find Your Perfect</span>
+                <span className="text-foreground">Get Matched with India's</span>
                 <br />
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  1-on-1 Trainer
+                  Top Trainers in 30 Minutes
                 </span>
               </h1>
 
               <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
-                Learn Any Skill from India's Best and Verified Experts. Book a free trial today.
+                Learn any skill with verified experts. Book your free trial and start today.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link to="/browse">
                   <Button className="group relative bg-primary hover:bg-primary text-primary-foreground font-semibold text-[15px] px-8 h-12 rounded-xl shadow-[0_4px_16px_hsl(221_79%_49%/0.3)] hover:shadow-[0_8px_32px_hsl(221_79%_49%/0.45)] transition-all duration-300 w-full sm:w-auto overflow-hidden">
-                    <span className="relative z-10 flex items-center">Browse Trainers <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+                    <span className="relative z-10 flex items-center">Find Your Trainer Now <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
                     <div className="absolute inset-0 bg-gradient-to-r from-primary to-[hsl(221,79%,38%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </Button>
                 </Link>

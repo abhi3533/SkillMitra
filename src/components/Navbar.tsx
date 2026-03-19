@@ -224,13 +224,20 @@ const Navbar = () => {
               className="lg:hidden fixed inset-0 top-16 bg-background z-40"
             >
               <div className="flex flex-col p-6 gap-2">
-                {navLinks.map(item => (
-                  <Link key={item.path} to={item.path}
-                    className="px-4 py-3.5 rounded-lg text-base font-medium text-foreground hover:bg-muted transition-colors"
-                    onClick={() => setMobileOpen(false)}>
-                    {item.label}
-                  </Link>
-                ))}
+                {navLinks.map(item => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link key={item.path} to={item.path}
+                      className={`px-4 py-4 rounded-xl text-[15px] font-medium transition-colors ${
+                        isActive
+                          ? "text-primary bg-primary/[0.06] font-semibold"
+                          : "text-foreground hover:bg-muted"
+                      }`}
+                      onClick={() => setMobileOpen(false)}>
+                      {item.label}
+                    </Link>
+                  );
+                })}
                 <hr className="border-border my-3" />
                 {isLoggedIn ? (
                   <>

@@ -98,7 +98,7 @@ const Navbar = () => {
     ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
     : "bg-background border-b border-transparent";
 
-  const linkColor = "text-muted-foreground hover:text-foreground";
+  const linkColor = "text-muted-foreground hover:text-primary font-medium transition-colors duration-200";
 
   return (
     <>

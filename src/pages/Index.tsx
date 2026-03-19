@@ -253,7 +253,7 @@ const Index = () => {
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link to="/browse">
                   <Button className="group relative bg-primary hover:bg-primary text-primary-foreground font-semibold text-[15px] px-8 h-12 rounded-xl shadow-[0_4px_16px_hsl(221_79%_49%/0.3)] hover:shadow-[0_8px_32px_hsl(221_79%_49%/0.45)] transition-all duration-300 w-full sm:w-auto overflow-hidden">
-                    <span className="relative z-10 flex items-center">Browse Trainers <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+                    <span className="relative z-10 flex items-center">Find Your Trainer Now <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
                     <div className="absolute inset-0 bg-gradient-to-r from-primary to-[hsl(221,79%,38%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </Button>
                 </Link>

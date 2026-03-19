@@ -174,6 +174,11 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch skills
+        const { data: skillsData } = await supabase.from("skills").select("name").limit(20);
+        if (skillsData && skillsData.length > 0) {
+          setSkills(skillsData.map(s => s.name));
+        }
         const { data: rpcTrainers } = await supabase.rpc("get_approved_trainers_list");
         const approvedTrainers = (rpcTrainers || []).map((t: any) => ({
           id: t.trainer_id, user_id: t.trainer_user_id, average_rating: t.trainer_average_rating,

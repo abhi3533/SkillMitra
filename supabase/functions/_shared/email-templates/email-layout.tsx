@@ -28,9 +28,27 @@ export const EmailLayout = ({ previewText, children }: EmailLayoutProps) => (
       <Container style={container}>
         {/* Brand header */}
         <Section style={headerSection}>
-          <div style={{ textAlign: 'center', padding: '24px 0 16px 0' }}>
-            <span style={{ fontSize: '26px', fontWeight: 900, fontFamily: 'Arial,sans-serif', color: '#0f172a' }}>Skill</span><span style={{ fontSize: '26px', fontWeight: 900, fontFamily: 'Arial,sans-serif', color: '#1A56DB' }}>Mitra</span>
-          </div>
+          <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
+            <tr>
+              <td style={{ textAlign: 'center', padding: '28px 0 8px 0' }}>
+                {/* Graduation cap SVG */}
+                <img
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24' fill='none' stroke='%231A56DB' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z'/%3E%3Cpath d='M22 10v6'/%3E%3Cpath d='M6 12.5V16a6 3 0 0 0 12 0v-3.5'/%3E%3C/svg%3E"
+                  alt=""
+                  width="36"
+                  height="36"
+                  style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }}
+                />
+                <span style={{ fontSize: '30px', fontWeight: 900, fontFamily: 'Arial,sans-serif', color: '#0F172A', verticalAlign: 'middle' }}>Skill</span>
+                <span style={{ fontSize: '30px', fontWeight: 900, fontFamily: 'Arial,sans-serif', color: '#1A56DB', verticalAlign: 'middle' }}>Mitra</span>
+              </td>
+            </tr>
+            <tr>
+              <td style={{ textAlign: 'center', paddingBottom: '20px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 500, fontFamily: 'Arial,sans-serif', color: '#64748B', letterSpacing: '0.3px' }}>Find Your Trainer in 30 Minutes</span>
+              </td>
+            </tr>
+          </table>
         </Section>
 
         {/* Main content */}

@@ -98,7 +98,7 @@ const Navbar = () => {
     ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
     : "bg-background border-b border-transparent";
 
-  const linkColor = "text-muted-foreground hover:text-foreground";
+  const linkColor = "text-muted-foreground hover:text-primary font-medium transition-colors duration-200";
 
   return (
     <>
@@ -107,13 +107,25 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-16">
             <SkillMitraLogo darkText height={36} />
 
-            <div className="hidden lg:flex items-center gap-1">
-              {navLinks.map(item => (
-                <Link key={item.path} to={item.path}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${linkColor}`}>
-                  {item.label}
-                </Link>
-              ))}
+            <div className="hidden lg:flex items-center gap-2">
+              {navLinks.map(item => {
+                const isActive = location.pathname === item.path;
+                const isPrimary = item.path === "/browse";
+                return (
+                  <Link key={item.path} to={item.path}
+                    className={`px-4 py-2 rounded-lg text-sm transition-colors duration-200 relative
+                      ${isActive || isPrimary
+                        ? "text-primary font-semibold"
+                        : linkColor}
+                      hover:bg-primary/[0.04]
+                    `}>
+                    {item.label}
+                    {(isActive || isPrimary) && (
+                      <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />
+                    )}
+                  </Link>
+                );
+              })}
             </div>
 
             <div className="hidden lg:flex items-center gap-3">

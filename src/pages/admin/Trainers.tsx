@@ -59,6 +59,14 @@ const AdminTrainers = () => {
     }
     const update: any = { approval_status: status };
     if (rejectionReason) update.rejection_reason = rejectionReason;
+
+    // Extend: sync profile_status with approval decision
+    if (status === "approved") {
+      update.profile_status = "approved";
+    } else if (status === "rejected") {
+      update.profile_status = "rejected";
+    }
+
     const { error } = await supabase.from("trainers").update(update).eq("id", id);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });

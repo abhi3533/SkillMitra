@@ -43,6 +43,21 @@ const AdminCourses = () => {
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("courses").update({ approval_status: status, is_active: status === "approved" }).eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+
+    // Extend: sync course_status on the trainer record
+    const course = courses.find(c => c.id === id);
+    if (course?.trainer_id) {
+      const courseStatusUpdate: any = {};
+      if (status === "approved") {
+        courseStatusUpdate.course_status = "approved";
+      } else if (status === "rejected") {
+        courseStatusUpdate.course_status = "rejected";
+      }
+      if (Object.keys(courseStatusUpdate).length > 0) {
+        await supabase.from("trainers").update(courseStatusUpdate).eq("id", course.trainer_id);
+      }
+    }
+
     setCourses(prev => prev.map(c => c.id === id ? { ...c, approval_status: status, is_active: status === "approved" } : c));
     if (selectedCourse?.id === id) setSelectedCourse((prev: any) => prev ? { ...prev, approval_status: status } : prev);
     setDrawerOpen(false);

@@ -17,6 +17,7 @@ const TrainerDashboard = () => {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [onboardingInfo, setOnboardingInfo] = useState<{ step: number; status: string } | null>(null);
+  const [trainerLifecycle, setTrainerLifecycle] = useState<{ profile_status: string; course_status: string; trainer_status: string } | null>(null);
   const [data, setData] = useState({
     activeStudents: 0, totalStudents: 0, monthEarnings: 0, totalEarnings: 0,
     availableBalance: 0, totalSessions: 0, completedSessions: 0, upcomingSessions: 0,

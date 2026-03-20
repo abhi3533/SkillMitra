@@ -31,8 +31,15 @@ const TrainerDashboard = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     await (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status").eq("user_id", user.id).maybeSingle();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
+
+      // Set lifecycle statuses
+      setTrainerLifecycle({
+        profile_status: trainer.profile_status || "pending",
+        course_status: trainer.course_status || "not_created",
+        trainer_status: trainer.trainer_status || "inactive",
+      });
 
       // Check onboarding status
       if (trainer.onboarding_status === "draft" || trainer.onboarding_status === "registered" || (trainer.onboarding_step !== null && trainer.onboarding_step < 6 && trainer.onboarding_status !== "pending")) {

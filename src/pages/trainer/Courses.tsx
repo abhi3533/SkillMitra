@@ -160,6 +160,24 @@ const TrainerCourses = () => {
         const { data: course, error } = await supabase.from("courses").insert(courseData).select().single();
         if (error) throw error;
         courseId = course.id;
+
+        // Update trainer course_status to 'pending' after new course submission
+        await supabase.from("trainers").update({ course_status: "pending" }).eq("id", trainerId);
+
+        // Fetch trainer profile for notification emails
+        const { data: profile } = await supabase.from("profiles").select("full_name, email").eq("id", user?.id).maybeSingle();
+
+        // Trigger course submission notification (fire-and-forget)
+        supabase.functions.invoke("notify-course-submitted", {
+          body: {
+            trainer_name: profile?.full_name || "",
+            trainer_email: profile?.email || user?.email || "",
+            course_title: form.title.trim(),
+            course_fee: form.course_fee,
+            duration_days: courseData.duration_days,
+            total_sessions: courseData.total_sessions,
+          },
+        }).catch(err => console.error("Course notification error:", err));
       }
 
       // Insert curriculum

@@ -1518,6 +1518,7 @@ export type Database = {
           course_duration: string | null
           course_fee: number | null
           course_materials: string | null
+          course_status: string
           course_title: string | null
           created_at: string | null
           current_company: string | null
@@ -1541,6 +1542,7 @@ export type Database = {
           pincode: string | null
           portfolio_url: string | null
           previous_companies: string[] | null
+          profile_status: string
           referral_code: string | null
           referral_credits: number | null
           referred_by: string | null
@@ -1554,6 +1556,7 @@ export type Database = {
           total_earnings: number | null
           total_students: number | null
           total_withdrawn: number | null
+          trainer_status: string
           upi_id: string | null
           user_id: string
           verification_method: string | null
@@ -1576,6 +1579,7 @@ export type Database = {
           course_duration?: string | null
           course_fee?: number | null
           course_materials?: string | null
+          course_status?: string
           course_title?: string | null
           created_at?: string | null
           current_company?: string | null
@@ -1599,6 +1603,7 @@ export type Database = {
           pincode?: string | null
           portfolio_url?: string | null
           previous_companies?: string[] | null
+          profile_status?: string
           referral_code?: string | null
           referral_credits?: number | null
           referred_by?: string | null
@@ -1612,6 +1617,7 @@ export type Database = {
           total_earnings?: number | null
           total_students?: number | null
           total_withdrawn?: number | null
+          trainer_status?: string
           upi_id?: string | null
           user_id: string
           verification_method?: string | null
@@ -1634,6 +1640,7 @@ export type Database = {
           course_duration?: string | null
           course_fee?: number | null
           course_materials?: string | null
+          course_status?: string
           course_title?: string | null
           created_at?: string | null
           current_company?: string | null
@@ -1657,6 +1664,7 @@ export type Database = {
           pincode?: string | null
           portfolio_url?: string | null
           previous_companies?: string[] | null
+          profile_status?: string
           referral_code?: string | null
           referral_credits?: number | null
           referred_by?: string | null
@@ -1670,6 +1678,7 @@ export type Database = {
           total_earnings?: number | null
           total_students?: number | null
           total_withdrawn?: number | null
+          trainer_status?: string
           upi_id?: string | null
           user_id?: string
           verification_method?: string | null

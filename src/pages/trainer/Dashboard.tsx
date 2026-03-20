@@ -242,6 +242,61 @@ const TrainerDashboard = () => {
         </div>
       )}
 
+      {/* Trainer Lifecycle Status Banner */}
+      {!loading && trainerLifecycle && (() => {
+        const { profile_status, course_status, trainer_status } = trainerLifecycle;
+        if (trainer_status === "live") {
+          return (
+            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">You are live! 🎉</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Start accepting students and grow your teaching journey.</p>
+              </div>
+            </div>
+          );
+        }
+        if (course_status === "pending") {
+          return (
+            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200">
+              <Info className="w-5 h-5 text-blue-600 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Course under review</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Your course is being reviewed. We'll notify you within 24 hours.</p>
+              </div>
+            </div>
+          );
+        }
+        if (profile_status === "approved" && course_status === "not_created") {
+          return (
+            <div className="mt-4 flex items-center justify-between gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-5 h-5 text-primary shrink-0" />
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Profile approved! Create your first course</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Your profile is approved. Create a course to go live and start teaching.</p>
+                </div>
+              </div>
+              <Link to="/trainer/courses">
+                <Button size="sm" className="hero-gradient border-0 text-xs shrink-0">Create Course <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
+              </Link>
+            </div>
+          );
+        }
+        if (profile_status === "pending") {
+          return (
+            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+              <Clock className="w-5 h-5 text-amber-600 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Profile under review</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Your profile is under review. We'll notify you soon.</p>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
       {/* Quick Stats */}
       {!loading && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6">

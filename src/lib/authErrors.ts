@@ -24,6 +24,9 @@ export function getAuthErrorMessage(error: unknown): string {
   if (msg.includes("Password should be at least")) {
     return "Password must be at least 6 characters.";
   }
+  if (msg.includes("weak") && msg.includes("guess")) {
+    return "This password is too common. Please try a more unique password e.g. MySkill@2026";
+  }
   if (msg.includes("rate limit") || msg.includes("too many requests")) {
     return "Too many attempts. Please wait a moment and try again.";
   }

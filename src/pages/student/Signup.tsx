@@ -442,6 +442,7 @@ const StudentSignup = () => {
                 </button>
               </div>
               <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
+              <p className="text-xs text-muted-foreground mt-1">Avoid common passwords like Test@1234, Password@1, Admin@123</p>
             </div>
 
             <div>

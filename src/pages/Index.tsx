@@ -244,7 +244,7 @@ const Index = () => {
                 <span className="text-xs font-semibold text-primary tracking-wide">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
               </div>
 
-              <h1 className="text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.08] tracking-tight">
+              <h1 className="text-[28px] sm:text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.12] tracking-tight">
                 <span className="text-foreground">Get Matched with India's</span>
                 <br />
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">

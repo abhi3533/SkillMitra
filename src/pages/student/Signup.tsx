@@ -137,7 +137,7 @@ const StudentSignup = () => {
         email: form.email,
         password: form.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/email-verified`,
+          emailRedirectTo: 'https://skillmitra.online/student/dashboard',
           data: {
             full_name: form.fullName,
             phone: form.phone,

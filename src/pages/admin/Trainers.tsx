@@ -109,11 +109,18 @@ const AdminTrainers = () => {
     }
     const trainerName = removeTarget.profiles?.full_name || "Trainer";
     const trainerId = removeTarget.id;
+    const trainerUserId = removeTarget.user_id;
     const { error } = await supabase.from("trainers").delete().eq("id", trainerId);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       setRemoveTarget(null);
       return;
+    }
+    // Also delete from auth.users so email can be reused
+    if (trainerUserId) {
+      supabase.functions.invoke("delete-auth-user", {
+        body: { user_id: trainerUserId },
+      }).catch(err => console.error("Auth user cleanup failed:", err));
     }
     setTrainers(prev => prev.filter(t => t.id !== trainerId));
     setDrawerOpen(false);

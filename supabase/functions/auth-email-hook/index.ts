@@ -10,10 +10,9 @@ import { ReauthenticationEmail } from '../_shared/email-templates/reauthenticati
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
+    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
-// Branding / sender config
 const SITE_NAME = 'SkillMitra'
 const SITE_URL = 'https://skillmitra.online'
 const FROM_EMAIL = 'SkillMitra <contact@skillmitra.online>'
@@ -41,7 +40,6 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
   reauthentication: ReauthenticationEmail,
 }
 
-// Preview sample data (non-production use only)
 const SAMPLE_DATA: Record<string, object> = {
   signup: {
     siteName: SITE_NAME,
@@ -73,22 +71,10 @@ const SAMPLE_DATA: Record<string, object> = {
   },
 }
 
-// No-op: auth is handled by Supabase internally (internal hook call)
-function verifyAuth(_req: Request): boolean {
-  return true
-}
-
-// Preview endpoint — returns rendered HTML (requires SEND_EMAIL_HOOK_SECRET)
+// Preview endpoint
 async function handlePreview(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
-  }
-
-  if (!verifyAuth(req)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
   }
 
   let type: string
@@ -119,25 +105,8 @@ async function handlePreview(req: Request): Promise<Response> {
   })
 }
 
-// Main hook handler — called by Supabase Auth when sending auth emails
+// Main hook handler — handles Lovable managed payload format
 async function handleWebhook(req: Request): Promise<Response> {
-  if (!verifyAuth(req)) {
-    console.error('Unauthorized hook request')
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
-
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-  if (!RESEND_API_KEY) {
-    console.error('RESEND_API_KEY not configured')
-    return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
-
   let payload: any
   try {
     payload = await req.json()
@@ -148,67 +117,124 @@ async function handleWebhook(req: Request): Promise<Response> {
     })
   }
 
-  // Log full payload for debugging
-  console.log('Full hook payload keys:', JSON.stringify(Object.keys(payload)))
-  console.log('Full hook payload:', JSON.stringify(payload).slice(0, 500))
+  console.log('Hook payload keys:', JSON.stringify(Object.keys(payload)))
 
-  // Supabase Send Email Hook payload: { user, email_data }
-  const user = payload.user || payload.record
-  const emailData = payload.email_data || payload.email || payload
+  // ── Extract fields from Lovable managed format ──
+  // Format: { event_id, run_id, type, data: { action_type, email, callback_url, token, url, ... } }
+  const data = payload.data || {}
+  const email = data.email || payload.user?.email || payload.email
+  const actionType = data.action_type || payload.email_data?.email_action_type || payload.type
+  const callbackUrl = data.callback_url
+  const tokenHash = data.token_hash || payload.email_data?.token_hash
+  const token = data.token || payload.email_data?.token
+  const confirmUrl = data.url || ''
+  const newEmail = data.new_email || payload.user?.new_email || ''
+  const redirectTo = data.redirect_to || payload.email_data?.redirect_to || SITE_URL
+  const runId = payload.run_id
 
-  if (!user?.email || !emailData?.email_action_type) {
-    console.error('Invalid hook payload: missing user.email or email_data.email_action_type', {
-      hasUser: !!user, hasEmail: !!user?.email, 
-      hasEmailData: !!emailData, hasActionType: !!emailData?.email_action_type,
-      payloadKeys: Object.keys(payload),
-    })
+  if (!email || !actionType) {
+    console.error('Could not extract email or action_type from payload:', JSON.stringify(payload).slice(0, 1000))
     return new Response(JSON.stringify({ error: 'Invalid payload' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  const emailType = emailData.email_action_type
-  console.log('Auth hook received', { emailType, email: user.email })
+  console.log('Processing auth email', { actionType, email })
 
-  const EmailTemplate = EMAIL_TEMPLATES[emailType]
+  const EmailTemplate = EMAIL_TEMPLATES[actionType]
   if (!EmailTemplate) {
-    console.error('Unknown email type', { emailType })
-    return new Response(JSON.stringify({ error: `Unknown email type: ${emailType}` }), {
+    console.error('Unknown email type:', actionType)
+    return new Response(JSON.stringify({ error: `Unknown email type: ${actionType}` }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  // Build confirmation URL from token_hash (Supabase Auth verify endpoint)
-  const redirectTo = emailData.redirect_to || SITE_URL
-  const confirmationUrl = emailData.token_hash
-    ? `${SUPABASE_URL}/auth/v1/verify?token=${emailData.token_hash}&type=${emailType}&redirect_to=${encodeURIComponent(redirectTo)}`
-    : redirectTo
+  // Build confirmation URL
+  let confirmationUrl = confirmUrl
+  if (!confirmationUrl && tokenHash) {
+    confirmationUrl = `${SUPABASE_URL}/auth/v1/verify?token=${tokenHash}&type=${actionType}&redirect_to=${encodeURIComponent(redirectTo)}`
+  }
+  if (!confirmationUrl) {
+    confirmationUrl = SITE_URL
+  }
 
   // Build template props
   const templateProps = {
     siteName: SITE_NAME,
     siteUrl: SITE_URL,
-    recipient: user.email,
+    recipient: email,
     confirmationUrl,
-    token: emailData.token,            // OTP for reauthentication
-    email: user.email,
-    newEmail: user.new_email || emailData.new_email || '',
+    token: token || '',
+    email,
+    newEmail,
   }
 
-  // Render React Email templates
+  // Render email
   const html = await renderAsync(React.createElement(EmailTemplate, templateProps))
-  const text = await renderAsync(React.createElement(EmailTemplate, templateProps), {
-    plainText: true,
-  })
+  const text = await renderAsync(React.createElement(EmailTemplate, templateProps), { plainText: true })
 
-  // Determine recipient (email_change_new → send to new email)
-  const toEmail = emailType === 'email_change_new'
-    ? (user.new_email || emailData.new_email || user.email)
-    : user.email
+  const toEmail = actionType === 'email_change_new' ? (newEmail || email) : email
+  const subject = EMAIL_SUBJECTS[actionType] || 'SkillMitra Notification'
 
-  // Send via Resend
+  // ── Send via Lovable callback URL (managed flow) ──
+  if (callbackUrl) {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured')
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const sendPayload = {
+      run_id: runId,
+      from: FROM_EMAIL,
+      to: toEmail,
+      subject,
+      html,
+      text,
+    }
+
+    console.log('Sending via callback URL', { callbackUrl, to: toEmail, subject })
+
+    const sendRes = await fetch(callbackUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sendPayload),
+    })
+
+    const sendData = await sendRes.text()
+    if (!sendRes.ok) {
+      console.error('Callback send error', { status: sendRes.status, data: sendData })
+      return new Response(JSON.stringify({ error: 'Failed to send email via callback' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    console.log('Email sent via callback', { to: toEmail, type: actionType })
+    return new Response(
+      JSON.stringify({ success: true }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // ── Fallback: send via Resend directly ──
+  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+  if (!RESEND_API_KEY) {
+    console.error('No callback_url and no RESEND_API_KEY')
+    return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   const resendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -218,7 +244,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     body: JSON.stringify({
       from: FROM_EMAIL,
       to: [toEmail],
-      subject: EMAIL_SUBJECTS[emailType] || 'SkillMitra Notification',
+      subject,
       html,
       text,
     }),
@@ -233,8 +259,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     })
   }
 
-  console.log('Email sent', { id: resendData.id, type: emailType, to: toEmail })
-
+  console.log('Email sent via Resend', { id: resendData.id, type: actionType, to: toEmail })
   return new Response(
     JSON.stringify({ success: true, email_id: resendData.id }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -148,12 +148,20 @@ async function handleWebhook(req: Request): Promise<Response> {
     })
   }
 
+  // Log full payload for debugging
+  console.log('Full hook payload keys:', JSON.stringify(Object.keys(payload)))
+  console.log('Full hook payload:', JSON.stringify(payload).slice(0, 500))
+
   // Supabase Send Email Hook payload: { user, email_data }
-  const user = payload.user
-  const emailData = payload.email_data
+  const user = payload.user || payload.record
+  const emailData = payload.email_data || payload.email || payload
 
   if (!user?.email || !emailData?.email_action_type) {
-    console.error('Invalid hook payload: missing user.email or email_data.email_action_type')
+    console.error('Invalid hook payload: missing user.email or email_data.email_action_type', {
+      hasUser: !!user, hasEmail: !!user?.email, 
+      hasEmailData: !!emailData, hasActionType: !!emailData?.email_action_type,
+      payloadKeys: Object.keys(payload),
+    })
     return new Response(JSON.stringify({ error: 'Invalid payload' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

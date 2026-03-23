@@ -221,7 +221,7 @@ const Index = () => {
   const displayReviews = qualityReviews.length >= 4 ? qualityReviews.slice(0, 4) : [...qualityReviews, ...demoTestimonials.slice(0, 4 - qualityReviews.length)];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       {/* ════════════════════════════════ HERO ════════════════════════════════ */}
@@ -235,7 +235,7 @@ const Index = () => {
         <div className="absolute top-40 right-[15%] w-3 h-3 rounded-full bg-accent/30 animate-pulse" style={{ animationDelay: "1s" }} />
         <div className="absolute bottom-20 left-[20%] w-2 h-2 rounded-full bg-primary/15 animate-pulse" style={{ animationDelay: "2s" }} />
 
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="container mx-auto px-4 lg:px-8 max-w-full overflow-hidden">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left — Copy */}
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
@@ -244,11 +244,14 @@ const Index = () => {
                 <span className="text-xs font-semibold text-primary tracking-wide">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
               </div>
 
-              <h1 className="text-2xl sm:text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.12] tracking-tight break-words max-w-full">
-                <span className="text-foreground">Get Matched with India's</span>
-                <br />
+              <h1 className="text-[22px] sm:text-[32px] md:text-[44px] lg:text-[56px] font-extrabold leading-[1.15] tracking-tight break-words overflow-hidden max-w-full">
+                <span className="text-foreground block">Get Matched with</span>
+                <span className="text-foreground block">India's{' '}
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  Top Trainers in 30 Minutes
+                  Top Trainers
+                </span></span>
+                <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent block">
+                  in 30 Minutes
                 </span>
               </h1>
 

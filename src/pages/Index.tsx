@@ -244,11 +244,14 @@ const Index = () => {
                 <span className="text-xs font-semibold text-primary tracking-wide">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
               </div>
 
-              <h1 className="text-2xl sm:text-[36px] md:text-[48px] lg:text-[56px] font-extrabold leading-[1.12] tracking-tight break-words max-w-full">
-                <span className="text-foreground">Get Matched with India's</span>
-                <br />
+              <h1 className="text-[22px] sm:text-[32px] md:text-[44px] lg:text-[56px] font-extrabold leading-[1.15] tracking-tight break-words overflow-hidden max-w-full">
+                <span className="text-foreground block">Get Matched with</span>
+                <span className="text-foreground block">India's{' '}
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  Top Trainers in 30 Minutes
+                  Top Trainers
+                </span></span>
+                <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent block">
+                  in 30 Minutes
                 </span>
               </h1>
 

@@ -235,7 +235,7 @@ const Index = () => {
         <div className="absolute top-40 right-[15%] w-3 h-3 rounded-full bg-accent/30 animate-pulse" style={{ animationDelay: "1s" }} />
         <div className="absolute bottom-20 left-[20%] w-2 h-2 rounded-full bg-primary/15 animate-pulse" style={{ animationDelay: "2s" }} />
 
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="container mx-auto px-4 lg:px-8 max-w-full overflow-hidden">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left — Copy */}
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>

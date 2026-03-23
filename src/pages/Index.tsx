@@ -221,7 +221,7 @@ const Index = () => {
   const displayReviews = qualityReviews.length >= 4 ? qualityReviews.slice(0, 4) : [...qualityReviews, ...demoTestimonials.slice(0, 4 - qualityReviews.length)];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       {/* ════════════════════════════════ HERO ════════════════════════════════ */}

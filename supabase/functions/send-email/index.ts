@@ -180,7 +180,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           ${data.trainer_cards_html || ''}
           <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 16px;">Book a <strong>free trial session</strong> to find your perfect trainer!</p>
           ${btn('Browse All Trainers', `${APP_URL}/browse-trainers`)}
-        `)
+        `, true)
       }
 
     case 'trainer_student_match': {

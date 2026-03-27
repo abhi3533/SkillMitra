@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Save, Camera, Briefcase, Globe, MapPin, Phone, Mail, Linkedin, FileText } from "lucide-react";
+import { User, Save, Camera, Briefcase, Globe, MapPin, Phone, Mail, Linkedin, FileText, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

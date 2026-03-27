@@ -35,6 +35,7 @@ const TrainerDashboard = () => {
     await (async () => {
       const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
+      setTrainerRowId(trainer.id);
 
       // Set lifecycle statuses
       setTrainerLifecycle({

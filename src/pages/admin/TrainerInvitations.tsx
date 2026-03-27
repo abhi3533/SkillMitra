@@ -32,6 +32,8 @@ const AdminTrainerInvitations = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<{ newEmails: string[]; registered: number; duplicate: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [singleEmail, setSingleEmail] = useState("");
+  const [sendingSingle, setSendingSingle] = useState(false);
 
   const fetchInvitations = async () => {
     setLoading(true);

@@ -431,10 +431,14 @@ const AdminTrainerInvitations = () => {
           </DialogHeader>
           {previewData && (
             <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-2xl font-bold text-foreground">{previewData.totalFound}</p>
+                  <p className="text-xs text-muted-foreground">Total Found</p>
+                </div>
                 <div className="text-center p-3 bg-emerald-50 rounded-lg">
                   <p className="text-2xl font-bold text-emerald-700">{previewData.newEmails.length}</p>
-                  <p className="text-xs text-emerald-600">New Trainers</p>
+                  <p className="text-xs text-emerald-600">New to Invite</p>
                 </div>
                 <div className="text-center p-3 bg-amber-50 rounded-lg">
                   <p className="text-2xl font-bold text-amber-700">{previewData.registered}</p>
@@ -446,11 +450,22 @@ const AdminTrainerInvitations = () => {
                 </div>
               </div>
               {previewData.newEmails.length > 0 && (
-                <div className="max-h-40 overflow-y-auto border rounded-lg p-3 bg-muted/30">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Emails to be invited:</p>
-                  {previewData.newEmails.map(email => (
-                    <p key={email} className="text-sm text-foreground truncate">{email}</p>
-                  ))}
+                <div className="max-h-48 overflow-y-auto border rounded-lg p-3 bg-muted/30">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Emails to be invited ({previewData.newEmails.length}):</p>
+                  <div className="space-y-1">
+                    {previewData.newEmails.map((email, i) => (
+                      <div key={email} className="flex items-center gap-2 text-sm text-foreground">
+                        <span className="text-xs text-muted-foreground w-6 text-right">{i + 1}.</span>
+                        <span className="truncate">{email}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {previewData.newEmails.length === 0 && (
+                <div className="text-center py-4 text-sm text-muted-foreground">
+                  <AlertCircle className="w-5 h-5 mx-auto mb-2 text-amber-500" />
+                  All emails are already registered or invited. No new invitations to send.
                 </div>
               )}
             </div>

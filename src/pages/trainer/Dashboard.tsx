@@ -352,7 +352,7 @@ const TrainerDashboard = () => {
       {/* Trial Requests */}
       {!loading && data.approvalStatus === "approved" && (
         <div className="mt-6">
-          <TrainerTrialRequests trainerId={trainers_id_ref} />
+          <TrainerTrialRequests trainerId={trainerRowId!} />
         </div>
       )}
 

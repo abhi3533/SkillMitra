@@ -27,6 +27,7 @@ const TrainerDashboard = () => {
     unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
   const [interestedStudents, setInterestedStudents] = useState<any[]>([]);
+  const [trainerRowId, setTrainerRowId] = useState<string | null>(null);
   useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {

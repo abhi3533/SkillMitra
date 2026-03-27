@@ -15,11 +15,12 @@ function layout(content: string): string {
   return `
   <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background: #ffffff;">
     <div style="text-align: center; margin-bottom: 28px;">
-      <h2 style="margin: 0; font-size: 22px; color: #111;">Skill<span style="color: ${BRAND_COLOR};">Mitra</span></h2>
+      <span style="font-size: 24px; font-weight: 700; color: #0F172A;">Skill</span><span style="font-size: 24px; font-weight: 700; color: ${BRAND_COLOR};">Mitra</span>
     </div>
     ${content}
     <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-      <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} SkillMitra. All rights reserved.</p>
+      <p style="font-size: 12px; color: #9ca3af; margin: 0 0 8px;">Questions? Reply to this email or contact us at <a href="mailto:contact@skillmitra.online" style="color: #9ca3af; text-decoration: underline;">contact@skillmitra.online</a> | <a href="https://skillmitra.online" style="color: #9ca3af; text-decoration: underline;">skillmitra.online</a></p>
+      <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Learnvate Solutions Private Limited. All rights reserved.</p>
     </div>
   </div>`
 }
@@ -57,7 +58,7 @@ Deno.serve(async (req) => {
         <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${profile.full_name || 'there'},</h1>
         <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'not set up yet'}. Finish it to start teaching and earning on SkillMitra!</p>
         ${btn(step > 0 ? 'Continue Where I Left Off' : 'Complete My Profile', `${APP_URL}/trainer/onboarding`)}
-        <p style="font-size: 13px; color: #888; text-align: center;">Need help? Call us at +91 99855 12332</p>
+        <p style="font-size: 13px; color: #888; text-align: center;">Need help? Email us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a></p>
       `)
 
       await sendEmail(RESEND_API_KEY, profile.email, 'Complete Your SkillMitra Profile', html)
@@ -127,8 +128,8 @@ Deno.serve(async (req) => {
           <p style="font-size: 15px; line-height: 1.6; color: #444;">Just a last reminder — your trainer profile on SkillMitra is still incomplete. Don't miss out on teaching and earning!</p>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">If you're facing any issues, our support team is here to help:</p>
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-            <p style="font-size: 15px; color: ${BRAND_COLOR}; margin: 0; font-weight: 600;">📞 Call us: +91 99855 12332</p>
-            <p style="font-size: 13px; color: #666; margin: 4px 0 0;">We'll help you complete your profile over the phone</p>
+            <p style="font-size: 15px; color: ${BRAND_COLOR}; margin: 0; font-weight: 600;">📧 Email us: contact@skillmitra.online</p>
+            <p style="font-size: 13px; color: #666; margin: 4px 0 0;">We'll help you complete your profile</p>
           </div>
           ${btn('Complete My Profile Now', `${APP_URL}/trainer/onboarding`)}
         `)

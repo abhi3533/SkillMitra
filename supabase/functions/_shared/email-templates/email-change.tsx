@@ -64,7 +64,7 @@ export const EmailChangeEmail = ({
             {' | '}
             <Link href="https://skillmitra.online" style={footerLink}>skillmitra.online</Link>
           </Text>
-          <Text style={footerCopy}>© {new Date().getFullYear()} Learnvate Solutions Private Limited. All rights reserved.</Text>
+          <Text style={footerCopy}>© {new Date().getFullYear()} Learnvate Solutions. All rights reserved.</Text>
         </div>
       </Container>
     </Body>

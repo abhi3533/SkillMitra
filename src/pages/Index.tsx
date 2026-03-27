@@ -259,14 +259,14 @@ const Index = () => {
                 Learn any skill with verified experts. Book your free trial and start today.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link to="/browse" className="w-full sm:w-auto">
-                  <Button className="group relative bg-primary hover:bg-primary text-primary-foreground font-semibold text-[15px] px-6 h-12 rounded-xl shadow-[0_4px_16px_hsl(221_79%_49%/0.3)] hover:shadow-[0_8px_32px_hsl(221_79%_49%/0.45)] transition-all duration-300 w-full sm:w-auto overflow-hidden">
-                    <span className="relative z-10 flex items-center">Find Your Trainer Now <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-[hsl(221,79%,38%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 max-w-full">
+                <Link to="/browse" className="block sm:inline-block">
+                  <Button className="group relative bg-primary hover:bg-primary text-primary-foreground font-semibold text-[15px] px-6 h-12 rounded-xl shadow-[0_4px_16px_hsl(221_79%_49%/0.3)] hover:shadow-[0_8px_32px_hsl(221_79%_49%/0.45)] transition-all duration-300 w-full sm:w-auto">
+                    <span className="relative z-10 flex items-center justify-center">Find Your Trainer Now <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-[hsl(221,79%,38%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                   </Button>
                 </Link>
-                <Link to="/trainer/signup" className="w-full sm:w-auto">
+                <Link to="/trainer/signup" className="block sm:inline-block">
                   <Button variant="outline" className="border-[1.5px] border-primary/30 text-primary hover:bg-primary/5 hover:border-primary font-semibold text-[15px] px-6 h-12 rounded-xl transition-all duration-300 w-full sm:w-auto">
                     Become a Trainer
                   </Button>

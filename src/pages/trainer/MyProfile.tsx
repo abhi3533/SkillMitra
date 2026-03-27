@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Save, Camera, Briefcase, Globe, MapPin, Phone, Mail, Linkedin, FileText } from "lucide-react";
+import { User, Save, Camera, Briefcase, Globe, MapPin, Phone, Mail, Linkedin, FileText, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -143,6 +143,8 @@ const TrainerMyProfile = () => {
     );
   }
 
+  const isApproved = trainer?.approval_status === 'approved';
+
   return (
     <TrainerLayout>
       <div className="max-w-3xl mx-auto">
@@ -156,6 +158,15 @@ const TrainerMyProfile = () => {
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
+
+        {isApproved && (
+          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 mb-6">
+            <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              Some fields are verified by SkillMitra admin and cannot be changed (Name, Phone, Role, Company, Experience). To update, please contact contact@skillmitra.online
+            </p>
+          </div>
+        )}
 
         {/* Profile Picture */}
         <div className="bg-card rounded-xl border p-6 mb-6">
@@ -172,16 +183,16 @@ const TrainerMyProfile = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="full_name">Full Name</Label>
-              <Input id="full_name" value={form.full_name} onChange={e => handleChange("full_name", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="full_name">Full Name {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="full_name" value={form.full_name} onChange={e => handleChange("full_name", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={user?.email || ""} disabled className="mt-1.5 bg-muted" />
             </div>
             <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" value={form.phone} onChange={e => handleChange("phone", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="phone">Phone {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="phone" value={form.phone} onChange={e => handleChange("phone", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="whatsapp">WhatsApp</Label>
@@ -205,16 +216,16 @@ const TrainerMyProfile = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="current_role">Current Role</Label>
-              <Input id="current_role" value={form.current_role} onChange={e => handleChange("current_role", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="current_role">Current Role {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="current_role" value={form.current_role} onChange={e => handleChange("current_role", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
-              <Label htmlFor="current_company">Current Company</Label>
-              <Input id="current_company" value={form.current_company} onChange={e => handleChange("current_company", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="current_company">Current Company {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="current_company" value={form.current_company} onChange={e => handleChange("current_company", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
-              <Label htmlFor="experience_years">Experience (Years)</Label>
-              <Input id="experience_years" type="number" value={form.experience_years} onChange={e => handleChange("experience_years", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="experience_years">Experience (Years) {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="experience_years" type="number" value={form.experience_years} onChange={e => handleChange("experience_years", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
           </div>
           <div className="mt-4">

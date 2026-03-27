@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2 } from "lucide-react";
+import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,7 @@ import AdminLayout from "@/components/layouts/AdminLayout";
 import TrainerDetailDrawer from "@/components/admin/TrainerDetailDrawer";
 import RejectTrainerModal from "@/components/admin/RejectTrainerModal";
 import OnboardingPipeline from "@/components/admin/OnboardingPipeline";
+import EditTrainerModal from "@/components/admin/EditTrainerModal";
 
 const AdminTrainers = () => {
   const { toast } = useToast();
@@ -25,6 +26,7 @@ const AdminTrainers = () => {
   const [rejectTarget, setRejectTarget] = useState<any>(null);
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
   const [removeTarget, setRemoveTarget] = useState<any>(null);
+  const [editTarget, setEditTarget] = useState<any>(null);
 
   const fetchTrainers = async () => {
     setLoading(true);
@@ -255,8 +257,11 @@ const AdminTrainers = () => {
                   }`}>
                     {t.approval_status}
                   </span>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setSelectedTrainer(t); setDrawerOpen(true); }}>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setSelectedTrainer(t); setDrawerOpen(true); }} title="View">
                     <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditTarget(t)} title="Edit">
+                    <Pencil className="w-4 h-4" />
                   </Button>
                   {t.approval_status === "pending" && (
                     <>
@@ -337,6 +342,13 @@ const AdminTrainers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditTrainerModal
+        trainer={editTarget}
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        onSave={() => { setEditTarget(null); fetchTrainers(); }}
+      />
     </AdminLayout>
   );
 };

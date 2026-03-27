@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Save, X, Plus, Trash2, ExternalLink, LogOut } from "lucide-react";
+import { Pencil, Save, X, Plus, Trash2, ExternalLink, LogOut, Lock } from "lucide-react";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 
 const courseInterestOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI"];
@@ -294,20 +294,11 @@ const StudentProfile = () => {
 
         {/* Editable Full Name */}
         {editing && (
-          <div>
-            <Label className="text-muted-foreground">Full Name</Label>
-            <Input
-              value={fullName}
-              onChange={e => {
-                const val = e.target.value;
-                if (/^[a-zA-Z\s.'\\-]*$/.test(val)) setFullName(val);
-              }}
-              className="mt-1"
-              placeholder="Your full name"
-            />
-            {fullName.trim() && !/^[a-zA-Z\s.'\\-]+$/.test(fullName.trim()) && (
-              <p className="text-xs text-destructive mt-1">Name must contain only letters</p>
-            )}
+          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+            <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              Full name, email, phone, education level, college name, and graduation year are verified and cannot be changed. To update, please contact contact@skillmitra.online
+            </p>
           </div>
         )}
 
@@ -369,43 +360,16 @@ const StudentProfile = () => {
         {/* Education & Experience Section */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">Education Level</Label>
-            {editing ? (
-              <Select value={educationLevel} onValueChange={setEducationLevel}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Select education level" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high_school">High School</SelectItem>
-                  <SelectItem value="graduate">Graduate</SelectItem>
-                  <SelectItem value="post_graduate">Post Graduate</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <p className="text-sm text-foreground mt-1">{educationLevel ? educationLevel.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "-"}</p>
-            )}
+            <Label className="text-sm font-medium text-muted-foreground">Education Level {editing && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+            <p className="text-sm text-foreground mt-1">{educationLevel ? educationLevel.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "-"}</p>
           </div>
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">Graduation Year</Label>
-            {editing ? (
-              <Select value={graduationYear} onValueChange={setGraduationYear}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Select year" /></SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 11 }, (_, i) => 2020 + i).map(y => (
-                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <p className="text-sm text-foreground mt-1">{graduationYear || "-"}</p>
-            )}
+            <Label className="text-sm font-medium text-muted-foreground">Graduation Year {editing && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+            <p className="text-sm text-foreground mt-1">{graduationYear || "-"}</p>
           </div>
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">College / University Name</Label>
-            {editing ? (
-              <Input value={collegeName} onChange={e => setCollegeName(e.target.value)} className="mt-1" placeholder="Enter college name" />
-            ) : (
-              <p className="text-sm text-foreground mt-1">{collegeName || "-"}</p>
-            )}
+            <Label className="text-sm font-medium text-muted-foreground">College / University Name {editing && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+            <p className="text-sm text-foreground mt-1">{collegeName || "-"}</p>
           </div>
           <div>
             <Label className="text-sm font-medium text-muted-foreground">Years of Skill Experience</Label>

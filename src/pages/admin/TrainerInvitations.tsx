@@ -346,13 +346,18 @@ const AdminTrainerInvitations = () => {
         <CardContent className="pt-5 pb-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Bulk Upload Trainer Emails</h3>
-              <p className="text-sm text-muted-foreground mt-1">Upload a CSV file with trainer emails. System will auto-check for existing registrations.</p>
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4" /> Bulk Upload Trainer Emails
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Upload a CSV or Excel (.xlsx, .xls) file with trainer emails. System will auto-check for existing registrations.</p>
             </div>
-            <div>
-              <input type="file" accept=".csv,.txt" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={downloadSampleCSV} className="gap-1.5 text-xs">
+                <FileDown className="w-3.5 h-3.5" /> Sample CSV
+              </Button>
+              <input type="file" accept=".csv,.txt,.xlsx,.xls" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
               <Button onClick={() => fileInputRef.current?.click()} className="gap-2">
-                <Upload className="w-4 h-4" /> Upload CSV
+                <Upload className="w-4 h-4" /> Upload File
               </Button>
             </div>
           </div>

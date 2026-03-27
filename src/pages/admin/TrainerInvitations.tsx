@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { Upload, Send, RefreshCw, Search, Download, MailPlus, CheckCircle, Clock, AlertCircle, Users, UserPlus, TrendingUp, Mail } from "lucide-react";
+import { Upload, Send, RefreshCw, Search, Download, MailPlus, CheckCircle, Clock, AlertCircle, Users, UserPlus, TrendingUp, Mail, FileDown, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,7 +31,7 @@ const AdminTrainerInvitations = () => {
   const [sending, setSending] = useState(false);
   const [csvEmails, setCsvEmails] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
-  const [previewData, setPreviewData] = useState<{ newEmails: string[]; registered: number; duplicate: number } | null>(null);
+  const [previewData, setPreviewData] = useState<{ newEmails: string[]; registered: number; duplicate: number; totalFound: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [singleEmail, setSingleEmail] = useState("");
   const [sendingSingle, setSendingSingle] = useState(false);
@@ -47,48 +48,90 @@ const AdminTrainerInvitations = () => {
 
   useEffect(() => { fetchInvitations(); }, []);
 
+  const extractEmailsFromFile = async (file: File): Promise<string[]> => {
+    const emails: string[] = [];
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    if (ext === "xlsx" || ext === "xls") {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const rows: any[] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        for (const row of rows) {
+          for (const cell of row) {
+            const val = String(cell || "").trim().toLowerCase();
+            if (val && val.includes("@") && !val.startsWith("email")) {
+              emails.push(val);
+            }
+          }
+        }
+      }
+    } else {
+      const text = await file.text();
+      const lines = text.split(/[\r\n]+/);
+      for (const line of lines) {
+        const parts = line.split(",");
+        for (const part of parts) {
+          const email = part.trim().toLowerCase().replace(/^["']|["']$/g, "");
+          if (email && email.includes("@") && !email.startsWith("email")) {
+            emails.push(email);
+          }
+        }
+      }
+    }
+    return emails;
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const text = await file.text();
-    const emails: string[] = [];
-    const lines = text.split(/[\r\n]+/);
-    for (const line of lines) {
-      // Support comma-separated or single email per line
-      const parts = line.split(",");
-      for (const part of parts) {
-        const email = part.trim().toLowerCase().replace(/^["']|["']$/g, "");
-        if (email && email.includes("@") && !email.startsWith("email")) {
-          emails.push(email);
-        }
+    try {
+      const rawEmails = await extractEmailsFromFile(file);
+      const uniqueEmails = [...new Set(rawEmails)];
+
+      if (uniqueEmails.length === 0) {
+        toast({ title: "No emails found", description: "The uploaded file doesn't contain valid email addresses. Please check the format.", variant: "destructive" });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
       }
+
+      const { data: existingProfiles } = await supabase
+        .from("profiles")
+        .select("email")
+        .in("email", uniqueEmails);
+      const registeredSet = new Set((existingProfiles || []).map((p: any) => p.email?.toLowerCase()));
+
+      const { data: existingInvites } = await supabase
+        .from("trainer_invitations")
+        .select("email")
+        .in("email", uniqueEmails);
+      const invitedSet = new Set((existingInvites || []).map((i: any) => i.email?.toLowerCase()));
+
+      const newEmails = uniqueEmails.filter(e => !registeredSet.has(e) && !invitedSet.has(e));
+      const registered = uniqueEmails.filter(e => registeredSet.has(e)).length;
+      const duplicate = uniqueEmails.filter(e => invitedSet.has(e) && !registeredSet.has(e)).length;
+
+      setCsvEmails(newEmails);
+      setPreviewData({ newEmails, registered, duplicate, totalFound: uniqueEmails.length });
+      setShowPreview(true);
+    } catch (err: any) {
+      toast({ title: "File Error", description: "Could not read the file. Please upload a valid CSV or Excel file.", variant: "destructive" });
     }
 
-    const uniqueEmails = [...new Set(emails)];
-
-    // Check against existing profiles and invitations
-    const { data: existingProfiles } = await supabase
-      .from("profiles")
-      .select("email")
-      .in("email", uniqueEmails);
-    const registeredSet = new Set((existingProfiles || []).map((p: any) => p.email?.toLowerCase()));
-
-    const { data: existingInvites } = await supabase
-      .from("trainer_invitations")
-      .select("email")
-      .in("email", uniqueEmails);
-    const invitedSet = new Set((existingInvites || []).map((i: any) => i.email?.toLowerCase()));
-
-    const newEmails = uniqueEmails.filter(e => !registeredSet.has(e) && !invitedSet.has(e));
-    const registered = uniqueEmails.filter(e => registeredSet.has(e)).length;
-    const duplicate = uniqueEmails.filter(e => invitedSet.has(e) && !registeredSet.has(e)).length;
-
-    setCsvEmails(newEmails);
-    setPreviewData({ newEmails, registered, duplicate });
-    setShowPreview(true);
-
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const downloadSampleCSV = () => {
+    const csv = "email\ntrainer1@gmail.com\ntrainer2@gmail.com\ntrainer3@gmail.com";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sample-trainer-emails.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSendInvitations = async () => {
@@ -303,13 +346,18 @@ const AdminTrainerInvitations = () => {
         <CardContent className="pt-5 pb-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Bulk Upload Trainer Emails</h3>
-              <p className="text-sm text-muted-foreground mt-1">Upload a CSV file with trainer emails. System will auto-check for existing registrations.</p>
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4" /> Bulk Upload Trainer Emails
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Upload a CSV or Excel (.xlsx, .xls) file with trainer emails. System will auto-check for existing registrations.</p>
             </div>
-            <div>
-              <input type="file" accept=".csv,.txt" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={downloadSampleCSV} className="gap-1.5 text-xs">
+                <FileDown className="w-3.5 h-3.5" /> Sample CSV
+              </Button>
+              <input type="file" accept=".csv,.txt,.xlsx,.xls" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
               <Button onClick={() => fileInputRef.current?.click()} className="gap-2">
-                <Upload className="w-4 h-4" /> Upload CSV
+                <Upload className="w-4 h-4" /> Upload File
               </Button>
             </div>
           </div>
@@ -383,10 +431,14 @@ const AdminTrainerInvitations = () => {
           </DialogHeader>
           {previewData && (
             <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-2xl font-bold text-foreground">{previewData.totalFound}</p>
+                  <p className="text-xs text-muted-foreground">Total Found</p>
+                </div>
                 <div className="text-center p-3 bg-emerald-50 rounded-lg">
                   <p className="text-2xl font-bold text-emerald-700">{previewData.newEmails.length}</p>
-                  <p className="text-xs text-emerald-600">New Trainers</p>
+                  <p className="text-xs text-emerald-600">New to Invite</p>
                 </div>
                 <div className="text-center p-3 bg-amber-50 rounded-lg">
                   <p className="text-2xl font-bold text-amber-700">{previewData.registered}</p>
@@ -398,11 +450,22 @@ const AdminTrainerInvitations = () => {
                 </div>
               </div>
               {previewData.newEmails.length > 0 && (
-                <div className="max-h-40 overflow-y-auto border rounded-lg p-3 bg-muted/30">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Emails to be invited:</p>
-                  {previewData.newEmails.map(email => (
-                    <p key={email} className="text-sm text-foreground truncate">{email}</p>
-                  ))}
+                <div className="max-h-48 overflow-y-auto border rounded-lg p-3 bg-muted/30">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Emails to be invited ({previewData.newEmails.length}):</p>
+                  <div className="space-y-1">
+                    {previewData.newEmails.map((email, i) => (
+                      <div key={email} className="flex items-center gap-2 text-sm text-foreground">
+                        <span className="text-xs text-muted-foreground w-6 text-right">{i + 1}.</span>
+                        <span className="truncate">{email}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {previewData.newEmails.length === 0 && (
+                <div className="text-center py-4 text-sm text-muted-foreground">
+                  <AlertCircle className="w-5 h-5 mx-auto mb-2 text-amber-500" />
+                  All emails are already registered or invited. No new invitations to send.
                 </div>
               )}
             </div>

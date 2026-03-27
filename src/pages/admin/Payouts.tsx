@@ -26,8 +26,17 @@ const AdminPayouts = () => {
     if (txRef) updates.transaction_reference = txRef;
     const { error } = await supabase.from("payout_requests").update(updates).eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    const payout = payouts.find(p => p.id === id);
     setPayouts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     toast({ title: `Payout ${status}`, variant: "success" });
+
+    // Log activity
+    supabase.from("admin_activity_log").insert({
+      event_type: status === "completed" ? "payout_approved" : "payout_rejected",
+      title: `Payout ${status === "completed" ? "Approved" : "Rejected"}`,
+      description: `₹${Number(payout?.requested_amount || 0).toLocaleString()} payout for ${payout?.trainers?.profiles?.full_name || "Trainer"} ${status}${txRef ? ` — Ref: ${txRef}` : ""}`,
+      metadata: { payout_id: id, trainer_id: payout?.trainer_id, amount: payout?.requested_amount, status },
+    });
   };
 
   return (

@@ -262,7 +262,16 @@ Deno.serve(async (req) => {
 
     const totalSessions = course.total_sessions || 1;
     const sessionsToInsert = [];
-    const firstMeetLink = `https://meet.google.com/skillmitra-${course.title.toLowerCase().replace(/\s+/g, "-").slice(0, 15)}-s1`;
+
+    // Generate real Jitsi meet links
+    function generateMeetLink(courseTitle: string, sessionNumber?: number): string {
+      const slug = courseTitle.replace(/[^a-zA-Z0-9\s]/g, "").trim().replace(/\s+/g, "-").toLowerCase().slice(0, 30);
+      const uniqueId = Math.random().toString(36).substring(2, 10);
+      const sessionTag = sessionNumber ? `-s${sessionNumber}` : "";
+      return `https://meet.jit.si/skillmitra-${slug}${sessionTag}-${uniqueId}`;
+    }
+
+    const firstMeetLink = generateMeetLink(course.title, 1);
 
     for (let i = 0; i < totalSessions; i++) {
       const sessionDate = new Date(firstDate);
@@ -277,7 +286,7 @@ Deno.serve(async (req) => {
         scheduled_at: sessionDate.toISOString(),
         duration_mins: course.session_duration_mins || 60,
         status: "upcoming",
-        meet_link: `https://meet.google.com/skillmitra-${course.title.toLowerCase().replace(/\s+/g, "-").slice(0, 15)}-s${i + 1}`,
+        meet_link: generateMeetLink(course.title, i + 1),
       });
     }
 

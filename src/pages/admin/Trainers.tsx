@@ -102,6 +102,14 @@ const AdminTrainers = () => {
         }
       });
     }
+
+    // Log activity
+    supabase.from("admin_activity_log").insert({
+      event_type: status === "approved" ? "trainer_approved" : "trainer_rejected",
+      title: `Trainer ${status === "approved" ? "Approved" : "Rejected"}`,
+      description: `${trainerName} was ${status} by admin${rejectionReason ? ` — Reason: ${rejectionReason}` : ""}`,
+      metadata: { trainer_id: id, status },
+    });
   };
 
   const handleRejectClick = (trainer: any) => setRejectTarget(trainer);

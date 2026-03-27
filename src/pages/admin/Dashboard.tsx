@@ -154,6 +154,8 @@ const AdminDashboard = () => {
       case "trial_approved": return "bg-emerald-50 border-emerald-100";
       case "trial_rejected": case "trial_auto_rejected": return "bg-red-50 border-red-100";
       case "trial_request": return "bg-blue-50 border-blue-100";
+      case "trainer_approved": case "course_approved": case "payout_approved": return "bg-emerald-50 border-emerald-100";
+      case "trainer_rejected": case "course_rejected": case "payout_rejected": return "bg-red-50 border-red-100";
       default: return "bg-muted/30 border-border";
     }
   };

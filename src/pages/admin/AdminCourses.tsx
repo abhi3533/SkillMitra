@@ -62,6 +62,14 @@ const AdminCourses = () => {
     if (selectedCourse?.id === id) setSelectedCourse((prev: any) => prev ? { ...prev, approval_status: status } : prev);
     setDrawerOpen(false);
     toast({ title: `Course ${status}!`, description: status === "approved" ? "The course is now visible to students." : "The trainer will be notified.", variant: "success" });
+
+    // Log activity
+    supabase.from("admin_activity_log").insert({
+      event_type: status === "approved" ? "course_approved" : "course_rejected",
+      title: `Course ${status === "approved" ? "Approved" : "Rejected"}`,
+      description: `"${course?.title || "Course"}" by ${course?.trainerName || "Trainer"} was ${status}`,
+      metadata: { course_id: id, trainer_id: course?.trainer_id, status },
+    });
   };
 
   const filtered = courses

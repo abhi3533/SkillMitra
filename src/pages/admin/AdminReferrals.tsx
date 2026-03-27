@@ -1,72 +1,160 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { Users, Gift, IndianRupee, TrendingUp, Search, Download, CheckCircle, Clock } from "lucide-react";
+import { Users, Gift, IndianRupee, TrendingUp, Search, Download, CheckCircle, Clock, Wallet, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layouts/AdminLayout";
 
+interface EnrichedRef {
+  id: string;
+  referrer_id: string;
+  referred_id: string | null;
+  referral_code: string | null;
+  reward_amount: number;
+  status: string;
+  created_at: string;
+  referrerName: string;
+  referrerEmail: string;
+  referredName: string;
+  referredEmail: string;
+}
+
+interface WalletRow {
+  id: string;
+  user_id: string;
+  balance: number;
+  total_earned: number;
+  total_withdrawn: number;
+  userName: string;
+  userEmail: string;
+  role: string;
+}
+
+interface WalletTx {
+  id: string;
+  user_id: string;
+  type: string;
+  amount: number;
+  description: string;
+  created_at: string;
+  userName: string;
+}
+
+const statusColor: Record<string, string> = {
+  pending: "bg-amber-50 text-amber-700",
+  paid: "bg-emerald-50 text-emerald-700",
+  approved: "bg-blue-50 text-blue-700",
+  enrolled: "bg-blue-50 text-blue-700",
+  rejected: "bg-red-50 text-red-700",
+};
+
 const AdminReferrals = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("student");
+  const [tab, setTab] = useState("trainer");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [studentRefs, setStudentRefs] = useState<any[]>([]);
-  const [trainerRefs, setTrainerRefs] = useState<any[]>([]);
-  const [stats, setStats] = useState({ totalRefs: 0, totalCredits: 0, topReferrers: [] as any[] });
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  const [trainerRefs, setTrainerRefs] = useState<EnrichedRef[]>([]);
+  const [studentRefs, setStudentRefs] = useState<EnrichedRef[]>([]);
+  const [wallets, setWallets] = useState<WalletRow[]>([]);
+  const [walletTxs, setWalletTxs] = useState<WalletTx[]>([]);
+  const [walletSearch, setWalletSearch] = useState("");
 
   const loadData = async () => {
     setLoading(true);
-    const [{ data: sRefs }, { data: tRefs }] = await Promise.all([
-      supabase.from("referrals").select("*").order("created_at", { ascending: false }),
+
+    const [{ data: tRefs }, { data: sRefs }, { data: allWallets }, { data: allTxs }] = await Promise.all([
       supabase.from("trainer_referrals").select("*").order("created_at", { ascending: false }),
+      supabase.from("referrals").select("*").order("created_at", { ascending: false }),
+      supabase.from("wallets").select("*").order("balance", { ascending: false }),
+      supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }).limit(500),
     ]);
 
-    const sData = sRefs || [];
-    const sStudentIds = [...new Set([...sData.map(r => r.referrer_id), ...sData.map(r => r.referred_id).filter(Boolean)])];
-    let enrichedS: any[] = sData;
-    if (sStudentIds.length > 0) {
-      const { data: students } = await supabase.from("students").select("id, user_id").in("id", sStudentIds);
-      const userIds = (students || []).map(s => s.user_id);
-      const profileMap = await fetchProfilesMap(userIds);
-      const nameMap: Record<string, string> = {};
-      (students || []).forEach(s => { nameMap[s.id] = profileMap[s.user_id]?.full_name || "Student"; });
-      enrichedS = sData.map(r => ({ ...r, referrerName: nameMap[r.referrer_id] || "Unknown", referredName: nameMap[r.referred_id] || "Pending" }));
-    }
-    setStudentRefs(enrichedS);
-
+    // Enrich trainer referrals
     const tData = tRefs || [];
     const tTrainerIds = [...new Set([...tData.map(r => r.referrer_id), ...tData.map(r => r.referred_id).filter(Boolean)])];
-    let enrichedT: any[] = tData;
+    let enrichedT: EnrichedRef[] = [];
     if (tTrainerIds.length > 0) {
-      const { data: trainers } = await supabase.from("trainers").select("id, user_id").in("id", tTrainerIds);
+      const { data: trainers } = await supabase.from("trainers").select("id, user_id").in("id", tTrainerIds as string[]);
       const userIds = (trainers || []).map(t => t.user_id);
       const profileMap = await fetchProfilesMap(userIds);
-      const nameMap: Record<string, string> = {};
-      (trainers || []).forEach(t => { nameMap[t.id] = profileMap[t.user_id]?.full_name || "Trainer"; });
-      enrichedT = tData.map(r => ({ ...r, referrerName: nameMap[r.referrer_id] || "Unknown", referredName: nameMap[r.referred_id] || "Pending" }));
+      const nameMap: Record<string, { name: string; email: string }> = {};
+      (trainers || []).forEach(t => {
+        nameMap[t.id] = { name: profileMap[t.user_id]?.full_name || "Trainer", email: profileMap[t.user_id]?.email || "" };
+      });
+      enrichedT = tData.map(r => ({
+        ...r, reward_amount: Number(r.reward_amount || 0),
+        referrerName: nameMap[r.referrer_id]?.name || "Unknown", referrerEmail: nameMap[r.referrer_id]?.email || "",
+        referredName: r.referred_id ? (nameMap[r.referred_id]?.name || "Pending") : "Pending",
+        referredEmail: r.referred_id ? (nameMap[r.referred_id]?.email || "") : "",
+      }));
     }
     setTrainerRefs(enrichedT);
 
-    const totalRefs = sData.length + tData.length;
-    const totalCredits = sData.filter(r => r.status === "paid").reduce((s, r) => s + Number(r.reward_amount || 0), 0)
-      + tData.filter(r => r.status === "paid").reduce((s, r) => s + Number(r.reward_amount || 0), 0);
+    // Enrich student referrals
+    const sData = sRefs || [];
+    const sStudentIds = [...new Set([...sData.map(r => r.referrer_id), ...sData.map(r => r.referred_id).filter(Boolean)])];
+    let enrichedS: EnrichedRef[] = [];
+    if (sStudentIds.length > 0) {
+      const { data: students } = await supabase.from("students").select("id, user_id").in("id", sStudentIds as string[]);
+      const userIds = (students || []).map(s => s.user_id);
+      const profileMap = await fetchProfilesMap(userIds);
+      const nameMap: Record<string, { name: string; email: string }> = {};
+      (students || []).forEach(s => {
+        nameMap[s.id] = { name: profileMap[s.user_id]?.full_name || "Student", email: profileMap[s.user_id]?.email || "" };
+      });
+      enrichedS = sData.map(r => ({
+        ...r, reward_amount: Number(r.reward_amount || 0),
+        referrerName: nameMap[r.referrer_id]?.name || "Unknown", referrerEmail: nameMap[r.referrer_id]?.email || "",
+        referredName: r.referred_id ? (nameMap[r.referred_id]?.name || "Pending") : "Pending",
+        referredEmail: r.referred_id ? (nameMap[r.referred_id]?.email || "") : "",
+      }));
+    }
+    setStudentRefs(enrichedS);
 
-    const referrerCounts: Record<string, { name: string; count: number; earned: number }> = {};
-    enrichedS.forEach(r => {
-      if (!referrerCounts[r.referrer_id]) referrerCounts[r.referrer_id] = { name: r.referrerName, count: 0, earned: 0 };
-      referrerCounts[r.referrer_id].count++;
-      if (r.status === "paid") referrerCounts[r.referrer_id].earned += Number(r.reward_amount || 0);
-    });
-    const topReferrers = Object.values(referrerCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+    // Enrich wallets
+    const wData = allWallets || [];
+    if (wData.length > 0) {
+      const walletUserIds = wData.map(w => w.user_id);
+      const profileMap = await fetchProfilesMap(walletUserIds);
+      // Determine roles
+      const [{ data: studs }, { data: trns }] = await Promise.all([
+        supabase.from("students").select("user_id").in("user_id", walletUserIds),
+        supabase.from("trainers").select("user_id").in("user_id", walletUserIds),
+      ]);
+      const studentUserIds = new Set((studs || []).map(s => s.user_id));
+      const trainerUserIds = new Set((trns || []).map(t => t.user_id));
 
-    setStats({ totalRefs, totalCredits, topReferrers });
+      setWallets(wData.map(w => ({
+        ...w,
+        userName: profileMap[w.user_id]?.full_name || "Unknown",
+        userEmail: profileMap[w.user_id]?.email || "",
+        role: trainerUserIds.has(w.user_id) ? "Trainer" : studentUserIds.has(w.user_id) ? "Student" : "Unknown",
+      })));
+    }
+
+    // Enrich transactions
+    const txData = allTxs || [];
+    if (txData.length > 0) {
+      const txUserIds = [...new Set(txData.map(t => t.user_id))];
+      const profileMap = await fetchProfilesMap(txUserIds);
+      setWalletTxs(txData.map(t => ({
+        ...t,
+        userName: profileMap[t.user_id]?.full_name || "Unknown",
+      })));
+    }
+
     setLoading(false);
   };
 
@@ -77,17 +165,70 @@ const AdminReferrals = () => {
     if (error) {
       toast({ title: "Failed to update", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Updated", description: `Referral marked as ${newStatus}`, variant: "success" });
+      toast({ title: "Updated", description: `Referral marked as ${newStatus}` });
       loadData();
     }
   };
 
+  // Filter helper
+  const filterRefs = (refs: EnrichedRef[]) => refs.filter(r => {
+    if (statusFilter !== "all" && r.status !== statusFilter) return false;
+    if (dateFrom && r.created_at < dateFrom) return false;
+    if (dateTo && r.created_at > dateTo + "T23:59:59") return false;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return r.referrerName?.toLowerCase().includes(q) || r.referredName?.toLowerCase().includes(q) ||
+      r.referrerEmail?.toLowerCase().includes(q) || r.referredEmail?.toLowerCase().includes(q) ||
+      r.referral_code?.toLowerCase().includes(q);
+  });
+
+  const filteredTrainer = filterRefs(trainerRefs);
+  const filteredStudent = filterRefs(studentRefs);
+
+  const filteredWallets = wallets.filter(w => {
+    if (!walletSearch) return true;
+    const q = walletSearch.toLowerCase();
+    return w.userName.toLowerCase().includes(q) || w.userEmail.toLowerCase().includes(q);
+  });
+
+  // Summary stats
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const totalPaidThisMonth = useMemo(() => {
+    const tPaid = trainerRefs.filter(r => r.status === "paid" && r.created_at >= monthStart).reduce((s, r) => s + r.reward_amount, 0);
+    const sPaid = studentRefs.filter(r => r.status === "paid" && r.created_at >= monthStart).reduce((s, r) => s + r.reward_amount, 0);
+    return tPaid + sPaid;
+  }, [trainerRefs, studentRefs]);
+
+  const totalActiveCodes = useMemo(() => {
+    const tCodes = new Set(trainerRefs.map(r => r.referral_code).filter(Boolean));
+    const sCodes = new Set(studentRefs.map(r => r.referral_code).filter(Boolean));
+    return tCodes.size + sCodes.size;
+  }, [trainerRefs, studentRefs]);
+
+  const pendingRewards = useMemo(() => {
+    return [...trainerRefs, ...studentRefs].filter(r => r.status === "pending").reduce((s, r) => s + r.reward_amount, 0);
+  }, [trainerRefs, studentRefs]);
+
+  const totalPlatformLiability = useMemo(() => wallets.reduce((s, w) => s + Number(w.balance || 0), 0), [wallets]);
+
+  const topReferrers = useMemo(() => {
+    const counts: Record<string, { name: string; count: number; earned: number }> = {};
+    [...trainerRefs, ...studentRefs].forEach(r => {
+      const key = r.referrer_id;
+      if (!counts[key]) counts[key] = { name: r.referrerName, count: 0, earned: 0 };
+      counts[key].count++;
+      if (r.status === "paid") counts[key].earned += r.reward_amount;
+    });
+    return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 5);
+  }, [trainerRefs, studentRefs]);
+
   const exportCSV = () => {
-    const currentRefs = tab === "student" ? studentRefs : trainerRefs;
-    const headers = ["Referrer", "Referred", "Code", "Reward", "Status", "Date"];
-    const rows = currentRefs.map(r => [
-      r.referrerName, r.referredName || "Pending", r.referral_code || "-",
-      r.reward_amount, r.status, formatDateIST(r.created_at),
+    const refs = tab === "trainer" ? filteredTrainer : filteredStudent;
+    const headers = ["Referrer", "Referrer Email", "Referred", "Referred Email", "Code", "Reward", "Status", "Date"];
+    const rows = refs.map(r => [
+      r.referrerName, r.referrerEmail, r.referredName, r.referredEmail,
+      r.referral_code || "-", r.reward_amount, r.status, formatDateIST(r.created_at),
     ]);
     const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -99,27 +240,92 @@ const AdminReferrals = () => {
     URL.revokeObjectURL(url);
   };
 
-  const currentRefs = tab === "student" ? studentRefs : trainerRefs;
-  const currentTable = tab === "student" ? "referrals" : "trainer_referrals";
-  const filtered = currentRefs.filter(r => {
-    if (statusFilter !== "all" && r.status !== statusFilter) return false;
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return r.referrerName?.toLowerCase().includes(q) || r.referredName?.toLowerCase().includes(q);
-  });
+  const exportWalletsCSV = () => {
+    const headers = ["Name", "Email", "Role", "Balance", "Total Earned", "Total Withdrawn"];
+    const rows = filteredWallets.map(w => [w.userName, w.userEmail, w.role, w.balance, w.total_earned, w.total_withdrawn]);
+    const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `wallets-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const ReferralTable = ({ data, table }: { data: EnrichedRef[]; table: "referrals" | "trainer_referrals" }) => (
+    <div className="bg-card rounded-xl border overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-secondary/30">
+              <TableHead className="text-xs">Referrer</TableHead>
+              <TableHead className="text-xs">Referred</TableHead>
+              <TableHead className="text-xs">Code</TableHead>
+              <TableHead className="text-xs">Reward</TableHead>
+              <TableHead className="text-xs">Status</TableHead>
+              <TableHead className="text-xs">Date</TableHead>
+              <TableHead className="text-xs">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={7} className="p-4"><Skeleton className="h-16" /><Skeleton className="h-16 mt-2" /></TableCell></TableRow>
+            ) : data.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="px-4 py-12 text-center">
+                <Gift className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+                <p className="text-sm text-muted-foreground mt-2">No referrals found</p>
+              </TableCell></TableRow>
+            ) : data.map(r => (
+              <TableRow key={r.id}>
+                <TableCell>
+                  <p className="text-sm font-medium text-foreground">{r.referrerName}</p>
+                  <p className="text-xs text-muted-foreground">{r.referrerEmail}</p>
+                </TableCell>
+                <TableCell>
+                  <p className="text-sm text-foreground">{r.referredName}</p>
+                  <p className="text-xs text-muted-foreground">{r.referredEmail}</p>
+                </TableCell>
+                <TableCell className="text-xs font-mono text-muted-foreground">{r.referral_code || "-"}</TableCell>
+                <TableCell className="text-sm font-medium text-foreground">₹{r.reward_amount.toLocaleString("en-IN")}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor[r.status] || "bg-muted text-muted-foreground"}`}>{r.status}</span>
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{formatDateIST(r.created_at)}</TableCell>
+                <TableCell>
+                  {r.status === "pending" && (
+                    <Button variant="ghost" size="sm" className="gap-1 text-xs h-7"
+                      onClick={() => handleOverride(r.id, table, "paid")}>
+                      <CheckCircle className="w-3 h-3" /> Mark Paid
+                    </Button>
+                  )}
+                  {r.status === "paid" && (
+                    <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 text-muted-foreground"
+                      onClick={() => handleOverride(r.id, table, "pending")}>
+                      <Clock className="w-3 h-3" /> Revert
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
 
   return (
     <AdminLayout>
       <h1 className="text-2xl font-bold text-foreground">Referral Management</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Track all referrals across the platform</p>
+      <p className="mt-1 text-sm text-muted-foreground">Track all referrals, wallets, and rewards across the platform</p>
 
-      {/* Stats */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {[
-          { label: "Total Referrals", value: loading ? "–" : String(stats.totalRefs), icon: Users, bg: "bg-primary/10", color: "text-primary" },
-          { label: "Student Referrals", value: loading ? "–" : String(studentRefs.length), icon: Users, bg: "bg-primary/10", color: "text-primary" },
-          { label: "Trainer Referrals", value: loading ? "–" : String(trainerRefs.length), icon: Users, bg: "bg-accent/10", color: "text-accent" },
-          { label: "Total Rewards Paid", value: loading ? "–" : `₹${stats.totalCredits.toLocaleString("en-IN")}`, icon: IndianRupee, bg: "bg-emerald-50", color: "text-emerald-600" },
+          { label: "Rewards Paid This Month", value: loading ? "–" : `₹${totalPaidThisMonth.toLocaleString("en-IN")}`, icon: IndianRupee, bg: "bg-emerald-50", color: "text-emerald-600" },
+          { label: "Active Referral Codes", value: loading ? "–" : String(totalActiveCodes), icon: Gift, bg: "bg-primary/10", color: "text-primary" },
+          { label: "Pending Rewards", value: loading ? "–" : `₹${pendingRewards.toLocaleString("en-IN")}`, icon: Clock, bg: "bg-amber-50", color: "text-amber-600" },
+          { label: "Platform Wallet Liability", value: loading ? "–" : `₹${totalPlatformLiability.toLocaleString("en-IN")}`, icon: Wallet, bg: "bg-blue-50", color: "text-blue-600" },
         ].map(c => (
           <div key={c.label} className="bg-card rounded-xl border p-4">
             <div className={`w-8 h-8 rounded-lg ${c.bg} flex items-center justify-center mb-2`}>
@@ -132,19 +338,21 @@ const AdminReferrals = () => {
       </div>
 
       {/* Top Referrers */}
-      {!loading && stats.topReferrers.length > 0 && (
+      {!loading && topReferrers.length > 0 && (
         <div className="mt-6 bg-card rounded-xl border p-5">
-          <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Top Referrers</h2>
-          <div className="space-y-2">
-            {stats.topReferrers.map((r, i) => (
+          <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" /> Top 5 Referrers
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+            {topReferrers.map((r, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-foreground w-6">#{i + 1}</span>
-                  <p className="text-sm font-medium text-foreground">{r.name}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{r.name}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-foreground">{r.count} referrals</p>
-                  <p className="text-xs text-emerald-600">₹{r.earned.toLocaleString("en-IN")} earned</p>
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-semibold text-foreground">{r.count}</p>
+                  <p className="text-[10px] text-emerald-600">₹{r.earned.toLocaleString("en-IN")}</p>
                 </div>
               </div>
             ))}
@@ -152,96 +360,182 @@ const AdminReferrals = () => {
         </div>
       )}
 
-      {/* Tabs, Search, Filter, Export */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList>
-              <TabsTrigger value="student">Student ({studentRefs.length})</TabsTrigger>
-              <TabsTrigger value="trainer">Trainer ({trainerRefs.length})</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32 h-9 text-sm">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-56">
-            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
-          </div>
-          <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5 h-9">
-            <Download className="w-3.5 h-3.5" /> CSV
-          </Button>
-        </div>
-      </div>
+      {/* Main Tabs */}
+      <Tabs value={tab} onValueChange={(v) => { setTab(v); setSearch(""); setStatusFilter("all"); }} className="mt-6">
+        <TabsList>
+          <TabsTrigger value="trainer">Trainer Referrals ({trainerRefs.length})</TabsTrigger>
+          <TabsTrigger value="student">Student Referrals ({studentRefs.length})</TabsTrigger>
+          <TabsTrigger value="wallets">Wallet Overview</TabsTrigger>
+        </TabsList>
 
-      {/* Table */}
-      <div className="mt-4 bg-card rounded-xl border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead><tr className="border-b bg-secondary/30">
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Referrer</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Referred</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Code</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Reward</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Date</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Actions</th>
-            </tr></thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={7} className="p-4"><Skeleton className="h-16" /><Skeleton className="h-16 mt-2" /></td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-12 text-center">
-                  <Gift className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-                  <p className="text-sm text-muted-foreground mt-2">No referrals found</p>
-                </td></tr>
-              ) : filtered.map(r => (
-                <tr key={r.id} className="border-b last:border-0 hover:bg-secondary/20">
-                  <td className="px-4 py-3 text-sm font-medium text-foreground">{r.referrerName}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{r.referredName || "Pending"}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-muted-foreground">{r.referral_code || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-foreground">₹{Number(r.reward_amount || 0).toLocaleString("en-IN")}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === "paid" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{r.status}</span>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateIST(r.created_at)}</td>
-                  <td className="px-4 py-3">
-                    {r.status === "pending" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 text-xs h-7"
-                        onClick={() => handleOverride(r.id, currentTable as "referrals" | "trainer_referrals", "paid")}
-                      >
-                        <CheckCircle className="w-3 h-3" /> Mark Paid
-                      </Button>
-                    )}
-                    {r.status === "paid" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 text-xs h-7 text-muted-foreground"
-                        onClick={() => handleOverride(r.id, currentTable as "referrals" | "trainer_referrals", "pending")}
-                      >
-                        <Clock className="w-3 h-3" /> Revert
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        {/* Filters for referral tabs */}
+        {(tab === "trainer" || tab === "student") && (
+          <div className="mt-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32 h-9 text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-9 w-36 text-sm" placeholder="From" />
+              <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-9 w-36 text-sm" placeholder="To" />
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-56">
+                <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
+                <Input placeholder="Search name, email, code..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+              </div>
+              <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5 h-9">
+                <Download className="w-3.5 h-3.5" /> CSV
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <TabsContent value="trainer" className="mt-4">
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="bg-card rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Total Trainer Referrals</p>
+              <p className="text-lg font-bold text-foreground">{trainerRefs.length}</p>
+            </div>
+            <div className="bg-card rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Paid Out</p>
+              <p className="text-lg font-bold text-emerald-600">₹{trainerRefs.filter(r => r.status === "paid").reduce((s, r) => s + r.reward_amount, 0).toLocaleString("en-IN")}</p>
+            </div>
+            <div className="bg-card rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Pending</p>
+              <p className="text-lg font-bold text-amber-600">{trainerRefs.filter(r => r.status === "pending").length}</p>
+            </div>
+          </div>
+          <ReferralTable data={filteredTrainer} table="trainer_referrals" />
+        </TabsContent>
+
+        <TabsContent value="student" className="mt-4">
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="bg-card rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Total Student Referrals</p>
+              <p className="text-lg font-bold text-foreground">{studentRefs.length}</p>
+            </div>
+            <div className="bg-card rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Paid Out (₹500/referral)</p>
+              <p className="text-lg font-bold text-emerald-600">₹{studentRefs.filter(r => r.status === "paid").reduce((s, r) => s + r.reward_amount, 0).toLocaleString("en-IN")}</p>
+            </div>
+            <div className="bg-card rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Pending</p>
+              <p className="text-lg font-bold text-amber-600">{studentRefs.filter(r => r.status === "pending").length}</p>
+            </div>
+          </div>
+          <ReferralTable data={filteredStudent} table="referrals" />
+        </TabsContent>
+
+        <TabsContent value="wallets" className="mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
+            <div className="grid grid-cols-3 gap-4 flex-1">
+              <div className="bg-card rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Total Wallets</p>
+                <p className="text-lg font-bold text-foreground">{wallets.length}</p>
+              </div>
+              <div className="bg-card rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Platform Liability</p>
+                <p className="text-lg font-bold text-blue-600">₹{totalPlatformLiability.toLocaleString("en-IN")}</p>
+              </div>
+              <div className="bg-card rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Total Earned (All)</p>
+                <p className="text-lg font-bold text-emerald-600">₹{wallets.reduce((s, w) => s + Number(w.total_earned || 0), 0).toLocaleString("en-IN")}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2 mb-4">
+            <div className="relative flex-1 sm:w-64 sm:flex-initial">
+              <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Search by name or email..." value={walletSearch} onChange={e => setWalletSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+            </div>
+            <Button variant="outline" size="sm" onClick={exportWalletsCSV} className="gap-1.5 h-9">
+              <Download className="w-3.5 h-3.5" /> CSV
+            </Button>
+          </div>
+          <div className="bg-card rounded-xl border overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-secondary/30">
+                    <TableHead className="text-xs">User</TableHead>
+                    <TableHead className="text-xs">Role</TableHead>
+                    <TableHead className="text-xs">Balance</TableHead>
+                    <TableHead className="text-xs">Total Earned</TableHead>
+                    <TableHead className="text-xs">Total Withdrawn</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow><TableCell colSpan={5} className="p-4"><Skeleton className="h-16" /></TableCell></TableRow>
+                  ) : filteredWallets.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="py-12 text-center">
+                      <Wallet className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+                      <p className="text-sm text-muted-foreground mt-2">No wallets found</p>
+                    </TableCell></TableRow>
+                  ) : filteredWallets.map(w => (
+                    <TableRow key={w.id}>
+                      <TableCell>
+                        <p className="text-sm font-medium text-foreground">{w.userName}</p>
+                        <p className="text-xs text-muted-foreground">{w.userEmail}</p>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={w.role === "Trainer" ? "default" : "secondary"} className="text-[10px]">{w.role}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm font-semibold text-foreground">₹{Number(w.balance || 0).toLocaleString("en-IN")}</TableCell>
+                      <TableCell className="text-sm text-emerald-600">₹{Number(w.total_earned || 0).toLocaleString("en-IN")}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">₹{Number(w.total_withdrawn || 0).toLocaleString("en-IN")}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Recent Transactions */}
+          {walletTxs.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-foreground mb-3">Recent Transactions</h3>
+              <div className="bg-card rounded-xl border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-secondary/30">
+                        <TableHead className="text-xs">User</TableHead>
+                        <TableHead className="text-xs">Type</TableHead>
+                        <TableHead className="text-xs">Amount</TableHead>
+                        <TableHead className="text-xs">Description</TableHead>
+                        <TableHead className="text-xs">Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {walletTxs.slice(0, 20).map(tx => (
+                        <TableRow key={tx.id}>
+                          <TableCell className="text-sm text-foreground">{tx.userName}</TableCell>
+                          <TableCell>
+                            <Badge variant={tx.type === "credit" ? "default" : "secondary"} className="text-[10px]">{tx.type}</Badge>
+                          </TableCell>
+                          <TableCell className={`text-sm font-medium ${tx.type === "credit" ? "text-emerald-600" : "text-red-600"}`}>
+                            {tx.type === "credit" ? "+" : "-"}₹{Math.abs(Number(tx.amount)).toLocaleString("en-IN")}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{tx.description}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{formatDateIST(tx.created_at)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </AdminLayout>
   );
 };

@@ -77,11 +77,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    const REWARD = 400
+    const REWARD = 500
 
-    // Create referral record — status PENDING until first paid course ≥ ₹5000.
-    // The DB enforces UNIQUE (referred_id) so a race condition between concurrent
-    // requests will result in a constraint violation rather than a duplicate row.
+    // Create referral record — status PENDING until first paid enrollment
     const { error: insertErr } = await supabase.from('referrals').insert({
       referrer_id: referrer.id,
       referred_id: newStudent.id,
@@ -91,7 +89,6 @@ Deno.serve(async (req) => {
     })
 
     if (insertErr) {
-      // Unique violation (23505) means a concurrent request already created the referral.
       if (insertErr.code === '23505') {
         return new Response(JSON.stringify({ success: false, error: 'Already referred' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -107,12 +104,12 @@ Deno.serve(async (req) => {
     await supabase.from('notifications').insert({
       user_id: referrer.user_id,
       title: 'New Referral! 🎉',
-      body: `Someone signed up using your referral code! You'll earn ₹${REWARD} when they complete their first paid course (₹5,000+).`,
+      body: `Someone signed up using your referral code! You'll earn ₹${REWARD} when they complete their first paid enrollment.`,
       type: 'referral',
       action_url: '/student/referrals',
     })
 
-    console.log(`✅ Student referral created: ${referral_code} (pending)`)
+    console.log(`✅ Student referral created: ${referral_code} (pending first paid enrollment)`)
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

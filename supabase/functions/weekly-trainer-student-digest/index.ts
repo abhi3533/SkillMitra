@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 
-    // Get all approved trainers with skills
     const { data: trainers } = await supabase
       .from('trainers')
       .select('id, user_id, skills, teaching_languages')
@@ -32,7 +31,6 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Get all students with course interests
     const { data: students } = await supabase
       .from('students')
       .select('id, user_id, course_interests')
@@ -44,7 +42,6 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Get all active enrollments to exclude already-enrolled pairs
     const { data: enrollments } = await supabase
       .from('enrollments')
       .select('student_id, trainer_id')
@@ -59,7 +56,15 @@ Deno.serve(async (req) => {
     for (const trainer of trainers) {
       if (!trainer.skills?.length) continue
 
-      // Find students interested in this trainer's skills (not already enrolled)
+      // Check email preferences
+      const { data: prefs } = await supabase
+        .from('email_preferences')
+        .select('digest_emails_enabled')
+        .eq('user_id', trainer.user_id)
+        .single()
+
+      if (prefs?.digest_emails_enabled === false) continue
+
       const matchingStudents = students.filter(s => {
         if (enrollmentSet.has(`${s.id}:${trainer.id}`)) return false
         const interests = (s.course_interests as string[]) || []
@@ -70,7 +75,6 @@ Deno.serve(async (req) => {
 
       if (matchingStudents.length === 0) continue
 
-      // Get trainer profile
       const { data: tProfile } = await supabase
         .from('profiles')
         .select('full_name, email')
@@ -100,13 +104,9 @@ Deno.serve(async (req) => {
           </div>
         `).join('')
 
-      // Send weekly digest to trainer
       await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
         body: JSON.stringify({
           type: 'weekly_trainer_student_digest',
           to: tProfile.email,
@@ -119,15 +119,10 @@ Deno.serve(async (req) => {
       })
 
       emailsSent++
-
-      // Rate limit delay
-      if (emailsSent % 10 === 0) {
-        await new Promise(r => setTimeout(r, 1000))
-      }
+      if (emailsSent % 10 === 0) await new Promise(r => setTimeout(r, 1000))
     }
 
     console.log(`✅ Weekly trainer student digest sent to ${emailsSent} trainers`)
-
     return new Response(JSON.stringify({ success: true, emails_sent: emailsSent }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

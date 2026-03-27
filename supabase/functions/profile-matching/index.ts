@@ -6,6 +6,106 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
+// Check if we already sent a match email to this recipient today
+async function canSendEmail(supabase: any, email: string, emailType: string): Promise<boolean> {
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data } = await supabase
+    .from('match_email_log')
+    .select('id')
+    .eq('recipient_email', email)
+    .eq('email_type', emailType)
+    .gte('sent_at', oneDayAgo)
+    .limit(1)
+  return !data || data.length === 0
+}
+
+// Log that we sent an email
+async function logEmailSent(supabase: any, email: string, emailType: string) {
+  await supabase.from('match_email_log').insert({ recipient_email: email, email_type: emailType })
+}
+
+// Check if user has match emails enabled
+async function isMatchEmailEnabled(supabase: any, userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from('email_preferences')
+    .select('match_emails_enabled')
+    .eq('user_id', userId)
+    .single()
+  // Default to enabled if no preference row exists
+  return data?.match_emails_enabled !== false
+}
+
+// Enhanced scoring function with all 5 criteria
+function scoreTrainerForStudent(
+  trainer: any, 
+  trainerProfile: any, 
+  studentProfile: any, 
+  student: any,
+  trainerCourses: any[]
+): { score: number; matchedSkills: string[]; matchedLangs: string[] } {
+  let score = 0
+  const matchedSkills: string[] = []
+  const matchedLangs: string[] = []
+
+  // 1. Skill/subject match (MOST IMPORTANT - weight: 5)
+  if (student?.course_interests?.length && trainer.skills?.length) {
+    const skillOverlap = student.course_interests.filter((interest: string) =>
+      trainer.skills!.some((skill: string) => skill.toLowerCase() === interest.toLowerCase())
+    )
+    score += skillOverlap.length * 5
+    matchedSkills.push(...skillOverlap)
+  }
+
+  // 2. Language preference match (weight: 4)
+  if (studentProfile.language_preference?.length && trainer.teaching_languages?.length) {
+    const langOverlap = studentProfile.language_preference.filter((l: string) =>
+      trainer.teaching_languages!.includes(l)
+    )
+    score += langOverlap.length * 4
+    matchedLangs.push(...langOverlap)
+  }
+
+  // 3. Budget range match (weight: 3) - check if trainer has courses within student's expected range
+  if (trainerCourses.length > 0) {
+    const minFee = Math.min(...trainerCourses.map((c: any) => c.course_fee || 0))
+    const hasFreeTrial = trainerCourses.some((c: any) => c.has_free_trial)
+    // Affordable trainers score higher; free trial is a bonus
+    if (hasFreeTrial) score += 3
+    if (minFee <= 5000) score += 2
+    else if (minFee <= 10000) score += 1
+  }
+
+  // 4. Availability timing - city/timezone proximity as proxy (weight: 2)
+  if (studentProfile.city && trainerProfile?.city && 
+      studentProfile.city.toLowerCase() === trainerProfile.city.toLowerCase()) {
+    score += 3 // Same city = likely same timezone + can meet offline
+  }
+  if (studentProfile.state && trainerProfile?.state && studentProfile.state === trainerProfile.state) {
+    score += 1
+  }
+
+  // 5. Experience level (weight: 2)
+  if (trainer.experience_years) {
+    if (trainer.experience_years >= 5) score += 3
+    else if (trainer.experience_years >= 3) score += 2
+    else if (trainer.experience_years >= 1) score += 1
+  }
+
+  // Bonus: Gender preference match
+  if (student?.trainer_gender_preference && student.trainer_gender_preference !== 'no_preference') {
+    if (trainerProfile?.gender && trainerProfile.gender.toLowerCase() === student.trainer_gender_preference.toLowerCase()) {
+      score += 2
+    }
+  }
+
+  // Bonus: High rating
+  if (trainer.average_rating && trainer.average_rating >= 4) {
+    score += 2
+  }
+
+  return { score, matchedSkills, matchedLangs }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -24,7 +124,6 @@ Deno.serve(async (req) => {
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 
     if (role === 'student') {
-      // Get student's profile info
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, email, city, state, language_preference, gender')
@@ -33,21 +132,26 @@ Deno.serve(async (req) => {
 
       if (!profile?.email) throw new Error('Student profile not found')
 
+      // Check if student wants match emails
+      if (!(await isMatchEmailEnabled(supabase, new_user_id))) {
+        return new Response(JSON.stringify({ success: true, message: 'Student has match emails disabled' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
       const { data: student } = await supabase
         .from('students')
-        .select('trainer_gender_preference, skills_learning, course_interests')
+        .select('id, trainer_gender_preference, skills_learning, course_interests')
         .eq('user_id', new_user_id)
         .single()
 
-      // Find matching trainers: approved, matching language/city/gender pref
-      const trainerQuery = supabase
+      // Get approved trainers with more data
+      const { data: matchedTrainers } = await supabase
         .from('trainers')
-        .select('id, user_id, skills, teaching_languages, average_rating, current_role, current_company, experience_years')
+        .select('id, user_id, skills, teaching_languages, average_rating, current_role, current_company, experience_years, course_fee')
         .eq('approval_status', 'approved')
-        .limit(5)
+        .limit(20)
         .order('boost_score', { ascending: false })
-
-      const { data: matchedTrainers } = await trainerQuery
 
       if (!matchedTrainers || matchedTrainers.length === 0) {
         return new Response(JSON.stringify({ success: true, message: 'No matching trainers found' }), {
@@ -55,168 +159,144 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Score trainers by match quality
-      const scoredTrainers = await Promise.all(matchedTrainers.map(async (trainer) => {
-        let score = 0
-        const { data: tProfile } = await supabase
-          .from('profiles')
-          .select('full_name, email, city, state, gender, profile_picture_url')
-          .eq('id', trainer.user_id)
-          .single()
+      // Exclude trainers where student already has enrollment
+      const { data: existingEnrollments } = await supabase
+        .from('enrollments')
+        .select('trainer_id')
+        .eq('student_id', student?.id)
+        .in('status', ['active', 'trial', 'completed'])
 
-        // Language match
-        if (profile.language_preference?.length && trainer.teaching_languages?.length) {
-          const overlap = profile.language_preference.filter((l: string) =>
-            trainer.teaching_languages!.includes(l)
+      const enrolledTrainerIds = new Set((existingEnrollments || []).map(e => e.trainer_id))
+
+      // Fetch trainer profiles and courses in bulk
+      const trainerUserIds = matchedTrainers.map(t => t.user_id)
+      const trainerIds = matchedTrainers.map(t => t.id)
+
+      const [{ data: trainerProfiles }, { data: trainerCourses }] = await Promise.all([
+        supabase.from('profiles').select('id, full_name, email, city, state, gender, profile_picture_url').in('id', trainerUserIds),
+        supabase.from('courses').select('trainer_id, course_fee, has_free_trial').in('trainer_id', trainerIds).eq('approval_status', 'approved')
+      ])
+
+      const profileMap: Record<string, any> = {}
+      ;(trainerProfiles || []).forEach(p => { profileMap[p.id] = p })
+
+      const courseMap: Record<string, any[]> = {}
+      ;(trainerCourses || []).forEach(c => {
+        if (!courseMap[c.trainer_id]) courseMap[c.trainer_id] = []
+        courseMap[c.trainer_id].push(c)
+      })
+
+      // Score and rank
+      const scoredTrainers = matchedTrainers
+        .filter(t => !enrolledTrainerIds.has(t.id))
+        .map(trainer => {
+          const tProfile = profileMap[trainer.user_id]
+          const courses = courseMap[trainer.id] || []
+          const { score, matchedSkills, matchedLangs } = scoreTrainerForStudent(
+            trainer, tProfile, profile, student, courses
           )
-          score += overlap.length * 3
-        }
-
-        // City match
-        if (profile.city && tProfile?.city && profile.city.toLowerCase() === tProfile.city.toLowerCase()) {
-          score += 5
-        }
-
-        // State match
-        if (profile.state && tProfile?.state && profile.state === tProfile.state) {
-          score += 2
-        }
-
-        // Gender preference match
-        if (student?.trainer_gender_preference && student.trainer_gender_preference !== 'no_preference') {
-          if (tProfile?.gender && tProfile.gender.toLowerCase() === student.trainer_gender_preference.toLowerCase()) {
-            score += 4
-          }
-        }
-
-        // Course interests match with trainer skills
-        if (student?.course_interests?.length && trainer.skills?.length) {
-          const skillOverlap = student.course_interests.filter((interest: string) =>
-            trainer.skills!.some((skill: string) => skill.toLowerCase() === interest.toLowerCase())
-          )
-          score += skillOverlap.length * 4 // Strong signal
-        }
-
-        // Rating bonus
-        if (trainer.average_rating && trainer.average_rating >= 4) {
-          score += 2
-        }
-
-        return { ...trainer, profile: tProfile, score }
-      }))
-
-      // Sort by score and take top 3
-      const topTrainers = scoredTrainers
+          return { ...trainer, profile: tProfile, score, matchedSkills, matchedLangs }
+        })
+        .filter(t => t.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, 3)
 
-      // Build trainer cards HTML for student email
-      const trainerCardsHtml = topTrainers.map(t => {
-        const name = t.profile?.full_name || 'Trainer'
-        const role = t.current_role || 'Expert Trainer'
-        const company = t.current_company ? ` at ${t.current_company}` : ''
-        const rating = t.average_rating ? `⭐ ${t.average_rating.toFixed(1)}` : ''
-        const skills = t.skills?.slice(0, 3).join(', ') || ''
-        const exp = t.experience_years ? `${t.experience_years}+ yrs exp` : ''
-        const langs = t.teaching_languages?.slice(0, 2).join(', ') || ''
-
-        return `
-          <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 12px; background: #f9fafb;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <div>
-                <p style="font-size: 16px; font-weight: 600; color: #111; margin: 0;">${name}</p>
-                <p style="font-size: 13px; color: #666; margin: 2px 0 0;">${role}${company}</p>
-              </div>
-            </div>
-            <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
-              ${rating ? `<span style="font-size: 12px; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px;">${rating}</span>` : ''}
-              ${exp ? `<span style="font-size: 12px; background: #eff6ff; color: #1e40af; padding: 2px 8px; border-radius: 12px;">${exp}</span>` : ''}
-              ${langs ? `<span style="font-size: 12px; background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 12px;">🗣️ ${langs}</span>` : ''}
-            </div>
-            ${skills ? `<p style="font-size: 13px; color: #444; margin: 8px 0 0;">Skills: ${skills}</p>` : ''}
-          </div>`
-      }).join('')
-
-      // Send email to student with matched trainers
-      await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          type: 'student_trainer_match',
-          to: profile.email,
-          data: {
-            name: profile.full_name,
-            trainer_cards_html: trainerCardsHtml,
-            trainer_count: topTrainers.length,
-          },
-        }),
-      })
-
-      // Send email to each matched trainer about new student
-      for (const trainer of topTrainers) {
-        if (trainer.profile?.email) {
-          const matchReasons: string[] = []
-          const matchedSkillsForTrainer: string[] = []
-          const matchedLangsForTrainer: string[] = []
-
-          if (profile.city && trainer.profile.city && profile.city.toLowerCase() === trainer.profile.city.toLowerCase()) {
-            matchReasons.push(`Same city (${profile.city})`)
-          }
-          if (profile.language_preference?.length && trainer.teaching_languages?.length) {
-            const overlap = profile.language_preference.filter((l: string) =>
-              trainer.teaching_languages!.includes(l)
-            )
-            if (overlap.length) {
-              matchReasons.push(`Speaks ${overlap.join(', ')}`)
-              matchedLangsForTrainer.push(...overlap)
-            }
-          }
-          if (student?.course_interests?.length && trainer.skills?.length) {
-            const skillOverlap = student.course_interests.filter((interest: string) =>
-              trainer.skills!.some((skill: string) => skill.toLowerCase() === interest.toLowerCase())
-            )
-            if (skillOverlap.length) {
-              matchReasons.push(`Interested in ${skillOverlap.join(', ')}`)
-              matchedSkillsForTrainer.push(...skillOverlap)
-            }
-          }
-
-          await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              type: 'trainer_student_match',
-              to: trainer.profile.email,
-              data: {
-                trainer_name: trainer.profile.full_name,
-                student_name: profile.full_name,
-                student_city: profile.city,
-                student_state: profile.state,
-                match_reasons: matchReasons,
-                matched_skills: matchedSkillsForTrainer,
-                matched_languages: matchedLangsForTrainer,
-              },
-            }),
-          })
-        }
+      if (scoredTrainers.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: 'No matching trainers' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
       }
 
-      // Create in-app notifications
+      // Rate limit check: only 1 match email per day to same student
+      if (await canSendEmail(supabase, profile.email, 'student_trainer_match')) {
+        // Build trainer cards HTML
+        const trainerCardsHtml = scoredTrainers.map(t => {
+          const name = t.profile?.full_name || 'Trainer'
+          const trainerRole = t.current_role || 'Expert Trainer'
+          const company = t.current_company ? ` at ${t.current_company}` : ''
+          const rating = t.average_rating ? `⭐ ${t.average_rating.toFixed(1)}` : ''
+          const skills = t.matchedSkills?.slice(0, 3).join(', ') || t.skills?.slice(0, 3).join(', ') || ''
+          const exp = t.experience_years ? `${t.experience_years}+ yrs exp` : ''
+          const langs = t.matchedLangs?.slice(0, 2).join(', ') || t.teaching_languages?.slice(0, 2).join(', ') || ''
+          const courses = courseMap[t.id] || []
+          const minFee = courses.length > 0 ? Math.min(...courses.map((c: any) => c.course_fee || 0)) : null
+          const priceTag = minFee !== null ? `₹${minFee.toLocaleString('en-IN')}` : ''
+
+          return `
+            <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 12px; background: #f9fafb;">
+              <p style="font-size: 16px; font-weight: 600; color: #111; margin: 0;">${name}</p>
+              <p style="font-size: 13px; color: #666; margin: 2px 0 0;">${trainerRole}${company}</p>
+              <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                ${rating ? `<span style="font-size: 12px; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px;">${rating}</span>` : ''}
+                ${exp ? `<span style="font-size: 12px; background: #eff6ff; color: #1e40af; padding: 2px 8px; border-radius: 12px;">${exp}</span>` : ''}
+                ${langs ? `<span style="font-size: 12px; background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 12px;">🗣️ ${langs}</span>` : ''}
+                ${priceTag ? `<span style="font-size: 12px; background: #faf5ff; color: #7c3aed; padding: 2px 8px; border-radius: 12px;">💰 From ${priceTag}</span>` : ''}
+              </div>
+              ${skills ? `<p style="font-size: 13px; color: #444; margin: 8px 0 0;">Skills: ${skills}</p>` : ''}
+            </div>`
+        }).join('')
+
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+          body: JSON.stringify({
+            type: 'student_trainer_match',
+            to: profile.email,
+            data: {
+              name: profile.full_name,
+              trainer_cards_html: trainerCardsHtml,
+              trainer_count: scoredTrainers.length,
+            },
+          }),
+        })
+
+        await logEmailSent(supabase, profile.email, 'student_trainer_match')
+      }
+
+      // Send email to each matched trainer (with rate limit)
+      for (const trainer of scoredTrainers) {
+        if (!trainer.profile?.email) continue
+        if (!(await isMatchEmailEnabled(supabase, trainer.user_id))) continue
+        if (!(await canSendEmail(supabase, trainer.profile.email, 'trainer_student_match'))) continue
+
+        const matchReasons: string[] = []
+        if (trainer.matchedSkills.length) matchReasons.push(`Interested in ${trainer.matchedSkills.join(', ')}`)
+        if (trainer.matchedLangs.length) matchReasons.push(`Speaks ${trainer.matchedLangs.join(', ')}`)
+        if (profile.city && trainer.profile.city && profile.city.toLowerCase() === trainer.profile.city.toLowerCase()) {
+          matchReasons.push(`Same city (${profile.city})`)
+        }
+
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+          body: JSON.stringify({
+            type: 'trainer_student_match',
+            to: trainer.profile.email,
+            data: {
+              trainer_name: trainer.profile.full_name,
+              student_name: profile.full_name,
+              student_city: profile.city,
+              student_state: profile.state,
+              match_reasons: matchReasons,
+              matched_skills: trainer.matchedSkills,
+              matched_languages: trainer.matchedLangs,
+            },
+          }),
+        })
+
+        await logEmailSent(supabase, trainer.profile.email, 'trainer_student_match')
+      }
+
+      // In-app notifications (always)
       await supabase.from('notifications').insert({
         user_id: new_user_id,
         title: '🎯 Trainers matched for you!',
-        body: `We found ${topTrainers.length} trainer(s) who match your preferences. Check your email!`,
+        body: `We found ${scoredTrainers.length} trainer(s) who match your preferences. Check your email!`,
         type: 'profile_match',
         action_url: '/browse-trainers',
       })
 
-      for (const trainer of topTrainers) {
+      for (const trainer of scoredTrainers) {
         await supabase.from('notifications').insert({
           user_id: trainer.user_id,
           title: '🆕 New student match!',
@@ -225,8 +305,8 @@ Deno.serve(async (req) => {
           action_url: '/trainer/students',
         })
       }
+
     } else if (role === 'trainer') {
-      // Get trainer's profile and skills
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, email, city, state, gender')
@@ -247,11 +327,16 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Find students whose course_interests overlap with trainer's skills
-      // Exclude students who already have an enrollment with this trainer
+      // Get trainer's courses for budget matching
+      const { data: trainerCourses } = await supabase
+        .from('courses')
+        .select('course_fee, has_free_trial')
+        .eq('trainer_id', trainer.id)
+        .eq('approval_status', 'approved')
+
       const { data: allStudents } = await supabase
         .from('students')
-        .select('id, user_id, course_interests')
+        .select('id, user_id, course_interests, trainer_gender_preference')
         .not('course_interests', 'is', null)
         .limit(50)
 
@@ -261,31 +346,40 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Get existing enrollments for this trainer to exclude already-enrolled students
       const { data: existingEnrollments } = await supabase
         .from('enrollments')
         .select('student_id')
         .eq('trainer_id', trainer.id)
+        .in('status', ['active', 'trial', 'completed'])
 
       const enrolledStudentIds = new Set((existingEnrollments || []).map(e => e.student_id))
-      const eligibleStudents = allStudents.filter(s => !enrolledStudentIds.has(s.id))
 
-      if (eligibleStudents.length === 0) {
-        return new Response(JSON.stringify({ success: true, message: 'No eligible students (all already enrolled or no matches)' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
+      // Score students using enhanced criteria
+      const studentUserIds = allStudents.filter(s => !enrolledStudentIds.has(s.id)).map(s => s.user_id)
+      
+      const { data: studentProfiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, city, state, language_preference, gender')
+        .in('id', studentUserIds)
 
-      // Score students by interest overlap with trainer skills
-      const matchedStudents = eligibleStudents
+      const sProfileMap: Record<string, any> = {}
+      ;(studentProfiles || []).forEach(p => { sProfileMap[p.id] = p })
+
+      const matchedStudents = allStudents
+        .filter(s => !enrolledStudentIds.has(s.id))
         .map(s => {
-          const interests = (s.course_interests as string[]) || []
-          const overlap = interests.filter(i =>
-            trainer.skills!.some((sk: string) => sk.toLowerCase() === i.toLowerCase())
+          const sProfile = sProfileMap[s.user_id]
+          if (!sProfile) return null
+          
+          // Use reverse scoring - how well does this trainer match the student
+          const trainerObj = { ...trainer, teaching_languages: trainer.teaching_languages }
+          const trainerProfileObj = { ...profile }
+          const { score, matchedSkills, matchedLangs } = scoreTrainerForStudent(
+            trainerObj, trainerProfileObj, sProfile, s, trainerCourses || []
           )
-          return { ...s, matchedSkills: overlap, score: overlap.length }
+          return { ...s, profile: sProfile, matchedSkills, matchedLangs, score }
         })
-        .filter(s => s.score > 0)
+        .filter((s): s is NonNullable<typeof s> => s !== null && s.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, 10)
 
@@ -295,43 +389,32 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Fetch student profiles for emails
-      const studentUserIds = matchedStudents.map(s => s.user_id)
-      const { data: studentProfiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, city, state')
-        .in('id', studentUserIds)
-
-      const profileMap: Record<string, any> = {}
-      ;(studentProfiles || []).forEach(p => { profileMap[p.id] = p })
-
-      // Send email to each matched student about the new trainer
+      // Send emails to matched students (rate limited)
       for (const student of matchedStudents) {
-        const sProfile = profileMap[student.user_id]
-        if (!sProfile?.email) continue
+        if (!student.profile?.email) continue
+        if (!(await isMatchEmailEnabled(supabase, student.user_id))) continue
+        if (!(await canSendEmail(supabase, student.profile.email, 'student_new_trainer_match'))) continue
 
-          await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+          body: JSON.stringify({
+            type: 'student_new_trainer_match',
+            to: student.profile.email,
+            data: {
+              name: student.profile.full_name,
+              trainer_name: profile.full_name,
+              trainer_role: trainer.current_role,
+              trainer_company: trainer.current_company,
+              trainer_experience: trainer.experience_years,
+              matched_skills: student.matchedSkills,
+              matched_languages: student.matchedLangs,
             },
-            body: JSON.stringify({
-              type: 'student_new_trainer_match',
-              to: sProfile.email,
-              data: {
-                name: sProfile.full_name,
-                trainer_name: profile.full_name,
-                trainer_role: trainer.current_role,
-                trainer_company: trainer.current_company,
-                trainer_experience: trainer.experience_years,
-                matched_skills: student.matchedSkills,
-                matched_languages: trainer.teaching_languages?.slice(0, 3) || [],
-              },
-            }),
-          })
+          }),
+        })
 
-        // In-app notification
+        await logEmailSent(supabase, student.profile.email, 'student_new_trainer_match')
+
         await supabase.from('notifications').insert({
           user_id: student.user_id,
           title: '🎓 New trainer matches your interests!',
@@ -341,7 +424,6 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Notify the trainer about matched students count
       await supabase.from('notifications').insert({
         user_id: new_user_id,
         title: '🎯 Students interested in your skills!',

@@ -189,8 +189,8 @@ const TrainerMyProfile = () => {
               <Input id="email" value={user?.email || ""} disabled className="mt-1.5 bg-muted" />
             </div>
             <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" value={form.phone} onChange={e => handleChange("phone", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="phone">Phone {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="phone" value={form.phone} onChange={e => handleChange("phone", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="whatsapp">WhatsApp</Label>

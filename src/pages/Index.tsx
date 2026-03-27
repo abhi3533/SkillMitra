@@ -415,7 +415,7 @@ const Index = () => {
       </section>
 
       {/* ════════════════════════ HOW IT WORKS ════════════════════════ */}
-      <section className="py-16 md:py-24">
+      <section className="py-10 md:py-16">
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -453,7 +453,7 @@ const Index = () => {
       </section>
 
       {/* ════════════════════ FEATURED TRAINERS ════════════════════ */}
-      <section className="py-16 md:py-24 bg-card">
+      <section className="py-10 md:py-16 bg-card">
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="flex items-end justify-between mb-10">
@@ -545,7 +545,7 @@ const Index = () => {
       </section>
 
       {/* ════════════════════ WHY SKILLMITRA ════════════════════ */}
-      <section className="py-16 md:py-24">
+      <section className="py-10 md:py-16">
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -571,7 +571,7 @@ const Index = () => {
       </section>
 
       {/* ════════════════════ TESTIMONIALS ════════════════════ */}
-      <section className="py-16 md:py-24" style={{ background: "linear-gradient(135deg, hsl(210 50% 96%) 0%, hsl(221 79% 97%) 100%)" }}>
+      <section className="py-10 md:py-16" style={{ background: "linear-gradient(135deg, hsl(210 50% 96%) 0%, hsl(221 79% 97%) 100%)" }}>
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -624,7 +624,7 @@ const Index = () => {
       </section>
 
 
-      <section className="relative py-20 md:py-28 overflow-hidden" style={{
+      <section className="relative py-12 md:py-20 overflow-hidden" style={{
         background: "linear-gradient(135deg, hsl(221 79% 49%) 0%, hsl(221 79% 30%) 100%)"
       }}>
         {/* Decorative elements */}

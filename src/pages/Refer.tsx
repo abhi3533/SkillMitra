@@ -205,7 +205,7 @@ const ReferPage = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 lg:py-20">
+      <section className="py-10 lg:py-14">
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-2xl lg:text-3xl font-bold text-foreground text-center mb-12">How It Works</h2>
           <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start gap-8 sm:gap-0">
@@ -251,7 +251,7 @@ const ReferPage = () => {
       )}
 
       {/* Leaderboard */}
-      <section className="py-16 lg:py-20">
+      <section className="py-10 lg:py-14">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-lg mx-auto">
             <div className="text-center mb-8">
@@ -291,7 +291,7 @@ const ReferPage = () => {
       </section>
 
       {/* Terms */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-10 bg-muted/30">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground text-center mb-8">Terms & Conditions</h2>
@@ -316,7 +316,7 @@ const ReferPage = () => {
 
       {/* Final CTA */}
       {!isLoggedIn && (
-        <section className="py-16">
+        <section className="py-10">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Start Earning?</h2>
             <p className="text-muted-foreground mb-6">Sign up for free and start sharing your referral link today.</p>

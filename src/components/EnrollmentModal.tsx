@@ -396,7 +396,13 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         )}
 
         {/* Step 3: Confirmation */}
-        {step === "confirm" && (
+        {step === "confirm" && (() => {
+          const courseFee = Number(course.course_fee);
+          const referralDiscount = (bookingType === "enroll" && isReferred) ? 100 : 0;
+          const walletDeduction = (bookingType === "enroll" && useWallet) ? Math.min(walletBalance, courseFee - referralDiscount) : 0;
+          const finalAmount = Math.max(0, courseFee - referralDiscount - walletDeduction);
+
+          return (
           <div className="space-y-5">
             <div className="bg-muted rounded-xl p-4 space-y-3">
               <div className="flex justify-between text-sm">
@@ -419,13 +425,58 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                 <span className="text-muted-foreground">Time Slot</span>
                 <span className="font-medium text-foreground">{selectedSlot}</span>
               </div>
+
+              {bookingType === "enroll" && (
+                <>
+                  <div className="border-t border-border pt-3 flex justify-between text-sm">
+                    <span className="text-muted-foreground">Course Fee</span>
+                    <span className="font-medium text-foreground">₹{courseFee.toLocaleString()}</span>
+                  </div>
+
+                  {referralDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-emerald-600 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Referral Discount
+                      </span>
+                      <span className="font-medium text-emerald-600">−₹{referralDiscount}</span>
+                    </div>
+                  )}
+
+                  {walletBalance > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={useWallet}
+                          onChange={e => setUseWallet(e.target.checked)}
+                          className="rounded border-border"
+                        />
+                        <span className="text-muted-foreground">Use Wallet (₹{walletBalance.toLocaleString()})</span>
+                      </label>
+                      {useWallet && (
+                        <span className="font-medium text-emerald-600">−₹{walletDeduction.toLocaleString()}</span>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
               <div className="border-t border-border pt-3 flex justify-between">
-                <span className="font-semibold text-foreground">Amount</span>
+                <span className="font-semibold text-foreground">
+                  {bookingType === "enroll" && (referralDiscount > 0 || walletDeduction > 0) ? "You Pay" : "Amount"}
+                </span>
                 <span className="font-bold text-foreground text-lg">
-                  {bookingType === "trial" ? "₹0 (Free)" : `₹${Number(course.course_fee).toLocaleString()}`}
+                  {bookingType === "trial" ? "₹0 (Free)" : `₹${finalAmount.toLocaleString()}`}
                 </span>
               </div>
             </div>
+
+            {referralDiscount > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-emerald-50 text-sm text-emerald-700 border border-emerald-200">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>₹100 referral discount applied! Your referrer will earn ₹500 once you enroll.</span>
+              </div>
+            )}
 
             <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 text-sm text-foreground border border-primary/10">
               <Shield className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
@@ -440,11 +491,12 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               <Button variant="outline" className="flex-1" onClick={() => setStep("slot")}>Back</Button>
               <Button className="flex-1" onClick={handleSubmit} disabled={submitting}>
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {bookingType === "trial" ? "Confirm Trial" : "Pay & Enroll"}
+                {bookingType === "trial" ? "Confirm Trial" : finalAmount === 0 ? "Enroll Free" : "Pay & Enroll"}
               </Button>
             </div>
           </div>
-        )}
+          );
+        })()}
       </DialogContent>
     </Dialog>
   );

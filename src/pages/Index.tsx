@@ -453,7 +453,7 @@ const Index = () => {
       </section>
 
       {/* ════════════════════ FEATURED TRAINERS ════════════════════ */}
-      <section className="py-16 md:py-24 bg-card">
+      <section className="py-10 md:py-16 bg-card">
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="flex items-end justify-between mb-10">

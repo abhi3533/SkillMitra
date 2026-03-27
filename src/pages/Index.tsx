@@ -571,7 +571,7 @@ const Index = () => {
       </section>
 
       {/* ════════════════════ TESTIMONIALS ════════════════════ */}
-      <section className="py-16 md:py-24" style={{ background: "linear-gradient(135deg, hsl(210 50% 96%) 0%, hsl(221 79% 97%) 100%)" }}>
+      <section className="py-10 md:py-16" style={{ background: "linear-gradient(135deg, hsl(210 50% 96%) 0%, hsl(221 79% 97%) 100%)" }}>
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">

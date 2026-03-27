@@ -22,6 +22,7 @@ type EmailType =
   | 'student_trainer_match'
   | 'trainer_student_match'
   | 'student_new_trainer_match'
+  | 'weekly_trainer_digest'
 
 interface EmailPayload {
   type: EmailType
@@ -197,9 +198,11 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
       }
     }
 
-    case 'student_new_trainer_match':
+    case 'student_new_trainer_match': {
+      const skills = data.matched_skills?.join(', ') || 'your interests'
+      const langs = data.matched_languages?.join(', ') || ''
       return {
-        subject: `🎓 New trainer ${data.trainer_name || ''} just joined SkillMitra — matches your interests!`,
+        subject: `🎓 New trainer available for ${data.matched_skills?.[0] || 'your interests'}${langs ? ` in ${langs}` : ''}!`,
         html: layout(`
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Trainer Alert! 🎓</h1>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name},</p>
@@ -207,11 +210,26 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 16px 0; background: #f9fafb;">
             <p style="font-size: 16px; font-weight: 600; color: #111; margin: 0;">🎓 ${data.trainer_name || 'New Trainer'}</p>
             ${data.trainer_role ? `<p style="font-size: 13px; color: #666; margin: 4px 0 0;">${data.trainer_role}${data.trainer_company ? ` at ${data.trainer_company}` : ''}</p>` : ''}
-            ${data.matched_skills?.length ? `<p style="font-size: 14px; color: #444; margin: 8px 0 0;"><strong>Matching skills:</strong> ${data.matched_skills.join(', ')}</p>` : ''}
+            <p style="font-size: 14px; color: #444; margin: 8px 0 0;"><strong>Matching skills:</strong> ${skills}</p>
+            ${langs ? `<p style="font-size: 13px; color: #666; margin: 4px 0 0;">🗣️ Teaches in: ${langs}</p>` : ''}
             ${data.trainer_experience ? `<p style="font-size: 13px; color: #666; margin: 4px 0 0;">📊 ${data.trainer_experience}+ years experience</p>` : ''}
           </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Book a free trial session to see if they're the right fit for you!</p>
-          ${btn('Browse Trainers', `${APP_URL}/browse-trainers`)}
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Check their profile and book a <strong>free trial session</strong> to see if they're the right fit!</p>
+          ${btn('View Trainer Profile', `${APP_URL}/browse-trainers`)}
+        `)
+      }
+    }
+
+    case 'weekly_trainer_digest':
+      return {
+        subject: `📋 Top 3 recommended trainers for you this week, ${name}!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Your Weekly Trainer Picks 📋</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Here are the <strong>top 3 recommended trainers</strong> for you this week based on your interests and preferences:</p>
+          ${data.trainer_cards_html || ''}
+          <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 16px;">All trainers offer a <strong>free trial session</strong> — try one today!</p>
+          ${btn('Browse All Trainers', `${APP_URL}/browse-trainers`)}
         `)
       }
 

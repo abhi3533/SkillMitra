@@ -231,6 +231,7 @@ Deno.serve(async (req) => {
       }
 
       // Find students whose course_interests overlap with trainer's skills
+      // Exclude students who already have an enrollment with this trainer
       const { data: allStudents } = await supabase
         .from('students')
         .select('id, user_id, course_interests')
@@ -243,8 +244,23 @@ Deno.serve(async (req) => {
         })
       }
 
+      // Get existing enrollments for this trainer to exclude already-enrolled students
+      const { data: existingEnrollments } = await supabase
+        .from('enrollments')
+        .select('student_id')
+        .eq('trainer_id', trainer.id)
+
+      const enrolledStudentIds = new Set((existingEnrollments || []).map(e => e.student_id))
+      const eligibleStudents = allStudents.filter(s => !enrolledStudentIds.has(s.id))
+
+      if (eligibleStudents.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: 'No eligible students (all already enrolled or no matches)' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
       // Score students by interest overlap with trainer skills
-      const matchedStudents = allStudents
+      const matchedStudents = eligibleStudents
         .map(s => {
           const interests = (s.course_interests as string[]) || []
           const overlap = interests.filter(i =>
@@ -277,25 +293,26 @@ Deno.serve(async (req) => {
         const sProfile = profileMap[student.user_id]
         if (!sProfile?.email) continue
 
-        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            type: 'student_new_trainer_match',
-            to: sProfile.email,
-            data: {
-              name: sProfile.full_name,
-              trainer_name: profile.full_name,
-              trainer_role: trainer.current_role,
-              trainer_company: trainer.current_company,
-              trainer_experience: trainer.experience_years,
-              matched_skills: student.matchedSkills,
+          await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
             },
-          }),
-        })
+            body: JSON.stringify({
+              type: 'student_new_trainer_match',
+              to: sProfile.email,
+              data: {
+                name: sProfile.full_name,
+                trainer_name: profile.full_name,
+                trainer_role: trainer.current_role,
+                trainer_company: trainer.current_company,
+                trainer_experience: trainer.experience_years,
+                matched_skills: student.matchedSkills,
+                matched_languages: trainer.teaching_languages?.slice(0, 3) || [],
+              },
+            }),
+          })
 
         // In-app notification
         await supabase.from('notifications').insert({

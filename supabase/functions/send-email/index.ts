@@ -23,6 +23,8 @@ type EmailType =
   | 'trainer_student_match'
   | 'student_new_trainer_match'
   | 'weekly_trainer_digest'
+  | 'trainer_profile_viewed'
+  | 'weekly_trainer_student_digest'
 
 interface EmailPayload {
   type: EmailType
@@ -178,22 +180,28 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
       }
 
     case 'trainer_student_match': {
+      const matchedSkills = data.matched_skills?.join(', ') || 'your expertise'
+      const matchedLangs = data.matched_languages?.join(', ') || ''
       const reasons = data.match_reasons?.length
         ? `<p style="font-size: 14px; color: #444; margin-top: 8px;"><strong>Why you matched:</strong> ${data.match_reasons.join(' · ')}</p>`
         : ''
       return {
-        subject: `🆕 New student ${data.student_name || ''} just joined SkillMitra!`,
+        subject: `🆕 A new student is looking for ${data.matched_skills?.[0] || 'training'}${matchedLangs ? ` in ${matchedLangs}` : ''}!`,
         html: layout(`
-          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Student Match! 🆕</h1>
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Student Looking for You! 🆕</h1>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'},</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">A new student just signed up who matches your profile:</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A new student just signed up looking for <strong>${matchedSkills}</strong> training${matchedLangs ? ` in <strong>${matchedLangs}</strong>` : ''}! Your profile matches their needs.</p>
           <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 16px 0; background: #f9fafb;">
             <p style="font-size: 16px; font-weight: 600; color: #111; margin: 0;">📚 ${data.student_name || 'New Student'}</p>
             ${data.student_city || data.student_state ? `<p style="font-size: 13px; color: #666; margin: 4px 0 0;">📍 ${[data.student_city, data.student_state].filter(Boolean).join(', ')}</p>` : ''}
+            ${matchedSkills ? `<p style="font-size: 13px; color: #444; margin: 4px 0 0;">🎯 Interested in: ${matchedSkills}</p>` : ''}
+            ${matchedLangs ? `<p style="font-size: 13px; color: #444; margin: 4px 0 0;">🗣️ Prefers: ${matchedLangs}</p>` : ''}
             ${reasons}
           </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Make sure your courses are up-to-date and your availability is set so students can find and book you easily!</p>
-          ${btn('View Your Dashboard', `${APP_URL}/trainer/dashboard`)}
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 600;">💡 Make sure your profile is complete to get noticed!</p>
+          </div>
+          ${btn('Update Your Profile', `${APP_URL}/trainer/my-profile`)}
         `)
       }
     }
@@ -230,6 +238,41 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           ${data.trainer_cards_html || ''}
           <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 16px;">All trainers offer a <strong>free trial session</strong> — try one today!</p>
           ${btn('Browse All Trainers', `${APP_URL}/browse-trainers`)}
+        `)
+      }
+
+    case 'trainer_profile_viewed':
+      return {
+        subject: `👀 A student viewed your SkillMitra profile!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Someone's Interested! 👀</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A student just viewed your profile on SkillMitra${data.student_city ? ` from <strong>${data.student_city}</strong>` : ''}!</p>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: #166534; margin: 0; font-weight: 600;">💡 Make sure your free trial is available so interested students can book easily!</p>
+          </div>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Tips to convert profile views into students:</p>
+          <ul style="font-size: 15px; line-height: 1.8; color: #444; padding-left: 20px;">
+            <li>Keep your availability updated</li>
+            <li>Enable free trial sessions</li>
+            <li>Add a compelling bio and intro video</li>
+          </ul>
+          ${btn('Update Your Profile', `${APP_URL}/trainer/my-profile`)}
+        `)
+      }
+
+    case 'weekly_trainer_student_digest':
+      return {
+        subject: `📋 ${data.student_count || 'Students'} looking for your skills this week!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Your Weekly Student Report 📋</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;"><strong>${data.student_count || 'Several'} student(s)</strong> are looking for training in skills you offer this week!</p>
+          ${data.skill_demand_html || ''}
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 600;">💡 Create courses and keep your availability open to attract these students!</p>
+          </div>
+          ${btn('Go to Dashboard', `${APP_URL}/trainer/dashboard`)}
         `)
       }
 

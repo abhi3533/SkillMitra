@@ -11,6 +11,8 @@ import { getAuthErrorMessage } from "@/lib/authErrors";
 import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const TRAINER_VERIFICATION_REDIRECT = "https://skillmitra.online/trainer/onboarding";
 
@@ -125,7 +127,9 @@ const TrainerSignup = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center p-6">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md text-center">
           <div className="w-20 h-20 mx-auto rounded-full hero-gradient flex items-center justify-center mb-6">
             <Shield className="w-10 h-10 text-primary-foreground" />
@@ -147,6 +151,8 @@ const TrainerSignup = () => {
             </Link>
           </div>
         </motion.div>
+      </div>
+        <Footer />
       </div>
     );
   }

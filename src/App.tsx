@@ -213,6 +213,7 @@ const AppContent = () => {
           <Route path="/trainer/attendance" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerAttendance /></ProtectedRoute>} />
           <Route path="/trainer/sessions" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSessions /></ProtectedRoute>} />
           <Route path="/trainer/reviews" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerReviews /></ProtectedRoute>} />
+          <Route path="/trainer/trial-settings" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerTrialSettings /></ProtectedRoute>} />
           <Route path="/trainer/notifications" element={<ProtectedRoute allowedRoles={["trainer"]}><Notifications /></ProtectedRoute>} />
 
           {/* Admin Protected */}

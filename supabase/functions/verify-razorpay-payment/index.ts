@@ -372,6 +372,40 @@ Deno.serve(async (req) => {
       { student_id, trainer_id, course_id, amount: courseFee, commission: platformCommission, enrollment_id: enrollment.id }
     );
 
+    // Credit trainer earnings
+    await serviceClient.from("trainers").update({
+      total_earnings: (await serviceClient.from("trainers").select("total_earnings, available_balance, total_students").eq("id", trainer_id).single()).data
+        ? undefined : 0,
+    });
+    // Actually increment trainer earnings atomically
+    const { data: trainerData } = await serviceClient.from("trainers").select("total_earnings, available_balance, total_students").eq("id", trainer_id).single();
+    if (trainerData) {
+      await serviceClient.from("trainers").update({
+        total_earnings: Number(trainerData.total_earnings || 0) + trainerPayout,
+        available_balance: Number(trainerData.available_balance || 0) + trainerPayout,
+        total_students: Number(trainerData.total_students || 0) + 1,
+      }).eq("id", trainer_id);
+    }
+
+    // Credit trainer wallet
+    const { data: trainerWallet } = await serviceClient.from("wallets").select("id, balance, total_earned").eq("user_id", trainer?.user_id).single();
+    if (trainerWallet) {
+      await serviceClient.from("wallets").update({
+        balance: Number(trainerWallet.balance) + trainerPayout,
+        total_earned: Number(trainerWallet.total_earned) + trainerPayout,
+        last_updated: new Date().toISOString(),
+      }).eq("id", trainerWallet.id);
+
+      await serviceClient.from("wallet_transactions").insert({
+        wallet_id: trainerWallet.id,
+        user_id: trainer?.user_id,
+        type: "credit",
+        amount: trainerPayout,
+        description: `Earning from "${course.title}" enrollment`,
+        reference_id: enrollment.id,
+      });
+    }
+
     // Increment enrolled count
     await serviceClient.rpc("increment_course_enrolled", { course_id_param: course_id });
 

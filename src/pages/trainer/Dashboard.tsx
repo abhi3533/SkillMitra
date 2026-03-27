@@ -12,6 +12,7 @@ import TrainerLayout from "@/components/layouts/TrainerLayout";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useLoadingTitle } from "@/hooks/useLoadingTitle";
 import { RefreshCw } from "lucide-react";
+import TrainerTrialRequests from "@/components/TrainerTrialRequests";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();

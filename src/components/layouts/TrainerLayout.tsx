@@ -19,6 +19,7 @@ const sidebarItems = [
   { label: "Certificates", icon: Award, path: "/trainer/certificates" },
   { label: "Subscription", icon: TrendingUp, path: "/trainer/subscription" },
   { label: "Referrals", icon: Gift, path: "/trainer/referrals" },
+  { label: "Trial Settings", icon: Settings, path: "/trainer/trial-settings" },
   { label: "Profile", icon: User, path: "/trainer/profile" },
 ];
 

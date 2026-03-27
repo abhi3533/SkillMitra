@@ -26,6 +26,7 @@ const AdminTrainers = () => {
   const [rejectTarget, setRejectTarget] = useState<any>(null);
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
   const [removeTarget, setRemoveTarget] = useState<any>(null);
+  const [editTarget, setEditTarget] = useState<any>(null);
 
   const fetchTrainers = async () => {
     setLoading(true);

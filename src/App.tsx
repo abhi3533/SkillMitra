@@ -94,6 +94,7 @@ const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
 const AdminSubscriptions = lazy(() => import("./pages/admin/AdminSubscriptions"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const AdminCommunications = lazy(() => import("./pages/admin/Communications"));
+const AdminTrainerInvitations = lazy(() => import("./pages/admin/TrainerInvitations"));
 
 // Lazy-loaded Parent pages
 const ParentLogin = lazy(() => import("./pages/parent/Login"));

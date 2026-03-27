@@ -181,8 +181,8 @@ const TrainerMyProfile = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="full_name">Full Name</Label>
-              <Input id="full_name" value={form.full_name} onChange={e => handleChange("full_name", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="full_name">Full Name {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="full_name" value={form.full_name} onChange={e => handleChange("full_name", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>

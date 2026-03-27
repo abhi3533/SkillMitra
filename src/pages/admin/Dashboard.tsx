@@ -138,6 +138,12 @@ const AdminDashboard = () => {
       case "trial_request": return <CalendarCheck className="w-3.5 h-3.5 text-primary" />;
       case "enrollment": return <BookOpen className="w-3.5 h-3.5 text-primary" />;
       case "referral": return <Gift className="w-3.5 h-3.5 text-amber-600" />;
+      case "trainer_approved": return <UserCheck className="w-3.5 h-3.5 text-emerald-600" />;
+      case "trainer_rejected": return <UserX className="w-3.5 h-3.5 text-destructive" />;
+      case "course_approved": return <BookOpen className="w-3.5 h-3.5 text-emerald-600" />;
+      case "course_rejected": return <BookOpen className="w-3.5 h-3.5 text-destructive" />;
+      case "payout_approved": return <CreditCard className="w-3.5 h-3.5 text-emerald-600" />;
+      case "payout_rejected": return <CreditCard className="w-3.5 h-3.5 text-destructive" />;
       default: return <Activity className="w-3.5 h-3.5 text-muted-foreground" />;
     }
   };

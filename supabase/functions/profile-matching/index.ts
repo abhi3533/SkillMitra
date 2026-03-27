@@ -293,25 +293,26 @@ Deno.serve(async (req) => {
         const sProfile = profileMap[student.user_id]
         if (!sProfile?.email) continue
 
-        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            type: 'student_new_trainer_match',
-            to: sProfile.email,
-            data: {
-              name: sProfile.full_name,
-              trainer_name: profile.full_name,
-              trainer_role: trainer.current_role,
-              trainer_company: trainer.current_company,
-              trainer_experience: trainer.experience_years,
-              matched_skills: student.matchedSkills,
+          await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
             },
-          }),
-        })
+            body: JSON.stringify({
+              type: 'student_new_trainer_match',
+              to: sProfile.email,
+              data: {
+                name: sProfile.full_name,
+                trainer_name: profile.full_name,
+                trainer_role: trainer.current_role,
+                trainer_company: trainer.current_company,
+                trainer_experience: trainer.experience_years,
+                matched_skills: student.matchedSkills,
+                matched_languages: trainer.teaching_languages?.slice(0, 3) || [],
+              },
+            }),
+          })
 
         // In-app notification
         await supabase.from('notifications').insert({

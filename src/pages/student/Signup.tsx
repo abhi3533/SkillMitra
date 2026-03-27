@@ -468,6 +468,7 @@ const StudentSignup = () => {
       </div>
         </motion.div>
       </div>
+      </div>
       <Footer />
     </div>
   );

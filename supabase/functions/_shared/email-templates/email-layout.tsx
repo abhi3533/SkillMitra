@@ -50,7 +50,7 @@ export const EmailLayout = ({ previewText, children }: EmailLayoutProps) => (
             <Link href="https://skillmitra.online" style={footerLink}>skillmitra.online</Link>
           </Text>
           <Text style={footerCopyright}>
-            © {new Date().getFullYear()} Learnvate Solutions Private Limited. All rights reserved.
+            © {new Date().getFullYear()} Learnvate Solutions. All rights reserved.
           </Text>
         </Section>
       </Container>

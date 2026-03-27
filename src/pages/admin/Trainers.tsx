@@ -79,6 +79,7 @@ const AdminTrainers = () => {
     const trainer = trainers.find(t => t.id === id);
     const trainerName = trainer?.profiles?.full_name || "Trainer";
 
+    // Send email notification
     supabase.functions.invoke("notify-trainer-status", {
       body: { trainer_id: id, status, rejection_reason: rejectionReason },
     }).then(({ data, error: fnErr }) => {
@@ -88,6 +89,17 @@ const AdminTrainers = () => {
         toast({ title: `Trainer ${status}!`, description: `Email notification sent to ${trainerName}.`, variant: "success" });
       }
     });
+
+    // If approved, trigger referral reward for referred trainers
+    if (status === "approved" && trainer?.referred_by) {
+      supabase.functions.invoke("complete-trainer-referral", {
+        body: { trainer_id: id },
+      }).then(({ data, error: refErr }) => {
+        if (!refErr && data?.success) {
+          toast({ title: "Referral Reward", description: `₹${data.reward} credited to referrer's wallet`, variant: "success" });
+        }
+      });
+    }
   };
 
   const handleRejectClick = (trainer: any) => setRejectTarget(trainer);

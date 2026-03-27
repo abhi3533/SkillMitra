@@ -545,7 +545,7 @@ const Index = () => {
       </section>
 
       {/* ════════════════════ WHY SKILLMITRA ════════════════════ */}
-      <section className="py-16 md:py-24">
+      <section className="py-10 md:py-16">
         <div className="container mx-auto px-4 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">

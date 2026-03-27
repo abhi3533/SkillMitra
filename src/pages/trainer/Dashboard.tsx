@@ -511,6 +511,7 @@ const TrainerDashboard = () => {
             { label: "View Earnings", path: "/trainer/earnings", icon: IndianRupee },
             { label: "Issue Certificate", path: "/trainer/certificates", icon: CreditCard },
             { label: "Edit Profile", path: "/trainer/profile", icon: TrendingUp },
+            { label: "Trial Settings", path: "/trainer/trial-settings", icon: Calendar },
           ].map(a => (
             <Link key={a.label} to={a.path}>
               <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5">

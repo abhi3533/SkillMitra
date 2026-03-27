@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getAuthErrorMessage } from "@/lib/authErrors";
 import { checkLoginLocked, recordFailedAttempt, clearLoginAttempts } from "@/lib/loginProtection";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 
 const TRAINER_VERIFICATION_REDIRECT = "https://skillmitra.online/trainer/onboarding";
@@ -98,7 +100,9 @@ const TrainerLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex">
       <div className="hidden lg:flex lg:w-1/2 hero-gradient items-center justify-center p-12 sticky top-0 h-screen overflow-hidden">
         <div className="max-w-md">
           <SkillMitraLogo darkText={false} height={40} className="mb-12" />
@@ -171,7 +175,9 @@ const TrainerLogin = () => {
             Are you a student? <Link to="/student/login" className="text-accent font-semibold hover:underline">Student Login</Link>
           </p>
         </motion.div>
+    </div>
       </div>
+      <Footer />
     </div>
   );
 };

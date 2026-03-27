@@ -16,6 +16,8 @@ import { getAuthErrorMessage } from "@/lib/authErrors";
 import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDisposableEmail } from "@/lib/formValidation";
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const languageOptions = ["Telugu", "Hindi", "Tamil", "English", "Kannada", "Malayalam", "Bengali", "Marathi"];
 const courseInterestOptions = ["Python", "JavaScript", "React", "Node.js", "Java", "Data Science", "Machine Learning", "AWS", "Docker", "Figma", "UI/UX Design", "Digital Marketing", "SEO", "Flutter", "Cyber Security", "Product Management", "Salesforce", "Excel", "SQL", "Power BI", "Other"];
@@ -200,7 +202,9 @@ const StudentSignup = () => {
   const isFormValid = form.fullName.trim() && isNameLettersOnly(form.fullName) && isEmailFilled && isPhoneFilled && form.city.trim() && form.state && form.gender && isPasswordValid(form.password) && form.password === confirmPassword && !emailError;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <div className="flex-1">
       {/* Left Panel - Fixed */}
       <div className="hidden lg:flex fixed top-0 left-0 w-[40%] h-screen hero-gradient items-center justify-center p-12 overflow-hidden z-10">
         <div className="max-w-md">
@@ -463,6 +467,8 @@ const StudentSignup = () => {
           </p>
         </motion.div>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 };

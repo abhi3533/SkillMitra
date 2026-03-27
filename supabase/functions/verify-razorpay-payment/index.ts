@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const ALLOWED_ORIGINS = [
   "https://skillmitra.online",
   "https://www.skillmitra.online",
-  "http://localhost:5173", // dev only
+  "http://localhost:5173",
 ];
 
 function getCorsHeaders(req: Request) {
@@ -37,6 +37,36 @@ async function verifySignature(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
   return expectedSignature === signature;
+}
+
+async function sendEmail(serviceClient: any, type: string, to: string, data: Record<string, any>) {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ type, to, data }),
+    });
+  } catch (err) {
+    console.error(`Email send error (${type}):`, err);
+  }
+}
+
+async function logActivity(serviceClient: any, eventType: string, title: string, description: string, metadata: Record<string, any> = {}) {
+  try {
+    await serviceClient.from("admin_activity_log").insert({
+      event_type: eventType,
+      title,
+      description,
+      metadata,
+    });
+  } catch (err) {
+    console.error("Activity log error:", err);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -110,7 +140,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Idempotency guard: reject duplicate payment processing for the same order
+    // Idempotency guard
     const { data: existingPayment } = await serviceClient
       .from("payments")
       .select("status, enrollment_id")
@@ -128,9 +158,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify the student_id from the request actually belongs to the authenticated user.
-    // This prevents IDOR: an attacker cannot supply another user's student_id to
-    // create an enrollment on their behalf after a single valid payment.
+    // Verify student ownership
     const userId = claimsData.claims.sub;
     const { data: studentCheck, error: studentCheckErr } = await serviceClient
       .from("students")
@@ -234,6 +262,7 @@ Deno.serve(async (req) => {
 
     const totalSessions = course.total_sessions || 1;
     const sessionsToInsert = [];
+    const firstMeetLink = `https://meet.google.com/skillmitra-${course.title.toLowerCase().replace(/\s+/g, "-").slice(0, 15)}-s1`;
 
     for (let i = 0; i < totalSessions; i++) {
       const sessionDate = new Date(firstDate);
@@ -254,12 +283,17 @@ Deno.serve(async (req) => {
 
     await serviceClient.from("course_sessions").insert(sessionsToInsert);
 
-    // Get trainer info for notifications
-    const { data: trainer } = await serviceClient
-      .from("trainers")
-      .select("user_id")
-      .eq("id", trainer_id)
-      .single();
+    // Get trainer + student info for emails
+    const [{ data: trainer }, { data: studentProfile }, { data: trainerProfile }] = await Promise.all([
+      serviceClient.from("trainers").select("user_id").eq("id", trainer_id).single(),
+      serviceClient.from("profiles").select("full_name, email").eq("id", userId).single(),
+      trainer_id ? serviceClient.from("trainers").select("user_id").eq("id", trainer_id).single().then(async (r) => {
+        if (r.data?.user_id) {
+          return serviceClient.from("profiles").select("full_name, email").eq("id", r.data.user_id).single();
+        }
+        return { data: null };
+      }) : { data: null },
+    ]);
 
     const scheduledTimeStr = firstDate.toLocaleString("en-IN", {
       weekday: "short",
@@ -269,7 +303,7 @@ Deno.serve(async (req) => {
       minute: "2-digit",
     });
 
-    // Notifications
+    // In-app notifications
     if (trainer?.user_id) {
       await serviceClient.from("notifications").insert({
         user_id: trainer.user_id,
@@ -288,10 +322,60 @@ Deno.serve(async (req) => {
       action_url: "/student/sessions",
     });
 
-    // Atomically increment enrolled count — avoids read-then-write race condition
+    // ==================== SEND EMAILS ====================
+
+    // Email to STUDENT
+    if (studentProfile?.email) {
+      await sendEmail(serviceClient, "enrollment_confirmed_student", studentProfile.email, {
+        name: studentProfile.full_name || "Student",
+        course_name: course.title,
+        trainer_name: trainerProfile?.full_name || "Trainer",
+        total_sessions: totalSessions,
+        first_session: scheduledTimeStr,
+        amount_paid: courseFee.toLocaleString(),
+        meet_link: firstMeetLink,
+        payment_id: razorpay_payment_id,
+      });
+    }
+
+    // Email to TRAINER
+    if (trainerProfile?.email) {
+      await sendEmail(serviceClient, "enrollment_confirmed_trainer", trainerProfile.email, {
+        trainer_name: trainerProfile.full_name || "Trainer",
+        course_name: course.title,
+        student_name: studentProfile?.full_name || "Student",
+        trainer_payout: trainerPayout.toLocaleString(),
+        first_session: scheduledTimeStr,
+        total_sessions: totalSessions,
+      });
+    }
+
+    // Email to ADMIN
+    const { data: adminUsers } = await serviceClient.from("admins").select("email").eq("is_active", true).limit(3);
+    for (const admin of (adminUsers || [])) {
+      if (admin.email) {
+        await sendEmail(serviceClient, "enrollment_confirmed_admin", admin.email, {
+          student_name: studentProfile?.full_name || "Student",
+          trainer_name: trainerProfile?.full_name || "Trainer",
+          course_name: course.title,
+          amount_paid: courseFee.toLocaleString(),
+          platform_commission: platformCommission.toLocaleString(),
+          trainer_payout: trainerPayout.toLocaleString(),
+          payment_id: razorpay_payment_id,
+        });
+      }
+    }
+
+    // Log admin activity
+    await logActivity(serviceClient, "payment", "New Payment Received", 
+      `${studentProfile?.full_name || 'Student'} enrolled in "${course.title}" — ₹${courseFee.toLocaleString()}`,
+      { student_id, trainer_id, course_id, amount: courseFee, commission: platformCommission, enrollment_id: enrollment.id }
+    );
+
+    // Increment enrolled count
     await serviceClient.rpc("increment_course_enrolled", { course_id_param: course_id });
 
-    // Trigger student referral completion — credits ₹500 to referrer, ₹100 to referred
+    // Trigger student referral completion
     try {
       const { data: studentData } = await serviceClient
         .from("students")
@@ -320,8 +404,8 @@ Deno.serve(async (req) => {
       order_id: razorpay_order_id,
       payment_id: razorpay_payment_id,
       enrollment_id: enrollment.id,
-      student_id: student_id,
-      course_id: course_id,
+      student_id,
+      course_id,
       amount: courseFee,
     }));
 
@@ -334,11 +418,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    // Log with payment context so failures are traceable in Supabase logs.
     console.error(JSON.stringify({
       event: "verify_payment_error",
       error: err instanceof Error ? err.message : String(err),
-      // razorpay_order_id and userId may be undefined if error happened before parsing
     }));
     return new Response(
       JSON.stringify({ error: "Internal server error" }),

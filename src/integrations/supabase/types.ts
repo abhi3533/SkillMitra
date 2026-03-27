@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_log: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          title?: string
+        }
+        Relationships: []
+      }
       admin_communications: {
         Row: {
           body: string
@@ -1697,6 +1724,38 @@ export type Database = {
           },
         ]
       }
+      trainer_trial_settings: {
+        Row: {
+          id: string
+          max_trials_per_month: number
+          trainer_id: string
+          trial_availability: Json | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          max_trials_per_month?: number
+          trainer_id: string
+          trial_availability?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          max_trials_per_month?: number
+          trainer_id?: string
+          trial_availability?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_trial_settings_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: true
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainers: {
         Row: {
           aadhaar_url: string | null
@@ -1882,6 +1941,73 @@ export type Database = {
           work_email?: string | null
         }
         Relationships: []
+      }
+      trial_bookings: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          meet_link: string | null
+          rejection_reason: string | null
+          responded_at: string | null
+          scheduled_at: string | null
+          selected_day: number | null
+          selected_slot: string | null
+          status: string
+          student_id: string
+          trainer_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          meet_link?: string | null
+          rejection_reason?: string | null
+          responded_at?: string | null
+          scheduled_at?: string | null
+          selected_day?: number | null
+          selected_slot?: string | null
+          status?: string
+          student_id: string
+          trainer_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          meet_link?: string | null
+          rejection_reason?: string | null
+          responded_at?: string | null
+          scheduled_at?: string | null
+          selected_day?: number | null
+          selected_slot?: string | null
+          status?: string
+          student_id?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_bookings_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_bookings_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_bookings_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -2089,6 +2215,10 @@ export type Database = {
           student_id: string
           user_id: string
         }[]
+      }
+      get_trainer_trial_count_this_month: {
+        Args: { p_trainer_id: string }
+        Returns: number
       }
       get_user_role: {
         Args: { _user_id: string }

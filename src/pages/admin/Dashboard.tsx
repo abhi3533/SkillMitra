@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { formatDateIST, formatLongDateIST } from "@/lib/dateUtils";
+import { formatDateIST, formatLongDateIST, formatTimeIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
-import { Users, IndianRupee, BookOpen, Award, Clock, AlertTriangle, TrendingUp, UserCheck, UserX, MessageSquare, CreditCard, ArrowUpRight, Gift } from "lucide-react";
+import { Users, IndianRupee, BookOpen, Award, Clock, AlertTriangle, TrendingUp, UserCheck, UserX, MessageSquare, CreditCard, ArrowUpRight, Gift, Activity, CalendarCheck, XCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import AdminLayout from "@/components/layouts/AdminLayout";
@@ -15,13 +16,14 @@ const AdminDashboard = () => {
     students: 0, revenue: 0, activeSessions: 0,
     certificates: 0, openDisputes: 0, pendingPayouts: 0,
     totalCourses: 0, activeEnrollments: 0, contactUnread: 0,
-    totalReferrals: 0,
+    totalReferrals: 0, pendingTrials: 0,
   });
   useLoadingTitle(loading);
   const [recentTrainers, setRecentTrainers] = useState<any[]>([]);
   const [recentEnrollments, setRecentEnrollments] = useState<any[]>([]);
   const [recentDisputes, setRecentDisputes] = useState<any[]>([]);
   const [recentPayouts, setRecentPayouts] = useState<any[]>([]);
+  const [activityLog, setActivityLog] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -31,7 +33,7 @@ const AdminDashboard = () => {
           studentsAll, revenueData, sessionsToday,
           certsAll, disputesOpen, payoutsPending,
           coursesAll, enrollmentsActive, contactUnread,
-          referralsAll,
+          referralsAll, pendingTrials,
         ] = await Promise.all([
           supabase.from("trainers").select("id", { count: "exact", head: true }),
           supabase.from("trainers").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
@@ -46,6 +48,7 @@ const AdminDashboard = () => {
           supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("status", "active"),
           supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("status", "unread"),
           supabase.from("referrals").select("id", { count: "exact", head: true }),
+          supabase.from("trial_bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
         ]);
 
         const totalRevenue = (revenueData.data || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
@@ -64,15 +67,19 @@ const AdminDashboard = () => {
           activeEnrollments: enrollmentsActive.count || 0,
           contactUnread: contactUnread.count || 0,
           totalReferrals: referralsAll.count || 0,
+          pendingTrials: pendingTrials.count || 0,
         });
 
         // Fetch recent data in parallel
-        const [pendingRes, enrollRes, disputeRes, payoutRes] = await Promise.all([
+        const [pendingRes, enrollRes, disputeRes, payoutRes, activityRes] = await Promise.all([
           supabase.from("trainers").select("*").eq("approval_status", "pending").order("created_at", { ascending: false }).limit(5),
           supabase.from("enrollments").select("*, courses(title)").order("enrollment_date", { ascending: false }).limit(5),
           supabase.from("disputes").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(3),
           supabase.from("payout_requests").select("*").eq("status", "pending").order("requested_at", { ascending: false }).limit(3),
+          supabase.from("admin_activity_log").select("*").order("created_at", { ascending: false }).limit(15),
         ]);
+
+        setActivityLog(activityRes.data || []);
 
         // Enrich pending trainers
         if (pendingRes.data && pendingRes.data.length > 0) {
@@ -101,12 +108,10 @@ const AdminDashboard = () => {
           })));
         }
 
-        // Enrich disputes
         if (disputeRes.data && disputeRes.data.length > 0) {
           setRecentDisputes(disputeRes.data);
         }
 
-        // Enrich payouts
         if (payoutRes.data && payoutRes.data.length > 0) {
           const trainerIds = payoutRes.data.map(p => p.trainer_id);
           const { data: trainersData } = await supabase.from("trainers").select("id, user_id").in("id", trainerIds);
@@ -125,6 +130,28 @@ const AdminDashboard = () => {
 
   const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "payment": return <IndianRupee className="w-3.5 h-3.5 text-emerald-600" />;
+      case "trial_approved": return <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />;
+      case "trial_rejected": case "trial_auto_rejected": return <XCircle className="w-3.5 h-3.5 text-destructive" />;
+      case "trial_request": return <CalendarCheck className="w-3.5 h-3.5 text-primary" />;
+      case "enrollment": return <BookOpen className="w-3.5 h-3.5 text-primary" />;
+      case "referral": return <Gift className="w-3.5 h-3.5 text-amber-600" />;
+      default: return <Activity className="w-3.5 h-3.5 text-muted-foreground" />;
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case "payment": return "bg-emerald-50 border-emerald-100";
+      case "trial_approved": return "bg-emerald-50 border-emerald-100";
+      case "trial_rejected": case "trial_auto_rejected": return "bg-red-50 border-red-100";
+      case "trial_request": return "bg-blue-50 border-blue-100";
+      default: return "bg-muted/30 border-border";
+    }
+  };
+
   const statCards = [
     { label: "Total Students", value: stats.students, icon: Users, color: "text-primary", bg: "bg-primary/10", link: "/admin/students" },
     { label: "Total Trainers", value: stats.trainers, icon: UserCheck, color: "text-primary", bg: "bg-primary/10", link: "/admin/trainers" },
@@ -136,6 +163,7 @@ const AdminDashboard = () => {
     { label: "Certificates Issued", value: stats.certificates, icon: Award, color: "text-primary", bg: "bg-primary/10", link: "/admin/certificates" },
     { label: "Open Disputes", value: stats.openDisputes, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10", link: "/admin/disputes" },
     { label: "Pending Payouts", value: stats.pendingPayouts, icon: CreditCard, color: "text-amber-600", bg: "bg-amber-50", link: "/admin/payouts" },
+    { label: "Pending Trials", value: stats.pendingTrials, icon: CalendarCheck, color: "text-primary", bg: "bg-primary/10", link: "/admin/sessions" },
     { label: "Unread Messages", value: stats.contactUnread, icon: MessageSquare, color: "text-primary", bg: "bg-primary/10", link: "/admin/messages" },
     { label: "Total Referrals", value: stats.totalReferrals, icon: Gift, color: "text-primary", bg: "bg-primary/10", link: "/admin/referrals" },
     { label: "Approved Trainers", value: stats.approvedTrainers, icon: UserCheck, color: "text-success", bg: "bg-success/10", link: "/admin/trainers" },
@@ -172,7 +200,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mt-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mt-6">
         {statCards.map(card => (
           <Link key={card.label} to={card.link} className="group">
             <div className="bg-card rounded-xl border border-border p-4 hover:border-primary/20 hover:shadow-sm transition-all duration-200">
@@ -191,6 +219,41 @@ const AdminDashboard = () => {
 
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
+        {/* Real-time Activity Feed */}
+        <div className="bg-card rounded-xl border border-border lg:col-span-2">
+          <div className="flex items-center justify-between p-5 pb-3">
+            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+              <Activity className="w-4 h-4 text-primary" /> Activity Feed
+            </h2>
+            <Badge variant="outline" className="text-xs">{activityLog.length} recent</Badge>
+          </div>
+          <div className="px-5 pb-5">
+            {loading ? (
+              <div className="space-y-3">{[1, 2, 3, 4].map(i => <div key={i} className="h-12 skeleton rounded-lg" />)}</div>
+            ) : activityLog.length === 0 ? (
+              <div className="text-center py-8">
+                <Activity className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No activity yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                {activityLog.map((item: any) => (
+                  <div key={item.id} className={`flex items-start gap-3 p-3 rounded-lg border ${getActivityColor(item.event_type)}`}>
+                    <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center flex-shrink-0 mt-0.5 border">
+                      {getActivityIcon(item.event_type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">{item.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground whitespace-nowrap">{formatDateIST(item.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Pending Trainer Applications */}
         <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">
@@ -312,29 +375,6 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mt-8 bg-card rounded-xl border border-border p-5">
-        <h2 className="text-base font-semibold text-foreground mb-3">Quick Actions</h2>
-        <div className="flex flex-wrap gap-2">
-          {[
-            { label: "Review Trainers", path: "/admin/trainers", icon: UserX },
-            { label: "Manage Courses", path: "/admin/courses", icon: BookOpen },
-            { label: "View Payments", path: "/admin/payments", icon: IndianRupee },
-            { label: "Process Payouts", path: "/admin/payouts", icon: CreditCard },
-            { label: "View Analytics", path: "/admin/analytics", icon: TrendingUp },
-            { label: "Resolve Disputes", path: "/admin/disputes", icon: AlertTriangle },
-            { label: "Contact Messages", path: "/admin/messages", icon: MessageSquare },
-          ].map(action => (
-            <Link key={action.label} to={action.path}>
-              <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5">
-                <action.icon className="w-3.5 h-3.5" />
-                {action.label}
-              </Button>
-            </Link>
-          ))}
         </div>
       </div>
     </AdminLayout>

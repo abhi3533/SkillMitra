@@ -55,8 +55,50 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
   const [isReferred, setIsReferred] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWallet, setUseWallet] = useState(false);
+  const [trialSlotsFullThisMonth, setTrialSlotsFullThisMonth] = useState(false);
+  const [hasExistingTrialWithTrainer, setHasExistingTrialWithTrainer] = useState(false);
 
-  // Check if student was referred (for ₹100 discount on first enrollment)
+  // Check trial eligibility
+  useEffect(() => {
+    if (!studentId || !trainer?.id || !open || trainer.id.startsWith("demo-")) return;
+    const checkTrialEligibility = async () => {
+      // Check if student already had a trial with THIS trainer
+      const { data: existingTrial } = await supabase
+        .from("trial_bookings")
+        .select("id")
+        .eq("student_id", studentId)
+        .eq("trainer_id", trainer.id)
+        .limit(1);
+
+      setHasExistingTrialWithTrainer(!!(existingTrial && existingTrial.length > 0));
+
+      // Check if trainer has reached monthly trial limit
+      const { data: settings } = await supabase
+        .from("trainer_trial_settings")
+        .select("max_trials_per_month")
+        .eq("trainer_id", trainer.id)
+        .maybeSingle();
+
+      const maxTrials = settings?.max_trials_per_month ?? 5;
+
+      // Count trials this month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { count } = await supabase
+        .from("trial_bookings")
+        .select("id", { count: "exact", head: true })
+        .eq("trainer_id", trainer.id)
+        .in("status", ["pending", "approved"])
+        .gte("created_at", startOfMonth.toISOString());
+
+      setTrialSlotsFullThisMonth((count || 0) >= maxTrials);
+    };
+    checkTrialEligibility();
+  }, [studentId, trainer?.id, open]);
+
+  // Check referral status
   useEffect(() => {
     if (!studentId || !open) return;
     const checkReferral = async () => {
@@ -67,7 +109,6 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
         supabase.from("enrollments").select("id").eq("student_id", studentId).eq("status", "active").limit(1),
       ]);
-      // Only show referral discount if student was referred AND has no existing paid enrollments
       setIsReferred(!!(student?.referred_by) && (!existingEnrollments || existingEnrollments.length === 0));
       setWalletBalance(Number(wallet?.balance || 0));
     };
@@ -81,6 +122,8 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         .then(({ data }) => setTrainerAvailability(data || []));
     }
   }, [trainer?.id]);
+
+  const trialBlocked = hasTrialBooked || hasExistingTrialWithTrainer || trialSlotsFullThisMonth;
 
   const availableDays = trainerAvailability.length > 0
     ? [...new Set(trainerAvailability.map(a => a.day_of_week))].sort()
@@ -122,45 +165,35 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         return;
       }
 
-      const { data: enrollmentId, error: enrollError } = await supabase.rpc("create_verified_enrollment", {
-        p_course_id: course.id,
-        p_student_id: studentId,
-        p_trainer_id: trainer.id,
-        p_payment_id: null,
-        p_amount_paid: 0,
-        p_sessions_total: 1,
-        p_is_trial: true,
-      });
-
-      if (enrollError) throw enrollError;
-
-      const enrollment = { id: enrollmentId };
-
-      if (enrollError) throw enrollError;
-
       const firstDate = getNextScheduledDate(selectedDay, selectedSlot);
-      const meetLink = generateMeetLink(course.title, 1);
+      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
 
-      await supabase.from("course_sessions").insert({
-        enrollment_id: enrollment.id,
+      // Create trial booking request (pending approval)
+      const { error: tbError } = await supabase.from("trial_bookings").insert({
+        student_id: studentId,
         trainer_id: trainer.id,
-        title: `Free Trial: ${course.title}`,
-        session_number: 1,
-        is_trial: true,
+        course_id: course.id,
+        status: "pending",
+        selected_day: selectedDay,
+        selected_slot: selectedSlot,
         scheduled_at: firstDate.toISOString(),
-        duration_mins: course.session_duration_mins || 60,
-        status: "upcoming",
-        meet_link: meetLink,
       });
 
-      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
+      if (tbError) {
+        if (tbError.code === "23505") {
+          toast({ title: "Already Requested", description: "You have already used your free trial with this trainer.", variant: "destructive" });
+        } else {
+          throw tbError;
+        }
+        return;
+      }
 
       // Notifications
       await supabase.from("notifications").insert({
         user_id: trainer.user_id,
-        title: "New Trial Booking!",
-        body: `A student booked a free trial in "${course.title}". Session: ${scheduledTimeStr}.`,
-        type: "trial_booking",
+        title: "New Trial Request! 📩",
+        body: `A student wants a free trial in "${course.title}". Please approve or reject within 24 hours.`,
+        type: "trial_request",
         action_url: "/trainer/sessions",
       });
 
@@ -168,14 +201,66 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
       if (currentUser) {
         await supabase.from("notifications").insert({
           user_id: currentUser.id,
-          title: "Trial Session Booked! 🎉",
-          body: `Your trial is confirmed. Trainer: ${trainerProfile?.full_name || "your trainer"}. Session: ${scheduledTimeStr}.`,
-          type: "trial_booking",
+          title: "Trial Request Sent! 📩",
+          body: `Your trial request for "${course.title}" with ${trainerProfile?.full_name || "trainer"} has been sent. Waiting for approval.`,
+          type: "trial_request",
           action_url: "/student/sessions",
         });
       }
 
-      toast({ title: "Trial Booked!", description: "Your free trial session has been scheduled.", variant: "success" });
+      // Send emails via edge function (fire-and-forget)
+      const studentEmail = currentUser?.email;
+      const trainerEmail = trainerProfile?.email;
+
+      // Email to student
+      if (studentEmail) {
+        supabase.functions.invoke("send-email", {
+          body: {
+            type: "trial_request_student",
+            to: studentEmail,
+            data: {
+              name: currentUser?.user_metadata?.full_name || "Student",
+              course_name: course.title,
+              trainer_name: trainerProfile?.full_name || "Trainer",
+              skill: course.title,
+              scheduled_time: scheduledTimeStr,
+            },
+          },
+        }).catch(() => {});
+      }
+
+      // Email to trainer  
+      if (trainerEmail) {
+        supabase.functions.invoke("send-email", {
+          body: {
+            type: "trial_request_trainer",
+            to: trainerEmail,
+            data: {
+              trainer_name: trainerProfile?.full_name || "Trainer",
+              student_name: currentUser?.user_metadata?.full_name || "Student",
+              course_name: course.title,
+              skill: course.title,
+              scheduled_time: scheduledTimeStr,
+              student_email: studentEmail,
+            },
+          },
+        }).catch(() => {});
+      }
+
+      // Email to admin
+      supabase.functions.invoke("send-email", {
+        body: {
+          type: "trial_request_admin",
+          to: "contact@skillmitra.online",
+          data: {
+            student_name: currentUser?.user_metadata?.full_name || "Student",
+            trainer_name: trainerProfile?.full_name || "Trainer",
+            course_name: course.title,
+          },
+        },
+      }).catch(() => {});
+
+      toast({ title: "Trial Request Sent! 📩", description: "Your trial request has been sent to the trainer. You'll get an email when they respond.", variant: "success" });
       onClose();
       navigate("/student/sessions");
     } catch (err: any) {
@@ -197,7 +282,6 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         return;
       }
 
-      // Step 1: Create Razorpay order via edge function
       const { data: orderData, error: orderError } = await supabase.functions.invoke("create-razorpay-order", {
         body: {
           course_id: course.id,
@@ -210,7 +294,6 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         throw new Error(orderData?.error || "Failed to create payment order");
       }
 
-      // Step 2: Open Razorpay Checkout
       const options = {
         key: orderData.key_id,
         amount: orderData.amount,
@@ -222,7 +305,6 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         theme: { color: "#1A56DB" },
         handler: async (response: any) => {
           try {
-            // Step 3: Verify payment on server
             const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-razorpay-payment", {
               body: {
                 razorpay_order_id: response.razorpay_order_id,
@@ -302,7 +384,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         {/* Step 1: Booking Type */}
         {step === "type" && (
           <div className="space-y-4">
-            {course.has_free_trial && !hasTrialBooked && (
+            {course.has_free_trial && !trialBlocked && (
               <button
                 onClick={() => { setBookingType("trial"); setStep("slot"); }}
                 className={`w-full text-left p-4 rounded-xl border-2 transition-all hover:border-primary/50 ${
@@ -312,7 +394,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-foreground">Free Trial Session</p>
-                    <p className="text-sm text-muted-foreground mt-1">Try a session before enrolling — no payment needed</p>
+                    <p className="text-sm text-muted-foreground mt-1">Request a trial — trainer approval required</p>
                   </div>
                   <Badge className="bg-green-500/10 text-green-600 border-green-500/20">FREE</Badge>
                 </div>
@@ -336,10 +418,17 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               </div>
             </button>
 
-            {hasTrialBooked && (
+            {(hasTrialBooked || hasExistingTrialWithTrainer) && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-muted text-sm text-muted-foreground">
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>You've already used your free trial with this trainer.</span>
+                <span>You have already used your free trial with this trainer.</span>
+              </div>
+            )}
+
+            {trialSlotsFullThisMonth && !hasTrialBooked && !hasExistingTrialWithTrainer && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-sm text-amber-700 border border-amber-200">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>This trainer's free trial slots are full for this month. You can directly enroll in their course.</span>
               </div>
             )}
           </div>
@@ -415,7 +504,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Type</span>
-                <span className="font-medium text-foreground">{bookingType === "trial" ? "Free Trial" : "Full Enrollment"}</span>
+                <span className="font-medium text-foreground">{bookingType === "trial" ? "Free Trial (Pending Approval)" : "Full Enrollment"}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Day</span>
@@ -471,6 +560,13 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               </div>
             </div>
 
+            {bookingType === "trial" && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-sm text-amber-700 border border-amber-200">
+                <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>The trainer has 24 hours to approve your trial request. You'll receive an email with the confirmation.</span>
+              </div>
+            )}
+
             {referralDiscount > 0 && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-emerald-50 text-sm text-emerald-700 border border-emerald-200">
                 <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -482,7 +578,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               <Shield className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
               <span>
                 {bookingType === "trial"
-                  ? "Your booking is protected by SkillMitra's quality guarantee."
+                  ? "Your trial request is protected by SkillMitra's quality guarantee."
                   : "Payment is securely processed via Razorpay. Your booking is protected by SkillMitra's quality guarantee."}
               </span>
             </div>
@@ -491,7 +587,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               <Button variant="outline" className="flex-1" onClick={() => setStep("slot")}>Back</Button>
               <Button className="flex-1" onClick={handleSubmit} disabled={submitting}>
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {bookingType === "trial" ? "Confirm Trial" : finalAmount === 0 ? "Enroll Free" : "Pay & Enroll"}
+                {bookingType === "trial" ? "Send Trial Request" : finalAmount === 0 ? "Enroll Free" : "Pay & Enroll"}
               </Button>
             </div>
           </div>

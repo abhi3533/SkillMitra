@@ -30,8 +30,8 @@ export const ContactReplyEmail = ({ name, subject }: ContactReplyEmailProps) => 
 
 export default ContactReplyEmail
 
-const h3 = { margin: '0 0 16px', fontSize: '20px', color: '#0F172A', fontWeight: '600' as const }
-const text = { fontSize: '15px', color: '#64748B', lineHeight: '1.6', margin: '0 0 16px' }
+const h3 = { margin: '0 0 16px', fontSize: '20px', color: '#111', fontWeight: '600' as const }
+const text = { fontSize: '15px', color: '#444', lineHeight: '1.6', margin: '0 0 16px' }
 const subjectBox = { background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '16px', margin: '16px 0' }
 const subjectText = { fontSize: '13px', color: '#1A56DB', margin: '0', fontWeight: '600' as const }
 const link = { color: '#1A56DB' }

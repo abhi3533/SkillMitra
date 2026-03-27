@@ -52,11 +52,11 @@ export const ContactAdminEmail = ({
 
 export default ContactAdminEmail
 
-const h3 = { margin: '0 0 16px', fontSize: '18px', color: '#0F172A', fontWeight: '600' as const }
+const h3 = { margin: '0 0 16px', fontSize: '18px', color: '#111', fontWeight: '600' as const }
 const table = { width: '100%', borderCollapse: 'collapse' as const, marginTop: '8px' }
-const labelCell = { padding: '8px 0', fontWeight: '600' as const, color: '#64748B', width: '100px', verticalAlign: 'top' as const, fontSize: '14px' }
-const valueCell = { padding: '8px 0', color: '#0F172A', fontSize: '14px' }
+const labelCell = { padding: '8px 0', fontWeight: '600' as const, color: '#444', width: '100px', verticalAlign: 'top' as const, fontSize: '14px' }
+const valueCell = { padding: '8px 0', color: '#111', fontSize: '14px' }
 const link = { color: '#1A56DB' }
 const messageBox = { marginTop: '16px', padding: '16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: '8px' }
-const messageLabel = { fontWeight: '600' as const, color: '#64748B', margin: '0 0 8px', fontSize: '13px' }
-const messageText = { color: '#0F172A', margin: '0', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap' as const }
+const messageLabel = { fontWeight: '600' as const, color: '#444', margin: '0 0 8px', fontSize: '13px' }
+const messageText = { color: '#111', margin: '0', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap' as const }

@@ -277,7 +277,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
             <p style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 600;">💡 Create courses and keep your availability open to attract these students!</p>
           </div>
           ${btn('Go to Dashboard', `${APP_URL}/trainer/dashboard`)}
-        `)
+        `, true)
       }
 
     default:

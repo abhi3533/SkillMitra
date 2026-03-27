@@ -205,7 +205,7 @@ const ReferPage = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 lg:py-20">
+      <section className="py-10 lg:py-14">
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-2xl lg:text-3xl font-bold text-foreground text-center mb-12">How It Works</h2>
           <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start gap-8 sm:gap-0">

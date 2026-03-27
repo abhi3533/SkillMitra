@@ -206,7 +206,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
             <p style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 600;">💡 Make sure your profile is complete to get noticed!</p>
           </div>
           ${btn('Update Your Profile', `${APP_URL}/trainer/my-profile`)}
-        `)
+        `, true)
       }
     }
 

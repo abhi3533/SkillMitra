@@ -25,6 +25,16 @@ type EmailType =
   | 'weekly_trainer_digest'
   | 'trainer_profile_viewed'
   | 'weekly_trainer_student_digest'
+  | 'trial_request_student'
+  | 'trial_request_trainer'
+  | 'trial_request_admin'
+  | 'trial_approved_student'
+  | 'trial_rejected_student'
+  | 'trial_approved_admin'
+  | 'trial_rejected_admin'
+  | 'enrollment_confirmed_student'
+  | 'enrollment_confirmed_trainer'
+  | 'enrollment_confirmed_admin'
 
 interface EmailPayload {
   type: EmailType
@@ -53,6 +63,12 @@ function layout(content: string, showUnsubscribe = false): string {
 function btn(text: string, url: string): string {
   return `<div style="text-align: center; margin: 24px 0;">
     <a href="${url}" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">${text}</a>
+  </div>`
+}
+
+function infoBox(items: { label: string; value: string }[]): string {
+  return `<div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    ${items.map(i => `<p style="font-size: 14px; color: #444; margin: 4px 0;"><strong>${i.label}:</strong> ${escapeHtml(i.value)}</p>`).join('')}
   </div>`
 }
 
@@ -278,6 +294,190 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           </div>
           ${btn('Go to Dashboard', `${APP_URL}/trainer/dashboard`)}
         `, true)
+      }
+
+    // ==================== NEW TRIAL EMAILS ====================
+
+    case 'trial_request_student':
+      return {
+        subject: `Trial request sent! Waiting for trainer approval 📩`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Trial Request Sent! 📩</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your free trial request has been sent to the trainer. They have <strong>24 hours</strong> to approve it.</p>
+          ${infoBox([
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Trainer', value: data.trainer_name || 'Trainer' },
+            { label: 'Skill', value: data.skill || '' },
+            { label: 'Preferred Time', value: data.scheduled_time || '' },
+          ])}
+          <p style="font-size: 14px; line-height: 1.6; color: #666;">We'll email you as soon as the trainer responds. In the meantime, you can browse other trainers too!</p>
+          ${btn('View My Sessions', `${APP_URL}/student/sessions`)}
+        `)
+      }
+
+    case 'trial_request_trainer':
+      return {
+        subject: `🆕 New free trial request from ${data.student_name || 'a student'} for ${data.skill || 'your course'}!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Free Trial Request! 🆕</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A student wants to book a free trial session with you:</p>
+          ${infoBox([
+            { label: 'Student', value: data.student_name || 'Student' },
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Skill', value: data.skill || '' },
+            { label: 'Preferred Time', value: data.scheduled_time || '' },
+            ...(data.student_email ? [{ label: 'Contact', value: data.student_email }] : []),
+          ])}
+          <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: #92400e; margin: 0; font-weight: 600;">⏰ Please approve or reject within 24 hours. Auto-rejected if no response.</p>
+          </div>
+          ${btn('Approve / Reject Trial', `${APP_URL}/trainer/sessions`)}
+        `)
+      }
+
+    case 'trial_request_admin':
+      return {
+        subject: `📋 New trial booking on SkillMitra`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Trial Booking 📋</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A new free trial has been requested on the platform:</p>
+          ${infoBox([
+            { label: 'Student', value: data.student_name || 'Student' },
+            { label: 'Trainer', value: data.trainer_name || 'Trainer' },
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Status', value: 'Pending trainer approval' },
+          ])}
+        `)
+      }
+
+    case 'trial_approved_student':
+      return {
+        subject: `✅ Your free trial is confirmed!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Trial Confirmed! ✅</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name}, great news! Your free trial has been approved by the trainer.</p>
+          ${infoBox([
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Trainer', value: data.trainer_name || 'Trainer' },
+            { label: 'Date & Time', value: data.scheduled_time || '' },
+            ...(data.meet_link ? [{ label: 'Meet Link', value: data.meet_link }] : []),
+          ])}
+          <p style="font-size: 15px; line-height: 1.6; color: #444;"><strong>How to prepare:</strong></p>
+          <ul style="font-size: 15px; line-height: 1.8; color: #444; padding-left: 20px;">
+            <li>Join 5 minutes early using the meet link</li>
+            <li>Have a quiet space and stable internet</li>
+            <li>Prepare questions about the course</li>
+          </ul>
+          ${data.meet_link ? btn('Join Trial Session', data.meet_link) : btn('View Sessions', `${APP_URL}/student/sessions`)}
+        `)
+      }
+
+    case 'trial_rejected_student':
+      return {
+        subject: `Update on your free trial request`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Trial Update</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name}, unfortunately your free trial request has been ${data.auto_rejected ? 'auto-declined (trainer did not respond within 24 hours)' : 'declined by the trainer'}.</p>
+          ${data.reason ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Reason:</strong> ${escapeHtml(String(data.reason))}</p>
+          </div>` : ''}
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Don't worry! You can:</p>
+          <ul style="font-size: 15px; line-height: 1.8; color: #444; padding-left: 20px;">
+            <li>Book with another trainer</li>
+            <li>Directly enroll in a course (skip the trial)</li>
+          </ul>
+          ${btn('Browse Trainers', `${APP_URL}/browse-trainers`)}
+        `)
+      }
+
+    case 'trial_approved_admin':
+      return {
+        subject: `✅ Trial approved on SkillMitra`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Trial Approved ✅</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A free trial has been approved:</p>
+          ${infoBox([
+            { label: 'Student', value: data.student_name || 'Student' },
+            { label: 'Trainer', value: data.trainer_name || 'Trainer' },
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Scheduled', value: data.scheduled_time || '' },
+          ])}
+        `)
+      }
+
+    case 'trial_rejected_admin':
+      return {
+        subject: `❌ Trial rejected on SkillMitra`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Trial Rejected ❌</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A free trial has been ${data.auto_rejected ? 'auto-rejected (24h timeout)' : 'rejected by trainer'}:</p>
+          ${infoBox([
+            { label: 'Student', value: data.student_name || 'Student' },
+            { label: 'Trainer', value: data.trainer_name || 'Trainer' },
+            { label: 'Course', value: data.course_name || 'Course' },
+            ...(data.reason ? [{ label: 'Reason', value: data.reason }] : []),
+          ])}
+        `)
+      }
+
+    // ==================== NEW PAYMENT/ENROLLMENT EMAILS ====================
+
+    case 'enrollment_confirmed_student':
+      return {
+        subject: `Enrollment confirmed — Welcome to ${data.course_name || 'your course'}! 🎉`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Enrollment Confirmed! 🎉</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${name}, your payment was successful and you're now enrolled!</p>
+          ${infoBox([
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Trainer', value: data.trainer_name || 'Trainer' },
+            { label: 'Sessions', value: `${data.total_sessions || '—'} sessions` },
+            { label: 'First Session', value: data.first_session || '' },
+            { label: 'Amount Paid', value: `₹${data.amount_paid || '0'}` },
+            ...(data.meet_link ? [{ label: 'Meet Link', value: data.meet_link }] : []),
+            { label: 'Payment ID', value: data.payment_id || '' },
+          ])}
+          <p style="font-size: 14px; line-height: 1.6; color: #666;">You can view your receipt and session schedule on your dashboard.</p>
+          ${btn('View My Sessions', `${APP_URL}/student/sessions`)}
+        `)
+      }
+
+    case 'enrollment_confirmed_trainer':
+      return {
+        subject: `🎉 New student enrolled in ${data.course_name || 'your course'}!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Student Enrolled! 🎉</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'}, a student has enrolled in your course:</p>
+          ${infoBox([
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Student', value: data.student_name || 'Student' },
+            { label: 'Amount Earned', value: `₹${data.trainer_payout || '0'}` },
+            { label: 'First Session', value: data.first_session || '' },
+            { label: 'Total Sessions', value: `${data.total_sessions || '—'}` },
+          ])}
+          <p style="font-size: 14px; line-height: 1.6; color: #666;">Prepare for the first session and check your schedule.</p>
+          ${btn('View Sessions', `${APP_URL}/trainer/sessions`)}
+        `)
+      }
+
+    case 'enrollment_confirmed_admin':
+      return {
+        subject: `💰 New payment received on SkillMitra — ₹${data.amount_paid || '0'}`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">New Payment Received 💰</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A new enrollment payment has been processed:</p>
+          ${infoBox([
+            { label: 'Student', value: data.student_name || 'Student' },
+            { label: 'Trainer', value: data.trainer_name || 'Trainer' },
+            { label: 'Course', value: data.course_name || 'Course' },
+            { label: 'Amount Paid', value: `₹${data.amount_paid || '0'}` },
+            { label: 'Platform Commission', value: `₹${data.platform_commission || '0'}` },
+            { label: 'Trainer Payout', value: `₹${data.trainer_payout || '0'}` },
+            { label: 'Payment ID', value: data.payment_id || '' },
+          ])}
+        `)
       }
 
     default:

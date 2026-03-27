@@ -32,7 +32,10 @@ interface EmailPayload {
   data: Record<string, any>
 }
 
-function layout(content: string): string {
+function layout(content: string, showUnsubscribe = false): string {
+  const unsubLink = showUnsubscribe
+    ? `<p style="font-size: 11px; color: #9ca3af; margin: 8px 0 0;"><a href="${APP_URL}/notification-preferences" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from match emails</a></p>`
+    : ''
   return `
   <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background: #ffffff;">
     <div style="text-align: center; margin-bottom: 28px;">
@@ -42,6 +45,7 @@ function layout(content: string): string {
     <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
       <p style="font-size: 12px; color: #9ca3af; margin: 0 0 8px;">Questions? Reply to this email or contact us at <a href="mailto:contact@skillmitra.online" style="color: #9ca3af; text-decoration: underline;">contact@skillmitra.online</a> | <a href="https://skillmitra.online" style="color: #9ca3af; text-decoration: underline;">skillmitra.online</a></p>
       <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Learnvate Solutions. All rights reserved.</p>
+      ${unsubLink}
     </div>
   </div>`
 }

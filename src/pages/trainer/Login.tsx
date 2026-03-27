@@ -15,6 +15,7 @@ import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 
 const TrainerLogin = () => {
+  const trainerVerificationRedirect = "https://www.skillmitra.online/trainer/onboarding";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -53,8 +54,22 @@ const TrainerLogin = () => {
             variant: "destructive",
             action: (
               <Button variant="outline" size="sm" onClick={async () => {
-                await supabase.auth.resend({ type: "signup", email });
-                toast({ title: "Verification email resent!" });
+                  const { error: resendError } = await supabase.auth.resend({
+                    type: "signup",
+                    email,
+                    options: { emailRedirectTo: trainerVerificationRedirect },
+                  });
+
+                  if (resendError) {
+                    toast({
+                      title: "Could not resend verification email",
+                      description: getAuthErrorMessage(resendError),
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  toast({ title: "Verification email resent!", variant: "success" });
               }}>
                 Resend
               </Button>

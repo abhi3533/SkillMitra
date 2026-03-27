@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp, Settings, Megaphone } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp, Settings, Megaphone, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 
@@ -21,6 +21,7 @@ const sidebarItems = [
   { label: "Ratings", icon: Star, path: "/admin/ratings" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Communications", icon: Megaphone, path: "/admin/communications" },
+  { label: "Invite Trainers", icon: UserPlus, path: "/admin/trainer-invitations" },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
   { label: "Messages", icon: Mail, path: "/admin/messages" },
 ];

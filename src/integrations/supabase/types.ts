@@ -1521,6 +1521,42 @@ export type Database = {
           },
         ]
       }
+      trainer_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          emails_sent: number
+          id: string
+          invited_at: string
+          invited_by: string
+          reminder_sent_at: string | null
+          signed_up_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          emails_sent?: number
+          id?: string
+          invited_at?: string
+          invited_by: string
+          reminder_sent_at?: string | null
+          signed_up_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          emails_sent?: number
+          id?: string
+          invited_at?: string
+          invited_by?: string
+          reminder_sent_at?: string | null
+          signed_up_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       trainer_referrals: {
         Row: {
           created_at: string | null

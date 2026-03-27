@@ -94,6 +94,7 @@ const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
 const AdminSubscriptions = lazy(() => import("./pages/admin/AdminSubscriptions"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const AdminCommunications = lazy(() => import("./pages/admin/Communications"));
+const AdminTrainerInvitations = lazy(() => import("./pages/admin/TrainerInvitations"));
 
 // Lazy-loaded Parent pages
 const ParentLogin = lazy(() => import("./pages/parent/Login"));
@@ -233,6 +234,7 @@ const AppContent = () => {
           <Route path="/admin/subscriptions" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSubscriptions /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
           <Route path="/admin/communications" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCommunications /></ProtectedRoute>} />
+          <Route path="/admin/trainer-invitations" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTrainerInvitations /></ProtectedRoute>} />
           <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><Notifications /></ProtectedRoute>} />
 
           {/* Parent Protected */}

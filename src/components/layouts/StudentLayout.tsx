@@ -64,13 +64,15 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
             </span>
           )}
         </Link>
-        {profile?.profile_picture_url ? (
-          <img src={profile.profile_picture_url} alt={profile.full_name || "User"} className="w-8 h-8 rounded-full object-cover" />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-primary text-xs font-bold">{profile?.full_name?.[0] || "U"}</span>
-          </div>
-        )}
+        <Link to="/student/profile">
+          {profile?.profile_picture_url ? (
+            <img src={profile.profile_picture_url} alt={profile.full_name || "User"} className="w-8 h-8 rounded-full object-cover" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-primary text-xs font-bold">{profile?.full_name?.[0] || "U"}</span>
+            </div>
+          )}
+        </Link>
       </header>
 
       <div className="flex pt-16">

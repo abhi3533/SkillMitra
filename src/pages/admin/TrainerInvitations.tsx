@@ -276,12 +276,34 @@ const AdminTrainerInvitations = () => {
         </CardContent></Card>
       </div>
 
-      {/* Upload Section */}
+      {/* Single Email Invite */}
       <Card className="mt-5">
+        <CardContent className="pt-5 pb-5">
+          <h3 className="font-semibold text-foreground mb-1">Invite Single Trainer</h3>
+          <p className="text-sm text-muted-foreground mb-3">Enter an email address to send a trainer invitation.</p>
+          <div className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="trainer@example.com"
+              value={singleEmail}
+              onChange={e => setSingleEmail(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSingleEmailInvite()}
+              className="max-w-md"
+            />
+            <Button onClick={handleSingleEmailInvite} disabled={sendingSingle || !singleEmail.trim()} className="gap-2 shrink-0">
+              {sendingSingle ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Send Invite
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upload CSV Section */}
+      <Card className="mt-3">
         <CardContent className="pt-5 pb-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Upload Trainer Emails</h3>
+              <h3 className="font-semibold text-foreground">Bulk Upload Trainer Emails</h3>
               <p className="text-sm text-muted-foreground mt-1">Upload a CSV file with trainer emails. System will auto-check for existing registrations.</p>
             </div>
             <div>

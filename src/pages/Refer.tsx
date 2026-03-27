@@ -251,7 +251,7 @@ const ReferPage = () => {
       )}
 
       {/* Leaderboard */}
-      <section className="py-16 lg:py-20">
+      <section className="py-10 lg:py-14">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-lg mx-auto">
             <div className="text-center mb-8">

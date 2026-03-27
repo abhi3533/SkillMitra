@@ -32,6 +32,8 @@ const AdminTrainerInvitations = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<{ newEmails: string[]; registered: number; duplicate: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [singleEmail, setSingleEmail] = useState("");
+  const [sendingSingle, setSendingSingle] = useState(false);
 
   const fetchInvitations = async () => {
     setLoading(true);
@@ -110,6 +112,34 @@ const AdminTrainerInvitations = () => {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleSingleEmailInvite = async () => {
+    const email = singleEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    setSendingSingle(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-trainer-invitations", {
+        body: { action: "send_invitations", emails: [email] },
+      });
+      if (error) throw error;
+      if (data.results.sent > 0) {
+        toast({ title: "Invitation Sent!", description: `Invitation sent to ${email}`, variant: "success" });
+      } else if (data.results.skipped_registered > 0) {
+        toast({ title: "Already Registered", description: `${email} is already registered on SkillMitra.`, variant: "destructive" });
+      } else if (data.results.skipped_duplicate > 0) {
+        toast({ title: "Already Invited", description: `${email} has already been invited.`, variant: "destructive" });
+      }
+      setSingleEmail("");
+      fetchInvitations();
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setSendingSingle(false);
     }
   };
 
@@ -246,12 +276,34 @@ const AdminTrainerInvitations = () => {
         </CardContent></Card>
       </div>
 
-      {/* Upload Section */}
+      {/* Single Email Invite */}
       <Card className="mt-5">
+        <CardContent className="pt-5 pb-5">
+          <h3 className="font-semibold text-foreground mb-1">Invite Single Trainer</h3>
+          <p className="text-sm text-muted-foreground mb-3">Enter an email address to send a trainer invitation.</p>
+          <div className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="trainer@example.com"
+              value={singleEmail}
+              onChange={e => setSingleEmail(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSingleEmailInvite()}
+              className="max-w-md"
+            />
+            <Button onClick={handleSingleEmailInvite} disabled={sendingSingle || !singleEmail.trim()} className="gap-2 shrink-0">
+              {sendingSingle ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Send Invite
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upload CSV Section */}
+      <Card className="mt-3">
         <CardContent className="pt-5 pb-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Upload Trainer Emails</h3>
+              <h3 className="font-semibold text-foreground">Bulk Upload Trainer Emails</h3>
               <p className="text-sm text-muted-foreground mt-1">Upload a CSV file with trainer emails. System will auto-check for existing registrations.</p>
             </div>
             <div>

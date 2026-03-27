@@ -22,6 +22,7 @@ type EmailType =
   | 'student_trainer_match'
   | 'trainer_student_match'
   | 'student_new_trainer_match'
+  | 'weekly_trainer_digest'
 
 interface EmailPayload {
   type: EmailType

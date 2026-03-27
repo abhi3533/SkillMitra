@@ -214,16 +214,16 @@ const TrainerMyProfile = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="current_role">Current Role</Label>
-              <Input id="current_role" value={form.current_role} onChange={e => handleChange("current_role", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="current_role">Current Role {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="current_role" value={form.current_role} onChange={e => handleChange("current_role", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
-              <Label htmlFor="current_company">Current Company</Label>
-              <Input id="current_company" value={form.current_company} onChange={e => handleChange("current_company", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="current_company">Current Company {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="current_company" value={form.current_company} onChange={e => handleChange("current_company", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
             <div>
-              <Label htmlFor="experience_years">Experience (Years)</Label>
-              <Input id="experience_years" type="number" value={form.experience_years} onChange={e => handleChange("experience_years", e.target.value)} className="mt-1.5" />
+              <Label htmlFor="experience_years">Experience (Years) {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
+              <Input id="experience_years" type="number" value={form.experience_years} onChange={e => handleChange("experience_years", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
             </div>
           </div>
           <div className="mt-4">

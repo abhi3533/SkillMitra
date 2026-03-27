@@ -342,6 +342,13 @@ const AdminTrainers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditTrainerModal
+        trainer={editTarget}
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        onSave={() => { setEditTarget(null); fetchTrainers(); }}
+      />
     </AdminLayout>
   );
 };

@@ -228,7 +228,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           </div>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">Check their profile and book a <strong>free trial session</strong> to see if they're the right fit!</p>
           ${btn('View Trainer Profile', `${APP_URL}/browse-trainers`)}
-        `)
+        `, true)
       }
     }
 

@@ -262,7 +262,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
             <li>Add a compelling bio and intro video</li>
           </ul>
           ${btn('Update Your Profile', `${APP_URL}/trainer/my-profile`)}
-        `)
+        `, true)
       }
 
     case 'weekly_trainer_student_digest':

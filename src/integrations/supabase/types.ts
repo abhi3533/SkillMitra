@@ -1965,6 +1965,14 @@ export type Database = {
           trainer_user_id: string
         }[]
       }
+      get_enrollment_financials: {
+        Args: { _enrollment_id: string }
+        Returns: {
+          amount_paid: number
+          platform_commission: number
+          trainer_payout: number
+        }[]
+      }
       get_public_profile: {
         Args: { profile_id: string }
         Returns: {
@@ -2045,6 +2053,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_student_owner: {
+        Args: { _student_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_trainer_owner: {
+        Args: { _trainer_id: string; _user_id: string }
+        Returns: boolean
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -2061,6 +2077,18 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      student_has_enrollment: {
+        Args: { _enrollment_id: string; _user_id: string }
+        Returns: boolean
+      }
+      trainer_has_enrollment: {
+        Args: { _enrollment_id: string; _user_id: string }
+        Returns: boolean
+      }
+      trainer_has_enrollment_for_student: {
+        Args: { _student_id: string; _user_id: string }
+        Returns: boolean
       }
       verify_certificate: {
         Args: { cert_id: string }

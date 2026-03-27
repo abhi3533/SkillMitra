@@ -291,7 +291,7 @@ const ReferPage = () => {
       </section>
 
       {/* Terms */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-10 bg-muted/30">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground text-center mb-8">Terms & Conditions</h2>

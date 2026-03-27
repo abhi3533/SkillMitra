@@ -241,6 +241,41 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
         `)
       }
 
+    case 'trainer_profile_viewed':
+      return {
+        subject: `👀 A student viewed your SkillMitra profile!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Someone's Interested! 👀</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">A student just viewed your profile on SkillMitra${data.student_city ? ` from <strong>${data.student_city}</strong>` : ''}!</p>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: #166534; margin: 0; font-weight: 600;">💡 Make sure your free trial is available so interested students can book easily!</p>
+          </div>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Tips to convert profile views into students:</p>
+          <ul style="font-size: 15px; line-height: 1.8; color: #444; padding-left: 20px;">
+            <li>Keep your availability updated</li>
+            <li>Enable free trial sessions</li>
+            <li>Add a compelling bio and intro video</li>
+          </ul>
+          ${btn('Update Your Profile', `${APP_URL}/trainer/my-profile`)}
+        `)
+      }
+
+    case 'weekly_trainer_student_digest':
+      return {
+        subject: `📋 ${data.student_count || 'Students'} looking for your skills this week!`,
+        html: layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Your Weekly Student Report 📋</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Hi ${data.trainer_name || 'Trainer'},</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;"><strong>${data.student_count || 'Several'} student(s)</strong> are looking for training in skills you offer this week!</p>
+          ${data.skill_demand_html || ''}
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 600;">💡 Create courses and keep your availability open to attract these students!</p>
+          </div>
+          ${btn('Go to Dashboard', `${APP_URL}/trainer/dashboard`)}
+        `)
+      }
+
     default:
       throw new Error(`Unknown email type: ${type}`)
   }

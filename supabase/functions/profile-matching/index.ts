@@ -253,8 +253,14 @@ Deno.serve(async (req) => {
       const enrolledStudentIds = new Set((existingEnrollments || []).map(e => e.student_id))
       const eligibleStudents = allStudents.filter(s => !enrolledStudentIds.has(s.id))
 
+      if (eligibleStudents.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: 'No eligible students (all already enrolled or no matches)' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
       // Score students by interest overlap with trainer skills
-      const matchedStudents = allStudents
+      const matchedStudents = eligibleStudents
         .map(s => {
           const interests = (s.course_interests as string[]) || []
           const overlap = interests.filter(i =>

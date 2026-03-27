@@ -235,13 +235,13 @@ const Index = () => {
         <div className="absolute top-40 right-[15%] w-3 h-3 rounded-full bg-accent/30 animate-pulse" style={{ animationDelay: "1s" }} />
         <div className="absolute bottom-20 left-[20%] w-2 h-2 rounded-full bg-primary/15 animate-pulse" style={{ animationDelay: "2s" }} />
 
-        <div className="container mx-auto px-4 lg:px-8 max-w-full overflow-hidden">
+        <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left — Copy */}
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-semibold text-primary tracking-wide">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="min-w-0">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6 max-w-full overflow-hidden">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
+                <span className="text-xs font-semibold text-primary tracking-wide truncate">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
               </div>
 
               <h1 className="text-[22px] sm:text-[32px] md:text-[44px] lg:text-[56px] font-extrabold leading-[1.15] tracking-tight break-words overflow-hidden max-w-full">
@@ -259,14 +259,13 @@ const Index = () => {
                 Learn any skill with verified experts. Book your free trial and start today.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link to="/browse" className="w-full sm:w-auto">
-                  <Button className="group relative bg-primary hover:bg-primary text-primary-foreground font-semibold text-[15px] px-6 h-12 rounded-xl shadow-[0_4px_16px_hsl(221_79%_49%/0.3)] hover:shadow-[0_8px_32px_hsl(221_79%_49%/0.45)] transition-all duration-300 w-full sm:w-auto overflow-hidden">
-                    <span className="relative z-10 flex items-center">Find Your Trainer Now <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-[hsl(221,79%,38%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 max-w-full">
+                <Link to="/browse" className="block sm:inline-block">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[15px] px-6 h-12 rounded-xl shadow-lg transition-all duration-300 w-full sm:w-auto">
+                    Find Your Trainer Now <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </Link>
-                <Link to="/trainer/signup" className="w-full sm:w-auto">
+                <Link to="/trainer/signup" className="block sm:inline-block">
                   <Button variant="outline" className="border-[1.5px] border-primary/30 text-primary hover:bg-primary/5 hover:border-primary font-semibold text-[15px] px-6 h-12 rounded-xl transition-all duration-300 w-full sm:w-auto">
                     Become a Trainer
                   </Button>

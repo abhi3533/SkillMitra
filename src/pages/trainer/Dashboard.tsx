@@ -347,6 +347,13 @@ const TrainerDashboard = () => {
         })}
       </div>
 
+      {/* Trial Requests */}
+      {!loading && data.approvalStatus === "approved" && (
+        <div className="mt-6">
+          <TrainerTrialRequests trainerId={trainers_id_ref} />
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
         {/* Today's Sessions */}
         <div className="bg-card rounded-xl border">

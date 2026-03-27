@@ -98,7 +98,10 @@ Deno.serve(async (req) => {
       firstDate.setDate(now.getDate() + daysUntil);
       firstDate.setHours(hour, 0, 0, 0);
 
-      const meetLink = `https://meet.jit.si/skillmitra-trial-${booking.course_id.slice(0, 8)}-${Date.now()}`;
+      // Generate real Jitsi meet link
+      const slug = (booking.courses?.title || "trial").replace(/[^a-zA-Z0-9\s]/g, "").trim().replace(/\s+/g, "-").toLowerCase().slice(0, 30);
+      const uniqueId = Math.random().toString(36).substring(2, 10);
+      const meetLink = `https://meet.jit.si/skillmitra-${slug}-trial-${uniqueId}`;
 
       // Create enrollment
       const { data: enrollment, error: enrollErr } = await serviceClient.from("enrollments").insert({

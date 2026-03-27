@@ -395,17 +395,6 @@ const Index = () => {
                   </div>
                   <span className="text-xs font-semibold text-foreground">Verified</span>
                 </motion.div>
-
-                {/* Floating rating */}
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  className="absolute -bottom-2 -left-4 bg-background rounded-xl border border-border px-3 py-2 shadow-lg flex items-center gap-2"
-                >
-                  <Star className="w-4 h-4 text-accent fill-accent" />
-                  <span className="text-sm font-bold text-foreground">4.8</span>
-                  <span className="text-xs text-muted-foreground">rating</span>
-                </motion.div>
               </motion.div>
             </motion.div>
           </div>

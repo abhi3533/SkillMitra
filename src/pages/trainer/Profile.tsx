@@ -206,6 +206,38 @@ const TrainerProfile = () => {
     })();
   }, [resolvedId]);
 
+  // Notify trainer when a student views their profile (fire-and-forget, max once per 24h per trainer)
+  useEffect(() => {
+    if (!trainer || !trainer.user_id || !resolvedId) return;
+    // Don't notify if the viewer IS the trainer
+    if (user && user.id === trainer.user_id) return;
+    // Only notify for real trainers (not demo)
+    const demoTrainer = getDemoTrainer(resolvedId);
+    if (demoTrainer) return;
+
+    const notifyKey = `profile_view_notified_${trainer.user_id}`;
+    const lastNotified = sessionStorage.getItem(notifyKey);
+    if (lastNotified) return; // Already notified this session
+
+    sessionStorage.setItem(notifyKey, Date.now().toString());
+
+    // Fire and forget - get viewer's city if logged in
+    (async () => {
+      let viewerCity = '';
+      if (user) {
+        const { data: viewerProfile } = await supabase
+          .from('profiles')
+          .select('city')
+          .eq('id', user.id)
+          .single();
+        viewerCity = viewerProfile?.city || '';
+      }
+      supabase.functions.invoke('profile-view-notify', {
+        body: { trainer_user_id: trainer.user_id, viewer_city: viewerCity },
+      }).catch(() => {});
+    })();
+  }, [trainer, resolvedId, user]);
+
   // Check for existing trial when trial modal opens
   const checkExistingTrial = async () => {
     if (!user || !resolvedId || isDemo(resolvedId)) return;

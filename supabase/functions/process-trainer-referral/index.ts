@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Check duplicate
+    // Check duplicate — one reward per referred trainer
     const { data: existing } = await supabase
       .from('trainer_referrals')
       .select('id')
@@ -77,16 +77,25 @@ Deno.serve(async (req) => {
       })
     }
 
-    const REWARD = 1200
+    const REWARD = 1500
 
-    // Create referral (status pending — paid when referred trainer completes first paid session)
-    await supabase.from('trainer_referrals').insert({
+    // Create referral — status PENDING until referred trainer gets admin approved
+    const { error: insertErr } = await supabase.from('trainer_referrals').insert({
       referrer_id: referrer.id,
       referred_id: newTrainer.id,
       referral_code: referral_code.toUpperCase().trim(),
       reward_amount: REWARD,
       status: 'pending',
     })
+
+    if (insertErr) {
+      if (insertErr.code === '23505') {
+        return new Response(JSON.stringify({ success: false, error: 'Already referred' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      throw insertErr
+    }
 
     // Update referred_by
     await supabase.from('trainers').update({ referred_by: referral_code.toUpperCase().trim() }).eq('id', newTrainer.id)
@@ -95,12 +104,12 @@ Deno.serve(async (req) => {
     await supabase.from('notifications').insert({
       user_id: referrer.user_id,
       title: 'New Trainer Referral! 🎯',
-      body: `A trainer signed up using your referral code! You'll earn ₹${REWARD} when they complete their first paid session.`,
+      body: `A trainer signed up using your referral code! You'll earn ₹${REWARD} when they get admin approved.`,
       type: 'referral',
       action_url: '/trainer/referrals',
     })
 
-    console.log(`✅ Trainer referral created: ${referral_code} (pending)`)
+    console.log(`✅ Trainer referral created: ${referral_code} (pending admin approval)`)
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -231,6 +231,7 @@ Deno.serve(async (req) => {
       }
 
       // Find students whose course_interests overlap with trainer's skills
+      // Exclude students who already have an enrollment with this trainer
       const { data: allStudents } = await supabase
         .from('students')
         .select('id, user_id, course_interests')
@@ -242,6 +243,15 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
+
+      // Get existing enrollments for this trainer to exclude already-enrolled students
+      const { data: existingEnrollments } = await supabase
+        .from('enrollments')
+        .select('student_id')
+        .eq('trainer_id', trainer.id)
+
+      const enrolledStudentIds = new Set((existingEnrollments || []).map(e => e.student_id))
+      const eligibleStudents = allStudents.filter(s => !enrolledStudentIds.has(s.id))
 
       // Score students by interest overlap with trainer skills
       const matchedStudents = allStudents

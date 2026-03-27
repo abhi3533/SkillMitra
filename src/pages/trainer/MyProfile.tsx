@@ -157,6 +157,15 @@ const TrainerMyProfile = () => {
           </Button>
         </div>
 
+        {isApproved && (
+          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 mb-6">
+            <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              Some fields are verified by SkillMitra admin and cannot be changed (Name, Phone, Role, Company, Experience). To update, please contact contact@skillmitra.online
+            </p>
+          </div>
+        )}
+
         {/* Profile Picture */}
         <div className="bg-card rounded-xl border p-6 mb-6">
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">

@@ -32,7 +32,10 @@ interface EmailPayload {
   data: Record<string, any>
 }
 
-function layout(content: string): string {
+function layout(content: string, showUnsubscribe = false): string {
+  const unsubLink = showUnsubscribe
+    ? `<p style="font-size: 11px; color: #9ca3af; margin: 8px 0 0;"><a href="${APP_URL}/notification-preferences" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from match emails</a></p>`
+    : ''
   return `
   <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background: #ffffff;">
     <div style="text-align: center; margin-bottom: 28px;">
@@ -42,6 +45,7 @@ function layout(content: string): string {
     <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
       <p style="font-size: 12px; color: #9ca3af; margin: 0 0 8px;">Questions? Reply to this email or contact us at <a href="mailto:contact@skillmitra.online" style="color: #9ca3af; text-decoration: underline;">contact@skillmitra.online</a> | <a href="https://skillmitra.online" style="color: #9ca3af; text-decoration: underline;">skillmitra.online</a></p>
       <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Learnvate Solutions. All rights reserved.</p>
+      ${unsubLink}
     </div>
   </div>`
 }
@@ -176,7 +180,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           ${data.trainer_cards_html || ''}
           <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 16px;">Book a <strong>free trial session</strong> to find your perfect trainer!</p>
           ${btn('Browse All Trainers', `${APP_URL}/browse-trainers`)}
-        `)
+        `, true)
       }
 
     case 'trainer_student_match': {
@@ -202,7 +206,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
             <p style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 600;">💡 Make sure your profile is complete to get noticed!</p>
           </div>
           ${btn('Update Your Profile', `${APP_URL}/trainer/my-profile`)}
-        `)
+        `, true)
       }
     }
 
@@ -224,7 +228,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           </div>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">Check their profile and book a <strong>free trial session</strong> to see if they're the right fit!</p>
           ${btn('View Trainer Profile', `${APP_URL}/browse-trainers`)}
-        `)
+        `, true)
       }
     }
 
@@ -238,7 +242,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
           ${data.trainer_cards_html || ''}
           <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 16px;">All trainers offer a <strong>free trial session</strong> — try one today!</p>
           ${btn('Browse All Trainers', `${APP_URL}/browse-trainers`)}
-        `)
+        `, true)
       }
 
     case 'trainer_profile_viewed':
@@ -258,7 +262,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
             <li>Add a compelling bio and intro video</li>
           </ul>
           ${btn('Update Your Profile', `${APP_URL}/trainer/my-profile`)}
-        `)
+        `, true)
       }
 
     case 'weekly_trainer_student_digest':
@@ -273,7 +277,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
             <p style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 600;">💡 Create courses and keep your availability open to attract these students!</p>
           </div>
           ${btn('Go to Dashboard', `${APP_URL}/trainer/dashboard`)}
-        `)
+        `, true)
       }
 
     default:

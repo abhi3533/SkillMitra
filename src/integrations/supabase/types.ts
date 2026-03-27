@@ -575,6 +575,33 @@ export type Database = {
           },
         ]
       }
+      email_preferences: {
+        Row: {
+          digest_emails_enabled: boolean
+          id: string
+          match_emails_enabled: boolean
+          profile_view_emails_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          digest_emails_enabled?: boolean
+          id?: string
+          match_emails_enabled?: boolean
+          profile_view_emails_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          digest_emails_enabled?: boolean
+          id?: string
+          match_emails_enabled?: boolean
+          profile_view_emails_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -749,6 +776,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      match_email_log: {
+        Row: {
+          email_type: string
+          id: string
+          recipient_email: string
+          sent_at: string
+        }
+        Insert: {
+          email_type: string
+          id?: string
+          recipient_email: string
+          sent_at?: string
+        }
+        Update: {
+          email_type?: string
+          id?: string
+          recipient_email?: string
+          sent_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {

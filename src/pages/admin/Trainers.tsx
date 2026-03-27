@@ -12,6 +12,7 @@ import AdminLayout from "@/components/layouts/AdminLayout";
 import TrainerDetailDrawer from "@/components/admin/TrainerDetailDrawer";
 import RejectTrainerModal from "@/components/admin/RejectTrainerModal";
 import OnboardingPipeline from "@/components/admin/OnboardingPipeline";
+import EditTrainerModal from "@/components/admin/EditTrainerModal";
 
 const AdminTrainers = () => {
   const { toast } = useToast();

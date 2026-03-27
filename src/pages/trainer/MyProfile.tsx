@@ -143,6 +143,8 @@ const TrainerMyProfile = () => {
     );
   }
 
+  const isApproved = trainer?.approval_status === 'approved';
+
   return (
     <TrainerLayout>
       <div className="max-w-3xl mx-auto">

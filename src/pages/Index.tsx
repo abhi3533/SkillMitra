@@ -624,7 +624,7 @@ const Index = () => {
       </section>
 
 
-      <section className="relative py-20 md:py-28 overflow-hidden" style={{
+      <section className="relative py-12 md:py-20 overflow-hidden" style={{
         background: "linear-gradient(135deg, hsl(221 79% 49%) 0%, hsl(221 79% 30%) 100%)"
       }}>
         {/* Decorative elements */}

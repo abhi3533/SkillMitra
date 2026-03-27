@@ -465,7 +465,6 @@ const StudentSignup = () => {
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account? <Link to="/student/login" className="text-primary font-semibold hover:underline">Log in</Link>
           </p>
-      </div>
         </motion.div>
       </div>
       </div>

@@ -238,10 +238,10 @@ const Index = () => {
         <div className="mx-auto px-4 lg:px-8 max-w-7xl w-full">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left — Copy */}
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-semibold text-primary tracking-wide">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="min-w-0">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6 max-w-full overflow-hidden">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
+                <span className="text-xs font-semibold text-primary tracking-wide truncate">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
               </div>
 
               <h1 className="text-[22px] sm:text-[32px] md:text-[44px] lg:text-[56px] font-extrabold leading-[1.15] tracking-tight break-words overflow-hidden max-w-full">

@@ -257,8 +257,11 @@ const AdminTrainers = () => {
                   }`}>
                     {t.approval_status}
                   </span>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setSelectedTrainer(t); setDrawerOpen(true); }}>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setSelectedTrainer(t); setDrawerOpen(true); }} title="View">
                     <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditTarget(t)} title="Edit">
+                    <Pencil className="w-4 h-4" />
                   </Button>
                   {t.approval_status === "pending" && (
                     <>

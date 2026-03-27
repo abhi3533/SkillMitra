@@ -31,7 +31,7 @@ const AdminTrainerInvitations = () => {
   const [sending, setSending] = useState(false);
   const [csvEmails, setCsvEmails] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
-  const [previewData, setPreviewData] = useState<{ newEmails: string[]; registered: number; duplicate: number } | null>(null);
+  const [previewData, setPreviewData] = useState<{ newEmails: string[]; registered: number; duplicate: number; totalFound: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [singleEmail, setSingleEmail] = useState("");
   const [sendingSingle, setSendingSingle] = useState(false);

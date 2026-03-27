@@ -48,48 +48,90 @@ const AdminTrainerInvitations = () => {
 
   useEffect(() => { fetchInvitations(); }, []);
 
+  const extractEmailsFromFile = async (file: File): Promise<string[]> => {
+    const emails: string[] = [];
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    if (ext === "xlsx" || ext === "xls") {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const rows: any[] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        for (const row of rows) {
+          for (const cell of row) {
+            const val = String(cell || "").trim().toLowerCase();
+            if (val && val.includes("@") && !val.startsWith("email")) {
+              emails.push(val);
+            }
+          }
+        }
+      }
+    } else {
+      const text = await file.text();
+      const lines = text.split(/[\r\n]+/);
+      for (const line of lines) {
+        const parts = line.split(",");
+        for (const part of parts) {
+          const email = part.trim().toLowerCase().replace(/^["']|["']$/g, "");
+          if (email && email.includes("@") && !email.startsWith("email")) {
+            emails.push(email);
+          }
+        }
+      }
+    }
+    return emails;
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const text = await file.text();
-    const emails: string[] = [];
-    const lines = text.split(/[\r\n]+/);
-    for (const line of lines) {
-      // Support comma-separated or single email per line
-      const parts = line.split(",");
-      for (const part of parts) {
-        const email = part.trim().toLowerCase().replace(/^["']|["']$/g, "");
-        if (email && email.includes("@") && !email.startsWith("email")) {
-          emails.push(email);
-        }
+    try {
+      const rawEmails = await extractEmailsFromFile(file);
+      const uniqueEmails = [...new Set(rawEmails)];
+
+      if (uniqueEmails.length === 0) {
+        toast({ title: "No emails found", description: "The uploaded file doesn't contain valid email addresses. Please check the format.", variant: "destructive" });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
       }
+
+      const { data: existingProfiles } = await supabase
+        .from("profiles")
+        .select("email")
+        .in("email", uniqueEmails);
+      const registeredSet = new Set((existingProfiles || []).map((p: any) => p.email?.toLowerCase()));
+
+      const { data: existingInvites } = await supabase
+        .from("trainer_invitations")
+        .select("email")
+        .in("email", uniqueEmails);
+      const invitedSet = new Set((existingInvites || []).map((i: any) => i.email?.toLowerCase()));
+
+      const newEmails = uniqueEmails.filter(e => !registeredSet.has(e) && !invitedSet.has(e));
+      const registered = uniqueEmails.filter(e => registeredSet.has(e)).length;
+      const duplicate = uniqueEmails.filter(e => invitedSet.has(e) && !registeredSet.has(e)).length;
+
+      setCsvEmails(newEmails);
+      setPreviewData({ newEmails, registered, duplicate, totalFound: uniqueEmails.length });
+      setShowPreview(true);
+    } catch (err: any) {
+      toast({ title: "File Error", description: "Could not read the file. Please upload a valid CSV or Excel file.", variant: "destructive" });
     }
 
-    const uniqueEmails = [...new Set(emails)];
-
-    // Check against existing profiles and invitations
-    const { data: existingProfiles } = await supabase
-      .from("profiles")
-      .select("email")
-      .in("email", uniqueEmails);
-    const registeredSet = new Set((existingProfiles || []).map((p: any) => p.email?.toLowerCase()));
-
-    const { data: existingInvites } = await supabase
-      .from("trainer_invitations")
-      .select("email")
-      .in("email", uniqueEmails);
-    const invitedSet = new Set((existingInvites || []).map((i: any) => i.email?.toLowerCase()));
-
-    const newEmails = uniqueEmails.filter(e => !registeredSet.has(e) && !invitedSet.has(e));
-    const registered = uniqueEmails.filter(e => registeredSet.has(e)).length;
-    const duplicate = uniqueEmails.filter(e => invitedSet.has(e) && !registeredSet.has(e)).length;
-
-    setCsvEmails(newEmails);
-    setPreviewData({ newEmails, registered, duplicate });
-    setShowPreview(true);
-
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const downloadSampleCSV = () => {
+    const csv = "email\ntrainer1@gmail.com\ntrainer2@gmail.com\ntrainer3@gmail.com";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sample-trainer-emails.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSendInvitations = async () => {

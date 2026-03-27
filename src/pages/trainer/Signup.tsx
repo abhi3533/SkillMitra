@@ -12,8 +12,9 @@ import { cleanPhone, isValidPhone, isValidEmail, getEmailTypoSuggestion, isDispo
 import PasswordStrengthIndicator, { isPasswordValid } from "@/components/auth/PasswordStrengthIndicator";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 
+const TRAINER_VERIFICATION_REDIRECT = "https://skillmitra.online/trainer/onboarding";
+
 const TrainerSignup = () => {
-  const trainerVerificationRedirect = "https://www.skillmitra.online/trainer/onboarding";
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "" });
   const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
@@ -80,7 +81,7 @@ const TrainerSignup = () => {
         email: form.email,
         password: form.password,
         options: {
-          emailRedirectTo: trainerVerificationRedirect,
+          emailRedirectTo: TRAINER_VERIFICATION_REDIRECT,
           data: {
             full_name: form.fullName,
             phone: form.phone,

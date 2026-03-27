@@ -14,6 +14,8 @@ import { checkLoginLocked, recordFailedAttempt, clearLoginAttempts } from "@/lib
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 
+const STUDENT_VERIFICATION_REDIRECT = "https://skillmitra.online/student/dashboard";
+
 const StudentLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,7 +83,21 @@ const StudentLogin = () => {
               variant: "warning",
               action: (
                 <Button variant="outline" size="sm" onClick={async () => {
-                  await supabase.auth.resend({ type: "signup", email });
+                  const { error: resendError } = await supabase.auth.resend({
+                    type: "signup",
+                    email,
+                    options: { emailRedirectTo: STUDENT_VERIFICATION_REDIRECT },
+                  });
+
+                  if (resendError) {
+                    toast({
+                      title: "Could not resend verification email",
+                      description: getAuthErrorMessage(resendError),
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
                   toast({ title: "Verification email resent!", variant: "info" });
                 }}>
                   Resend

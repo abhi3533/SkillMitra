@@ -14,8 +14,9 @@ import { checkLoginLocked, recordFailedAttempt, clearLoginAttempts } from "@/lib
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 
 
+const TRAINER_VERIFICATION_REDIRECT = "https://skillmitra.online/trainer/onboarding";
+
 const TrainerLogin = () => {
-  const trainerVerificationRedirect = "https://www.skillmitra.online/trainer/onboarding";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -57,7 +58,7 @@ const TrainerLogin = () => {
                   const { error: resendError } = await supabase.auth.resend({
                     type: "signup",
                     email,
-                    options: { emailRedirectTo: trainerVerificationRedirect },
+                    options: { emailRedirectTo: TRAINER_VERIFICATION_REDIRECT },
                   });
 
                   if (resendError) {

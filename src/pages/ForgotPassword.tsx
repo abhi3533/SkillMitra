@@ -10,6 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_RESET_REDIRECTS = {
+  admin: "https://skillmitra.online/reset-password?role=admin",
+  trainer: "https://skillmitra.online/reset-password?role=trainer",
+  student: "https://skillmitra.online/reset-password?role=student",
+} as const;
 
 const ForgotPassword = () => {
   const [searchParams] = useSearchParams();
@@ -65,7 +70,7 @@ const ForgotPassword = () => {
 
       // Email exists — send reset link with timeout
       const resetPromise = supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password?role=${role}`,
+        redirectTo: PASSWORD_RESET_REDIRECTS[role as keyof typeof PASSWORD_RESET_REDIRECTS] ?? PASSWORD_RESET_REDIRECTS.student,
       });
 
       const { error } = await Promise.race([resetPromise, timeoutPromise]) as any;

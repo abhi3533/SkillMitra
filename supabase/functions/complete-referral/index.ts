@@ -3,7 +3,24 @@ import { createClient } from "npm:@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+}
+
+const BRAND_COLOR = '#1A56DB'
+const APP_URL = 'https://skillmitra.online'
+const FROM_EMAIL = 'SkillMitra <contact@skillmitra.online>'
+
+function layout(content: string): string {
+  return `
+  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background: #ffffff;">
+    <div style="text-align: center; margin-bottom: 28px;">
+      <h2 style="margin: 0; font-size: 22px; color: #111;">Skill<span style="color: ${BRAND_COLOR};">Mitra</span></h2>
+    </div>
+    ${content}
+    <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+      <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Learnvate Solutions Private Limited. All rights reserved.</p>
+    </div>
+  </div>`
 }
 
 async function creditWallet(supabase: any, userId: string, amount: number, description: string, referenceId: string) {
@@ -15,7 +32,7 @@ async function creditWallet(supabase: any, userId: string, amount: number, descr
 
   if (!wallet) {
     console.error(`No wallet found for user ${userId}`)
-    return
+    return false
   }
 
   await supabase.from('wallets').update({
@@ -32,6 +49,23 @@ async function creditWallet(supabase: any, userId: string, amount: number, descr
     description,
     reference_id: referenceId,
   })
+
+  return true
+}
+
+async function sendEmail(apiKey: string, to: string, subject: string, html: string) {
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html }),
+    })
+    const data = await res.json()
+    if (!res.ok) console.error('Resend error:', data)
+    else console.log(`✅ Email sent to ${to}:`, data.id)
+  } catch (e) {
+    console.error('Email send failed:', e)
+  }
 }
 
 Deno.serve(async (req) => {
@@ -40,13 +74,14 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { student_id, session_id, course_value } = await req.json()
+    const { student_id, course_value } = await req.json()
     if (!student_id) throw new Error('student_id is required')
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || ''
 
     // Check if this student was referred and referral is still pending
     const { data: student } = await supabase
@@ -61,14 +96,13 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Find pending or eligible referral for this student
+    // Find pending referral for this student
     const { data: referral } = await supabase
       .from('referrals')
       .select('*, referrer:referrer_id(id, user_id)')
       .eq('referred_id', student_id)
-      .in('status', ['pending', 'eligible'])
+      .eq('status', 'pending')
       .single()
-
 
     if (!referral) {
       return new Response(JSON.stringify({ success: false, message: 'No pending referral found' }), {
@@ -76,26 +110,16 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Validate course value ≥ ₹5000
-    const courseVal = Number(course_value || 0)
-    if (courseVal < 5000) {
-      // Mark as eligible but don't pay yet — course value too low
-      await supabase.from('referrals').update({ status: 'eligible' }).eq('id', referral.id)
-      console.log(`⏳ Referral ${referral.id} marked eligible but course value ₹${courseVal} < ₹5000`)
-      return new Response(JSON.stringify({ success: false, message: 'Course value must be ≥ ₹5,000 to unlock referral reward' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const REWARD = Number(referral.reward_amount || 400)
+    const REFERRER_REWARD = Number(referral.reward_amount || 500)
+    const REFERRED_BONUS = 100
 
     // Update referral status to paid
     await supabase.from('referrals').update({ status: 'paid' }).eq('id', referral.id)
 
-    // Credit referrer wallet
+    // Credit referrer wallet — ₹500
     const referrerUserId = (referral.referrer as any)?.user_id
     if (referrerUserId) {
-      await creditWallet(supabase, referrerUserId, REWARD, 'Referral reward — referred student completed first paid course (₹5,000+)', student_id)
+      await creditWallet(supabase, referrerUserId, REFERRER_REWARD, 'Referral reward — referred student completed first paid enrollment', student_id)
 
       // Update referral_credits on students table
       const { data: referrerStudent } = await supabase
@@ -106,35 +130,93 @@ Deno.serve(async (req) => {
 
       if (referrerStudent) {
         await supabase.from('students').update({
-          referral_credits: Number(referrerStudent.referral_credits || 0) + REWARD,
+          referral_credits: Number(referrerStudent.referral_credits || 0) + REFERRER_REWARD,
         }).eq('id', referrerStudent.id)
       }
 
-      // Notify referrer
+      // Notify referrer in-app
       await supabase.from('notifications').insert({
         user_id: referrerUserId,
         title: 'Referral Reward Credited! 🎉',
-        body: `Your referral completed their first paid course! ₹${REWARD} has been added to your wallet.`,
+        body: `Your friend enrolled in a course! ₹${REFERRER_REWARD} has been added to your wallet.`,
         type: 'referral',
         action_url: '/student/wallet',
       })
+
+      // Email referrer
+      if (RESEND_API_KEY) {
+        const { data: referrerProfile } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', referrerUserId)
+          .single()
+
+        if (referrerProfile?.email) {
+          await sendEmail(RESEND_API_KEY, referrerProfile.email,
+            'Your friend joined SkillMitra! ₹500 credited 🎉',
+            layout(`
+              <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${referrerProfile.full_name || 'Student'} 🎉</h1>
+              <p style="font-size: 15px; line-height: 1.7; color: #444;">Great news! Your referred friend just completed their first paid enrollment on SkillMitra.</p>
+              <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+                <p style="font-size: 14px; color: #166534; margin: 0;">Referral Reward</p>
+                <p style="font-size: 28px; font-weight: 700; color: #166534; margin: 4px 0;">₹${REFERRER_REWARD.toLocaleString('en-IN')}</p>
+                <p style="font-size: 13px; color: #166534; margin: 0;">credited to your wallet</p>
+              </div>
+              <div style="text-align: center; margin: 24px 0;">
+                <a href="${APP_URL}/student/wallet" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">View Wallet</a>
+              </div>
+              <p style="font-size: 14px; color: #666;">Keep referring and keep earning! Share your code with more friends.</p>
+              <p style="font-size: 14px; color: #666; margin-top: 8px;">— Team SkillMitra</p>
+            `)
+          )
+        }
+      }
     }
 
-    // Credit referred student wallet
-    await creditWallet(supabase, student.user_id, REWARD, 'Referral bonus — completed first paid course (₹5,000+)', referral.referrer_id)
+    // Credit referred student wallet — ₹100 bonus
+    await creditWallet(supabase, student.user_id, REFERRED_BONUS, 'Welcome referral bonus — ₹100 credited on first enrollment', referral.referrer_id)
 
     // Notify referred student
     await supabase.from('notifications').insert({
       user_id: student.user_id,
-      title: 'Welcome Reward! 🎉',
-      body: `Congratulations on completing your first course! ₹${REWARD} referral bonus has been added to your wallet.`,
+      title: 'Welcome Bonus! 🎉',
+      body: `Congratulations on your first enrollment! ₹${REFERRED_BONUS} referral bonus has been added to your wallet.`,
       type: 'referral',
       action_url: '/student/wallet',
     })
 
-    console.log(`✅ Referral completed: student ${student_id}, reward ₹${REWARD} each`)
+    // Email referred student
+    if (RESEND_API_KEY) {
+      const { data: referredProfile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', student.user_id)
+        .single()
 
-    return new Response(JSON.stringify({ success: true, reward: REWARD }), {
+      if (referredProfile?.email) {
+        await sendEmail(RESEND_API_KEY, referredProfile.email,
+          'Welcome! ₹100 discount applied on your first course 🎓',
+          layout(`
+            <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${referredProfile.full_name || 'Student'} 👋</h1>
+            <p style="font-size: 15px; line-height: 1.7; color: #444;">Welcome to SkillMitra! You joined through a referral and just completed your first enrollment.</p>
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+              <p style="font-size: 14px; color: #1e40af; margin: 0;">Welcome Bonus</p>
+              <p style="font-size: 28px; font-weight: 700; color: #1e40af; margin: 4px 0;">₹${REFERRED_BONUS}</p>
+              <p style="font-size: 13px; color: #1e40af; margin: 0;">added to your wallet</p>
+            </div>
+            <p style="font-size: 15px; line-height: 1.7; color: #444;">Use your wallet balance towards your next course enrollment!</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <a href="${APP_URL}/student/dashboard" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Go to Dashboard</a>
+            </div>
+            <p style="font-size: 14px; color: #666;">— Team SkillMitra</p>
+          `)
+        )
+      }
+    }
+
+    console.log(`✅ Student referral completed: student ${student_id}, ₹${REFERRER_REWARD} to referrer, ₹${REFERRED_BONUS} to referred`)
+
+    return new Response(JSON.stringify({ success: true, referrer_reward: REFERRER_REWARD, referred_bonus: REFERRED_BONUS }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error: unknown) {

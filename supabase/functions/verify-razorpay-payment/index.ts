@@ -291,6 +291,30 @@ Deno.serve(async (req) => {
     // Atomically increment enrolled count — avoids read-then-write race condition
     await serviceClient.rpc("increment_course_enrolled", { course_id_param: course_id });
 
+    // Trigger student referral completion — credits ₹500 to referrer, ₹100 to referred
+    try {
+      const { data: studentData } = await serviceClient
+        .from("students")
+        .select("referred_by")
+        .eq("id", student_id)
+        .single();
+
+      if (studentData?.referred_by) {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        await fetch(`${supabaseUrl}/functions/v1/complete-referral`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({ student_id, course_value: courseFee }),
+        });
+      }
+    } catch (refErr) {
+      console.error("Referral completion error (non-blocking):", refErr);
+    }
+
     console.log(JSON.stringify({
       event: "payment_verified",
       order_id: razorpay_order_id,

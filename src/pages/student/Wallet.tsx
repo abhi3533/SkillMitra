@@ -85,7 +85,8 @@ const StudentWallet = () => {
           <div className="mt-4 p-4 bg-muted/50 rounded-xl">
             <p className="text-xs font-semibold text-foreground mb-1">How do I earn wallet credits?</p>
             <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
-              <li>Refer a friend and both of you get ₹200 credits</li>
+              <li>Refer a friend — you earn ₹500 when they complete their first paid enrollment</li>
+              <li>Your friend gets ₹100 credited as a welcome bonus</li>
               <li>Wallet credits can be used to pay for courses partially or fully</li>
             </ul>
           </div>

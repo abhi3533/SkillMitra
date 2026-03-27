@@ -52,6 +52,27 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [trainerAvailability, setTrainerAvailability] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isReferred, setIsReferred] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWallet, setUseWallet] = useState(false);
+
+  // Check if student was referred (for ₹100 discount on first enrollment)
+  useEffect(() => {
+    if (!studentId || !open) return;
+    const checkReferral = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const [{ data: student }, { data: wallet }, { data: existingEnrollments }] = await Promise.all([
+        supabase.from("students").select("referred_by").eq("id", studentId).maybeSingle(),
+        supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
+        supabase.from("enrollments").select("id").eq("student_id", studentId).eq("status", "active").limit(1),
+      ]);
+      // Only show referral discount if student was referred AND has no existing paid enrollments
+      setIsReferred(!!(student?.referred_by) && (!existingEnrollments || existingEnrollments.length === 0));
+      setWalletBalance(Number(wallet?.balance || 0));
+    };
+    checkReferral();
+  }, [studentId, open]);
 
   useEffect(() => {
     if (trainer?.id && !trainer.id.startsWith("demo-")) {

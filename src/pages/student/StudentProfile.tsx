@@ -294,20 +294,11 @@ const StudentProfile = () => {
 
         {/* Editable Full Name */}
         {editing && (
-          <div>
-            <Label className="text-muted-foreground">Full Name</Label>
-            <Input
-              value={fullName}
-              onChange={e => {
-                const val = e.target.value;
-                if (/^[a-zA-Z\s.'\\-]*$/.test(val)) setFullName(val);
-              }}
-              className="mt-1"
-              placeholder="Your full name"
-            />
-            {fullName.trim() && !/^[a-zA-Z\s.'\\-]+$/.test(fullName.trim()) && (
-              <p className="text-xs text-destructive mt-1">Name must contain only letters</p>
-            )}
+          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+            <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              Full name, email, phone, education level, college name, and graduation year are verified and cannot be changed. To update, please contact contact@skillmitra.online
+            </p>
           </div>
         )}
 

@@ -159,6 +159,9 @@ Deno.serve(async (req) => {
       for (const trainer of topTrainers) {
         if (trainer.profile?.email) {
           const matchReasons: string[] = []
+          const matchedSkillsForTrainer: string[] = []
+          const matchedLangsForTrainer: string[] = []
+
           if (profile.city && trainer.profile.city && profile.city.toLowerCase() === trainer.profile.city.toLowerCase()) {
             matchReasons.push(`Same city (${profile.city})`)
           }
@@ -166,7 +169,19 @@ Deno.serve(async (req) => {
             const overlap = profile.language_preference.filter((l: string) =>
               trainer.teaching_languages!.includes(l)
             )
-            if (overlap.length) matchReasons.push(`Speaks ${overlap.join(', ')}`)
+            if (overlap.length) {
+              matchReasons.push(`Speaks ${overlap.join(', ')}`)
+              matchedLangsForTrainer.push(...overlap)
+            }
+          }
+          if (student?.course_interests?.length && trainer.skills?.length) {
+            const skillOverlap = student.course_interests.filter((interest: string) =>
+              trainer.skills!.some((skill: string) => skill.toLowerCase() === interest.toLowerCase())
+            )
+            if (skillOverlap.length) {
+              matchReasons.push(`Interested in ${skillOverlap.join(', ')}`)
+              matchedSkillsForTrainer.push(...skillOverlap)
+            }
           }
 
           await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
@@ -184,6 +199,8 @@ Deno.serve(async (req) => {
                 student_city: profile.city,
                 student_state: profile.state,
                 match_reasons: matchReasons,
+                matched_skills: matchedSkillsForTrainer,
+                matched_languages: matchedLangsForTrainer,
               },
             }),
           })

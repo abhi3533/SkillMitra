@@ -115,6 +115,34 @@ const AdminTrainerInvitations = () => {
     }
   };
 
+  const handleSingleEmailInvite = async () => {
+    const email = singleEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    setSendingSingle(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-trainer-invitations", {
+        body: { action: "send_invitations", emails: [email] },
+      });
+      if (error) throw error;
+      if (data.results.sent > 0) {
+        toast({ title: "Invitation Sent!", description: `Invitation sent to ${email}`, variant: "success" });
+      } else if (data.results.skipped_registered > 0) {
+        toast({ title: "Already Registered", description: `${email} is already registered on SkillMitra.`, variant: "destructive" });
+      } else if (data.results.skipped_duplicate > 0) {
+        toast({ title: "Already Invited", description: `${email} has already been invited.`, variant: "destructive" });
+      }
+      setSingleEmail("");
+      fetchInvitations();
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setSendingSingle(false);
+    }
+  };
+
   const handleResend = async (id: string) => {
     try {
       const { error } = await supabase.functions.invoke("send-trainer-invitations", {

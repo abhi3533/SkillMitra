@@ -10,6 +10,7 @@ const sidebarItems = [
   { label: "Students", icon: Users, path: "/admin/students" },
   { label: "Courses", icon: BookOpen, path: "/admin/courses" },
   { label: "Sessions", icon: Calendar, path: "/admin/sessions" },
+  { label: "Trial Bookings", icon: CalendarCheck, path: "/admin/trial-bookings" },
   { label: "Attendance", icon: ClipboardCheck, path: "/admin/attendance" },
   { label: "Payments", icon: DollarSign, path: "/admin/payments" },
   { label: "Payouts", icon: CreditCard, path: "/admin/payouts" },

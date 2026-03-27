@@ -373,11 +373,6 @@ Deno.serve(async (req) => {
     );
 
     // Credit trainer earnings
-    await serviceClient.from("trainers").update({
-      total_earnings: (await serviceClient.from("trainers").select("total_earnings, available_balance, total_students").eq("id", trainer_id).single()).data
-        ? undefined : 0,
-    });
-    // Actually increment trainer earnings atomically
     const { data: trainerData } = await serviceClient.from("trainers").select("total_earnings, available_balance, total_students").eq("id", trainer_id).single();
     if (trainerData) {
       await serviceClient.from("trainers").update({

@@ -366,13 +366,20 @@ Deno.serve(async (req) => {
               from: 'SkillMitra <contact@skillmitra.online>',
               to: ['contact@skillmitra.online'],
               subject: `Reminder — ${trainerName}'s application is still pending review`,
-              html: `<div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 24px;">
-                <h2 style="color: #111;">⏰ Pending Trainer Review</h2>
+              html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background: #ffffff;">
+                <div style="text-align: center; margin-bottom: 28px;">
+                  <span style="font-size: 24px; font-weight: 700; color: #0F172A;">Skill</span><span style="font-size: 24px; font-weight: 700; color: #1A56DB;">Mitra</span>
+                </div>
+                <h2 style="font-size: 20px; color: #111;">⏰ Pending Trainer Review</h2>
                 <p style="color: #444; line-height: 1.7;"><strong>${trainerName}</strong>'s trainer application has been pending for over 24 hours.</p>
                 <p style="color: #444;">Applied: ${new Date(trainer.created_at!).toLocaleString('en-IN')}</p>
                 <p style="color: #444;">Skills: ${(trainer.skills || []).join(', ') || 'N/A'}</p>
                 <div style="text-align: center; margin: 24px 0;">
-                  <a href="https://skillmitra.online/admin/trainers" style="background: #1A56DB; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">Review Now</a>
+                  <a href="https://skillmitra.online/admin/trainers" style="display: inline-block; background: #1A56DB; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">Review Now</a>
+                </div>
+                <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+                  <p style="font-size: 12px; color: #9ca3af; margin: 0 0 8px;">Questions? Reply to this email or contact us at <a href="mailto:contact@skillmitra.online" style="color: #9ca3af; text-decoration: underline;">contact@skillmitra.online</a> | <a href="https://skillmitra.online" style="color: #9ca3af; text-decoration: underline;">skillmitra.online</a></p>
+                  <p style="font-size: 12px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Learnvate Solutions Private Limited. All rights reserved.</p>
                 </div>
               </div>`,
             }),

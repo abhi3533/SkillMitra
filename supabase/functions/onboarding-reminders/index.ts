@@ -128,8 +128,8 @@ Deno.serve(async (req) => {
           <p style="font-size: 15px; line-height: 1.6; color: #444;">Just a last reminder — your trainer profile on SkillMitra is still incomplete. Don't miss out on teaching and earning!</p>
           <p style="font-size: 15px; line-height: 1.6; color: #444;">If you're facing any issues, our support team is here to help:</p>
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-            <p style="font-size: 15px; color: ${BRAND_COLOR}; margin: 0; font-weight: 600;">📞 Call us: +91 99855 12332</p>
-            <p style="font-size: 13px; color: #666; margin: 4px 0 0;">We'll help you complete your profile over the phone</p>
+            <p style="font-size: 15px; color: ${BRAND_COLOR}; margin: 0; font-weight: 600;">📧 Email us: contact@skillmitra.online</p>
+            <p style="font-size: 13px; color: #666; margin: 4px 0 0;">We'll help you complete your profile</p>
           </div>
           ${btn('Complete My Profile Now', `${APP_URL}/trainer/onboarding`)}
         `)

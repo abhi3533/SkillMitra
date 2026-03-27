@@ -52,7 +52,7 @@ const TrainerLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-border h-16 flex items-center px-4 lg:px-8">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-card border-b border-border shadow-sm h-16 flex items-center px-4 lg:px-8">
         <button className="lg:hidden mr-4 p-1" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>

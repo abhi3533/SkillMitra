@@ -153,7 +153,7 @@ const About = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-primary/5">
+      <section className="py-10 bg-primary/5">
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl text-center">
           <h2 className="text-2xl font-bold text-foreground mb-3">Ready to Get Started?</h2>
           <p className="text-muted-foreground mb-8">Find a trainer who matches your goals, or start teaching your skills to students across India.</p>

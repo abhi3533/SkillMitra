@@ -12,6 +12,7 @@ import TrainerLayout from "@/components/layouts/TrainerLayout";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useLoadingTitle } from "@/hooks/useLoadingTitle";
 import { RefreshCw } from "lucide-react";
+import TrainerTrialRequests from "@/components/TrainerTrialRequests";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();
@@ -26,6 +27,7 @@ const TrainerDashboard = () => {
     unreadNotifs: 0, pendingAttendance: 0, walletBalance: 0, todayCount: 0,
   });
   const [interestedStudents, setInterestedStudents] = useState<any[]>([]);
+  const [trainerRowId, setTrainerRowId] = useState<string | null>(null);
   useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {
@@ -33,6 +35,7 @@ const TrainerDashboard = () => {
     await (async () => {
       const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
+      setTrainerRowId(trainer.id);
 
       // Set lifecycle statuses
       setTrainerLifecycle({
@@ -346,6 +349,13 @@ const TrainerDashboard = () => {
         })}
       </div>
 
+      {/* Trial Requests */}
+      {!loading && trainerRowId && data.approvalStatus === "approved" && (
+        <div className="mt-6">
+          <TrainerTrialRequests trainerId={trainerRowId!} />
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
         {/* Today's Sessions */}
         <div className="bg-card rounded-xl border">
@@ -501,6 +511,7 @@ const TrainerDashboard = () => {
             { label: "View Earnings", path: "/trainer/earnings", icon: IndianRupee },
             { label: "Issue Certificate", path: "/trainer/certificates", icon: CreditCard },
             { label: "Edit Profile", path: "/trainer/profile", icon: TrendingUp },
+            { label: "Trial Settings", path: "/trainer/trial-settings", icon: Calendar },
           ].map(a => (
             <Link key={a.label} to={a.path}>
               <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5">

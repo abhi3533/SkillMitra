@@ -73,6 +73,7 @@ const TrainerAttendance = lazy(() => import("./pages/trainer/Attendance"));
 const TrainerSessions = lazy(() => import("./pages/trainer/Sessions"));
 const TrainerReviews = lazy(() => import("./pages/trainer/Reviews"));
 const TrainerMyProfile = lazy(() => import("./pages/trainer/MyProfile"));
+const TrainerTrialSettings = lazy(() => import("./pages/trainer/TrialSettings"));
 
 // Lazy-loaded Admin pages
 const AdminLogin = lazy(() => import("./pages/admin/Login"));
@@ -212,6 +213,7 @@ const AppContent = () => {
           <Route path="/trainer/attendance" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerAttendance /></ProtectedRoute>} />
           <Route path="/trainer/sessions" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSessions /></ProtectedRoute>} />
           <Route path="/trainer/reviews" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerReviews /></ProtectedRoute>} />
+          <Route path="/trainer/trial-settings" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerTrialSettings /></ProtectedRoute>} />
           <Route path="/trainer/notifications" element={<ProtectedRoute allowedRoles={["trainer"]}><Notifications /></ProtectedRoute>} />
 
           {/* Admin Protected */}

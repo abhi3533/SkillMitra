@@ -350,7 +350,7 @@ const TrainerDashboard = () => {
       </div>
 
       {/* Trial Requests */}
-      {!loading && data.approvalStatus === "approved" && (
+      {!loading && trainerRowId && data.approvalStatus === "approved" && (
         <div className="mt-6">
           <TrainerTrialRequests trainerId={trainerRowId!} />
         </div>

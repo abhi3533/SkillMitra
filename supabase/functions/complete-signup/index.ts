@@ -189,6 +189,23 @@ serve(async (req) => {
         if (updateErr) console.error("Student update failed:", updateErr);
       }
 
+      // Send welcome email to student
+      try {
+        const { data: profile } = await supabaseAdmin.from("profiles").select("full_name, email").eq("id", user_id).single();
+        if (profile?.email) {
+          await supabaseAdmin.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "welcome-student",
+              recipientEmail: profile.email,
+              idempotencyKey: `welcome-student-${user_id}`,
+              templateData: { name: profile.full_name || "" },
+            },
+          });
+        }
+      } catch (emailErr) {
+        console.error("Welcome email failed (non-blocking):", emailErr);
+      }
+
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

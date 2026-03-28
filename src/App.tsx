@@ -32,6 +32,7 @@ const LoginRoleSelect = lazy(() => import("./pages/LoginRoleSelect"));
 const JoinRedirect = lazy(() => import("./pages/JoinRedirect"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Blog = lazy(() => import("./pages/Blog"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const NotificationPreferences = lazy(() => import("./pages/NotificationPreferences"));
@@ -184,6 +185,7 @@ const AppContent = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/email-verified" element={<EmailVerified />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
 
           {/* Student Protected */}
           <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />

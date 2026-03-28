@@ -1,21 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import * as React from "npm:react@18.3.1"
-import { renderAsync } from "npm:@react-email/components@0.0.22"
 import { createClient } from "npm:@supabase/supabase-js@2"
 import { getCorsHeaders } from "../_shared/cors.ts"
-import { ContactAdminEmail } from "../_shared/email-templates/contact-admin.tsx"
-import { ContactReplyEmail } from "../_shared/email-templates/contact-reply.tsx"
-
-const TIMEOUT_MS = 10000;
-
-function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
-  return Promise.race([
-    fetch(url, options),
-    new Promise<Response>((_, reject) =>
-      setTimeout(() => reject(new Error("Email sending timed out after 10 seconds")), TIMEOUT_MS)
-    ),
-  ]);
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -33,7 +18,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Input validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email) || email.length > 255) {
       return new Response(JSON.stringify({ error: "Invalid email address" }), {
@@ -56,8 +40,6 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Rate limiting: max 3 submissions per email per hour
@@ -77,9 +59,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    const contactId = crypto.randomUUID();
     const { error: dbError } = await supabase
       .from("contact_messages")
-      .insert({ name, email, phone: phone || null, subject, message });
+      .insert({ id: contactId, name, email, phone: phone || null, subject, message });
 
     if (dbError) {
       console.error("DB insert error:", dbError);
@@ -89,57 +72,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (resendApiKey) {
-      try {
-        const [adminHtml, replyHtml] = await Promise.all([
-          renderAsync(React.createElement(ContactAdminEmail, { name, email, phone: phone || "", subject, message })),
-          renderAsync(React.createElement(ContactReplyEmail, { name, subject })),
-        ]);
+    // Send confirmation email to the user via transactional email system
+    try {
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "contact-confirmation",
+          recipientEmail: email,
+          idempotencyKey: `contact-confirm-${contactId}`,
+          templateData: { name, subject },
+        },
+      });
+    } catch (emailErr) {
+      console.error("Contact confirmation email failed:", emailErr);
+    }
 
-        const adminEmailPromise = fetchWithTimeout("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${resendApiKey}`,
-          },
-          body: JSON.stringify({
-            from: "SkillMitra <contact@skillmitra.online>",
-            to: ["contact@skillmitra.online"],
-            subject: `New Contact: ${subject}`,
-            html: adminHtml,
-          }),
-        });
-
-        const autoReplyPromise = fetchWithTimeout("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${resendApiKey}`,
-          },
-          body: JSON.stringify({
-            from: "SkillMitra <contact@skillmitra.online>",
-            to: [email],
-            subject: "We've received your message — SkillMitra",
-            html: replyHtml,
-          }),
-        });
-
-        const [adminRes, replyRes] = await Promise.all([adminEmailPromise, autoReplyPromise]);
-
-        if (!adminRes.ok) {
-          const errText = await adminRes.text();
-          console.error("Admin email failed:", errText);
-        }
-        if (!replyRes.ok) {
-          const errText = await replyRes.text();
-          console.error("Auto-reply email failed:", errText);
-        }
-      } catch (emailError: unknown) {
-        const msg = emailError instanceof Error ? emailError.message : "Unknown email error";
-        console.error("Email sending error:", msg);
-      }
-    } else {
-      console.warn("RESEND_API_KEY not configured, skipping emails");
+    // Send admin notification
+    try {
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "contact-admin-notify",
+          recipientEmail: "contact@skillmitra.online",
+          idempotencyKey: `contact-admin-${contactId}`,
+          templateData: { name, email, phone: phone || "", subject, message },
+        },
+      });
+    } catch (emailErr) {
+      console.error("Admin notification email failed:", emailErr);
     }
 
     return new Response(JSON.stringify({ success: true }), {

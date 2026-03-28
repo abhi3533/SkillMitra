@@ -437,6 +437,29 @@ Deno.serve(async (req) => {
       console.error("Referral completion error (non-blocking):", refErr);
     }
 
+    // Send enrollment confirmation email
+    try {
+      const { data: studentProfile } = await serviceClient.from("profiles").select("full_name, email").eq("id", studentUserId).single();
+      const { data: trainerProfile } = await serviceClient.from("profiles").select("full_name").eq("id", trainer?.user_id).single();
+      if (studentProfile?.email) {
+        await serviceClient.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "enrollment-confirmation",
+            recipientEmail: studentProfile.email,
+            idempotencyKey: `enrollment-confirm-${enrollment.id}`,
+            templateData: {
+              studentName: studentProfile.full_name || "",
+              courseName: course.title,
+              trainerName: trainerProfile?.full_name || "",
+              amountPaid: courseFee.toLocaleString("en-IN"),
+            },
+          },
+        });
+      }
+    } catch (emailErr) {
+      console.error("Enrollment confirmation email failed (non-blocking):", emailErr);
+    }
+
     console.log(JSON.stringify({
       event: "payment_verified",
       order_id: razorpay_order_id,

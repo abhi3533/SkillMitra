@@ -32,6 +32,7 @@ const LoginRoleSelect = lazy(() => import("./pages/LoginRoleSelect"));
 const JoinRedirect = lazy(() => import("./pages/JoinRedirect"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Blog = lazy(() => import("./pages/Blog"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const NotificationPreferences = lazy(() => import("./pages/NotificationPreferences"));

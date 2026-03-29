@@ -36,10 +36,10 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "SkillMitra"
+const SITE_NAME = "skillmitra-online"
 const SENDER_DOMAIN = "notify.skillmitra.online"
 const ROOT_DOMAIN = "skillmitra.online"
-const FROM_DOMAIN = "skillmitra.online" // Domain shown in From address
+const FROM_DOMAIN = "notify.skillmitra.online" // Domain shown in From address (may be root or sender subdomain)
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.

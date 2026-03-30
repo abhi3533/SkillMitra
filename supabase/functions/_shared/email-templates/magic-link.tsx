@@ -29,7 +29,9 @@ export const MagicLinkEmail = ({
       <Container style={container}>
         <Text style={logo}><span style={{color:'#0F172A'}}>Skill</span><span style={{color:'#1A56DB'}}>Mitra</span></Text>
         <Heading style={h1}>Your login link</Heading>
-        <Text style={text}>Click the button below to log in to {siteName}. This link will expire shortly.</Text>
+        <Text style={text}>
+          Click the button below to log in to {siteName}. This link will expire shortly.
+        </Text>
         <Button style={button} href={confirmationUrl}>Log In</Button>
         <Text style={footerText}>If you didn't request this link, you can safely ignore this email.</Text>
         <Text style={footerDivider}>—</Text>

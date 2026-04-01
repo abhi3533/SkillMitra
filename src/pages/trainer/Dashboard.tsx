@@ -195,8 +195,8 @@ const TrainerDashboard = () => {
       </div>
 
 
-      {/* Incomplete Onboarding Banner */}
-      {onboardingInfo && onboardingInfo.status === "draft" && !loading && (
+      {/* Incomplete Onboarding Banner - only when profile not yet submitted */}
+      {onboardingInfo && onboardingInfo.status === "draft" && !loading && data.approvalStatus !== "approved" && (
         <div className="mt-4 bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="flex-1">

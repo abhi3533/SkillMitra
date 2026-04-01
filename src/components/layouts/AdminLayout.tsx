@@ -50,9 +50,28 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted mr-2 transition-colors">
           <Bell className="w-5 h-5 text-muted-foreground" />
         </Link>
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <Shield className="w-4 h-4 text-primary" />
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Shield className="w-4 h-4 text-primary" />
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <p className="text-sm font-medium">Admin</p>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/admin/settings")} className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" /> Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <div className="flex pt-16">

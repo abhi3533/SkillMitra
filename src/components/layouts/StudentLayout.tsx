@@ -65,15 +65,39 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
             </span>
           )}
         </Link>
-        <Link to="/student/profile">
-          {profile?.profile_picture_url ? (
-            <img src={profile.profile_picture_url} alt={profile.full_name || "User"} className="w-8 h-8 rounded-full object-cover" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-primary text-xs font-bold">{profile?.full_name?.[0] || "U"}</span>
-            </div>
-          )}
-        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50">
+              {profile?.profile_picture_url ? (
+                <img src={profile.profile_picture_url} alt={profile?.full_name || "User"} className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-primary text-xs font-bold">{profile?.full_name?.[0] || "U"}</span>
+                </div>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <p className="text-sm font-medium">{profile?.full_name || "Student"}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile?.email || user?.email}</p>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/student/profile")} className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" /> View Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/student/profile")} className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" /> Edit Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/notification-preferences")} className="cursor-pointer">
+              <Bell className="mr-2 h-4 w-4" /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" /> Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <div className="flex pt-16">

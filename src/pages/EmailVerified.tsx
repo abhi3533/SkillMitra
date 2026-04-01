@@ -1,10 +1,41 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import { supabase } from "@/integrations/supabase/client";
 
 const EmailVerified = () => {
+  const emailSentRef = useRef(false);
+
+  useEffect(() => {
+    if (emailSentRef.current) return;
+    emailSentRef.current = true;
+
+    const sendConfirmationEmail = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user?.email) return;
+
+        const name = user.user_metadata?.full_name || "";
+
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "email-confirmed",
+            recipientEmail: user.email,
+            idempotencyKey: `email-confirmed-${user.id}`,
+            templateData: { name },
+          },
+        });
+      } catch (err) {
+        console.error("Failed to send email-confirmed email:", err);
+      }
+    };
+
+    sendConfirmationEmail();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <motion.div

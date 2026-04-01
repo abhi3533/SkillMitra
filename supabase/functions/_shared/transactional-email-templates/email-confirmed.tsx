@@ -12,10 +12,10 @@ interface Props {
   name?: string
 }
 
-const WelcomeStudentEmail = ({ name }: Props) => (
+const EmailConfirmedEmail = ({ name }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to {SITE_NAME} — your learning journey starts now!</Preview>
+    <Preview>Your email is confirmed — start browsing trainers on {SITE_NAME}!</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={headerSection}>
@@ -29,14 +29,12 @@ const WelcomeStudentEmail = ({ name }: Props) => (
           </table>
         </Section>
         <Section style={contentSection}>
-          <Text style={h3}>Welcome aboard{name ? `, ${name}` : ''}! 🎉</Text>
+          <Text style={h3}>Email confirmed{name ? `, ${name}` : ''}! ✅</Text>
           <Text style={text}>
-            You're now part of India's growing community of learners and verified trainers. Here's how to get started:
+            Your email address has been successfully verified. You're all set to explore {SITE_NAME} and find the perfect trainer for your learning goals.
           </Text>
-          <div style={stepBox}>
-            <Text style={stepText}>1️⃣ <strong>Browse trainers</strong> — Find verified experts in your skill area</Text>
-            <Text style={stepText}>2️⃣ <strong>Book a free trial</strong> — Experience a session before enrolling</Text>
-            <Text style={stepText}>3️⃣ <strong>Start learning</strong> — 1-on-1 live sessions tailored to you</Text>
+          <div style={tipBox}>
+            <Text style={tipText}>💡 <strong>What's next?</strong> Browse our verified trainers, book a free trial session, and start learning 1-on-1 with an industry expert.</Text>
           </div>
           <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', margin: '24px 0' }}>
             <tr>
@@ -63,9 +61,9 @@ const WelcomeStudentEmail = ({ name }: Props) => (
 )
 
 export const template = {
-  component: WelcomeStudentEmail,
-  subject: 'Welcome to SkillMitra — your learning journey starts now!',
-  displayName: 'Welcome email (student)',
+  component: EmailConfirmedEmail,
+  subject: 'Your email is confirmed! Start browsing trainers on SkillMitra',
+  displayName: 'Email confirmed (student)',
   previewData: { name: 'Priya' },
 } satisfies TemplateEntry
 
@@ -77,8 +75,8 @@ const contentSection = { padding: '0 32px 24px' }
 const footerSection = { padding: '20px 32px 28px', borderTop: '1px solid #e5e7eb', textAlign: 'center' as const }
 const h3 = { margin: '0 0 16px', fontSize: '20px', color: '#111', fontWeight: '600' as const }
 const text = { fontSize: '15px', color: '#444', lineHeight: '1.6', margin: '0 0 16px' }
-const stepBox = { background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '16px', margin: '16px 0' }
-const stepText = { fontSize: '14px', color: '#166534', margin: '0 0 8px', lineHeight: '1.5' }
+const tipBox = { background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '16px', margin: '16px 0' }
+const tipText = { fontSize: '14px', color: '#1e40af', margin: '0', lineHeight: '1.5' }
 const button = { backgroundColor: '#1A56DB', color: '#ffffff', padding: '12px 28px', borderRadius: '8px', fontSize: '15px', fontWeight: '600' as const, textDecoration: 'none', display: 'inline-block' }
 const footerHelpText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 8px' }
 const footerLink = { color: '#9ca3af', textDecoration: 'underline' }

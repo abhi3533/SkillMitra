@@ -5,6 +5,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const sidebarItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/trainer/dashboard" },

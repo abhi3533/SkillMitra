@@ -195,8 +195,8 @@ const TrainerDashboard = () => {
       </div>
 
 
-      {/* Incomplete Onboarding Banner */}
-      {onboardingInfo && onboardingInfo.status === "draft" && !loading && (
+      {/* Incomplete Onboarding Banner - only when profile not yet submitted */}
+      {onboardingInfo && onboardingInfo.status === "draft" && !loading && data.approvalStatus !== "approved" && (
         <div className="mt-4 bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="flex-1">
@@ -209,8 +209,8 @@ const TrainerDashboard = () => {
         </div>
       )}
 
-      {/* Approval Status Banner */}
-      {data.approvalStatus === "pending" && !loading && (
+      {/* Approval Status Banner - only when onboarding is complete (submitted) */}
+      {data.approvalStatus === "pending" && !loading && !(onboardingInfo && onboardingInfo.status === "draft") && (
         <div className="mt-4 bg-accent/10 border border-accent/30 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-accent shrink-0 mt-0.5" />
           <div>
@@ -229,8 +229,8 @@ const TrainerDashboard = () => {
         </div>
       )}
 
-      {/* Trainer Lifecycle Status Banner */}
-      {!loading && trainerLifecycle && (() => {
+      {/* Trainer Lifecycle Status Banner - hide during incomplete onboarding or when approval banner already showing */}
+      {!loading && trainerLifecycle && !(onboardingInfo && onboardingInfo.status === "draft") && (() => {
         const { profile_status, course_status, trainer_status } = trainerLifecycle;
         if (trainer_status === "live") {
           return (

@@ -41,7 +41,7 @@ const WelcomeStudentEmail = ({ name }: Props) => (
           <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', margin: '24px 0' }}>
             <tr>
               <td style={{ textAlign: 'center' }}>
-                <Button href={`${SITE_URL}/browse-trainers`} style={button}>
+                <Button href={`${SITE_URL}/browse`} style={button}>
                   Browse Trainers
                 </Button>
               </td>

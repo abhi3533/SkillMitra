@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp, Settings, Megaphone, UserPlus, CalendarCheck } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, DollarSign, CreditCard, BarChart3, AlertTriangle, Award, Mail, LogOut, Menu, X, Bell, Shield, Gift, Wallet, ClipboardCheck, Calendar, Star, TrendingUp, Settings, Megaphone, UserPlus, CalendarCheck, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const sidebarItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },

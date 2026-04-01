@@ -194,22 +194,6 @@ const TrainerDashboard = () => {
         </Link>
       </div>
 
-      {/* Phone KYC Banner */}
-      {profile && !profile.is_verified && !loading && (
-        <div className="mt-4 flex items-center justify-between gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
-          <div className="flex items-center gap-3">
-            <Smartphone className="w-5 h-5 text-amber-600 shrink-0" />
-            <p className="text-sm font-medium text-amber-800">
-              📱 Verify your phone to unlock all features
-            </p>
-          </div>
-          <Link to="/trainer/verify-phone">
-            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white border-0 shrink-0">
-              Verify Now
-            </Button>
-          </Link>
-        </div>
-      )}
 
       {/* Incomplete Onboarding Banner */}
       {onboardingInfo && onboardingInfo.status === "draft" && !loading && (

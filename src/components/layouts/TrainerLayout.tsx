@@ -5,6 +5,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const sidebarItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/trainer/dashboard" },
@@ -67,15 +68,39 @@ const TrainerLayout = ({ children }: { children: React.ReactNode }) => {
             </span>
           )}
         </Link>
-        <Link to="/trainer/profile">
-          {profile?.profile_picture_url ? (
-            <img src={profile.profile_picture_url} alt={profile.full_name || "Trainer"} className="w-8 h-8 rounded-full object-cover" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-              <span className="text-accent text-xs font-bold">{profile?.full_name?.[0] || "T"}</span>
-            </div>
-          )}
-        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50">
+              {profile?.profile_picture_url ? (
+                <img src={profile.profile_picture_url} alt={profile?.full_name || "Trainer"} className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                  <span className="text-accent text-xs font-bold">{profile?.full_name?.[0] || "T"}</span>
+                </div>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <p className="text-sm font-medium">{profile?.full_name || "Trainer"}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile?.email || user?.email}</p>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/trainer/profile")} className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" /> View Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/trainer/profile")} className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" /> Edit Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/trainer/trial-settings")} className="cursor-pointer">
+              <Bell className="mr-2 h-4 w-4" /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" /> Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <div className="flex pt-16">

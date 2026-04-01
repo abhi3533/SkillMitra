@@ -229,8 +229,8 @@ const TrainerDashboard = () => {
         </div>
       )}
 
-      {/* Trainer Lifecycle Status Banner */}
-      {!loading && trainerLifecycle && (() => {
+      {/* Trainer Lifecycle Status Banner - hide during incomplete onboarding or when approval banner already showing */}
+      {!loading && trainerLifecycle && !(onboardingInfo && onboardingInfo.status === "draft") && (() => {
         const { profile_status, course_status, trainer_status } = trainerLifecycle;
         if (trainer_status === "live") {
           return (

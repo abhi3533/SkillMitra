@@ -231,7 +231,6 @@ const TrainerCourses = () => {
           ⚠️ Profile approval required to create a course. Your profile is currently under review by admin.
         </div>
       )}
-      </div>
 
       {loading ? (
         <div className="grid gap-4 mt-6">{[1, 2].map(i => <div key={i} className="h-32 bg-card rounded-xl border animate-pulse" />)}</div>

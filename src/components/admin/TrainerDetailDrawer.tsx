@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar } from "lucide-react";
+import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Image, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TrainerDetailDrawerProps {
@@ -44,7 +44,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
         <Icon className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
         <div>
           <p className="text-[11px] text-muted-foreground">{label}</p>
-          <p className="text-sm text-foreground">{value}</p>
+          <p className="text-sm text-foreground break-words">{value}</p>
         </div>
       </div>
     ) : null
@@ -54,15 +54,15 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-left">Trainer Application</SheetTitle>
+          <SheetTitle className="text-left">Trainer Application — Full Details</SheetTitle>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
-          {/* Profile Header */}
+          {/* Profile Header with Photo */}
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden border-2 border-border">
               {profile?.profile_picture_url ? (
-                <img src={profile.profile_picture_url} alt="" className="w-14 h-14 rounded-full object-cover" loading="lazy" />
+                <img src={profile.profile_picture_url} alt="" className="w-16 h-16 rounded-full object-cover" loading="lazy" />
               ) : (
                 <span className="text-primary font-bold text-xl">{profile?.full_name?.[0] || "T"}</span>
               )}
@@ -70,11 +70,33 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             <div className="min-w-0">
               <h3 className="text-lg font-semibold text-foreground">{profile?.full_name || "Unknown"}</h3>
               <p className="text-sm text-muted-foreground">{trainer.current_role || "Trainer"}{trainer.current_company ? ` at ${trainer.current_company}` : ""}</p>
-              <Badge variant={trainer.approval_status === "approved" ? "default" : trainer.approval_status === "rejected" ? "destructive" : "secondary"} className="mt-1 text-[11px]">
-                {trainer.approval_status}
-              </Badge>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant={trainer.approval_status === "approved" ? "default" : trainer.approval_status === "rejected" ? "destructive" : "secondary"} className="text-[11px]">
+                  {trainer.approval_status}
+                </Badge>
+                <Badge variant="outline" className="text-[11px]">
+                  {trainer.trainer_status || "inactive"}
+                </Badge>
+              </div>
             </div>
           </div>
+
+          {/* Selfie for verification */}
+          {trainer.selfie_url && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Verification Selfie</h4>
+                <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-border">
+                  <img 
+                    src={trainer.selfie_url.startsWith("http") ? trainer.selfie_url : supabase.storage.from("trainer-documents").getPublicUrl(trainer.selfie_url).data.publicUrl} 
+                    alt="Selfie" className="w-full h-full object-cover" loading="lazy" 
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Internal verification only — not shown to students</p>
+              </div>
+            </>
+          )}
 
           <Separator />
 
@@ -82,9 +104,13 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
           <div>
             <h4 className="text-sm font-semibold text-foreground mb-2">Contact Information</h4>
             <InfoRow icon={Mail} label="Email" value={profile?.email} />
-            <InfoRow icon={Phone} label="Phone" value={profile?.phone} />
+            <InfoRow icon={Phone} label="Mobile" value={profile?.phone} />
+            <InfoRow icon={Phone} label="WhatsApp" value={trainer.whatsapp} />
             <InfoRow icon={MapPin} label="Location" value={[profile?.city, profile?.state].filter(Boolean).join(", ")} />
+            <InfoRow icon={MapPin} label="Address" value={trainer.address} />
+            <InfoRow icon={MapPin} label="PIN Code" value={trainer.pincode} />
             <InfoRow icon={User} label="Gender" value={profile?.gender} />
+            <InfoRow icon={Calendar} label="Date of Birth" value={trainer.dob} />
           </div>
 
           <Separator />
@@ -94,8 +120,10 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             <h4 className="text-sm font-semibold text-foreground mb-2">Professional Details</h4>
             <InfoRow icon={Briefcase} label="Current Role" value={trainer.current_role} />
             <InfoRow icon={Briefcase} label="Company" value={trainer.current_company} />
+            <InfoRow icon={Mail} label="Work Email" value={trainer.work_email} />
             <InfoRow icon={Calendar} label="Experience" value={trainer.experience_years ? `${trainer.experience_years} years` : null} />
             <InfoRow icon={Globe} label="LinkedIn" value={trainer.linkedin_url} />
+            <InfoRow icon={Globe} label="Portfolio" value={trainer.portfolio_url} />
             {trainer.previous_companies?.length > 0 && (
               <div className="flex items-start gap-2.5 py-1.5">
                 <Briefcase className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -104,6 +132,9 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
                   <p className="text-sm text-foreground">{trainer.previous_companies.join(", ")}</p>
                 </div>
               </div>
+            )}
+            {trainer.verification_method && (
+              <InfoRow icon={Shield} label="Verification" value={`${trainer.verification_method}: ${trainer.verification_value || "—"}`} />
             )}
           </div>
 
@@ -116,6 +147,24 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
                 <div className="flex flex-wrap gap-1.5">
                   {trainer.skills.map((skill: string) => (
                     <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                  ))}
+                </div>
+                {trainer.secondary_skill && (
+                  <p className="text-xs text-muted-foreground mt-2">Secondary: {trainer.secondary_skill}</p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Expertise Areas */}
+          {trainer.expertise_areas?.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Areas of Expertise</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {trainer.expertise_areas.map((area: string) => (
+                    <Badge key={area} variant="secondary" className="text-xs">{area}</Badge>
                   ))}
                 </div>
               </div>
@@ -142,21 +191,86 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             <>
               <Separator />
               <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Bio</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">{trainer.bio}</p>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Bio / Course Description</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{trainer.bio}</p>
               </div>
             </>
           )}
 
-          {/* Intro Video */}
-          {trainer.intro_video_url && (
+          {/* Course Details */}
+          {(trainer.course_title || trainer.course_fee) && (
             <>
               <Separator />
               <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Intro Video</h4>
-                <a href={trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                  <ExternalLink className="w-3.5 h-3.5" /> Watch video
-                </a>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Course Details</h4>
+                <InfoRow icon={GraduationCap} label="Course Title" value={trainer.course_title} />
+                <InfoRow icon={Calendar} label="Duration" value={trainer.course_duration} />
+                <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />
+                {trainer.course_description && trainer.course_description !== trainer.bio && (
+                  <div className="py-1.5">
+                    <p className="text-[11px] text-muted-foreground">Description</p>
+                    <p className="text-sm text-foreground leading-relaxed">{trainer.course_description}</p>
+                  </div>
+                )}
+                <InfoRow icon={FileText} label="Course Materials" value={trainer.course_materials} />
+              </div>
+            </>
+          )}
+
+          {/* Services Offered */}
+          {trainer.services_offered?.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Services Offered</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {trainer.services_offered.map((svc: string) => (
+                    <Badge key={svc} variant="outline" className="text-xs">{svc}</Badge>
+                  ))}
+                </div>
+                {trainer.additional_services_details && (
+                  <p className="text-xs text-muted-foreground mt-2">{trainer.additional_services_details}</p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Intro / Demo Video */}
+          {(trainer.intro_video_url || trainer.demo_video_url || trainer.curriculum_pdf_url) && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Media</h4>
+                {trainer.demo_video_url && (
+                  <a href={trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline mb-1">
+                    <ExternalLink className="w-3.5 h-3.5" /> Demo Video
+                  </a>
+                )}
+                {trainer.intro_video_url && (
+                  <a href={trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline mb-1">
+                    <ExternalLink className="w-3.5 h-3.5" /> Intro Video
+                  </a>
+                )}
+                {trainer.curriculum_pdf_url && (
+                  <a href={trainer.curriculum_pdf_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
+                    <FileText className="w-3.5 h-3.5" /> Curriculum PDF
+                  </a>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Payment Info */}
+          {(trainer.bank_account_number || trainer.upi_id) && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Payment Details</h4>
+                <InfoRow icon={CreditCard} label="Account Holder" value={trainer.account_holder_name} />
+                <InfoRow icon={CreditCard} label="Bank Account" value={trainer.bank_account_number ? `****${trainer.bank_account_number.slice(-4)}` : null} />
+                <InfoRow icon={CreditCard} label="IFSC" value={trainer.ifsc_code} />
+                <InfoRow icon={CreditCard} label="UPI ID" value={trainer.upi_id} />
+                <InfoRow icon={Shield} label="Govt ID Type" value={trainer.govt_id_type} />
               </div>
             </>
           )}
@@ -165,9 +279,23 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
           <Separator />
           <div>
             <h4 className="text-sm font-semibold text-foreground mb-2">Uploaded Documents</h4>
+            {trainer.aadhaar_url && (
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 border mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">Aadhaar / Govt ID</p>
+                    <p className="text-[11px] text-muted-foreground">{trainer.govt_id_type || "aadhaar"}</p>
+                  </div>
+                </div>
+                <a href={trainer.aadhaar_url} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="ghost" className="h-7 text-xs"><ExternalLink className="w-3 h-3" /></Button>
+                </a>
+              </div>
+            )}
             {loadingDocs ? (
               <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}</div>
-            ) : documents.length === 0 ? (
+            ) : documents.length === 0 && !trainer.aadhaar_url ? (
               <p className="text-sm text-muted-foreground">No documents uploaded</p>
             ) : (
               <div className="space-y-2">

@@ -221,9 +221,16 @@ const TrainerCourses = () => {
           <h1 className="text-2xl font-bold text-foreground">My Courses</h1>
           <p className="mt-1 text-sm text-muted-foreground">Create and manage your courses</p>
         </div>
-        <Button onClick={openCreate} className="gap-1.5">
+        <Button onClick={openCreate} className="gap-1.5" disabled={!profileApproved} title={!profileApproved ? "Profile approval required to create a course" : undefined}>
           <Plus className="w-4 h-4" /> Create Course
         </Button>
+      </div>
+
+      {!loading && !profileApproved && (
+        <div className="mt-4 rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
+          ⚠️ Profile approval required to create a course. Your profile is currently under review by admin.
+        </div>
+      )}
       </div>
 
       {loading ? (

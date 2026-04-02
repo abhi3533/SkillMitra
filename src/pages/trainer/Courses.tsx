@@ -47,13 +47,15 @@ const TrainerCourses = () => {
     { weekTitle: "", topics: "", learningOutcome: "", sessionCount: "3" },
   ]);
   const [trainerId, setTrainerId] = useState<string | null>(null);
+  const [profileApproved, setProfileApproved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
+      const { data: trainer } = await supabase.from("trainers").select("id, approval_status").eq("user_id", user.id).maybeSingle();
       if (trainer) {
         setTrainerId(trainer.id);
+        setProfileApproved(trainer.approval_status === "approved");
         const { data } = await supabase.from("courses").select("*").eq("trainer_id", trainer.id).order("created_at", { ascending: false });
         setCourses(data || []);
       }

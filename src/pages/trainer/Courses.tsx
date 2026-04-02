@@ -47,13 +47,15 @@ const TrainerCourses = () => {
     { weekTitle: "", topics: "", learningOutcome: "", sessionCount: "3" },
   ]);
   const [trainerId, setTrainerId] = useState<string | null>(null);
+  const [profileApproved, setProfileApproved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
+      const { data: trainer } = await supabase.from("trainers").select("id, approval_status").eq("user_id", user.id).maybeSingle();
       if (trainer) {
         setTrainerId(trainer.id);
+        setProfileApproved(trainer.approval_status === "approved");
         const { data } = await supabase.from("courses").select("*").eq("trainer_id", trainer.id).order("created_at", { ascending: false });
         setCourses(data || []);
       }
@@ -219,10 +221,16 @@ const TrainerCourses = () => {
           <h1 className="text-2xl font-bold text-foreground">My Courses</h1>
           <p className="mt-1 text-sm text-muted-foreground">Create and manage your courses</p>
         </div>
-        <Button onClick={openCreate} className="gap-1.5">
+        <Button onClick={openCreate} className="gap-1.5" disabled={!profileApproved} title={!profileApproved ? "Profile approval required to create a course" : undefined}>
           <Plus className="w-4 h-4" /> Create Course
         </Button>
       </div>
+
+      {!loading && !profileApproved && (
+        <div className="mt-4 rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
+          ⚠️ Profile approval required to create a course. Your profile is currently under review by admin.
+        </div>
+      )}
 
       {loading ? (
         <div className="grid gap-4 mt-6">{[1, 2].map(i => <div key={i} className="h-32 bg-card rounded-xl border animate-pulse" />)}</div>
@@ -231,7 +239,7 @@ const TrainerCourses = () => {
           <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto" />
           <h3 className="mt-4 text-lg font-semibold text-foreground">No Courses Yet</h3>
           <p className="mt-2 text-sm text-muted-foreground">Create your first course to start training students.</p>
-          <Button onClick={openCreate} className="mt-4 gap-1.5"><Plus className="w-4 h-4" /> Create Course</Button>
+          <Button onClick={openCreate} className="mt-4 gap-1.5" disabled={!profileApproved}><Plus className="w-4 h-4" /> Create Course</Button>
         </div>
       ) : (
         <div className="grid gap-3 mt-6">

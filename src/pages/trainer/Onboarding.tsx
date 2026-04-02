@@ -791,6 +791,11 @@ const TrainerOnboarding = () => {
               </div>
 
               <div className="space-y-3">
+                <Label>Resume<RequiredMark /></Label>
+                <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, max 5MB" />
+              </div>
+
+              <div className="space-y-3">
                 <Label>Documents Upload <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <FileUploadBox docKey="joining_letter" label="Joining Letter" accept=".pdf,.jpg,.jpeg,.png" />
                 <FileUploadBox docKey="relieving_letter" label="Relieving Letter" accept=".pdf,.jpg,.jpeg,.png" />

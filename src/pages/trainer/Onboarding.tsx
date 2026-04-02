@@ -621,7 +621,7 @@ const TrainerOnboarding = () => {
               {/* Profile Photo & Selfie */}
               <div className="flex gap-6 items-start justify-center">
                 <div className="flex flex-col items-center gap-2">
-                  <Label className="text-xs font-medium">Profile Photo</Label>
+                  <Label className="text-xs font-medium">Profile Photo<RequiredMark /></Label>
                   <div className="relative">
                     {profilePhotoPreview ? (
                       <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary">
@@ -629,12 +629,13 @@ const TrainerOnboarding = () => {
                         <button type="button" onClick={removeProfilePhoto} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
                       </div>
                     ) : (
-                      <button type="button" onClick={() => profilePhotoRef.current?.click()} className="w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 border-border hover:border-primary/50 bg-muted/50">
-                        <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-muted-foreground">Optional</span>
+                      <button type="button" onClick={() => profilePhotoRef.current?.click()} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[0] && !profilePhoto && !profilePhotoPreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
+                        <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
                       </button>
                     )}
                     <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
                   </div>
+                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">This photo will be displayed on your public profile to help students recognize and trust you. A clear, professional photo gets more bookings.</p>
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <Label className="text-xs font-medium">Selfie<RequiredMark /></Label>
@@ -651,6 +652,7 @@ const TrainerOnboarding = () => {
                     )}
                     <input ref={selfieRef} type="file" accept="image/*" className="hidden" onChange={handleSelfieSelect} />
                   </div>
+                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">This selfie is only for SkillMitra team verification purposes to confirm your identity. It will NOT be shown publicly to students.</p>
                 </div>
               </div>
 

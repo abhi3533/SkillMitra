@@ -19,7 +19,9 @@ const EmailVerified = () => {
         if (!user?.email) return;
 
         const name = user.user_metadata?.full_name || "";
+        const role = user.user_metadata?.role || "student";
 
+        // Send the standard confirmation email
         await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "email-confirmed",
@@ -28,8 +30,20 @@ const EmailVerified = () => {
             templateData: { name },
           },
         });
+
+        // For trainers, also send the welcome/pre-onboarding email
+        if (role === "trainer") {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "welcome-trainer",
+              recipientEmail: user.email,
+              idempotencyKey: `welcome-trainer-${user.id}`,
+              templateData: { name },
+            },
+          });
+        }
       } catch (err) {
-        console.error("Failed to send email-confirmed email:", err);
+        console.error("Failed to send confirmation emails:", err);
       }
     };
 

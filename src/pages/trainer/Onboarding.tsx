@@ -893,13 +893,6 @@ const TrainerOnboarding = () => {
           {/* ========== STEP 4: Payment & Documents ========== */}
           {step === 4 && (
             <div className="mt-6 space-y-5">
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
-                <Info className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-emerald-800">Platform Fee Structure</p>
-                  <p className="text-xs text-emerald-700 mt-1">SkillMitra keeps <strong>10% platform fee</strong>. You receive <strong>90% of every course fee</strong>.</p>
-                </div>
-              </div>
 
               <div>
                 <Label>Bank Account Number<RequiredMark /></Label>

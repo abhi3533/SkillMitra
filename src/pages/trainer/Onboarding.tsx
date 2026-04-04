@@ -1166,6 +1166,33 @@ const TrainerOnboarding = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Camera Capture Modal for Selfie */}
+      <Dialog open={showCameraModal} onOpenChange={(open) => { if (!open) closeCameraStream(); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Take a Selfie</DialogTitle>
+            <p className="text-xs text-muted-foreground">Position your face in the frame and click capture.</p>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 mt-2">
+            <div className="w-64 h-64 rounded-xl overflow-hidden bg-black">
+              <video ref={(el) => {
+                videoRef.current = el;
+                if (el && cameraStreamRef.current) {
+                  el.srcObject = cameraStreamRef.current;
+                  el.play();
+                }
+              }} autoPlay playsInline muted className="w-full h-full object-cover" style={{ transform: "scaleX(-1)" }} />
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={closeCameraStream}>Cancel</Button>
+              <Button onClick={captureSelfie} className="hero-gradient border-0">
+                <Camera className="w-4 h-4 mr-2" /> Capture
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

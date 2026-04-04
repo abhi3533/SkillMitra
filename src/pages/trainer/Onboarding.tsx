@@ -879,6 +879,7 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Course Description<RequiredMark /></Label>
                 <Textarea value={form.courseDescription} onChange={e => update("courseDescription", e.target.value)} placeholder="Describe what students will learn..." className="mt-1.5 min-h-[120px]" />
+                <FieldHint text="This is your first impression to students. Make it clear and professional." />
                 <p className="text-xs text-muted-foreground mt-1">{form.courseDescription.length}/100 characters minimum</p>
               </div>
 

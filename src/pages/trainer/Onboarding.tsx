@@ -763,6 +763,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Current Role<RequiredMark /></Label>
                   <Input value={form.currentRole} onChange={e => update("currentRole", e.target.value)} placeholder="e.g. Senior Developer" className="mt-1.5 h-11" />
+                  <FieldHint text="Displayed on your profile. Helps students know your expertise level." />
                   {stepAttempted[1] && form.currentRole.trim() && !hasLetters(form.currentRole) && (
                     <p className="text-xs text-destructive mt-1">Role must contain at least one letter</p>
                   )}

@@ -27,6 +27,37 @@ const AdminTrainers = () => {
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
   const [removeTarget, setRemoveTarget] = useState<any>(null);
   const [editTarget, setEditTarget] = useState<any>(null);
+  const [reminderSending, setReminderSending] = useState<string | null>(null);
+  const [reminderSentMap, setReminderSentMap] = useState<Record<string, string>>(() => {
+    try {
+      const stored = localStorage.getItem("admin_trainer_reminders");
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+
+  const sendReminder = useCallback(async (trainer: any) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastSent = reminderSentMap[trainer.id];
+    if (lastSent === today) {
+      toast({ title: "Reminder already sent today", description: "Try again tomorrow.", variant: "warning" });
+      return;
+    }
+    setReminderSending(trainer.id);
+    try {
+      const { error } = await supabase.functions.invoke("onboarding-reminders", {
+        body: { trainer_id: trainer.id, reminder_type: "admin_nudge" },
+      });
+      if (error) throw error;
+      const updated = { ...reminderSentMap, [trainer.id]: today };
+      setReminderSentMap(updated);
+      localStorage.setItem("admin_trainer_reminders", JSON.stringify(updated));
+      toast({ title: "Reminder sent!", description: `Email sent to ${trainer.profiles?.full_name || "trainer"}.`, variant: "success" });
+    } catch (err: any) {
+      toast({ title: "Failed to send reminder", description: err.message, variant: "destructive" });
+    } finally {
+      setReminderSending(null);
+    }
+  }, [reminderSentMap, toast]);
 
   const fetchTrainers = async () => {
     setLoading(true);

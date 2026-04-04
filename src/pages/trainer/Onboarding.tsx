@@ -940,6 +940,7 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>UPI ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Input value={form.upiId} onChange={e => update("upiId", e.target.value)} placeholder="yourname@upi" className="mt-1.5 h-11" />
+                <FieldHint text="Faster payouts via UPI. Add if you prefer instant transfers." />
               </div>
 
               <div className="border-t border-border pt-5 space-y-4">

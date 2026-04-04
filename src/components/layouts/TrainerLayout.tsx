@@ -86,11 +86,8 @@ const TrainerLayout = ({ children }: { children: React.ReactNode }) => {
               <p className="text-xs text-muted-foreground truncate">{profile?.email || user?.email}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/trainer/profile")} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => navigate("/trainer/view-profile")} className="cursor-pointer">
               <User className="mr-2 h-4 w-4" /> View Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/trainer/profile")} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" /> Edit Profile
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/trainer/trial-settings")} className="cursor-pointer">
               <Bell className="mr-2 h-4 w-4" /> Settings

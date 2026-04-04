@@ -497,7 +497,7 @@ const TrainerOnboarding = () => {
             ifsc_code: form.ifsc || null,
             upi_id: form.upiId || null,
             pan_number: null,
-            account_holder_name: form.accountHolderName || null,
+            account_holder_name: profile?.full_name || form.accountHolderName || null,
             intro_video_url: introVideoUrl,
             profile_picture_url: profilePictureUrl,
             documents: uploadedDocs,

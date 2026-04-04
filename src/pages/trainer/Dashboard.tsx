@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { formatTimeIST, formatDateIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
-import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck, Sparkles, GraduationCap, MapPin, Smartphone, CheckCircle, Info } from "lucide-react";
+import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck, Sparkles, GraduationCap, MapPin, Smartphone, CheckCircle, Info, Eye, Mail as MailIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -14,6 +14,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useLoadingTitle } from "@/hooks/useLoadingTitle";
 import { RefreshCw } from "lucide-react";
 import TrainerTrialRequests from "@/components/TrainerTrialRequests";
+import ViewApplicationModal from "@/components/trainer/ViewApplicationModal";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();
@@ -31,6 +32,7 @@ const TrainerDashboard = () => {
   const [interestedStudents, setInterestedStudents] = useState<any[]>([]);
   const [trainerRowId, setTrainerRowId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [showApplication, setShowApplication] = useState(false);
   useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {
@@ -215,13 +217,43 @@ const TrainerDashboard = () => {
 
       {/* Approval Status Banner - only when onboarding is complete (submitted) */}
       {data.approvalStatus === "pending" && !loading && !(onboardingInfo && onboardingInfo.status === "draft") && (
-        <div className="mt-4 bg-accent/10 border border-accent/30 rounded-xl p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Your application is being reviewed</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">We're reviewing your profile. You'll get a notification once it's approved.</p>
+        <div className="mt-4 bg-accent/10 border border-accent/30 rounded-xl p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Your application is being reviewed</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">We're reviewing your profile. You'll get a notification once it's approved.</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 ml-8">
+            <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setShowApplication(true)}>
+              <Eye className="w-3.5 h-3.5" /> View Application
+            </Button>
+            <a
+              href={`mailto:contact@skillmitra.online?subject=${encodeURIComponent("Request to edit my trainer application")}&body=${encodeURIComponent(`Hi SkillMitra Team,\n\nI would like to request changes to my trainer application.\n\nRegistered Email: ${profile?.email || ""}\n\nChanges requested:\n\n`)}`}
+            >
+              <Button size="sm" variant="outline" className="text-xs gap-1.5">
+                <MailIcon className="w-3.5 h-3.5" /> Request Changes
+              </Button>
+            </a>
+          </div>
+
+          <div className="ml-8 bg-muted/50 rounded-lg p-3">
+            <p className="text-xs text-muted-foreground">
+              Want to make changes? Email <strong className="text-foreground">contact@skillmitra.online</strong> from your registered email
+              {profile?.email && <span> (<strong className="text-foreground">{profile.email}</strong>)</span>} with your request.
+            </p>
           </div>
         </div>
+      )}
+      {user && (
+        <ViewApplicationModal
+          open={showApplication}
+          onClose={() => setShowApplication(false)}
+          userId={user.id}
+          profile={profile}
+        />
       )}
       {data.approvalStatus === "rejected" && !loading && (
         <div className="mt-4 bg-destructive/5 border border-destructive/20 rounded-xl p-4 flex items-start gap-3">

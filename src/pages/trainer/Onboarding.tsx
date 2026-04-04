@@ -733,6 +733,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>LinkedIn <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input value={form.linkedinUrl} onChange={e => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/in/you" className="mt-1.5 h-11" />
+                  <FieldHint text="Helps verify your professional background. Speeds up approval." />
                 </div>
                 <div>
                   <Label>Portfolio <span className="text-muted-foreground font-normal">(optional)</span></Label>

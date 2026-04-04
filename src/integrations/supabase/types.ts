@@ -1764,6 +1764,7 @@ export type Database = {
           address: string | null
           approval_status: string | null
           available_balance: number | null
+          available_time_bands: string[] | null
           average_rating: number | null
           bank_account_number: string | null
           bio: string | null
@@ -1804,6 +1805,7 @@ export type Database = {
           secondary_skill: string | null
           selfie_url: string | null
           services_offered: string[] | null
+          session_duration_per_day: string | null
           skills: string[] | null
           subscription_plan: string | null
           teaching_languages: string[] | null
@@ -1811,10 +1813,12 @@ export type Database = {
           total_students: number | null
           total_withdrawn: number | null
           trainer_status: string
+          trainer_type: string | null
           upi_id: string | null
           user_id: string
           verification_method: string | null
           verification_value: string | null
+          weekend_availability: string | null
           whatsapp: string | null
           work_email: string | null
         }
@@ -1825,6 +1829,7 @@ export type Database = {
           address?: string | null
           approval_status?: string | null
           available_balance?: number | null
+          available_time_bands?: string[] | null
           average_rating?: number | null
           bank_account_number?: string | null
           bio?: string | null
@@ -1865,6 +1870,7 @@ export type Database = {
           secondary_skill?: string | null
           selfie_url?: string | null
           services_offered?: string[] | null
+          session_duration_per_day?: string | null
           skills?: string[] | null
           subscription_plan?: string | null
           teaching_languages?: string[] | null
@@ -1872,10 +1878,12 @@ export type Database = {
           total_students?: number | null
           total_withdrawn?: number | null
           trainer_status?: string
+          trainer_type?: string | null
           upi_id?: string | null
           user_id: string
           verification_method?: string | null
           verification_value?: string | null
+          weekend_availability?: string | null
           whatsapp?: string | null
           work_email?: string | null
         }
@@ -1886,6 +1894,7 @@ export type Database = {
           address?: string | null
           approval_status?: string | null
           available_balance?: number | null
+          available_time_bands?: string[] | null
           average_rating?: number | null
           bank_account_number?: string | null
           bio?: string | null
@@ -1926,6 +1935,7 @@ export type Database = {
           secondary_skill?: string | null
           selfie_url?: string | null
           services_offered?: string[] | null
+          session_duration_per_day?: string | null
           skills?: string[] | null
           subscription_plan?: string | null
           teaching_languages?: string[] | null
@@ -1933,10 +1943,12 @@ export type Database = {
           total_students?: number | null
           total_withdrawn?: number | null
           trainer_status?: string
+          trainer_type?: string | null
           upi_id?: string | null
           user_id?: string
           verification_method?: string | null
           verification_value?: string | null
+          weekend_availability?: string | null
           whatsapp?: string | null
           work_email?: string | null
         }

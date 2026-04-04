@@ -264,8 +264,8 @@ const TrainerDashboard = () => {
         </div>
       )}
 
-      {/* Trainer Lifecycle Status Banner - hide during incomplete onboarding or when approval banner already showing */}
-      {!loading && trainerLifecycle && !(onboardingInfo && onboardingInfo.status === "draft") && (() => {
+      {/* Trainer Lifecycle Status Banner - hide during incomplete onboarding or when approval/pending banner already showing */}
+      {!loading && trainerLifecycle && !(onboardingInfo && onboardingInfo.status === "draft") && data.approvalStatus !== "pending" && data.approvalStatus !== "rejected" && (() => {
         const { profile_status, course_status, trainer_status } = trainerLifecycle;
         if (trainer_status === "live") {
           return (
@@ -302,17 +302,6 @@ const TrainerDashboard = () => {
               <Link to="/trainer/courses">
                 <Button size="sm" className="hero-gradient border-0 text-xs shrink-0">Create Course <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button>
               </Link>
-            </div>
-          );
-        }
-        if (profile_status === "pending") {
-          return (
-            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
-              <Clock className="w-5 h-5 text-amber-600 shrink-0" />
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">Profile under review</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Your profile is under review. We'll notify you soon.</p>
-              </div>
             </div>
           );
         }

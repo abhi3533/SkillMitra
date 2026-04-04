@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { formatLongDateIST } from "@/lib/dateUtils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Image, Shield } from "lucide-react";
+import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TrainerDetailDrawerProps {
@@ -15,12 +15,55 @@ interface TrainerDetailDrawerProps {
   onReject: (id: string) => void;
 }
 
+/** Resolve a storage reference to a viewable URL.
+ *  - Full https URLs are returned as-is (public bucket files or already resolved).
+ *  - Relative paths are treated as private-bucket paths and resolved via signed URL.
+ */
+const resolveStorageUrl = async (
+  pathOrUrl: string,
+  bucket = "trainer-documents",
+  expiresIn = 3600,
+): Promise<string> => {
+  if (pathOrUrl.startsWith("http")) return pathOrUrl;
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(pathOrUrl, expiresIn);
+  if (error || !data?.signedUrl) {
+    console.error("Signed URL error:", error);
+    return "";
+  }
+  return data.signedUrl;
+};
+
 const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: TrainerDetailDrawerProps) => {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+
+  // Resolve signed URLs for private bucket files
+  const resolveUrls = useCallback(async (t: any) => {
+    const urls: Record<string, string> = {};
+    const promises: Promise<void>[] = [];
+
+    if (t.selfie_url) {
+      promises.push(resolveStorageUrl(t.selfie_url).then(u => { urls.selfie = u; }));
+    }
+    if (t.aadhaar_url) {
+      promises.push(resolveStorageUrl(t.aadhaar_url).then(u => { urls.aadhaar = u; }));
+    }
+    if (t.curriculum_pdf_url && !t.curriculum_pdf_url.startsWith("http")) {
+      promises.push(resolveStorageUrl(t.curriculum_pdf_url).then(u => { urls.curriculum_pdf = u; }));
+    }
+
+    await Promise.all(promises);
+    setSignedUrls(urls);
+  }, []);
 
   useEffect(() => {
     if (!trainer || !open) return;
+    setSignedUrls({});
+    resolveUrls(trainer);
+
     (async () => {
       setLoadingDocs(true);
       const { data } = await supabase
@@ -28,10 +71,22 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
         .select("*")
         .eq("trainer_id", trainer.id)
         .order("uploaded_at", { ascending: false });
-      setDocuments(data || []);
+
+      // Resolve signed URLs for each document
+      const docsWithUrls = await Promise.all(
+        (data || []).map(async (doc: any) => {
+          if (doc.document_url && !doc.document_url.startsWith("http")) {
+            const signedUrl = await resolveStorageUrl(doc.document_url);
+            return { ...doc, resolved_url: signedUrl };
+          }
+          return { ...doc, resolved_url: doc.document_url };
+        })
+      );
+
+      setDocuments(docsWithUrls);
       setLoadingDocs(false);
     })();
-  }, [trainer, open]);
+  }, [trainer, open, resolveUrls]);
 
   if (!trainer) return null;
 
@@ -88,10 +143,11 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
               <div>
                 <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Verification Selfie</h4>
                 <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-border">
-                  <img 
-                    src={trainer.selfie_url.startsWith("http") ? trainer.selfie_url : supabase.storage.from("trainer-documents").getPublicUrl(trainer.selfie_url).data.publicUrl} 
-                    alt="Selfie" className="w-full h-full object-cover" loading="lazy" 
-                  />
+                  {signedUrls.selfie ? (
+                    <img src={signedUrls.selfie} alt="Selfie" className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-muted animate-pulse" />
+                  )}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">Internal verification only — not shown to students</p>
               </div>
@@ -252,7 +308,12 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
                   </a>
                 )}
                 {trainer.curriculum_pdf_url && (
-                  <a href={trainer.curriculum_pdf_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
+                  <a
+                    href={signedUrls.curriculum_pdf || trainer.curriculum_pdf_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
                     <FileText className="w-3.5 h-3.5" /> Curriculum PDF
                   </a>
                 )}
@@ -288,9 +349,13 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
                     <p className="text-[11px] text-muted-foreground">{trainer.govt_id_type || "aadhaar"}</p>
                   </div>
                 </div>
-                <a href={trainer.aadhaar_url} target="_blank" rel="noopener noreferrer">
-                  <Button size="sm" variant="ghost" className="h-7 text-xs"><ExternalLink className="w-3 h-3" /></Button>
-                </a>
+                {signedUrls.aadhaar ? (
+                  <a href={signedUrls.aadhaar} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" variant="ghost" className="h-7 text-xs gap-1"><Download className="w-3 h-3" /> View</Button>
+                  </a>
+                ) : (
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" disabled>Loading…</Button>
+                )}
               </div>
             )}
             {loadingDocs ? (
@@ -308,9 +373,9 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
                         <p className="text-[11px] text-muted-foreground">{doc.document_type} • {doc.verification_status}</p>
                       </div>
                     </div>
-                    {doc.document_url && (
-                      <a href={doc.document_url} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" variant="ghost" className="h-7 text-xs"><ExternalLink className="w-3 h-3" /></Button>
+                    {doc.resolved_url && (
+                      <a href={doc.resolved_url} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="ghost" className="h-7 text-xs gap-1"><Download className="w-3 h-3" /> View</Button>
                       </a>
                     )}
                   </div>

@@ -820,6 +820,15 @@ const TrainerOnboarding = () => {
                 <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, max 5MB" />
               </div>
 
+              <div>
+                <Label>About You (Bio)<RequiredMark /></Label>
+                <Textarea value={form.bio} onChange={e => update("bio", e.target.value)} onBlur={() => markTouched("bio")}
+                  placeholder="Tell students about yourself — your background, experience, teaching style and passion for teaching..."
+                  className={`mt-1.5 min-h-[120px] ${touched.bio ? (form.bio.trim().length >= 100 ? "border-green-500" : "border-destructive") : ""}`} />
+                <FieldHint text="Tell students about yourself — your background, experience, teaching style and passion for teaching." />
+                <p className="text-xs text-muted-foreground mt-1">{form.bio.length}/100 characters minimum</p>
+              </div>
+
               <div className="space-y-3">
                 <Label>Documents Upload <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <FileUploadBox docKey="joining_letter" label="Joining Letter" accept=".pdf,.jpg,.jpeg,.png" />

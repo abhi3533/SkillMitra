@@ -924,6 +924,7 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Bank Account Number<RequiredMark /></Label>
                 <Input value={form.bankAccount} onChange={e => update("bankAccount", e.target.value)} placeholder="Account number" className="mt-1.5 h-11" />
+                <FieldHint text="Required for receiving your earnings. Kept securely encrypted." />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

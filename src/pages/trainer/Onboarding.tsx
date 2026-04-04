@@ -40,6 +40,7 @@ const stepHeadings = [
 
 interface DocFile { file: File | null; name: string; }
 const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
+const FieldHint = ({ text }: { text: string }) => <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{text}</p>;
 
 const TrainerOnboarding = () => {
   const { user, profile, loading: authLoading } = useAuth();

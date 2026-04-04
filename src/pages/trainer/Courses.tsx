@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, BookOpen, Loader2, Edit, Eye, Users, Clock, IndianRupee, Star, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Loader2, Edit, Eye, Users, Clock, IndianRupee, Star, Trash2, Lock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
+import RequestCourseUpdateModal from "@/components/trainer/RequestCourseUpdateModal";
 
 interface CurriculumWeek {
   weekTitle: string;
@@ -49,6 +50,11 @@ const TrainerCourses = () => {
   const [trainerId, setTrainerId] = useState<string | null>(null);
   const [profileApproved, setProfileApproved] = useState(false);
   const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [updateModalCourse, setUpdateModalCourse] = useState<string>("");
+
+  // Whether the course being edited is approved (locked)
+  const isApprovedCourse = editingCourse?.approval_status === "approved";
 
   useEffect(() => {
     if (!user) return;
@@ -135,6 +141,23 @@ const TrainerCourses = () => {
       if (!resolvedSessionDur || resolvedSessionDur < 15 || resolvedSessionDur > 180) { toast({ title: "Session duration must be between 15 and 180 minutes", variant: "warning" }); setCreating(false); return; }
       if (!resolvedFrequency) { toast({ title: "Frequency is required", variant: "warning" }); setCreating(false); return; }
       if (!resolvedLanguage) { toast({ title: "Language is required", variant: "warning" }); setCreating(false); return; }
+
+      // For approved courses, only save editable fields
+      if (isApprovedCourse) {
+        const editableData = {
+          has_free_trial: form.has_free_trial,
+          session_frequency: resolvedFrequency,
+        };
+        const { error } = await supabase.from("courses").update(editableData).eq("id", editingCourse.id);
+        if (error) throw error;
+
+        toast({ title: "Course updated!", description: "Editable fields saved.", variant: "success" });
+        setSheetOpen(false);
+        const { data } = await supabase.from("courses").select("*").eq("trainer_id", trainerId).order("created_at", { ascending: false });
+        setCourses(data || []);
+        setCreating(false);
+        return;
+      }
 
       const courseData = {
         trainer_id: trainerId,
@@ -265,6 +288,7 @@ const TrainerCourses = () => {
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${statusColor(c.approval_status)}`}>
                       {c.approval_status}
                     </span>
+                    {c.approval_status === "approved" && <Lock className="w-3 h-3 text-muted-foreground" />}
                     {c.has_free_trial && <Badge variant="secondary" className="text-[10px]">Free Trial</Badge>}
                   </div>
                   {c.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{c.description}</p>}
@@ -295,14 +319,37 @@ const TrainerCourses = () => {
           </SheetHeader>
 
           <div className="space-y-5 mt-6">
+            {/* Approved course lock banner */}
+            {isApprovedCourse && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50">
+                <Lock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-amber-800">Course locked after approval</p>
+                  <p className="text-xs text-amber-700 mt-0.5">Key fields are read-only. Click "Request Update" below to request changes from admin.</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-xs gap-1.5 border-amber-300 text-amber-800 hover:bg-amber-100"
+                    onClick={() => {
+                      setUpdateModalCourse(editingCourse?.title || "");
+                      setUpdateModalOpen(true);
+                    }}
+                  >
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Request Course Update
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Basic Info */}
             <div>
               <Label>Course Title *</Label>
-              <Input value={form.title} onChange={e => setField("title", e.target.value)} className="mt-1.5" placeholder="e.g. Full Stack Web Development" maxLength={100} />
+              <Input value={form.title} onChange={e => setField("title", e.target.value)} className="mt-1.5" placeholder="e.g. Full Stack Web Development" maxLength={100} disabled={isApprovedCourse} />
             </div>
             <div>
               <Label>Description</Label>
-              <Textarea value={form.description} onChange={e => setField("description", e.target.value)} className="mt-1.5" placeholder="What students will learn..." rows={3} maxLength={1000} />
+              <Textarea value={form.description} onChange={e => setField("description", e.target.value)} className="mt-1.5" placeholder="What students will learn..." rows={3} maxLength={1000} disabled={isApprovedCourse} />
             </div>
 
             <Separator />
@@ -311,7 +358,7 @@ const TrainerCourses = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Duration</Label>
-                <Select value={form.duration_days} onValueChange={v => setField("duration_days", v)}>
+                <Select value={form.duration_days} onValueChange={v => setField("duration_days", v)} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="30">30 days</SelectItem>
@@ -321,18 +368,18 @@ const TrainerCourses = () => {
                   </SelectContent>
                 </Select>
                 {form.duration_days === "custom" && (
-                  <Input type="number" value={form.custom_duration} onChange={e => setField("custom_duration", e.target.value)} className="mt-1.5" placeholder="Days (1-365)" min={1} max={365} />
+                  <Input type="number" value={form.custom_duration} onChange={e => setField("custom_duration", e.target.value)} className="mt-1.5" placeholder="Days (1-365)" min={1} max={365} disabled={isApprovedCourse} />
                 )}
               </div>
               <div>
                 <Label>Total Sessions</Label>
-                <Input type="number" value={form.total_sessions} onChange={e => setField("total_sessions", e.target.value)} className="mt-1.5" min={1} max={100} />
+                <Input type="number" value={form.total_sessions} onChange={e => setField("total_sessions", e.target.value)} className="mt-1.5" min={1} max={100} disabled={isApprovedCourse} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Session Duration</Label>
-                <Select value={form.session_duration_mins} onValueChange={v => setField("session_duration_mins", v)}>
+                <Select value={form.session_duration_mins} onValueChange={v => setField("session_duration_mins", v)} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="30">30 min</SelectItem>
@@ -343,7 +390,7 @@ const TrainerCourses = () => {
                   </SelectContent>
                 </Select>
                 {form.session_duration_mins === "custom" && (
-                  <Input type="number" value={form.custom_session_duration} onChange={e => setField("custom_session_duration", e.target.value)} className="mt-1.5" placeholder="Minutes (15-180)" min={15} max={180} />
+                  <Input type="number" value={form.custom_session_duration} onChange={e => setField("custom_session_duration", e.target.value)} className="mt-1.5" placeholder="Minutes (15-180)" min={15} max={180} disabled={isApprovedCourse} />
                 )}
               </div>
               <div>
@@ -370,7 +417,7 @@ const TrainerCourses = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Course Fee (₹) *</Label>
-                <Input type="number" value={form.course_fee} onChange={e => setField("course_fee", e.target.value)} className="mt-1.5" placeholder="e.g. 14999" min={0} />
+                <Input type="number" value={form.course_fee} onChange={e => setField("course_fee", e.target.value)} className="mt-1.5" placeholder="e.g. 14999" min={0} disabled={isApprovedCourse} />
               </div>
               <div>
                 <Label>Level</Label>
@@ -411,12 +458,12 @@ const TrainerCourses = () => {
             {/* What You'll Learn */}
             <div>
               <Label>What You'll Learn</Label>
-              <Textarea value={form.what_you_learn} onChange={e => setField("what_you_learn", e.target.value)} className="mt-1.5" placeholder="One learning point per line, e.g.&#10;Build REST APIs&#10;Deploy to cloud" rows={3} />
+              <Textarea value={form.what_you_learn} onChange={e => setField("what_you_learn", e.target.value)} className="mt-1.5" placeholder="One learning point per line, e.g.&#10;Build REST APIs&#10;Deploy to cloud" rows={3} disabled={isApprovedCourse} />
               <p className="text-[11px] text-muted-foreground mt-1">One point per line</p>
             </div>
             <div>
               <Label>Who Is It For?</Label>
-              <Input value={form.who_is_it_for} onChange={e => setField("who_is_it_for", e.target.value)} className="mt-1.5" placeholder="e.g. College students looking to enter tech" maxLength={200} />
+              <Input value={form.who_is_it_for} onChange={e => setField("who_is_it_for", e.target.value)} className="mt-1.5" placeholder="e.g. College students looking to enter tech" maxLength={200} disabled={isApprovedCourse} />
             </div>
 
             <Separator />
@@ -428,18 +475,20 @@ const TrainerCourses = () => {
                 <div key={i} className="mt-3 p-3 rounded-lg bg-muted/50 border space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-muted-foreground">Week {i + 1}</p>
-                    {curriculum.length > 1 && (
+                    {curriculum.length > 1 && !isApprovedCourse && (
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => removeWeek(i)}>
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     )}
                   </div>
-                  <Input value={w.weekTitle} onChange={e => updateWeek(i, "weekTitle", e.target.value)} placeholder="Week title" className="h-8 text-sm" />
-                  <Input value={w.topics} onChange={e => updateWeek(i, "topics", e.target.value)} placeholder="Topics (comma separated)" className="h-8 text-sm" />
-                  <Input value={w.learningOutcome} onChange={e => updateWeek(i, "learningOutcome", e.target.value)} placeholder="Learning outcome" className="h-8 text-sm" />
+                  <Input value={w.weekTitle} onChange={e => updateWeek(i, "weekTitle", e.target.value)} placeholder="Week title" className="h-8 text-sm" disabled={isApprovedCourse} />
+                  <Input value={w.topics} onChange={e => updateWeek(i, "topics", e.target.value)} placeholder="Topics (comma separated)" className="h-8 text-sm" disabled={isApprovedCourse} />
+                  <Input value={w.learningOutcome} onChange={e => updateWeek(i, "learningOutcome", e.target.value)} placeholder="Learning outcome" className="h-8 text-sm" disabled={isApprovedCourse} />
                 </div>
               ))}
-              <Button variant="outline" size="sm" onClick={addWeek} className="mt-2 text-xs">+ Add Week</Button>
+              {!isApprovedCourse && (
+                <Button variant="outline" size="sm" onClick={addWeek} className="mt-2 text-xs">+ Add Week</Button>
+              )}
             </div>
 
             <Button onClick={handleSubmit} disabled={creating || !form.title.trim() || !form.course_fee} className="w-full">
@@ -448,6 +497,13 @@ const TrainerCourses = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Request Course Update Modal */}
+      <RequestCourseUpdateModal
+        open={updateModalOpen}
+        onOpenChange={setUpdateModalOpen}
+        courseTitle={updateModalCourse}
+      />
     </TrainerLayout>
   );
 };

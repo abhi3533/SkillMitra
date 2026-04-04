@@ -221,7 +221,7 @@ const TrainerCourses = () => {
         await supabase.from("course_curriculum").insert(rows);
       }
 
-      toast({ title: editingCourse ? "Course updated!" : "Course created!", description: editingCourse ? "Changes saved." : "Your course is pending admin approval.", variant: "success" });
+      toast({ title: editingCourse ? "Course updated!" : "Course submitted!", description: editingCourse ? "Changes saved." : "Your new course has been submitted for admin review. You will be notified once approved.", variant: "success" });
       setSheetOpen(false);
 
       // Refresh

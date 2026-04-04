@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download, Gift } from "lucide-react";
+import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download, Gift, Clock, Video, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TrainerDetailDrawerProps {
@@ -15,10 +15,6 @@ interface TrainerDetailDrawerProps {
   onReject: (id: string) => void;
 }
 
-/** Resolve a storage reference to a viewable URL.
- *  - Full https URLs are returned as-is (public bucket files or already resolved).
- *  - Relative paths are treated as private-bucket paths and resolved via signed URL.
- */
 const resolveStorageUrl = async (
   pathOrUrl: string,
   bucket = "trainer-documents",
@@ -35,13 +31,14 @@ const resolveStorageUrl = async (
   return data.signedUrl;
 };
 
+const NP = "Not provided";
+
 const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: TrainerDetailDrawerProps) => {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string; status: string } | null>(null);
 
-  // Resolve signed URLs for private bucket files
   const resolveUrls = useCallback(async (t: any) => {
     const urls: Record<string, string> = {};
     const promises: Promise<void>[] = [];
@@ -55,10 +52,15 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
     if (t.curriculum_pdf_url && !t.curriculum_pdf_url.startsWith("http")) {
       promises.push(resolveStorageUrl(t.curriculum_pdf_url).then(u => { urls.curriculum_pdf = u; }));
     }
+    // Resolve resume URL
+    const resumeDoc = documents.find((d: any) => d.document_type === "resume");
+    if (!resumeDoc && t.resume_url) {
+      promises.push(resolveStorageUrl(t.resume_url).then(u => { urls.resume = u; }));
+    }
 
     await Promise.all(promises);
     setSignedUrls(urls);
-  }, []);
+  }, [documents]);
 
   useEffect(() => {
     if (!trainer || !open) return;
@@ -74,7 +76,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
         .eq("trainer_id", trainer.id)
         .order("uploaded_at", { ascending: false });
 
-      // Resolve signed URLs for each document
       const docsWithUrls = await Promise.all(
         (data || []).map(async (doc: any) => {
           if (doc.document_url && !doc.document_url.startsWith("http")) {
@@ -89,7 +90,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
       setLoadingDocs(false);
     })();
 
-    // Fetch referral info if referred_by exists
     if (trainer.referred_by) {
       (async () => {
         const { data: refData } = await supabase
@@ -100,7 +100,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
           .maybeSingle();
 
         if (refData) {
-          // Get referrer name
           const { data: referrerTrainer } = await supabase
             .from("trainers")
             .select("user_id")
@@ -138,17 +137,24 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
   const profile = trainer.profiles;
   const isPending = trainer.approval_status === "pending";
 
-  const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number | null | undefined }) => (
-    value ? (
+  const InfoRow = ({ icon: Icon, label, value, masked }: { icon: any; label: string; value: string | number | null | undefined; masked?: boolean }) => {
+    const display = value ? String(value) : NP;
+    return (
       <div className="flex items-start gap-2.5 py-1.5">
         <Icon className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
         <div>
           <p className="text-[11px] text-muted-foreground">{label}</p>
-          <p className="text-sm text-foreground break-words">{value}</p>
+          <p className={`text-sm break-words ${display === NP ? "text-muted-foreground italic" : "text-foreground"}`}>{display}</p>
         </div>
       </div>
-    ) : null
+    );
+  };
+
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <h4 className="text-sm font-semibold text-foreground mb-2">{children}</h4>
   );
+
+  const resumeDoc = documents.find(d => d.document_type === "resume");
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -158,7 +164,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
-          {/* Profile Header with Photo */}
+          {/* Profile Header */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden border-2 border-border">
               {profile?.profile_picture_url ? (
@@ -181,256 +187,217 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             </div>
           </div>
 
-          {/* Selfie for verification */}
-          {trainer.selfie_url && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Verification Selfie</h4>
-                <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-border">
-                  {signedUrls.selfie ? (
-                    <img src={signedUrls.selfie} alt="Selfie" className="w-full h-full object-cover" loading="lazy" />
-                  ) : (
-                    <div className="w-full h-full bg-muted animate-pulse" />
-                  )}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-1">Internal verification only — not shown to students</p>
-              </div>
-            </>
-          )}
-
+          {/* ─── PERSONAL DETAILS ─── */}
           <Separator />
-
-          {/* Contact Info */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-2">Contact Information</h4>
+            <SectionTitle>Personal Details</SectionTitle>
+            <InfoRow icon={User} label="Full Name" value={profile?.full_name} />
             <InfoRow icon={Mail} label="Email" value={profile?.email} />
-            <InfoRow icon={Phone} label="Mobile" value={profile?.phone} />
+            <InfoRow icon={Phone} label="Phone" value={profile?.phone} />
             <InfoRow icon={Phone} label="WhatsApp" value={trainer.whatsapp} />
-            <InfoRow icon={MapPin} label="Location" value={[profile?.city, profile?.state].filter(Boolean).join(", ")} />
-            <InfoRow icon={MapPin} label="Address" value={trainer.address} />
-            <InfoRow icon={MapPin} label="PIN Code" value={trainer.pincode} />
-            <InfoRow icon={User} label="Gender" value={profile?.gender} />
             <InfoRow icon={Calendar} label="Date of Birth" value={trainer.dob} />
+            <InfoRow icon={User} label="Gender" value={profile?.gender} />
+            <InfoRow icon={MapPin} label="City" value={profile?.city} />
+            <InfoRow icon={MapPin} label="State" value={profile?.state} />
+            <InfoRow icon={MapPin} label="PIN Code" value={trainer.pincode} />
+            <InfoRow icon={MapPin} label="Address" value={trainer.address} />
           </div>
 
+          {/* ─── PROFESSIONAL DETAILS ─── */}
           <Separator />
-
-          {/* Professional Info */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-2">Professional Details</h4>
+            <SectionTitle>Professional Details</SectionTitle>
             <InfoRow icon={Briefcase} label="Current Role" value={trainer.current_role} />
             <InfoRow icon={Briefcase} label="Company" value={trainer.current_company} />
             <InfoRow icon={Mail} label="Work Email" value={trainer.work_email} />
             <InfoRow icon={Calendar} label="Experience" value={trainer.experience_years ? `${trainer.experience_years} years` : null} />
             <InfoRow icon={Globe} label="LinkedIn" value={trainer.linkedin_url} />
             <InfoRow icon={Globe} label="Portfolio" value={trainer.portfolio_url} />
+            <InfoRow icon={Shield} label="Verification Method" value={trainer.verification_method ? `${trainer.verification_method}${trainer.verification_value ? `: ${trainer.verification_value}` : ""}` : null} />
             {trainer.previous_companies?.length > 0 && (
-              <div className="flex items-start gap-2.5 py-1.5">
-                <Briefcase className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-[11px] text-muted-foreground">Previous Companies</p>
-                  <p className="text-sm text-foreground">{trainer.previous_companies.join(", ")}</p>
+              <InfoRow icon={Briefcase} label="Previous Companies" value={trainer.previous_companies.join(", ")} />
+            )}
+
+            <div className="mt-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Skills</p>
+              {trainer.skills?.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {trainer.skills.map((s: string) => <Badge key={s} variant="outline" className="text-xs">{s}</Badge>)}
                 </div>
-              </div>
-            )}
-            {trainer.verification_method && (
-              <InfoRow icon={Shield} label="Verification" value={`${trainer.verification_method}: ${trainer.verification_value || "—"}`} />
-            )}
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+              {trainer.secondary_skill && (
+                <p className="text-xs text-muted-foreground mt-1">Secondary: {trainer.secondary_skill}</p>
+              )}
+            </div>
+
+            <div className="mt-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Expertise Areas</p>
+              {trainer.expertise_areas?.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {trainer.expertise_areas.map((a: string) => <Badge key={a} variant="secondary" className="text-xs">{a}</Badge>)}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            <div className="mt-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Teaching Languages</p>
+              {trainer.teaching_languages?.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {trainer.teaching_languages.map((l: string) => <Badge key={l} variant="secondary" className="text-xs">{l}</Badge>)}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type} />
           </div>
 
-          {/* Skills */}
-          {trainer.skills?.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Skills</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.skills.map((skill: string) => (
-                    <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                  ))}
-                </div>
-                {trainer.secondary_skill && (
-                  <p className="text-xs text-muted-foreground mt-2">Secondary: {trainer.secondary_skill}</p>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Expertise Areas */}
-          {trainer.expertise_areas?.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Areas of Expertise</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.expertise_areas.map((area: string) => (
-                    <Badge key={area} variant="secondary" className="text-xs">{area}</Badge>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Teaching Languages */}
-          {trainer.teaching_languages?.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Teaching Languages</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.teaching_languages.map((lang: string) => (
-                    <Badge key={lang} variant="secondary" className="text-xs">{lang}</Badge>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Bio */}
-          {trainer.bio && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Bio / Course Description</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{trainer.bio}</p>
-              </div>
-            </>
-          )}
-
-          {/* Course Details */}
-          {(trainer.course_title || trainer.course_fee) && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Course Details</h4>
-                <InfoRow icon={GraduationCap} label="Course Title" value={trainer.course_title} />
-                <InfoRow icon={Calendar} label="Duration" value={trainer.course_duration} />
-                <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />
-                {trainer.course_description && trainer.course_description !== trainer.bio && (
-                  <div className="py-1.5">
-                    <p className="text-[11px] text-muted-foreground">Description</p>
-                    <p className="text-sm text-foreground leading-relaxed">{trainer.course_description}</p>
-                  </div>
-                )}
-                <InfoRow icon={FileText} label="Course Materials" value={trainer.course_materials} />
-              </div>
-            </>
-          )}
-
-          {/* Services Offered */}
-          {trainer.services_offered?.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Services Offered</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.services_offered.map((svc: string) => (
-                    <Badge key={svc} variant="outline" className="text-xs">{svc}</Badge>
-                  ))}
-                </div>
-                {trainer.additional_services_details && (
-                  <p className="text-xs text-muted-foreground mt-2">{trainer.additional_services_details}</p>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Intro / Demo Video */}
-          {(trainer.intro_video_url || trainer.demo_video_url || trainer.curriculum_pdf_url) && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Media</h4>
-                {trainer.demo_video_url && (
-                  <a href={trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline mb-1">
-                    <ExternalLink className="w-3.5 h-3.5" /> Demo Video
-                  </a>
-                )}
-                {trainer.intro_video_url && (
-                  <a href={trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline mb-1">
-                    <ExternalLink className="w-3.5 h-3.5" /> Intro Video
-                  </a>
-                )}
-                {trainer.curriculum_pdf_url && (
-                  <a
-                    href={signedUrls.curriculum_pdf || trainer.curriculum_pdf_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-primary hover:underline"
-                  >
-                    <FileText className="w-3.5 h-3.5" /> Curriculum PDF
-                  </a>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Referral Info */}
-          {referralInfo && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Gift className="w-4 h-4 text-primary" /> Referral Information</h4>
-                <InfoRow icon={User} label="Referred By" value={referralInfo.referrerName} />
-                <InfoRow icon={Gift} label="Referral Code Used" value={referralInfo.code} />
-                <div className="flex items-start gap-2.5 py-1.5">
-                  <Shield className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Bonus Status</p>
-                    <Badge variant={referralInfo.status === "paid" ? "default" : referralInfo.status === "pending" ? "secondary" : "destructive"} className="text-[11px] mt-0.5">
-                      {referralInfo.status === "paid" ? "₹1,500 Credited" : referralInfo.status === "pending" ? "₹1,500 Pending Approval" : referralInfo.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Payment Info */}
-          {(trainer.bank_account_number || trainer.upi_id) && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold text-foreground mb-2">Payment Details</h4>
-                <InfoRow icon={CreditCard} label="Account Holder" value={trainer.account_holder_name} />
-                <InfoRow icon={CreditCard} label="Bank Account" value={trainer.bank_account_number ? `****${trainer.bank_account_number.slice(-4)}` : null} />
-                <InfoRow icon={CreditCard} label="IFSC" value={trainer.ifsc_code} />
-                <InfoRow icon={CreditCard} label="UPI ID" value={trainer.upi_id} />
-                <InfoRow icon={Shield} label="Govt ID Type" value={trainer.govt_id_type} />
-              </div>
-            </>
-          )}
-
-          {/* Documents */}
+          {/* ─── ABOUT ─── */}
           <Separator />
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-2">Uploaded Documents</h4>
-            {trainer.aadhaar_url && (
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 border mb-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">Aadhaar / Govt ID</p>
-                    <p className="text-[11px] text-muted-foreground">{trainer.govt_id_type || "aadhaar"}</p>
-                  </div>
+            <SectionTitle>About the Trainer</SectionTitle>
+            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${trainer.bio ? "text-foreground" : "text-muted-foreground italic"}`}>
+              {trainer.bio || NP}
+            </p>
+          </div>
+          <div>
+            <SectionTitle>Course Description</SectionTitle>
+            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${trainer.course_description ? "text-foreground" : "text-muted-foreground italic"}`}>
+              {trainer.course_description || NP}
+            </p>
+          </div>
+
+          {/* ─── AVAILABILITY & SCHEDULE ─── */}
+          <Separator />
+          <div>
+            <SectionTitle>Availability & Schedule</SectionTitle>
+            <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type} />
+            <InfoRow icon={Clock} label="Session Duration" value={trainer.session_duration ? `${trainer.session_duration} mins` : (trainer.session_duration_mins ? `${trainer.session_duration_mins} mins` : null)} />
+            <div className="mt-1">
+              <p className="text-[11px] text-muted-foreground mb-1">Available Time Bands</p>
+              {trainer.available_time_bands?.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {trainer.available_time_bands.map((b: string) => <Badge key={b} variant="outline" className="text-xs">{b}</Badge>)}
                 </div>
-                {signedUrls.aadhaar ? (
-                  <a href={signedUrls.aadhaar} target="_blank" rel="noopener noreferrer">
-                    <Button size="sm" variant="ghost" className="h-7 text-xs gap-1"><Download className="w-3 h-3" /> View</Button>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+            <InfoRow icon={Calendar} label="Weekend Availability" value={trainer.weekend_available != null ? (trainer.weekend_available ? "Yes" : "No") : null} />
+            <InfoRow icon={Calendar} label="Course Duration" value={trainer.course_duration} />
+            <InfoRow icon={Clock} label="Total Hours" value={trainer.total_hours ? `${trainer.total_hours} hrs` : null} />
+            <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />
+          </div>
+
+          {/* ─── DOCUMENTS & MEDIA ─── */}
+          <Separator />
+          <div>
+            <SectionTitle>Documents & Media</SectionTitle>
+
+            {/* Profile Photo */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Profile Photo</p>
+              {profile?.profile_picture_url ? (
+                <img src={profile.profile_picture_url} alt="Profile" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" />
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            {/* Selfie */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Verification Selfie</p>
+              {trainer.selfie_url ? (
+                signedUrls.selfie ? (
+                  <img src={signedUrls.selfie} alt="Selfie" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" />
+                ) : (
+                  <div className="w-20 h-20 rounded-lg bg-muted animate-pulse" />
+                )
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            {/* Resume */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Resume</p>
+              {resumeDoc?.resolved_url ? (
+                <a href={resumeDoc.resolved_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                  <Download className="w-3.5 h-3.5" /> Download Resume
+                </a>
+              ) : signedUrls.resume ? (
+                <a href={signedUrls.resume} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                  <Download className="w-3.5 h-3.5" /> Download Resume
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            {/* Aadhaar / Govt ID */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Aadhaar / Govt ID ({trainer.govt_id_type || "aadhaar"})</p>
+              {trainer.aadhaar_url ? (
+                signedUrls.aadhaar ? (
+                  <a href={signedUrls.aadhaar} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                    <Download className="w-3.5 h-3.5" /> Download ID
                   </a>
                 ) : (
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" disabled>Loading…</Button>
-                )}
-              </div>
-            )}
+                  <span className="text-sm text-muted-foreground">Loading…</span>
+                )
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            {/* Intro Video */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Intro Video</p>
+              {trainer.intro_video_url ? (
+                <a href={trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                  <Video className="w-3.5 h-3.5" /> Watch Intro Video
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            {/* Demo Video */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Demo Video</p>
+              {trainer.demo_video_url ? (
+                <a href={trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                  <Video className="w-3.5 h-3.5" /> Watch Demo Video
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            {/* Curriculum PDF */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Curriculum PDF</p>
+              {trainer.curriculum_pdf_url ? (
+                <a href={signedUrls.curriculum_pdf || trainer.curriculum_pdf_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                  <FileText className="w-3.5 h-3.5" /> Download Curriculum
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+            </div>
+
+            {/* Other uploaded documents */}
             {loadingDocs ? (
-              <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}</div>
-            ) : documents.length === 0 && !trainer.aadhaar_url ? (
-              <p className="text-sm text-muted-foreground">No documents uploaded</p>
-            ) : (
-              <div className="space-y-2">
-                {documents.map(doc => (
+              <div className="space-y-2 mt-2">{[1, 2].map(i => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}</div>
+            ) : documents.filter(d => d.document_type !== "resume").length > 0 && (
+              <div className="mt-2 space-y-2">
+                <p className="text-[11px] text-muted-foreground">Other Documents</p>
+                {documents.filter(d => d.document_type !== "resume").map(doc => (
                   <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 border">
                     <div className="flex items-center gap-2 min-w-0">
                       <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -450,7 +417,61 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             )}
           </div>
 
-          {/* Rejection reason if rejected */}
+          {/* ─── BANK DETAILS (masked) ─── */}
+          <Separator />
+          <div>
+            <SectionTitle>Bank Details</SectionTitle>
+            <InfoRow icon={CreditCard} label="Account Holder Name" value={trainer.account_holder_name} />
+            <InfoRow icon={CreditCard} label="Bank Account" value={trainer.bank_account_number ? `****${trainer.bank_account_number.slice(-4)}` : null} />
+            <InfoRow icon={CreditCard} label="IFSC Code" value={trainer.ifsc_code} />
+            <InfoRow icon={CreditCard} label="UPI ID" value={trainer.upi_id} />
+          </div>
+
+          {/* ─── REFERRAL INFO ─── */}
+          <Separator />
+          <div>
+            <SectionTitle>Referral Information</SectionTitle>
+            {referralInfo ? (
+              <>
+                <InfoRow icon={User} label="Referred By" value={referralInfo.referrerName} />
+                <InfoRow icon={Gift} label="Referral Code Used" value={referralInfo.code} />
+                <div className="flex items-start gap-2.5 py-1.5">
+                  <Shield className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Bonus Status</p>
+                    <Badge variant={referralInfo.status === "paid" ? "default" : referralInfo.status === "pending" ? "secondary" : "destructive"} className="text-[11px] mt-0.5">
+                      {referralInfo.status === "paid" ? "₹1,500 Credited" : referralInfo.status === "pending" ? "₹1,500 Pending Approval" : referralInfo.status}
+                    </Badge>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <InfoRow icon={User} label="Referred By" value={trainer.referred_by} />
+                <InfoRow icon={Gift} label="Own Referral Code" value={trainer.referral_code} />
+              </>
+            )}
+          </div>
+
+          {/* Services Offered */}
+          {trainer.services_offered?.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <SectionTitle>Services Offered</SectionTitle>
+                <div className="flex flex-wrap gap-1.5">
+                  {trainer.services_offered.map((svc: string) => (
+                    <Badge key={svc} variant="outline" className="text-xs">{svc}</Badge>
+                  ))}
+                </div>
+                {trainer.additional_services_details && (
+                  <p className="text-xs text-muted-foreground mt-2">{trainer.additional_services_details}</p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Rejection reason */}
           {trainer.approval_status === "rejected" && trainer.rejection_reason && (
             <>
               <Separator />

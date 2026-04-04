@@ -738,6 +738,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Portfolio <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input value={form.portfolioUrl} onChange={e => update("portfolioUrl", e.target.value)} placeholder="https://yoursite.com" className="mt-1.5 h-11" />
+                  <FieldHint text="Showcase your work. Students love seeing real projects." />
                 </div>
               </div>
 

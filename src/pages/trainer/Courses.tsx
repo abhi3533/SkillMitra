@@ -48,6 +48,7 @@ const TrainerCourses = () => {
   ]);
   const [trainerId, setTrainerId] = useState<string | null>(null);
   const [profileApproved, setProfileApproved] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;

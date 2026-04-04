@@ -75,6 +75,7 @@ const TrainerSessions = lazy(() => import("./pages/trainer/Sessions"));
 const TrainerReviews = lazy(() => import("./pages/trainer/Reviews"));
 const TrainerMyProfile = lazy(() => import("./pages/trainer/MyProfile"));
 const TrainerTrialSettings = lazy(() => import("./pages/trainer/TrialSettings"));
+const TrainerViewProfile = lazy(() => import("./pages/trainer/ViewProfile"));
 
 // Lazy-loaded Admin pages
 const AdminLogin = lazy(() => import("./pages/admin/Login"));

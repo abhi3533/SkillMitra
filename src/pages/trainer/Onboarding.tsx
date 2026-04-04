@@ -355,6 +355,7 @@ const TrainerOnboarding = () => {
       if (!form.currentCompany.trim() || !hasLetters(form.currentCompany)) { toast({ title: "Valid company name is required", variant: "warning" }); return false; }
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
       if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
+      if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
       if (!docs["resume"]?.file) { toast({ title: "Resume upload is required", variant: "warning" }); return false; }
     }
     if (s === 2) {

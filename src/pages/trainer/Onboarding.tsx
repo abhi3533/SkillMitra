@@ -682,6 +682,7 @@ const TrainerOnboarding = () => {
                     <SelectTrigger className={`mt-1.5 h-11 ${touched.gender ? (form.gender ? "border-green-500" : "border-destructive") : ""}`}><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent><SelectItem value="male">Male</SelectItem><SelectItem value="female">Female</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
                   </Select>
+                  <FieldHint text="Some students prefer trainers of a specific gender. Helps with matching." />
                 </div>
               </div>
 

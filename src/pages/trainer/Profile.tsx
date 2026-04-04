@@ -843,7 +843,7 @@ const TrainerProfile = () => {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full mt-1.5 justify-start text-left font-normal", !trialDate && "text-muted-foreground")}>
                       <Calendar className="mr-2 h-4 w-4" />
-                      {trialDate ? format(trialDate, "PPP") : "Pick a date"}
+                      {trialDate ? formatDateIST(trialDate) : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">

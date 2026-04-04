@@ -228,12 +228,9 @@ const TrainerDashboard = () => {
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-foreground">Application not approved</h3>
-            {trainerLifecycle && (
+            {rejectionReason && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                {(trainers => {
-                  const t = trainers;
-                  return t ? `Reason: ${t}` : "Please update your profile and documents, then resubmit.";
-                })(data.rejectionReason)}
+                <strong>Reason:</strong> {rejectionReason}
               </p>
             )}
             <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then resubmit your application.</p>

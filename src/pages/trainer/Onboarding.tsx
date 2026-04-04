@@ -497,7 +497,7 @@ const TrainerOnboarding = () => {
             ifsc_code: form.ifsc || null,
             upi_id: form.upiId || null,
             pan_number: null,
-            account_holder_name: form.accountHolderName || null,
+            account_holder_name: profile?.full_name || form.accountHolderName || null,
             intro_video_url: introVideoUrl,
             profile_picture_url: profilePictureUrl,
             documents: uploadedDocs,
@@ -978,7 +978,8 @@ const TrainerOnboarding = () => {
                 </div>
                 <div>
                   <Label>Account Holder Name<RequiredMark /></Label>
-                  <Input value={form.accountHolderName} onChange={e => update("accountHolderName", e.target.value)} placeholder="Name as per bank" className="mt-1.5 h-11" />
+                  <Input value={profile?.full_name || form.accountHolderName} readOnly disabled placeholder="Name as per bank" className="mt-1.5 h-11 bg-muted cursor-not-allowed" />
+                  <FieldHint text="Account holder name is automatically set from your registered profile name to prevent misuse and ensure secure payments." />
                 </div>
               </div>
               <div>

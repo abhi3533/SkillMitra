@@ -714,6 +714,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>City<RequiredMark /></Label>
                   <Input value={form.city} onChange={e => update("city", e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} onBlur={() => markTouched("city")} placeholder="City" className="mt-1.5 h-11" />
+                  <FieldHint text="Shown to students to find local trainers." />
                 </div>
                 <div>
                   <Label>State<RequiredMark /></Label>

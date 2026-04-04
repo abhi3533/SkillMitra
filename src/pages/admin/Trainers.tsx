@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2, Pencil } from "lucide-react";
+import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2, Pencil, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +27,37 @@ const AdminTrainers = () => {
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
   const [removeTarget, setRemoveTarget] = useState<any>(null);
   const [editTarget, setEditTarget] = useState<any>(null);
+  const [reminderSending, setReminderSending] = useState<string | null>(null);
+  const [reminderSentMap, setReminderSentMap] = useState<Record<string, string>>(() => {
+    try {
+      const stored = localStorage.getItem("admin_trainer_reminders");
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+
+  const sendReminder = useCallback(async (trainer: any) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastSent = reminderSentMap[trainer.id];
+    if (lastSent === today) {
+      toast({ title: "Reminder already sent today", description: "Try again tomorrow.", variant: "warning" });
+      return;
+    }
+    setReminderSending(trainer.id);
+    try {
+      const { error } = await supabase.functions.invoke("onboarding-reminders", {
+        body: { trainer_id: trainer.id, reminder_type: "admin_nudge" },
+      });
+      if (error) throw error;
+      const updated = { ...reminderSentMap, [trainer.id]: today };
+      setReminderSentMap(updated);
+      localStorage.setItem("admin_trainer_reminders", JSON.stringify(updated));
+      toast({ title: "Reminder sent!", description: `Email sent to ${trainer.profiles?.full_name || "trainer"}.`, variant: "success" });
+    } catch (err: any) {
+      toast({ title: "Failed to send reminder", description: err.message, variant: "destructive" });
+    } finally {
+      setReminderSending(null);
+    }
+  }, [reminderSentMap, toast]);
 
   const fetchTrainers = async () => {
     setLoading(true);
@@ -254,6 +285,9 @@ const AdminTrainers = () => {
                       {t.profiles?.city ? ` • ${t.profiles.city}` : ""}
                       {t.current_company ? ` • ${t.current_role || ""} at ${t.current_company}` : ""}
                     </p>
+                    {reminderSentMap[t.id] && (
+                      <p className="text-[10px] text-primary mt-0.5">Last reminded: {reminderSentMap[t.id]}</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-3">
@@ -271,7 +305,7 @@ const AdminTrainers = () => {
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditTarget(t)} title="Edit">
                     <Pencil className="w-4 h-4" />
                   </Button>
-                  {t.approval_status === "pending" && (
+                   {t.approval_status === "pending" && (
                     <>
                       <Button size="sm" className="h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700" onClick={() => updateStatus(t.id, "approved")}>
                         <Check className="w-3.5 h-3.5" />
@@ -279,7 +313,15 @@ const AdminTrainers = () => {
                       <Button size="sm" variant="outline" className="h-8 w-8 p-0 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => handleRejectClick(t)}>
                         <X className="w-3.5 h-3.5" />
                       </Button>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2" onClick={() => sendReminder(t)} disabled={reminderSending === t.id} title="Send reminder email">
+                        <Bell className="w-3.5 h-3.5" /> {reminderSending === t.id ? "..." : "Remind"}
+                      </Button>
                     </>
+                  )}
+                  {t.approval_status === "rejected" && (
+                    <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2" onClick={() => sendReminder(t)} disabled={reminderSending === t.id} title="Send reminder email">
+                      <Bell className="w-3.5 h-3.5" /> {reminderSending === t.id ? "..." : "Remind"}
+                    </Button>
                   )}
                   {t.approval_status === "approved" && (
                     <>

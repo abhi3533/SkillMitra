@@ -674,6 +674,7 @@ const TrainerOnboarding = () => {
                   <Label>Date of Birth<RequiredMark /></Label>
                   <Input type="date" value={form.dob} onChange={e => update("dob", e.target.value)} onBlur={() => markTouched("dob")}
                     className={`mt-1.5 h-11 ${touched.dob ? (form.dob ? "border-green-500" : "border-destructive") : ""}`} />
+                  <FieldHint text="Used for age verification. Not shown publicly." />
                 </div>
                 <div>
                   <Label>Gender<RequiredMark /></Label>

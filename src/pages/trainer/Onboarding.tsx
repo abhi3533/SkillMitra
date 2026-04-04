@@ -781,6 +781,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Work Email <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input type="email" value={form.workEmail} onChange={e => update("workEmail", e.target.value)} placeholder="you@company.com" className="mt-1.5 h-11" />
+                  <FieldHint text="Helps us verify your employment. Not shown publicly." />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

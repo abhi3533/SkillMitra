@@ -40,6 +40,7 @@ const stepHeadings = [
 
 interface DocFile { file: File | null; name: string; }
 const RequiredMark = () => <span className="text-destructive ml-0.5">*</span>;
+const FieldHint = ({ text }: { text: string }) => <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{text}</p>;
 
 const TrainerOnboarding = () => {
   const { user, profile, loading: authLoading } = useAuth();
@@ -673,6 +674,7 @@ const TrainerOnboarding = () => {
                   <Label>Date of Birth<RequiredMark /></Label>
                   <Input type="date" value={form.dob} onChange={e => update("dob", e.target.value)} onBlur={() => markTouched("dob")}
                     className={`mt-1.5 h-11 ${touched.dob ? (form.dob ? "border-green-500" : "border-destructive") : ""}`} />
+                  <FieldHint text="Used for age verification. Not shown publicly." />
                 </div>
                 <div>
                   <Label>Gender<RequiredMark /></Label>
@@ -680,6 +682,7 @@ const TrainerOnboarding = () => {
                     <SelectTrigger className={`mt-1.5 h-11 ${touched.gender ? (form.gender ? "border-green-500" : "border-destructive") : ""}`}><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent><SelectItem value="male">Male</SelectItem><SelectItem value="female">Female</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
                   </Select>
+                  <FieldHint text="Some students prefer trainers of a specific gender. Helps with matching." />
                 </div>
               </div>
 
@@ -688,6 +691,7 @@ const TrainerOnboarding = () => {
                   <Label>Phone Number<RequiredMark /></Label>
                   <Input value={form.phone} onChange={e => handlePhoneChange(e.target.value)} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
                     className={`mt-1.5 h-11 ${touched.phone ? (isPhoneFilled ? "border-green-500" : "border-destructive") : ""}`} />
+                  <FieldHint text="We may call you for onboarding assistance or to connect you with students." />
                 </div>
                  <div>
                   <div className="flex items-center justify-between">
@@ -705,12 +709,14 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Complete Address <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
                 <Textarea value={form.address} onChange={e => update("address", e.target.value)} onBlur={() => markTouched("address")} placeholder="House/Flat No, Street, Area, Landmark" className="mt-1.5 min-h-[70px]" />
+                <FieldHint text="Kept private. Used only for KYC and document verification." />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <Label>City<RequiredMark /></Label>
                   <Input value={form.city} onChange={e => update("city", e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} onBlur={() => markTouched("city")} placeholder="City" className="mt-1.5 h-11" />
+                  <FieldHint text="Shown to students to find local trainers." />
                 </div>
                 <div>
                   <Label>State<RequiredMark /></Label>
@@ -729,10 +735,12 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>LinkedIn <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input value={form.linkedinUrl} onChange={e => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/in/you" className="mt-1.5 h-11" />
+                  <FieldHint text="Helps verify your professional background. Speeds up approval." />
                 </div>
                 <div>
                   <Label>Portfolio <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input value={form.portfolioUrl} onChange={e => update("portfolioUrl", e.target.value)} placeholder="https://yoursite.com" className="mt-1.5 h-11" />
+                  <FieldHint text="Showcase your work. Students love seeing real projects." />
                 </div>
               </div>
 
@@ -750,10 +758,12 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Total Experience (Years)<RequiredMark /></Label>
                   <Input type="number" value={form.experience} onChange={e => update("experience", e.target.value)} placeholder="e.g. 5" className="mt-1.5 h-11" min="0" />
+                  <FieldHint text="Shown on your public profile to attract relevant students." />
                 </div>
                 <div>
                   <Label>Current Role<RequiredMark /></Label>
                   <Input value={form.currentRole} onChange={e => update("currentRole", e.target.value)} placeholder="e.g. Senior Developer" className="mt-1.5 h-11" />
+                  <FieldHint text="Displayed on your profile. Helps students know your expertise level." />
                   {stepAttempted[1] && form.currentRole.trim() && !hasLetters(form.currentRole) && (
                     <p className="text-xs text-destructive mt-1">Role must contain at least one letter</p>
                   )}
@@ -763,6 +773,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Current/Previous Company<RequiredMark /></Label>
                   <Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} placeholder="e.g. Google" className="mt-1.5 h-11" />
+                  <FieldHint text="Builds trust. Students prefer trainers from reputed companies." />
                   {stepAttempted[1] && form.currentCompany.trim() && !hasLetters(form.currentCompany) && (
                     <p className="text-xs text-destructive mt-1">Company name must contain at least one letter</p>
                   )}
@@ -770,16 +781,19 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Work Email <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input type="email" value={form.workEmail} onChange={e => update("workEmail", e.target.value)} placeholder="you@company.com" className="mt-1.5 h-11" />
+                  <FieldHint text="Helps us verify your employment. Not shown publicly." />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Primary Skill<RequiredMark /></Label>
                   <Input value={form.primarySkill} onChange={e => update("primarySkill", e.target.value)} placeholder="e.g. React.js" className="mt-1.5 h-11" />
+                  <FieldHint text="This is the main skill students will search and find you for." />
                 </div>
                 <div>
                   <Label>Secondary Skill <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input value={form.secondarySkill} onChange={e => update("secondarySkill", e.target.value)} placeholder="e.g. Node.js" className="mt-1.5 h-11" />
+                  <FieldHint text="Add a complementary skill to attract more students." />
                 </div>
               </div>
 
@@ -798,6 +812,7 @@ const TrainerOnboarding = () => {
 
               <div className="space-y-3">
                 <Label>Resume<RequiredMark /></Label>
+                <FieldHint text="Helps our team verify your experience and qualifications before approval." />
                 <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, max 5MB" />
               </div>
 
@@ -846,21 +861,25 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Course Title<RequiredMark /></Label>
                 <Input value={form.courseTitle} onChange={e => update("courseTitle", e.target.value)} placeholder="e.g. Full Stack Web Development" className="mt-1.5 h-11" />
+                <FieldHint text="Choose a clear, specific title. Students search by course name." />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Course Duration<RequiredMark /></Label>
                   <Input value={form.courseDuration} onChange={e => update("courseDuration", e.target.value)} placeholder="e.g. 3 months" className="mt-1.5 h-11" />
+                  <FieldHint text="Helps students plan their learning. Be realistic." />
                 </div>
                 <div>
                   <Label>Course Fee (₹)<RequiredMark /></Label>
                   <Input type="number" value={form.courseFee} onChange={e => update("courseFee", e.target.value)} placeholder="Min ₹500" className="mt-1.5 h-11" min="500" />
+                  <FieldHint text="Set a competitive price. You can always adjust it later." />
                   {touched.courseFee && form.courseFee && parseInt(form.courseFee) < 500 && <p className="text-xs text-destructive mt-1">Minimum fee is ₹500</p>}
                 </div>
               </div>
               <div>
                 <Label>Course Description<RequiredMark /></Label>
                 <Textarea value={form.courseDescription} onChange={e => update("courseDescription", e.target.value)} placeholder="Describe what students will learn..." className="mt-1.5 min-h-[120px]" />
+                <FieldHint text="This is your first impression to students. Make it clear and professional." />
                 <p className="text-xs text-muted-foreground mt-1">{form.courseDescription.length}/100 characters minimum</p>
               </div>
 
@@ -888,10 +907,12 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Additional Services Details <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Textarea value={form.additionalServicesDetails} onChange={e => update("additionalServicesDetails", e.target.value)} placeholder="Describe your additional services..." className="mt-1.5 min-h-[100px]" />
+                <FieldHint text="Students value trainers who go beyond just teaching. Describe what extra you offer." />
               </div>
               <div>
                 <Label>Course Materials & Resources <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Textarea value={form.courseMaterials} onChange={e => update("courseMaterials", e.target.value)} placeholder="PDFs, code samples, projects..." className="mt-1.5 min-h-[100px]" />
+                <FieldHint text="Let students know what study materials they'll receive." />
               </div>
             </div>
           )}
@@ -903,6 +924,7 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Bank Account Number<RequiredMark /></Label>
                 <Input value={form.bankAccount} onChange={e => update("bankAccount", e.target.value)} placeholder="Account number" className="mt-1.5 h-11" />
+                <FieldHint text="Required for receiving your earnings. Kept securely encrypted." />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -918,10 +940,12 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>UPI ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Input value={form.upiId} onChange={e => update("upiId", e.target.value)} placeholder="yourname@upi" className="mt-1.5 h-11" />
+                <FieldHint text="Faster payouts via UPI. Add if you prefer instant transfers." />
               </div>
 
               <div className="border-t border-border pt-5 space-y-4">
                 <Label>Government ID Type<RequiredMark /></Label>
+                <FieldHint text="Mandatory KYC for identity verification. Kept private and secure." />
                 <Select value={form.govtIdType} onValueChange={v => { update("govtIdType", v); markTouched("govtIdType"); }}>
                   <SelectTrigger className="h-11"><SelectValue placeholder="Select ID type" /></SelectTrigger>
                   <SelectContent>

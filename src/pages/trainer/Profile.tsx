@@ -813,7 +813,7 @@ const TrainerProfile = () => {
               <div>
                 <p className="font-semibold text-foreground">Your trial is already scheduled!</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {existingTrial.scheduled_at ? format(new Date(existingTrial.scheduled_at), "dd MMM yyyy 'at' hh:mm a") : "Date pending"}
+                  {existingTrial.scheduled_at ? formatDateTimeIST(existingTrial.scheduled_at) : "Date pending"}
                 </p>
               </div>
               {existingTrial.meet_link && (

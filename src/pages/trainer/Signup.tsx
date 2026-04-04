@@ -208,7 +208,11 @@ const TrainerSignup = () => {
               <Input type="email" value={form.email} onChange={e => { update("email", e.target.value); setEmailTypo(null); setEmailError(""); }} onBlur={handleEmailBlur} placeholder="you@email.com"
                 className={`mt-1.5 h-11 ${touched.email ? (isValidEmail(form.email) && !emailError ? "border-green-500" : "border-destructive") : ""}`} />
               {emailError && (
-                <p className="text-xs text-destructive mt-1">{emailError} <Link to="/trainer/login" className="text-primary underline font-medium">Login here</Link></p>
+                <p className="text-xs text-destructive mt-1">
+                  {emailError}{" "}
+                  {emailError.includes("student") && <Link to="/student/login" className="text-primary underline font-medium">Student Login</Link>}
+                  {emailError.includes("login instead") && <Link to="/trainer/login" className="text-primary underline font-medium">Login here</Link>}
+                </p>
               )}
               {emailTypo && <p className="text-xs text-amber-600 mt-1">{emailTypo}</p>}
             </div>

@@ -56,6 +56,7 @@ const TrainerCourses = () => {
       const { data: trainer } = await supabase.from("trainers").select("id, approval_status").eq("user_id", user.id).maybeSingle();
       if (trainer) {
         setTrainerId(trainer.id);
+        setApprovalStatus(trainer.approval_status);
         setProfileApproved(trainer.approval_status === "approved");
         const { data } = await supabase.from("courses").select("*").eq("trainer_id", trainer.id).order("created_at", { ascending: false });
         setCourses(data || []);

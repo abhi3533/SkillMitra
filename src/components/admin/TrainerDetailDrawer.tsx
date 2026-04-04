@@ -39,6 +39,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
   const [documents, setDocuments] = useState<any[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+  const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string; status: string } | null>(null);
 
   // Resolve signed URLs for private bucket files
   const resolveUrls = useCallback(async (t: any) => {

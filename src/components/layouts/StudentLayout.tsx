@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 const sidebarItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/student/dashboard" },
+  { label: "Browse Trainers", icon: Search, path: "/browse" },
   { label: "My Courses", icon: BookOpen, path: "/student/courses" },
   { label: "Sessions", icon: Calendar, path: "/student/sessions" },
   { label: "Attendance", icon: ClipboardCheck, path: "/student/attendance" },
@@ -19,6 +20,7 @@ const sidebarItems = [
   { label: "Refer & Earn", icon: Gift, path: "/student/referrals" },
   { label: "Wallet", icon: Wallet, path: "/student/wallet" },
   { label: "Profile", icon: User, path: "/student/profile" },
+  { label: "Go to Main Website", icon: ExternalLink, path: "https://skillmitra.online", external: true },
 ];
 
 const StudentLayout = ({ children }: { children: React.ReactNode }) => {

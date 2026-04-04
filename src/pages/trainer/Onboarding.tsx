@@ -426,16 +426,22 @@ const TrainerOnboarding = () => {
       for (const [key, docFile] of Object.entries(docs)) {
         if (!docFile?.file) continue;
         const ext = docFile.file.name.split('.').pop();
-        const bucket = key === "demo_video" || key === "intro_video" ? "intro-videos" : "trainer-documents";
+        const isPublicBucket = key === "demo_video" || key === "intro_video";
+        const bucket = isPublicBucket ? "intro-videos" : "trainer-documents";
         const path = `${user.id}/${key}.${ext}`;
         const { error: upErr } = await supabase.storage.from(bucket).upload(path, docFile.file, { upsert: true });
         if (upErr) { console.error(`Upload failed for ${key}:`, upErr); continue; }
-        const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
-        if (key === "demo_video") demoVideoUrl = urlData.publicUrl;
-        else if (key === "intro_video") introVideoUrl = urlData.publicUrl;
-        else if (key === "curriculum_pdf") curriculumPdfUrl = urlData.publicUrl;
-        else if (key === "aadhaar") aadhaarUrl = urlData.publicUrl;
-        else uploadedDocs.push({ document_type: key, document_name: docFile.name, document_url: urlData.publicUrl });
+        if (isPublicBucket) {
+          const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+          if (key === "demo_video") demoVideoUrl = urlData.publicUrl;
+          else if (key === "intro_video") introVideoUrl = urlData.publicUrl;
+        } else if (key === "curriculum_pdf") {
+          curriculumPdfUrl = path;
+        } else if (key === "aadhaar") {
+          aadhaarUrl = path;
+        } else {
+          uploadedDocs.push({ document_type: key, document_name: docFile.name, document_url: path });
+        }
       }
 
       const { error: completeErr } = await supabase.functions.invoke("complete-signup", {

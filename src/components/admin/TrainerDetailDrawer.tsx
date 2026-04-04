@@ -63,6 +63,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
   useEffect(() => {
     if (!trainer || !open) return;
     setSignedUrls({});
+    setReferralInfo(null);
     resolveUrls(trainer);
 
     (async () => {
@@ -87,6 +88,49 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
       setDocuments(docsWithUrls);
       setLoadingDocs(false);
     })();
+
+    // Fetch referral info if referred_by exists
+    if (trainer.referred_by) {
+      (async () => {
+        const { data: refData } = await supabase
+          .from("trainer_referrals")
+          .select("status, referral_code, referrer_id")
+          .eq("referred_id", trainer.id)
+          .limit(1)
+          .maybeSingle();
+
+        if (refData) {
+          // Get referrer name
+          const { data: referrerTrainer } = await supabase
+            .from("trainers")
+            .select("user_id")
+            .eq("id", refData.referrer_id)
+            .single();
+
+          let referrerName = "Unknown";
+          if (referrerTrainer?.user_id) {
+            const { data: referrerProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", referrerTrainer.user_id)
+              .single();
+            referrerName = referrerProfile?.full_name || "Unknown";
+          }
+
+          setReferralInfo({
+            referrerName,
+            code: refData.referral_code || trainer.referred_by,
+            status: refData.status || "pending",
+          });
+        } else {
+          setReferralInfo({
+            referrerName: "—",
+            code: trainer.referred_by,
+            status: "pending",
+          });
+        }
+      })();
+    }
   }, [trainer, open, resolveUrls]);
 
   if (!trainer) return null;

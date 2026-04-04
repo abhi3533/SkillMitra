@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
 
         if (referrerProfile?.email) {
           await sendEmail(RESEND_API_KEY, referrerProfile.email,
-            'Congratulations! ₹1,500 credited to your wallet 🎉',
+            'Your ₹1,500 bonus will be credited shortly!',
             layout(`
               <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${referrerProfile.full_name || 'Trainer'} 🎉</h1>
               <p style="font-size: 15px; line-height: 1.7; color: #444;">Great news! The trainer you referred has been <strong style="color: #059669;">approved</strong> by our team.</p>

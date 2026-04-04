@@ -99,6 +99,10 @@ serve(async (req) => {
         course_description: trainer_data.course_description || null,
         verification_method: trainer_data.verification_method || null,
         verification_value: trainer_data.verification_value || null,
+        trainer_type: trainer_data.trainer_type || null,
+        session_duration_per_day: trainer_data.session_duration_per_day || null,
+        available_time_bands: trainer_data.available_time_bands || [],
+        weekend_availability: trainer_data.weekend_availability || null,
       }).eq("id", trainer.id);
 
       if (updateErr) {

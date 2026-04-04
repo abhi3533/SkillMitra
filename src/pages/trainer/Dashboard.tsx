@@ -222,9 +222,43 @@ const TrainerDashboard = () => {
       {data.approvalStatus === "rejected" && !loading && (
         <div className="mt-4 bg-destructive/5 border border-destructive/20 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <h3 className="text-sm font-semibold text-foreground">Application not approved</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then contact us to re-apply.</p>
+            {trainerLifecycle && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {(trainers => {
+                  const t = trainers;
+                  return t ? `Reason: ${t}` : "Please update your profile and documents, then resubmit.";
+                })(data.rejectionReason)}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then resubmit your application.</p>
+            <div className="flex gap-2 mt-2">
+              <Link to="/trainer/onboarding">
+                <Button size="sm" variant="outline" className="text-xs">Edit Profile</Button>
+              </Link>
+              <Button
+                size="sm"
+                className="text-xs hero-gradient border-0"
+                onClick={async () => {
+                  if (!trainerRowId) return;
+                  const { error } = await supabase.from("trainers").update({
+                    approval_status: "pending",
+                    profile_status: "pending",
+                    onboarding_status: "pending",
+                    rejection_reason: null,
+                  }).eq("id", trainerRowId);
+                  if (error) {
+                    toast({ title: "Error", description: error.message, variant: "destructive" });
+                  } else {
+                    toast({ title: "Resubmitted!", description: "Your application has been resubmitted for review.", variant: "success" });
+                    fetchData();
+                  }
+                }}
+              >
+                Resubmit Application
+              </Button>
+            </div>
           </div>
         </div>
       )}

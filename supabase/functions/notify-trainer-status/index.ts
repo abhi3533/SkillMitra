@@ -97,17 +97,21 @@ Deno.serve(async (req) => {
         <p style="font-size: 14px; color: #666; margin-top: 8px;">— Team SkillMitra</p>
       `)
     } else {
-      subject = 'Update on your SkillMitra trainer application'
+      subject = 'Your SkillMitra application needs attention'
       htmlBody = layout(`
         <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${trainerName},</h1>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">Thank you for applying to become a trainer on SkillMitra.</p>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">After reviewing your profile, we're unable to approve it right now.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">After reviewing your application, we found the following issue:</p>
         
         ${rejection_reason ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0;">
-          <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Reason:</strong> ${rejection_reason}</p>
+          <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Issue:</strong> ${rejection_reason}</p>
         </div>` : ''}
         
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">You're welcome to update your details and apply again after 30 days.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Please login, update your profile and resubmit your application. We'd love to have you on SkillMitra!</p>
+
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${APP_URL}/trainer/dashboard" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Update & Resubmit</a>
+        </div>
+
         <p style="font-size: 15px; line-height: 1.7; color: #444;">If you have questions, write to us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a>.</p>
         
         <p style="font-size: 14px; color: #666; margin-top: 24px;">— Team SkillMitra</p>

@@ -1101,11 +1101,19 @@ const TrainerOnboarding = () => {
               </div>
             )}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About the Trainer</p>
               <p className="text-sm text-foreground leading-relaxed">
-                {form.courseDescription || "No bio added yet."}
+                {form.bio || "No bio added yet."}
               </p>
             </div>
+            {form.courseDescription && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About the Course</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {form.courseDescription}
+                </p>
+              </div>
+            )}
             <div className="flex items-center gap-4 text-sm">
               {form.experience && (
                 <div className="text-center">

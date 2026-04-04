@@ -90,21 +90,21 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 sm:p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center justify-center mb-6 sm:mb-8">
           <SkillMitraLogo darkText height={32} />
         </div>
 
-        <div className="bg-card rounded-xl border p-6 space-y-5">
+        <div className="bg-card rounded-xl border p-4 sm:p-6 space-y-5">
           {sent ? (
             <div className="text-center space-y-4">
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <Mail className="w-7 h-7 text-primary" />
               </div>
-              <h1 className="text-xl font-bold text-foreground">Check your email</h1>
-              <p className="text-sm text-muted-foreground">
-                We've sent a password reset link to <span className="font-medium text-foreground">{email}</span>.
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">Check your email</h1>
+              <p className="text-sm text-muted-foreground px-1">
+                We've sent a password reset link to <span className="font-medium text-foreground break-all">{email}</span>.
                 The link expires in 1 hour.
               </p>
               <Link to={loginPath} className="inline-flex items-center gap-1 text-sm text-primary font-semibold hover:underline">
@@ -116,23 +116,23 @@ const ForgotPassword = () => {
               <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
                 <AlertCircle className="w-7 h-7 text-destructive" />
               </div>
-              <h1 className="text-xl font-bold text-foreground">No account found</h1>
-              <p className="text-sm text-destructive">
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">No account found</h1>
+              <p className="text-sm text-destructive px-1">
                 No account found with this email address. Please check your email or sign up for free.
               </p>
-              <div className="flex gap-3 justify-center">
-                <Button variant="outline" onClick={handleTryAgain} className="gap-1">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="outline" onClick={handleTryAgain} className="gap-1 w-full sm:w-auto">
                   <ArrowLeft className="w-4 h-4" /> Try Again
                 </Button>
-                <Link to="/student/signup">
-                  <Button className="hero-gradient border-0 font-semibold">Sign Up Free</Button>
+                <Link to="/student/signup" className="block">
+                  <Button className="hero-gradient border-0 font-semibold w-full sm:w-auto">Sign Up Free</Button>
                 </Link>
               </div>
             </div>
           ) : (
             <>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Forgot Password</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-foreground">Forgot Password</h1>
                 <p className="text-sm text-muted-foreground mt-1">Enter your email and we'll send you a reset link.</p>
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -151,7 +151,7 @@ const ForgotPassword = () => {
                   />
                   {emailError && (
                     <p className="text-sm text-destructive mt-1.5 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" /> {emailError}
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {emailError}
                     </p>
                   )}
                 </div>

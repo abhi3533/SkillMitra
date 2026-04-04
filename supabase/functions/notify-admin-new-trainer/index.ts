@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     const name = trainer_name || 'Unknown'
-    const appliedAt = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+    const appliedAt = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }) + ' IST'
     const skillsList = (skills && skills.length > 0) ? skills.join(', ') : 'Not specified'
 
     let adminSubject: string

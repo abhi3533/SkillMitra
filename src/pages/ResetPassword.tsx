@@ -73,13 +73,13 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 sm:p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center justify-center mb-6 sm:mb-8">
           <SkillMitraLogo darkText height={32} />
         </div>
 
-        <div className="bg-card rounded-xl border p-6 space-y-5">
+        <div className="bg-card rounded-xl border p-4 sm:p-6 space-y-5">
           {success ? (
             <div className="text-center space-y-4">
               <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto">

@@ -132,29 +132,30 @@ const TrainerSignup = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center p-6">
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md text-center">
-          <div className="w-20 h-20 mx-auto rounded-full hero-gradient flex items-center justify-center mb-6">
-            <Shield className="w-10 h-10 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Check Your Email</h1>
-          <p className="mt-4 text-muted-foreground leading-relaxed">
-            We've sent a verification link to <span className="font-semibold text-foreground">{form.email}</span>.
-            Click the link to verify your account, then log in to complete your trainer profile.
-          </p>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Mobile number <span className="font-semibold text-foreground">{form.phone}</span> is saved for admin follow-up.
-          </p>
-          <div className="mt-8 space-y-3">
-            <Link to="/trainer/login">
-              <Button className="hero-gradient border-0 font-semibold w-full">Go to Trainer Login <ArrowRight className="ml-2 w-4 h-4" /></Button>
-            </Link>
-            <Link to="/">
-              <Button variant="outline" className="w-full">Back to Home</Button>
-            </Link>
-          </div>
-        </motion.div>
-      </div>
+        <div className="flex-1 flex items-center justify-center px-4 py-8 sm:p-6">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full hero-gradient flex items-center justify-center mb-5 sm:mb-6">
+              <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Check Your Email</h1>
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed px-2">
+              We've sent a verification link to{" "}
+              <span className="font-semibold text-foreground break-all">{form.email}</span>.
+              Click the link to verify your account, then log in to complete your trainer profile.
+            </p>
+            <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-muted-foreground">
+              Mobile number <span className="font-semibold text-foreground">{form.phone}</span> is saved for admin follow-up.
+            </p>
+            <div className="mt-6 sm:mt-8 space-y-3">
+              <Link to="/trainer/login" className="block">
+                <Button className="hero-gradient border-0 font-semibold w-full h-11">Go to Trainer Login <ArrowRight className="ml-2 w-4 h-4" /></Button>
+              </Link>
+              <Link to="/" className="block">
+                <Button variant="outline" className="w-full h-11">Back to Home</Button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
         <Footer />
       </div>
     );

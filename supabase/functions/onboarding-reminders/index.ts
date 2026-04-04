@@ -53,15 +53,30 @@ Deno.serve(async (req) => {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', trainer.user_id).single()
       if (!profile?.email) throw new Error('No email found')
 
+      const name = profile.full_name || 'there'
       const step = trainer.onboarding_step || 0
-      const html = layout(`
-        <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${profile.full_name || 'there'},</h1>
-        <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'not set up yet'}. Finish it to start teaching and earning on SkillMitra!</p>
-        ${btn(step > 0 ? 'Continue Where I Left Off' : 'Complete My Profile', `${APP_URL}/trainer/onboarding`)}
-        <p style="font-size: 13px; color: #888; text-align: center;">Need help? Email us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a></p>
-      `)
+      const isAdminNudge = body.reminder_type === 'admin_nudge'
 
-      await sendEmail(RESEND_API_KEY, profile.email, 'Complete Your SkillMitra Profile', html)
+      const subject = isAdminNudge
+        ? 'Action Required — Complete your SkillMitra application'
+        : 'Complete Your SkillMitra Profile'
+
+      const html = isAdminNudge
+        ? layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Please login and complete your application to get approved as a trainer on SkillMitra.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% complete` : 'not yet started'}. Finish it now to start teaching and earning!</p>
+          ${btn('Complete My Application', `${APP_URL}/trainer/onboarding`)}
+          <p style="font-size: 13px; color: #888; text-align: center;">Need help? Email us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a></p>
+        `)
+        : layout(`
+          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'not set up yet'}. Finish it to start teaching and earning on SkillMitra!</p>
+          ${btn(step > 0 ? 'Continue Where I Left Off' : 'Complete My Profile', `${APP_URL}/trainer/onboarding`)}
+          <p style="font-size: 13px; color: #888; text-align: center;">Need help? Email us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a></p>
+        `)
+
+      await sendEmail(RESEND_API_KEY, profile.email, subject, html)
       return new Response(JSON.stringify({ success: true, sent_to: profile.full_name }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })

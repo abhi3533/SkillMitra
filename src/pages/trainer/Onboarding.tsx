@@ -79,9 +79,11 @@ const TrainerOnboarding = () => {
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const profilePhotoRef = useRef<HTMLInputElement | null>(null);
-  const selfieRef = useRef<HTMLInputElement | null>(null);
   const [selfie, setSelfie] = useState<File | null>(null);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [stepAttempted, setStepAttempted] = useState<Record<number, boolean>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -316,15 +318,44 @@ const TrainerOnboarding = () => {
   };
   const removeProfilePhoto = () => { setProfilePhoto(null); setProfilePhotoPreview(null); if (profilePhotoRef.current) profilePhotoRef.current.value = ""; };
 
-  const handleSelfieSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { toast({ title: "Photo must be less than 5MB", variant: "warning" }); return; }
-      setSelfie(file);
-      setSelfiePreview(URL.createObjectURL(file));
+  const openCameraForSelfie = async () => {
+    setShowCameraModal(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      cameraStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err) {
+      toast({ title: "Camera access denied", description: "Please allow camera access to take a selfie.", variant: "destructive" });
+      setShowCameraModal(false);
     }
   };
-  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); if (selfieRef.current) selfieRef.current.value = ""; };
+
+  const captureSelfie = () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+        setSelfie(file);
+        setSelfiePreview(URL.createObjectURL(file));
+      }
+      closeCameraStream();
+    }, "image/jpeg", 0.9);
+  };
+
+  const closeCameraStream = () => {
+    cameraStreamRef.current?.getTracks().forEach(t => t.stop());
+    cameraStreamRef.current = null;
+    setShowCameraModal(false);
+  };
+
+  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); };
 
   const toggleReadiness = (key: string) => setReadinessChecks(p => ({ ...p, [key]: !p[key] }));
   const allReadinessChecked = Object.values(readinessChecks).every(Boolean);
@@ -341,11 +372,9 @@ const TrainerOnboarding = () => {
   const validateStep = (s: number): boolean => {
     setStepAttempted(p => ({ ...p, [s]: true }));
     if (s === 0) {
-      if (!profilePhoto && !profilePhotoPreview) { toast({ title: "Profile photo is required", variant: "warning" }); return false; }
       if (!form.dob) { toast({ title: "Date of birth is required", variant: "warning" }); return false; }
       if (!form.gender) { toast({ title: "Gender is required", variant: "warning" }); return false; }
       if (!isValidPhone(form.phone)) { toast({ title: "Valid 10-digit Indian mobile number required", variant: "warning" }); return false; }
-      if (!selfie && !selfiePreview) { toast({ title: "Selfie upload is required for verification", variant: "warning" }); return false; }
       if (!form.city.trim() || !/^[a-zA-Z\s'-]+$/.test(form.city.trim())) { toast({ title: "Please enter a valid city name (letters only)", variant: "warning" }); return false; }
       if (!form.state) { toast({ title: "State is required", variant: "warning" }); return false; }
     }
@@ -369,6 +398,8 @@ const TrainerOnboarding = () => {
       if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }
     }
     if (s === 4) {
+      if (!profilePhoto && !profilePhotoPreview) { toast({ title: "Profile photo is required", variant: "warning" }); return false; }
+      if (!selfie && !selfiePreview) { toast({ title: "Selfie is required for verification", variant: "warning" }); return false; }
       if (!form.bankAccount.trim()) { toast({ title: "Bank account number is required", variant: "warning" }); return false; }
       if (!form.ifsc.trim() || !isValidIFSC(form.ifsc)) { toast({ title: "Valid IFSC code is required (e.g. SBIN0001234)", variant: "warning" }); return false; }
       if (!form.accountHolderName.trim()) { toast({ title: "Account holder name is required", variant: "warning" }); return false; }
@@ -631,44 +662,6 @@ const TrainerOnboarding = () => {
           {/* ========== STEP 0: Personal Details ========== */}
           {step === 0 && (
             <div className="mt-6 space-y-4">
-              {/* Profile Photo & Selfie */}
-              <div className="flex gap-6 items-start justify-center">
-                <div className="flex flex-col items-center gap-2">
-                  <Label className="text-xs font-medium">Profile Photo<RequiredMark /></Label>
-                  <div className="relative">
-                    {profilePhotoPreview ? (
-                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary">
-                        <img src={profilePhotoPreview} alt="Profile" className="w-full h-full object-cover" />
-                        <button type="button" onClick={removeProfilePhoto} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={() => profilePhotoRef.current?.click()} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[0] && !profilePhoto && !profilePhotoPreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
-                        <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
-                      </button>
-                    )}
-                    <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">This photo will be displayed on your public profile to help students recognize and trust you. A clear, professional photo gets more bookings.</p>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <Label className="text-xs font-medium">Selfie<RequiredMark /></Label>
-                  <div className="relative">
-                    {selfiePreview ? (
-                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary">
-                        <img src={selfiePreview} alt="Selfie" className="w-full h-full object-cover" />
-                        <button type="button" onClick={removeSelfie} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={() => selfieRef.current?.click()} className="w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 border-destructive/50 hover:border-destructive bg-muted/50">
-                        <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
-                      </button>
-                    )}
-                    <input ref={selfieRef} type="file" accept="image/*" className="hidden" onChange={handleSelfieSelect} />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">This selfie is only for SkillMitra team verification purposes to confirm your identity. It will NOT be shown publicly to students.</p>
-                </div>
-              </div>
-
               <div className="p-3 rounded-lg bg-muted/50 border border-border">
                 <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">{profile?.full_name}</span> · {profile?.email}</p>
               </div>
@@ -933,6 +926,44 @@ const TrainerOnboarding = () => {
           {/* ========== STEP 4: Payment & Documents ========== */}
           {step === 4 && (
             <div className="mt-6 space-y-5">
+              {/* Profile Photo & Selfie */}
+              <div className="flex gap-6 items-start justify-center">
+                <div className="flex flex-col items-center gap-2">
+                  <Label className="text-xs font-medium">Profile Photo<RequiredMark /></Label>
+                  <div className="relative">
+                    {profilePhotoPreview ? (
+                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary">
+                        <img src={profilePhotoPreview} alt="Profile" className="w-full h-full object-cover" />
+                        <button type="button" onClick={removeProfilePhoto} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => profilePhotoRef.current?.click()} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[4] && !profilePhoto && !profilePhotoPreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
+                        <Upload className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
+                      </button>
+                    )}
+                    <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">This photo will be displayed on your public profile. A clear, professional photo gets more bookings.</p>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Label className="text-xs font-medium">Selfie<RequiredMark /></Label>
+                  <div className="relative">
+                    {selfiePreview ? (
+                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary">
+                        <img src={selfiePreview} alt="Selfie" className="w-full h-full object-cover" />
+                        <button type="button" onClick={removeSelfie} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={openCameraForSelfie} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[4] && !selfie && !selfiePreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
+                        <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">Live camera capture only. Used for identity verification. NOT shown publicly.</p>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-5"></div>
 
               <div>
                 <Label>Bank Account Number<RequiredMark /></Label>
@@ -1132,6 +1163,33 @@ const TrainerOnboarding = () => {
           </div>
           <div className="mt-4">
             <Button variant="outline" className="w-full" onClick={() => setShowPreview(false)}>Close Preview</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Camera Capture Modal for Selfie */}
+      <Dialog open={showCameraModal} onOpenChange={(open) => { if (!open) closeCameraStream(); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Take a Selfie</DialogTitle>
+            <p className="text-xs text-muted-foreground">Position your face in the frame and click capture.</p>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 mt-2">
+            <div className="w-64 h-64 rounded-xl overflow-hidden bg-black">
+              <video ref={(el) => {
+                videoRef.current = el;
+                if (el && cameraStreamRef.current) {
+                  el.srcObject = cameraStreamRef.current;
+                  el.play();
+                }
+              }} autoPlay playsInline muted className="w-full h-full object-cover" style={{ transform: "scaleX(-1)" }} />
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={closeCameraStream}>Cancel</Button>
+              <Button onClick={captureSelfie} className="hero-gradient border-0">
+                <Camera className="w-4 h-4 mr-2" /> Capture
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -14,6 +14,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useLoadingTitle } from "@/hooks/useLoadingTitle";
 import { RefreshCw } from "lucide-react";
 import TrainerTrialRequests from "@/components/TrainerTrialRequests";
+import ViewApplicationModal from "@/components/trainer/ViewApplicationModal";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();

@@ -793,6 +793,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Secondary Skill <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Input value={form.secondarySkill} onChange={e => update("secondarySkill", e.target.value)} placeholder="e.g. Node.js" className="mt-1.5 h-11" />
+                  <FieldHint text="Add a complementary skill to attract more students." />
                 </div>
               </div>
 

@@ -907,6 +907,7 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Additional Services Details <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Textarea value={form.additionalServicesDetails} onChange={e => update("additionalServicesDetails", e.target.value)} placeholder="Describe your additional services..." className="mt-1.5 min-h-[100px]" />
+                <FieldHint text="Students value trainers who go beyond just teaching. Describe what extra you offer." />
               </div>
               <div>
                 <Label>Course Materials & Resources <span className="text-muted-foreground font-normal">(optional)</span></Label>

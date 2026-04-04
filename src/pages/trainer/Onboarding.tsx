@@ -945,6 +945,7 @@ const TrainerOnboarding = () => {
 
               <div className="border-t border-border pt-5 space-y-4">
                 <Label>Government ID Type<RequiredMark /></Label>
+                <FieldHint text="Mandatory KYC for identity verification. Kept private and secure." />
                 <Select value={form.govtIdType} onValueChange={v => { update("govtIdType", v); markTouched("govtIdType"); }}>
                   <SelectTrigger className="h-11"><SelectValue placeholder="Select ID type" /></SelectTrigger>
                   <SelectContent>

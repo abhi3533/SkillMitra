@@ -59,6 +59,7 @@ const TrainerOnboarding = () => {
     linkedinUrl: "", portfolioUrl: "",
     experience: "", currentRole: "", currentCompany: "", primarySkill: "", secondarySkill: "", workEmail: "",
     verificationMethod: "", verificationValue: "",
+    bio: "",
     courseTitle: "", courseDuration: "", courseFee: "", courseDescription: "",
     additionalServicesDetails: "", courseMaterials: "",
     bankAccount: "", ifsc: "", accountHolderName: "", upiId: "", govtIdType: "",
@@ -145,10 +146,11 @@ const TrainerOnboarding = () => {
           workEmail: saved.workEmail || trainer.work_email || "",
           verificationMethod: saved.verificationMethod || trainer.verification_method || "",
           verificationValue: saved.verificationValue || trainer.verification_value || "",
+          bio: saved.bio || trainer.bio || "",
           courseTitle: saved.courseTitle || trainer.course_title || "",
           courseDuration: saved.courseDuration || trainer.course_duration || "",
           courseFee: saved.courseFee || String(trainer.course_fee || ""),
-          courseDescription: saved.courseDescription || trainer.course_description || trainer.bio || "",
+          courseDescription: saved.courseDescription || trainer.course_description || "",
           additionalServicesDetails: saved.additionalServicesDetails || trainer.additional_services_details || "",
           courseMaterials: saved.courseMaterials || trainer.course_materials || "",
           bankAccount: saved.bankAccount || trainer.bank_account_number || "",
@@ -182,10 +184,11 @@ const TrainerOnboarding = () => {
           workEmail: trainer.work_email || "",
           verificationMethod: trainer.verification_method || "",
           verificationValue: trainer.verification_value || "",
+          bio: trainer.bio || "",
           courseTitle: trainer.course_title || "",
           courseDuration: trainer.course_duration || "",
           courseFee: String(trainer.course_fee || ""),
-          courseDescription: trainer.course_description || trainer.bio || "",
+          courseDescription: trainer.course_description || "",
           additionalServicesDetails: trainer.additional_services_details || "",
           courseMaterials: trainer.course_materials || "",
           bankAccount: trainer.bank_account_number || "",
@@ -352,6 +355,7 @@ const TrainerOnboarding = () => {
       if (!form.currentCompany.trim() || !hasLetters(form.currentCompany)) { toast({ title: "Valid company name is required", variant: "warning" }); return false; }
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
       if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
+      if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
       if (!docs["resume"]?.file) { toast({ title: "Resume upload is required", variant: "warning" }); return false; }
     }
     if (s === 2) {
@@ -450,7 +454,7 @@ const TrainerOnboarding = () => {
           user_id: user.id,
           role: "trainer",
           trainer_data: {
-            bio: form.courseDescription,
+            bio: form.bio,
             skills: [form.primarySkill, form.secondarySkill].filter(Boolean),
             teaching_languages: [],
             experience_years: parseInt(form.experience) || 0,
@@ -816,6 +820,15 @@ const TrainerOnboarding = () => {
                 <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, max 5MB" />
               </div>
 
+              <div>
+                <Label>About You (Bio)<RequiredMark /></Label>
+                <Textarea value={form.bio} onChange={e => update("bio", e.target.value)} onBlur={() => markTouched("bio")}
+                  placeholder="Tell students about yourself — your background, experience, teaching style and passion for teaching..."
+                  className={`mt-1.5 min-h-[120px] ${touched.bio ? (form.bio.trim().length >= 100 ? "border-green-500" : "border-destructive") : ""}`} />
+                <FieldHint text="Tell students about yourself — your background, experience, teaching style and passion for teaching." />
+                <p className="text-xs text-muted-foreground mt-1">{form.bio.length}/100 characters minimum</p>
+              </div>
+
               <div className="space-y-3">
                 <Label>Documents Upload <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <FileUploadBox docKey="joining_letter" label="Joining Letter" accept=".pdf,.jpg,.jpeg,.png" />
@@ -1088,11 +1101,19 @@ const TrainerOnboarding = () => {
               </div>
             )}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About the Trainer</p>
               <p className="text-sm text-foreground leading-relaxed">
-                {form.courseDescription || "No bio added yet."}
+                {form.bio || "No bio added yet."}
               </p>
             </div>
+            {form.courseDescription && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About the Course</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {form.courseDescription}
+                </p>
+              </div>
+            )}
             <div className="flex items-center gap-4 text-sm">
               {form.experience && (
                 <div className="text-center">

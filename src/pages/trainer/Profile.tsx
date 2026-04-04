@@ -519,11 +519,21 @@ const TrainerProfile = () => {
 
               <TabsContent value="about" className="space-y-6">
                 <section className="bg-card rounded-xl border border-border p-6">
-                  <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
+                  <h2 className="text-lg font-semibold text-foreground mb-3">About the Trainer</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     {trainer.bio || "Please check back soon — this trainer is setting up their profile."}
                   </p>
                 </section>
+
+                {/* About the Course - show course description from first course */}
+                {trainerCourses.length > 0 && trainerCourses[0].description && (
+                  <section className="bg-card rounded-xl border border-border p-6">
+                    <h2 className="text-lg font-semibold text-foreground mb-3">About the Course</h2>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {trainerCourses[0].description}
+                    </p>
+                  </section>
+                )}
 
                 {availability.length > 0 && (
                   <section className="bg-card rounded-xl border border-border p-6">

@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download } from "lucide-react";
+import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TrainerDetailDrawerProps {
@@ -39,6 +39,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
   const [documents, setDocuments] = useState<any[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+  const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string; status: string } | null>(null);
 
   // Resolve signed URLs for private bucket files
   const resolveUrls = useCallback(async (t: any) => {
@@ -62,6 +63,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
   useEffect(() => {
     if (!trainer || !open) return;
     setSignedUrls({});
+    setReferralInfo(null);
     resolveUrls(trainer);
 
     (async () => {
@@ -86,6 +88,49 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
       setDocuments(docsWithUrls);
       setLoadingDocs(false);
     })();
+
+    // Fetch referral info if referred_by exists
+    if (trainer.referred_by) {
+      (async () => {
+        const { data: refData } = await supabase
+          .from("trainer_referrals")
+          .select("status, referral_code, referrer_id")
+          .eq("referred_id", trainer.id)
+          .limit(1)
+          .maybeSingle();
+
+        if (refData) {
+          // Get referrer name
+          const { data: referrerTrainer } = await supabase
+            .from("trainers")
+            .select("user_id")
+            .eq("id", refData.referrer_id)
+            .single();
+
+          let referrerName = "Unknown";
+          if (referrerTrainer?.user_id) {
+            const { data: referrerProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", referrerTrainer.user_id)
+              .single();
+            referrerName = referrerProfile?.full_name || "Unknown";
+          }
+
+          setReferralInfo({
+            referrerName,
+            code: refData.referral_code || trainer.referred_by,
+            status: refData.status || "pending",
+          });
+        } else {
+          setReferralInfo({
+            referrerName: "—",
+            code: trainer.referred_by,
+            status: "pending",
+          });
+        }
+      })();
+    }
   }, [trainer, open, resolveUrls]);
 
   if (!trainer) return null;
@@ -317,6 +362,27 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
                     <FileText className="w-3.5 h-3.5" /> Curriculum PDF
                   </a>
                 )}
+              </div>
+            </>
+          )}
+
+          {/* Referral Info */}
+          {referralInfo && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Gift className="w-4 h-4 text-primary" /> Referral Information</h4>
+                <InfoRow icon={User} label="Referred By" value={referralInfo.referrerName} />
+                <InfoRow icon={Gift} label="Referral Code Used" value={referralInfo.code} />
+                <div className="flex items-start gap-2.5 py-1.5">
+                  <Shield className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Bonus Status</p>
+                    <Badge variant={referralInfo.status === "paid" ? "default" : referralInfo.status === "pending" ? "secondary" : "destructive"} className="text-[11px] mt-0.5">
+                      {referralInfo.status === "paid" ? "₹1,500 Credited" : referralInfo.status === "pending" ? "₹1,500 Pending Approval" : referralInfo.status}
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </>
           )}

@@ -50,7 +50,10 @@ const TrainerSignup = () => {
     try {
       const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
       if (profile) {
-        setEmailError("Account already exists. Login instead.");
+        const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: profile.id });
+        if (roleData === "student") setEmailError("This email is already registered as a student. Please use a different email or login with your existing account.");
+        else if (roleData === "admin") setEmailError("This email is registered as admin.");
+        else setEmailError("An account with this email already exists. Please login instead.");
       } else { setEmailError(""); }
     } catch { setEmailError(""); }
   };
@@ -205,7 +208,11 @@ const TrainerSignup = () => {
               <Input type="email" value={form.email} onChange={e => { update("email", e.target.value); setEmailTypo(null); setEmailError(""); }} onBlur={handleEmailBlur} placeholder="you@email.com"
                 className={`mt-1.5 h-11 ${touched.email ? (isValidEmail(form.email) && !emailError ? "border-green-500" : "border-destructive") : ""}`} />
               {emailError && (
-                <p className="text-xs text-destructive mt-1">{emailError} <Link to="/trainer/login" className="text-primary underline font-medium">Login here</Link></p>
+                <p className="text-xs text-destructive mt-1">
+                  {emailError}{" "}
+                  {emailError.includes("student") && <Link to="/student/login" className="text-primary underline font-medium">Student Login</Link>}
+                  {emailError.includes("login instead") && <Link to="/trainer/login" className="text-primary underline font-medium">Login here</Link>}
+                </p>
               )}
               {emailTypo && <p className="text-xs text-amber-600 mt-1">{emailTypo}</p>}
             </div>

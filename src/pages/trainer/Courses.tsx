@@ -48,6 +48,7 @@ const TrainerCourses = () => {
   ]);
   const [trainerId, setTrainerId] = useState<string | null>(null);
   const [profileApproved, setProfileApproved] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -55,6 +56,7 @@ const TrainerCourses = () => {
       const { data: trainer } = await supabase.from("trainers").select("id, approval_status").eq("user_id", user.id).maybeSingle();
       if (trainer) {
         setTrainerId(trainer.id);
+        setApprovalStatus(trainer.approval_status);
         setProfileApproved(trainer.approval_status === "approved");
         const { data } = await supabase.from("courses").select("*").eq("trainer_id", trainer.id).order("created_at", { ascending: false });
         setCourses(data || []);
@@ -226,9 +228,20 @@ const TrainerCourses = () => {
         </Button>
       </div>
 
-      {!loading && !profileApproved && (
-        <div className="mt-4 rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-          ⚠️ Profile approval required to create a course. Your profile is currently under review by admin.
+      {!loading && approvalStatus && approvalStatus !== "approved" && (
+        <div className={`mt-4 rounded-lg border p-4 text-sm ${
+          approvalStatus === "pending" || approvalStatus === "submitted"
+            ? "border-amber-200 bg-amber-50 text-amber-800"
+            : "border-border bg-muted/50 text-muted-foreground"
+        }`}>
+          {approvalStatus === "pending" || approvalStatus === "submitted"
+            ? "⏳ Your profile is currently under review by admin. You can create a course once approved."
+            : "⚠️ Please complete and submit your profile first before creating a course."}
+        </div>
+      )}
+      {!loading && profileApproved && courses.length === 0 && (
+        <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          🚀 Create your first course to go live on SkillMitra!
         </div>
       )}
 

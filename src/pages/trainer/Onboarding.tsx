@@ -79,9 +79,11 @@ const TrainerOnboarding = () => {
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const profilePhotoRef = useRef<HTMLInputElement | null>(null);
-  const selfieRef = useRef<HTMLInputElement | null>(null);
   const [selfie, setSelfie] = useState<File | null>(null);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [stepAttempted, setStepAttempted] = useState<Record<number, boolean>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});

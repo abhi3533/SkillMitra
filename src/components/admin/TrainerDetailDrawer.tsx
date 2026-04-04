@@ -366,6 +366,27 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             </>
           )}
 
+          {/* Referral Info */}
+          {referralInfo && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Gift className="w-4 h-4 text-primary" /> Referral Information</h4>
+                <InfoRow icon={User} label="Referred By" value={referralInfo.referrerName} />
+                <InfoRow icon={Gift} label="Referral Code Used" value={referralInfo.code} />
+                <div className="flex items-start gap-2.5 py-1.5">
+                  <Shield className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Bonus Status</p>
+                    <Badge variant={referralInfo.status === "paid" ? "default" : referralInfo.status === "pending" ? "secondary" : "destructive"} className="text-[11px] mt-0.5">
+                      {referralInfo.status === "paid" ? "₹1,500 Credited" : referralInfo.status === "pending" ? "₹1,500 Pending Approval" : referralInfo.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Payment Info */}
           {(trainer.bank_account_number || trainer.upi_id) && (
             <>

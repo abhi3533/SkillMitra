@@ -912,6 +912,7 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Course Materials & Resources <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Textarea value={form.courseMaterials} onChange={e => update("courseMaterials", e.target.value)} placeholder="PDFs, code samples, projects..." className="mt-1.5 min-h-[100px]" />
+                <FieldHint text="Let students know what study materials they'll receive." />
               </div>
             </div>
           )}

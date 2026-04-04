@@ -359,7 +359,7 @@ const TrainerProfile = () => {
       await supabase.from("notifications").insert({
         user_id: trainer.user_id,
         title: "New Trial Booking",
-        body: `New trial booking from ${user!.user_metadata?.full_name || "a student"} on ${format(scheduledAt, "dd MMM yyyy")} at ${trialTime}`,
+        body: `New trial booking from ${user!.user_metadata?.full_name || "a student"} on ${formatDateIST(scheduledAt)} at ${trialTime}`,
         type: "trial_booking",
         action_url: "/trainer/sessions",
       });

@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
         const rows = inactiveTrainers.map(t => {
           const p = profileMap[t.user_id]
           const daysSince = Math.floor((now.getTime() - new Date(t.created_at).getTime()) / (1000 * 60 * 60 * 24))
-          const lastActive = new Date(t.last_saved_at || t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+          const lastActive = new Date(t.last_saved_at || t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })
           return `<tr>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.full_name || 'Unknown'}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.phone || '—'}</td>

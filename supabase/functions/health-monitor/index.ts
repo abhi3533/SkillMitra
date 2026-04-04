@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
 <p>Status: <strong>${overallStatus}</strong> — ${passed}/${checks.length} checks passed.</p>
 <h3>Failed Checks:</h3>
 <pre>${failedList}</pre>
-<p>Checked at: ${new Date().toUTCString()}</p>`,
+<p>Checked at: ${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Asia/Kolkata' })} IST</p>`,
     }
     // Call send-email with service role key
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!

@@ -30,6 +30,7 @@ const TrainerDashboard = () => {
   });
   const [interestedStudents, setInterestedStudents] = useState<any[]>([]);
   const [trainerRowId, setTrainerRowId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {

@@ -285,6 +285,9 @@ const AdminTrainers = () => {
                       {t.profiles?.city ? ` • ${t.profiles.city}` : ""}
                       {t.current_company ? ` • ${t.current_role || ""} at ${t.current_company}` : ""}
                     </p>
+                    {reminderSentMap[t.id] && (
+                      <p className="text-[10px] text-primary mt-0.5">Last reminded: {reminderSentMap[t.id]}</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-3">

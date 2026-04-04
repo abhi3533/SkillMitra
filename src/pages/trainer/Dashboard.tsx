@@ -17,6 +17,7 @@ import TrainerTrialRequests from "@/components/TrainerTrialRequests";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [onboardingInfo, setOnboardingInfo] = useState<{ step: number; status: string } | null>(null);
   const [trainerLifecycle, setTrainerLifecycle] = useState<{ profile_status: string; course_status: string; trainer_status: string } | null>(null);

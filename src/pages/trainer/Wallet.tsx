@@ -45,7 +45,7 @@ const TrainerWallet = () => {
     const amount = Number(payoutAmount);
     if (amount < 500) { toast({ title: "Minimum ₹500 required", variant: "warning" }); return; }
     if (amount > Number(wallet?.balance || 0)) { toast({ title: "Insufficient balance", variant: "warning" }); return; }
-    if (!trainerId) return;
+    if (!trainerId || !wallet) return;
 
     setRequesting(true);
     const { error } = await supabase.from("payout_requests").insert({
@@ -59,6 +59,25 @@ const TrainerWallet = () => {
     if (error) {
       toast({ title: "Failed to submit", description: error.message, variant: "destructive" });
     } else {
+      // Deduct from wallet balance and record transaction
+      const newBalance = Number(wallet.balance) - amount;
+      const newWithdrawn = Number(wallet.total_withdrawn || 0) + amount;
+      await supabase.from("wallets").update({
+        balance: newBalance,
+        total_withdrawn: newWithdrawn,
+        last_updated: new Date().toISOString(),
+      }).eq("id", wallet.id);
+
+      await supabase.from("wallet_transactions").insert({
+        wallet_id: wallet.id,
+        user_id: user!.id,
+        type: "debit",
+        amount,
+        description: "Payout withdrawal request",
+        reference_id: trainerId,
+      });
+
+      setWallet({ ...wallet, balance: newBalance, total_withdrawn: newWithdrawn });
       toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted`, variant: "success" });
       setShowPayout(false);
       setPayoutAmount("");

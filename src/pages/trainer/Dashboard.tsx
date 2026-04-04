@@ -36,7 +36,7 @@ const TrainerDashboard = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     await (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status, rejection_reason").eq("user_id", user.id).maybeSingle();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status, rejection_reason").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
       setTrainerRowId(trainer.id);
       setRejectionReason(trainer.rejection_reason || null);
@@ -69,7 +69,7 @@ const TrainerDashboard = () => {
         supabase.from("ratings").select("id, student_id, trainer_id, student_to_trainer_rating, student_to_trainer_review, student_rated_at, created_at").eq("trainer_id", trainer.id).not("student_to_trainer_rating", "is", null).order("created_at", { ascending: false }).limit(5),
         supabase.from("courses").select("id", { count: "exact", head: true }).eq("trainer_id", trainer.id),
         supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_read", false),
-        supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wallets").select("balance, total_earned, total_withdrawn").eq("user_id", user.id).maybeSingle(),
       ]);
 
       const monthTotal = (earningsRes.data || []).reduce((s: number, e: any) => s + Number(e.trainer_payout || 0), 0);
@@ -115,8 +115,8 @@ const TrainerDashboard = () => {
         activeStudents: enrollActive.count || 0,
         totalStudents: trainer.total_students || 0,
         monthEarnings: monthTotal,
-        totalEarnings: Number(trainer.total_earnings) || 0,
-        availableBalance: Number(trainer.available_balance) || 0,
+        totalEarnings: Number(walletRes.data?.total_earned || 0),
+        availableBalance: Number(walletRes.data?.balance || 0),
         totalSessions: sessAll.count || 0,
         completedSessions: sessCompleted.count || 0,
         upcomingSessions: sessUpcoming.count || 0,

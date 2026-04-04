@@ -13,8 +13,8 @@ const TrainerEarnings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [trainer, setTrainer] = useState<any>(null);
+  const [wallet, setWallet] = useState<any>(null);
   const [payouts, setPayouts] = useState<any[]>([]);
-  const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [payoutAmount, setPayoutAmount] = useState("");
   const [requesting, setRequesting] = useState(false);
@@ -23,23 +23,30 @@ const TrainerEarnings = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: t } = await supabase.from("trainers").select("*").eq("user_id", user.id).maybeSingle();
+      const [{ data: t }, { data: w }] = await Promise.all([
+        supabase.from("trainers").select("id, bank_account_number, ifsc_code, upi_id").eq("user_id", user.id).maybeSingle(),
+        supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
+      ]);
       setTrainer(t);
+      setWallet(w);
       if (t) {
         const { data: p } = await supabase.from("payout_requests").select("*").eq("trainer_id", t.id).order("requested_at", { ascending: false });
         setPayouts(p || []);
-        const { data: pays } = await supabase.from("enrollments").select("*, students(*, profiles(full_name)), courses(title)").eq("trainer_id", t.id);
-        setPayments(pays || []);
       }
       setLoading(false);
     };
     fetch();
   }, [user]);
 
+  const availableBalance = Number(wallet?.balance || 0);
+  const totalEarned = Number(wallet?.total_earned || 0);
+  const totalWithdrawn = Number(wallet?.total_withdrawn || 0);
+
   const requestPayout = async () => {
     const amount = parseFloat(payoutAmount);
     if (amount < 500) { toast({ title: "Minimum ₹500", variant: "warning" }); return; }
-    if (amount > (trainer?.available_balance || 0)) { toast({ title: "Insufficient balance", variant: "warning" }); return; }
+    if (amount > availableBalance) { toast({ title: "Insufficient balance", variant: "warning" }); return; }
+    if (!trainer || !wallet) return;
     setRequesting(true);
     try {
       const { error } = await supabase.from("payout_requests").insert({
@@ -47,10 +54,26 @@ const TrainerEarnings = () => {
         bank_account_number: trainer.bank_account_number, ifsc_code: trainer.ifsc_code, upi_id: trainer.upi_id,
       });
       if (error) throw error;
-      await supabase.from("trainers").update({ available_balance: (trainer.available_balance || 0) - amount }).eq("id", trainer.id);
+      // Deduct from wallets table
+      await supabase.from("wallets").update({
+        balance: availableBalance - amount,
+        total_withdrawn: totalWithdrawn + amount,
+        last_updated: new Date().toISOString(),
+      }).eq("id", wallet.id);
+      // Record debit transaction
+      await supabase.from("wallet_transactions").insert({
+        wallet_id: wallet.id,
+        user_id: user!.id,
+        type: "debit",
+        amount,
+        description: "Payout withdrawal request",
+        reference_id: trainer.id,
+      });
       toast({ title: "Payout requested!", description: "Will be processed within 2-3 business days.", variant: "success" });
       setDialogOpen(false);
       setPayoutAmount("");
+      // Refresh wallet state
+      setWallet({ ...wallet, balance: availableBalance - amount, total_withdrawn: totalWithdrawn + amount });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -67,7 +90,7 @@ const TrainerEarnings = () => {
           <DialogContent>
             <DialogHeader><DialogTitle>Request Payout</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
-              <p className="text-sm text-muted-foreground">Available Balance: <span className="font-bold text-foreground text-lg">₹{trainer?.available_balance?.toLocaleString() || 0}</span></p>
+              <p className="text-sm text-muted-foreground">Available Balance: <span className="font-bold text-foreground text-lg">₹{availableBalance.toLocaleString("en-IN")}</span></p>
               <div><Input type="number" value={payoutAmount} onChange={e => setPayoutAmount(e.target.value)} placeholder="Enter amount (min ₹500)" /></div>
               <p className="text-xs text-muted-foreground">Bank: {trainer?.bank_account_number ? `****${trainer.bank_account_number.slice(-4)}` : "Not set"} | UPI: {trainer?.upi_id || "Not set"}</p>
               <Button onClick={requestPayout} disabled={requesting} className="w-full hero-gradient border-0">{requesting ? "Requesting..." : "Confirm Payout"}</Button>
@@ -78,10 +101,10 @@ const TrainerEarnings = () => {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {[
-          { label: "Available Balance", value: `₹${trainer?.available_balance?.toLocaleString() || 0}`, icon: Wallet, color: "bg-success" },
-          { label: "Total Earned", value: `₹${trainer?.total_earnings?.toLocaleString() || 0}`, icon: TrendingUp, color: "hero-gradient" },
-          { label: "Total Withdrawn", value: `₹${trainer?.total_withdrawn?.toLocaleString() || 0}`, icon: ArrowUpRight, color: "gold-gradient" },
-          { label: "Pending Payouts", value: `₹${payouts.filter(p => p.status === "pending").reduce((s, p) => s + Number(p.requested_amount || 0), 0).toLocaleString()}`, icon: DollarSign, color: "hero-gradient" },
+          { label: "Available Balance", value: `₹${availableBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-success" },
+          { label: "Total Earned", value: `₹${totalEarned.toLocaleString("en-IN")}`, icon: TrendingUp, color: "hero-gradient" },
+          { label: "Total Withdrawn", value: `₹${totalWithdrawn.toLocaleString("en-IN")}`, icon: ArrowUpRight, color: "gold-gradient" },
+          { label: "Pending Payouts", value: `₹${payouts.filter(p => p.status === "pending").reduce((s, p) => s + Number(p.requested_amount || 0), 0).toLocaleString("en-IN")}`, icon: DollarSign, color: "hero-gradient" },
         ].map(c => (
           <div key={c.label} className="bg-card rounded-xl border p-5">
             <div className={`w-10 h-10 rounded-lg ${c.color} flex items-center justify-center mb-3`}>
@@ -101,7 +124,7 @@ const TrainerEarnings = () => {
             {payouts.map(p => (
               <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
                 <div>
-                  <p className="text-sm font-medium text-foreground">₹{Number(p.requested_amount).toLocaleString()}</p>
+                  <p className="text-sm font-medium text-foreground">₹{Number(p.requested_amount).toLocaleString("en-IN")}</p>
                   <p className="text-xs text-muted-foreground">{formatDateIST(p.requested_at)}</p>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "completed" ? "bg-success/10 text-success" : p.status === "rejected" ? "bg-destructive/10 text-destructive" : "bg-accent/10 text-accent"}`}>

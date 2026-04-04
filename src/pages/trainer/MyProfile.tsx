@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Save, Camera, Briefcase, Globe, MapPin, Phone, Mail, Linkedin, FileText, Lock } from "lucide-react";
+import { User, Save, Camera, Briefcase, Globe, Linkedin, Lock, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { useToast } from "@/hooks/use-toast";
+import RequestProfileUpdateModal from "@/components/trainer/RequestProfileUpdateModal";
 
 const TrainerMyProfile = () => {
   const { user, profile, updateProfile } = useAuth();
@@ -18,6 +19,7 @@ const TrainerMyProfile = () => {
   const [saving, setSaving] = useState(false);
   const [trainer, setTrainer] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
+  const [showUpdateRequest, setShowUpdateRequest] = useState(false);
 
   const [form, setForm] = useState({
     full_name: "",
@@ -71,6 +73,7 @@ const TrainerMyProfile = () => {
   };
 
   const addSkill = () => {
+    if (isApproved) return;
     const s = newSkill.trim();
     if (s && !form.skills.includes(s)) {
       setForm(prev => ({ ...prev, skills: [...prev.skills, s] }));
@@ -79,10 +82,12 @@ const TrainerMyProfile = () => {
   };
 
   const removeSkill = (skill: string) => {
+    if (isApproved) return;
     setForm(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }));
   };
 
   const addLang = () => {
+    if (isApproved) return;
     const l = newLang.trim();
     if (l && !form.teaching_languages.includes(l)) {
       setForm(prev => ({ ...prev, teaching_languages: [...prev.teaching_languages, l] }));
@@ -91,11 +96,18 @@ const TrainerMyProfile = () => {
   };
 
   const removeLang = (lang: string) => {
+    if (isApproved) return;
     setForm(prev => ({ ...prev, teaching_languages: prev.teaching_languages.filter(l => l !== lang) }));
   };
 
+  const isApproved = trainer?.approval_status === 'approved';
+
   const handleSave = async () => {
     if (!user || !trainer) return;
+    if (isApproved) {
+      toast({ title: "Profile locked", description: "Use 'Request Profile Update' to make changes.", variant: "warning" });
+      return;
+    }
     setSaving(true);
     try {
       const [profileRes, trainerRes] = await Promise.all([
@@ -143,7 +155,7 @@ const TrainerMyProfile = () => {
     );
   }
 
-  const isApproved = trainer?.approval_status === 'approved';
+  const lockedClass = "bg-muted cursor-not-allowed";
 
   return (
     <TrainerLayout>
@@ -153,17 +165,26 @@ const TrainerMyProfile = () => {
             <h1 className="text-xl font-bold text-foreground">My Profile</h1>
             <p className="text-sm text-muted-foreground">Update your personal and professional details</p>
           </div>
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            <Save className="w-4 h-4" />
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
+          <div className="flex gap-2">
+            {isApproved ? (
+              <Button onClick={() => setShowUpdateRequest(true)} variant="outline" className="gap-2">
+                <PenLine className="w-4 h-4" />
+                Request Update
+              </Button>
+            ) : (
+              <Button onClick={handleSave} disabled={saving} className="gap-2">
+                <Save className="w-4 h-4" />
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+            )}
+          </div>
         </div>
 
         {isApproved && (
           <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 mb-6">
             <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 shrink-0" />
-              Some fields are verified by SkillMitra admin and cannot be changed (Name, Phone, Role, Company, Experience). To update, please contact contact@skillmitra.online
+              Profile locked after approval. Click <strong className="mx-0.5">Request Update</strong> to make changes.
             </p>
           </div>
         )}
@@ -172,39 +193,54 @@ const TrainerMyProfile = () => {
         <div className="bg-card rounded-xl border p-6 mb-6">
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <Camera className="w-4 h-4 text-primary" /> Profile Picture
+            {isApproved && <Lock className="w-3 h-3 text-amber-500" />}
           </h2>
-          <ProfilePictureUpload userId={user?.id || ""} currentUrl={profileData?.profile_picture_url || null} fullName={form.full_name} onUpload={(url) => { setProfileData((p: any) => ({ ...p, profile_picture_url: url })); updateProfile({ profile_picture_url: url }); }} />
+          {isApproved ? (
+            <div className="flex items-center gap-4">
+              {profileData?.profile_picture_url ? (
+                <img src={profileData.profile_picture_url} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-muted" />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-2xl font-bold text-muted-foreground">
+                  {form.full_name?.charAt(0)?.toUpperCase() || "?"}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Photo is locked. Use Request Update to change.</p>
+            </div>
+          ) : (
+            <ProfilePictureUpload userId={user?.id || ""} currentUrl={profileData?.profile_picture_url || null} fullName={form.full_name} onUpload={(url) => { setProfileData((p: any) => ({ ...p, profile_picture_url: url })); updateProfile({ profile_picture_url: url }); }} />
+          )}
         </div>
 
         {/* Personal Info */}
         <div className="bg-card rounded-xl border p-6 mb-6">
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <User className="w-4 h-4 text-primary" /> Personal Information
+            {isApproved && <Lock className="w-3 h-3 text-amber-500" />}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="full_name">Full Name {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-              <Input id="full_name" value={form.full_name} onChange={e => handleChange("full_name", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input id="full_name" value={form.full_name} onChange={e => handleChange("full_name", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={user?.email || ""} disabled className="mt-1.5 bg-muted" />
             </div>
             <div>
-              <Label htmlFor="phone">Phone {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-              <Input id="phone" value={form.phone} onChange={e => handleChange("phone", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" value={form.phone} onChange={e => handleChange("phone", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="whatsapp">WhatsApp</Label>
-              <Input id="whatsapp" value={form.whatsapp} onChange={e => handleChange("whatsapp", e.target.value)} className="mt-1.5" />
+              <Input id="whatsapp" value={form.whatsapp} onChange={e => handleChange("whatsapp", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city} onChange={e => handleChange("city", e.target.value)} className="mt-1.5" />
+              <Input id="city" value={form.city} onChange={e => handleChange("city", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
             <div>
               <Label htmlFor="state">State</Label>
-              <Input id="state" value={form.state} onChange={e => handleChange("state", e.target.value)} className="mt-1.5" />
+              <Input id="state" value={form.state} onChange={e => handleChange("state", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
           </div>
         </div>
@@ -213,90 +249,104 @@ const TrainerMyProfile = () => {
         <div className="bg-card rounded-xl border p-6 mb-6">
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <Briefcase className="w-4 h-4 text-primary" /> Professional Details
+            {isApproved && <Lock className="w-3 h-3 text-amber-500" />}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="current_role">Current Role {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-              <Input id="current_role" value={form.current_role} onChange={e => handleChange("current_role", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
+              <Label htmlFor="current_role">Current Role</Label>
+              <Input id="current_role" value={form.current_role} onChange={e => handleChange("current_role", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
             <div>
-              <Label htmlFor="current_company">Current Company {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-              <Input id="current_company" value={form.current_company} onChange={e => handleChange("current_company", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
+              <Label htmlFor="current_company">Current Company</Label>
+              <Input id="current_company" value={form.current_company} onChange={e => handleChange("current_company", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
             <div>
-              <Label htmlFor="experience_years">Experience (Years) {isApproved && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-              <Input id="experience_years" type="number" value={form.experience_years} onChange={e => handleChange("experience_years", e.target.value)} className={`mt-1.5 ${isApproved ? "bg-muted cursor-not-allowed" : ""}`} disabled={isApproved} />
+              <Label htmlFor="experience_years">Experience (Years)</Label>
+              <Input id="experience_years" type="number" value={form.experience_years} onChange={e => handleChange("experience_years", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} />
             </div>
           </div>
           <div className="mt-4">
             <Label htmlFor="bio">Bio</Label>
-            <Textarea id="bio" value={form.bio} onChange={e => handleChange("bio", e.target.value)} className="mt-1.5 min-h-[100px]" placeholder="Tell students about your expertise and teaching style..." />
+            <Textarea id="bio" value={form.bio} onChange={e => handleChange("bio", e.target.value)} className={`mt-1.5 min-h-[100px] ${isApproved ? lockedClass : ""}`} disabled={isApproved} placeholder="Tell students about your expertise and teaching style..." />
           </div>
         </div>
 
         {/* Skills */}
         <div className="bg-card rounded-xl border p-6 mb-6">
-          <h2 className="text-sm font-semibold text-foreground mb-4">Skills</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+            Skills
+            {isApproved && <Lock className="w-3 h-3 text-amber-500" />}
+          </h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {form.skills.map(skill => (
-              <Badge key={skill} variant="secondary" className="cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors" onClick={() => removeSkill(skill)}>
-                {skill} ×
+              <Badge key={skill} variant="secondary" className={isApproved ? "" : "cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"} onClick={() => !isApproved && removeSkill(skill)}>
+                {skill} {!isApproved && "×"}
               </Badge>
             ))}
             {form.skills.length === 0 && <p className="text-xs text-muted-foreground">No skills added yet</p>}
           </div>
-          <div className="flex gap-2">
-            <Input value={newSkill} onChange={e => setNewSkill(e.target.value)} placeholder="Add a skill" className="max-w-xs"
-              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }} />
-            <Button type="button" variant="outline" size="sm" onClick={addSkill}>Add</Button>
-          </div>
+          {!isApproved && (
+            <div className="flex gap-2">
+              <Input value={newSkill} onChange={e => setNewSkill(e.target.value)} placeholder="Add a skill" className="max-w-xs"
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }} />
+              <Button type="button" variant="outline" size="sm" onClick={addSkill}>Add</Button>
+            </div>
+          )}
         </div>
 
         {/* Teaching Languages */}
         <div className="bg-card rounded-xl border p-6 mb-6">
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <Globe className="w-4 h-4 text-primary" /> Teaching Languages
+            {isApproved && <Lock className="w-3 h-3 text-amber-500" />}
           </h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {form.teaching_languages.map(lang => (
-              <Badge key={lang} variant="secondary" className="cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors" onClick={() => removeLang(lang)}>
-                {lang} ×
+              <Badge key={lang} variant="secondary" className={isApproved ? "" : "cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"} onClick={() => !isApproved && removeLang(lang)}>
+                {lang} {!isApproved && "×"}
               </Badge>
             ))}
             {form.teaching_languages.length === 0 && <p className="text-xs text-muted-foreground">No languages added yet</p>}
           </div>
-          <div className="flex gap-2">
-            <Input value={newLang} onChange={e => setNewLang(e.target.value)} placeholder="Add a language" className="max-w-xs"
-              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addLang(); } }} />
-            <Button type="button" variant="outline" size="sm" onClick={addLang}>Add</Button>
-          </div>
+          {!isApproved && (
+            <div className="flex gap-2">
+              <Input value={newLang} onChange={e => setNewLang(e.target.value)} placeholder="Add a language" className="max-w-xs"
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addLang(); } }} />
+              <Button type="button" variant="outline" size="sm" onClick={addLang}>Add</Button>
+            </div>
+          )}
         </div>
 
         {/* Links */}
         <div className="bg-card rounded-xl border p-6 mb-6">
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <Linkedin className="w-4 h-4 text-primary" /> Links
+            {isApproved && <Lock className="w-3 h-3 text-amber-500" />}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="linkedin_url">LinkedIn URL</Label>
-              <Input id="linkedin_url" value={form.linkedin_url} onChange={e => handleChange("linkedin_url", e.target.value)} className="mt-1.5" placeholder="https://linkedin.com/in/..." />
+              <Input id="linkedin_url" value={form.linkedin_url} onChange={e => handleChange("linkedin_url", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} placeholder="https://linkedin.com/in/..." />
             </div>
             <div>
               <Label htmlFor="portfolio_url">Portfolio URL</Label>
-              <Input id="portfolio_url" value={form.portfolio_url} onChange={e => handleChange("portfolio_url", e.target.value)} className="mt-1.5" placeholder="https://..." />
+              <Input id="portfolio_url" value={form.portfolio_url} onChange={e => handleChange("portfolio_url", e.target.value)} className={`mt-1.5 ${isApproved ? lockedClass : ""}`} disabled={isApproved} placeholder="https://..." />
             </div>
           </div>
         </div>
 
         {/* Bottom Save */}
-        <div className="flex justify-end pb-8">
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            <Save className="w-4 h-4" />
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
+        {!isApproved && (
+          <div className="flex justify-end pb-8">
+            <Button onClick={handleSave} disabled={saving} className="gap-2">
+              <Save className="w-4 h-4" />
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        )}
       </div>
+
+      <RequestProfileUpdateModal open={showUpdateRequest} onOpenChange={setShowUpdateRequest} />
     </TrainerLayout>
   );
 };

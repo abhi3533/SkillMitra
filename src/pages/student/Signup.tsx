@@ -70,9 +70,9 @@ const StudentSignup = () => {
       const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
       if (profile) {
         const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: profile.id });
-        if (roleData === "trainer") setEmailError("This email is registered as a trainer. Please use trainer login.");
+        if (roleData === "trainer") setEmailError("This email is already registered as a trainer. Please use a different email or login with your existing account.");
         else if (roleData === "admin") setEmailError("This email is registered as admin.");
-        else setEmailError("An account with this email already exists. Please login instead.");
+        else setEmailError("This email is already registered as a student. Please login instead.");
       } else {
         setEmailError("");
       }

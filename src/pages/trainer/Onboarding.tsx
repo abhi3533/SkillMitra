@@ -758,6 +758,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Total Experience (Years)<RequiredMark /></Label>
                   <Input type="number" value={form.experience} onChange={e => update("experience", e.target.value)} placeholder="e.g. 5" className="mt-1.5 h-11" min="0" />
+                  <FieldHint text="Shown on your public profile to attract relevant students." />
                 </div>
                 <div>
                   <Label>Current Role<RequiredMark /></Label>

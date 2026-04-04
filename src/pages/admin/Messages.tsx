@@ -133,7 +133,7 @@ const AdminMessages = () => {
                 <td className={`px-4 py-3 text-sm ${m.status === "unread" ? "font-semibold text-foreground" : "text-foreground"}`}>{m.name}</td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">{m.email}</td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">{m.subject}</td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">{m.created_at ? format(new Date(m.created_at), "dd MMM yyyy, hh:mm a") : "-"}</td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">{formatDateTimeIST(m.created_at)}</td>
                 <td className="px-4 py-3"><Badge variant="secondary" className={statusColor(m.status)}>{m.status}</Badge></td>
                 <td className="px-4 py-3">
                   <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openMessage(m); }}><Eye className="w-4 h-4" /></Button>

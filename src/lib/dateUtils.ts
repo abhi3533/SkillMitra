@@ -4,14 +4,8 @@
  * All dates stored in UTC are displayed in the user's local timezone.
  */
 
-/** Detect user's timezone, fallback to IST */
-const getUserTimezone = (): string => {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
-  } catch {
-    return "Asia/Kolkata";
-  }
-};
+/** Always use IST (Indian Standard Time) */
+const getUserTimezone = (): string => "Asia/Kolkata";
 
 /** Get short timezone abbreviation for display */
 const getTimezoneAbbr = (date: Date, tz: string): string => {

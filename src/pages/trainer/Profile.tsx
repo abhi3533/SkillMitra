@@ -20,7 +20,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReportTrainerModal from "@/components/ReportTrainerModal";

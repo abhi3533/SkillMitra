@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { Mail, Eye, Reply, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState<any[]>([]);

@@ -788,6 +788,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Primary Skill<RequiredMark /></Label>
                   <Input value={form.primarySkill} onChange={e => update("primarySkill", e.target.value)} placeholder="e.g. React.js" className="mt-1.5 h-11" />
+                  <FieldHint text="This is the main skill students will search and find you for." />
                 </div>
                 <div>
                   <Label>Secondary Skill <span className="text-muted-foreground font-normal">(optional)</span></Label>

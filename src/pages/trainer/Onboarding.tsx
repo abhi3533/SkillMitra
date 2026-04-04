@@ -691,6 +691,7 @@ const TrainerOnboarding = () => {
                   <Label>Phone Number<RequiredMark /></Label>
                   <Input value={form.phone} onChange={e => handlePhoneChange(e.target.value)} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
                     className={`mt-1.5 h-11 ${touched.phone ? (isPhoneFilled ? "border-green-500" : "border-destructive") : ""}`} />
+                  <FieldHint text="We may call you for onboarding assistance or to connect you with students." />
                 </div>
                  <div>
                   <div className="flex items-center justify-between">

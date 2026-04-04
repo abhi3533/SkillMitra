@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { Mail, Eye, Reply, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState<any[]>([]);
@@ -133,7 +133,7 @@ const AdminMessages = () => {
                 <td className={`px-4 py-3 text-sm ${m.status === "unread" ? "font-semibold text-foreground" : "text-foreground"}`}>{m.name}</td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">{m.email}</td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">{m.subject}</td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">{m.created_at ? format(new Date(m.created_at), "dd MMM yyyy, hh:mm a") : "-"}</td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">{formatDateTimeIST(m.created_at)}</td>
                 <td className="px-4 py-3"><Badge variant="secondary" className={statusColor(m.status)}>{m.status}</Badge></td>
                 <td className="px-4 py-3">
                   <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openMessage(m); }}><Eye className="w-4 h-4" /></Button>
@@ -156,7 +156,7 @@ const AdminMessages = () => {
                 <div><span className="text-muted-foreground">From:</span> <span className="font-medium">{selectedMessage.name}</span></div>
                 <div><span className="text-muted-foreground">Email:</span> <a href={`mailto:${selectedMessage.email}`} className="text-primary hover:underline">{selectedMessage.email}</a></div>
                 <div><span className="text-muted-foreground">Phone:</span> {selectedMessage.phone || "Not provided"}</div>
-                <div className="flex items-center gap-1"><Clock className="w-3 h-3 text-muted-foreground" /> <span className="text-muted-foreground">{selectedMessage.created_at ? format(new Date(selectedMessage.created_at), "dd MMM yyyy, hh:mm a") : "-"}</span></div>
+                <div className="flex items-center gap-1"><Clock className="w-3 h-3 text-muted-foreground" /> <span className="text-muted-foreground">{formatDateTimeIST(selectedMessage.created_at)}</span></div>
               </div>
               <div className="bg-secondary/30 rounded-lg p-4">
                 <p className="text-sm whitespace-pre-wrap">{selectedMessage.message}</p>

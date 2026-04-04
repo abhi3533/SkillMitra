@@ -20,7 +20,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatDateTimeIST } from "@/lib/dateUtils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReportTrainerModal from "@/components/ReportTrainerModal";
@@ -359,7 +359,7 @@ const TrainerProfile = () => {
       await supabase.from("notifications").insert({
         user_id: trainer.user_id,
         title: "New Trial Booking",
-        body: `New trial booking from ${user!.user_metadata?.full_name || "a student"} on ${format(scheduledAt, "dd MMM yyyy")} at ${trialTime}`,
+        body: `New trial booking from ${user!.user_metadata?.full_name || "a student"} on ${formatDateIST(scheduledAt)} at ${trialTime}`,
         type: "trial_booking",
         action_url: "/trainer/sessions",
       });
@@ -813,7 +813,7 @@ const TrainerProfile = () => {
               <div>
                 <p className="font-semibold text-foreground">Your trial is already scheduled!</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {existingTrial.scheduled_at ? format(new Date(existingTrial.scheduled_at), "dd MMM yyyy 'at' hh:mm a") : "Date pending"}
+                  {existingTrial.scheduled_at ? formatDateTimeIST(existingTrial.scheduled_at) : "Date pending"}
                 </p>
               </div>
               {existingTrial.meet_link && (
@@ -843,7 +843,7 @@ const TrainerProfile = () => {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full mt-1.5 justify-start text-left font-normal", !trialDate && "text-muted-foreground")}>
                       <Calendar className="mr-2 h-4 w-4" />
-                      {trialDate ? format(trialDate, "PPP") : "Pick a date"}
+                      {trialDate ? formatDateIST(trialDate) : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">

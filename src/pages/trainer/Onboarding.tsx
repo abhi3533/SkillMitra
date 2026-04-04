@@ -978,7 +978,8 @@ const TrainerOnboarding = () => {
                 </div>
                 <div>
                   <Label>Account Holder Name<RequiredMark /></Label>
-                  <Input value={form.accountHolderName} onChange={e => update("accountHolderName", e.target.value)} placeholder="Name as per bank" className="mt-1.5 h-11" />
+                  <Input value={profile?.full_name || form.accountHolderName} readOnly disabled placeholder="Name as per bank" className="mt-1.5 h-11 bg-muted cursor-not-allowed" />
+                  <FieldHint text="Account holder name is automatically set from your registered profile name to prevent misuse and ensure secure payments." />
                 </div>
               </div>
               <div>

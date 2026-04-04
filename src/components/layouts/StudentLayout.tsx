@@ -107,6 +107,16 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
           <nav className="flex-1 p-3 space-y-0.5">
             {sidebarItems.map(item => {
               const active = location.pathname === item.path;
+              if (item.external) {
+                return (
+                  <a key={item.label} href={item.path} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-muted-foreground hover:bg-muted hover:text-foreground">
+                    <item.icon className="w-[18px] h-[18px]" />
+                    {item.label}
+                    <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                  </a>
+                );
+              }
               return (
                 <Link key={item.label} to={item.path} onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 ${

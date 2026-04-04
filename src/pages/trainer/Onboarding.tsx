@@ -872,6 +872,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Course Fee (₹)<RequiredMark /></Label>
                   <Input type="number" value={form.courseFee} onChange={e => update("courseFee", e.target.value)} placeholder="Min ₹500" className="mt-1.5 h-11" min="500" />
+                  <FieldHint text="Set a competitive price. You can always adjust it later." />
                   {touched.courseFee && form.courseFee && parseInt(form.courseFee) < 500 && <p className="text-xs text-destructive mt-1">Minimum fee is ₹500</p>}
                 </div>
               </div>

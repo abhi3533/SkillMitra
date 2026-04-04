@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useLoadingTitle } from "@/hooks/useLoadingTitle";
@@ -16,6 +17,7 @@ import TrainerTrialRequests from "@/components/TrainerTrialRequests";
 
 const TrainerDashboard = () => {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [onboardingInfo, setOnboardingInfo] = useState<{ step: number; status: string } | null>(null);
   const [trainerLifecycle, setTrainerLifecycle] = useState<{ profile_status: string; course_status: string; trainer_status: string } | null>(null);
@@ -28,14 +30,16 @@ const TrainerDashboard = () => {
   });
   const [interestedStudents, setInterestedStudents] = useState<any[]>([]);
   const [trainerRowId, setTrainerRowId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
     await (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status").eq("user_id", user.id).maybeSingle();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, total_earnings, available_balance, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status, rejection_reason").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
       setTrainerRowId(trainer.id);
+      setRejectionReason(trainer.rejection_reason || null);
 
       // Set lifecycle statuses
       setTrainerLifecycle({
@@ -222,9 +226,40 @@ const TrainerDashboard = () => {
       {data.approvalStatus === "rejected" && !loading && (
         <div className="mt-4 bg-destructive/5 border border-destructive/20 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <h3 className="text-sm font-semibold text-foreground">Application not approved</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then contact us to re-apply.</p>
+            {rejectionReason && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                <strong>Reason:</strong> {rejectionReason}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-0.5">Please update your profile and documents, then resubmit your application.</p>
+            <div className="flex gap-2 mt-2">
+              <Link to="/trainer/onboarding">
+                <Button size="sm" variant="outline" className="text-xs">Edit Profile</Button>
+              </Link>
+              <Button
+                size="sm"
+                className="text-xs hero-gradient border-0"
+                onClick={async () => {
+                  if (!trainerRowId) return;
+                  const { error } = await supabase.from("trainers").update({
+                    approval_status: "pending",
+                    profile_status: "pending",
+                    onboarding_status: "pending",
+                    rejection_reason: null,
+                  }).eq("id", trainerRowId);
+                  if (error) {
+                    toast({ title: "Error", description: error.message, variant: "destructive" });
+                  } else {
+                    toast({ title: "Resubmitted!", description: "Your application has been resubmitted for review.", variant: "success" });
+                    fetchData();
+                  }
+                }}
+              >
+                Resubmit Application
+              </Button>
+            </div>
           </div>
         </div>
       )}

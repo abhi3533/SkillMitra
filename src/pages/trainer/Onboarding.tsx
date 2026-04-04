@@ -59,6 +59,7 @@ const TrainerOnboarding = () => {
     linkedinUrl: "", portfolioUrl: "",
     experience: "", currentRole: "", currentCompany: "", primarySkill: "", secondarySkill: "", workEmail: "",
     verificationMethod: "", verificationValue: "",
+    bio: "",
     courseTitle: "", courseDuration: "", courseFee: "", courseDescription: "",
     additionalServicesDetails: "", courseMaterials: "",
     bankAccount: "", ifsc: "", accountHolderName: "", upiId: "", govtIdType: "",

@@ -305,7 +305,7 @@ const AdminTrainers = () => {
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditTarget(t)} title="Edit">
                     <Pencil className="w-4 h-4" />
                   </Button>
-                  {t.approval_status === "pending" && (
+                   {t.approval_status === "pending" && (
                     <>
                       <Button size="sm" className="h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700" onClick={() => updateStatus(t.id, "approved")}>
                         <Check className="w-3.5 h-3.5" />
@@ -313,7 +313,15 @@ const AdminTrainers = () => {
                       <Button size="sm" variant="outline" className="h-8 w-8 p-0 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => handleRejectClick(t)}>
                         <X className="w-3.5 h-3.5" />
                       </Button>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2" onClick={() => sendReminder(t)} disabled={reminderSending === t.id} title="Send reminder email">
+                        <Bell className="w-3.5 h-3.5" /> {reminderSending === t.id ? "..." : "Remind"}
+                      </Button>
                     </>
+                  )}
+                  {t.approval_status === "rejected" && (
+                    <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2" onClick={() => sendReminder(t)} disabled={reminderSending === t.id} title="Send reminder email">
+                      <Bell className="w-3.5 h-3.5" /> {reminderSending === t.id ? "..." : "Remind"}
+                    </Button>
                   )}
                   {t.approval_status === "approved" && (
                     <>

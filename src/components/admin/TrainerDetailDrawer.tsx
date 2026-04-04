@@ -63,6 +63,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
   useEffect(() => {
     if (!trainer || !open) return;
     setSignedUrls({});
+    setDocuments([]);
     setReferralInfo(null);
     resolveUrls(trainer);
 
@@ -128,7 +129,8 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
         }
       })();
     }
-  }, [trainer, open, resolveUrls]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainer?.id, open]);
 
   if (!trainer) return null;
 

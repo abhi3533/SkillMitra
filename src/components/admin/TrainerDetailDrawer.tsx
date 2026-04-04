@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { formatLongDateIST } from "@/lib/dateUtils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string; status: string } | null>(null);
 
-  const resolveUrls = useCallback(async (t: any) => {
+  const resolveUrls = async (t: any) => {
     const urls: Record<string, string> = {};
     const promises: Promise<void>[] = [];
 
@@ -52,19 +52,18 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
     if (t.curriculum_pdf_url && !t.curriculum_pdf_url.startsWith("http")) {
       promises.push(resolveStorageUrl(t.curriculum_pdf_url).then(u => { urls.curriculum_pdf = u; }));
     }
-    // Resolve resume URL
-    const resumeDoc = documents.find((d: any) => d.document_type === "resume");
-    if (!resumeDoc && t.resume_url) {
+    if (t.resume_url) {
       promises.push(resolveStorageUrl(t.resume_url).then(u => { urls.resume = u; }));
     }
 
     await Promise.all(promises);
     setSignedUrls(urls);
-  }, [documents]);
+  };
 
   useEffect(() => {
     if (!trainer || !open) return;
     setSignedUrls({});
+    setDocuments([]);
     setReferralInfo(null);
     resolveUrls(trainer);
 
@@ -130,7 +129,8 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
         }
       })();
     }
-  }, [trainer, open, resolveUrls]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainer?.id, open]);
 
   if (!trainer) return null;
 

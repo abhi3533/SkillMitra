@@ -861,6 +861,7 @@ const TrainerOnboarding = () => {
               <div>
                 <Label>Course Title<RequiredMark /></Label>
                 <Input value={form.courseTitle} onChange={e => update("courseTitle", e.target.value)} placeholder="e.g. Full Stack Web Development" className="mt-1.5 h-11" />
+                <FieldHint text="Choose a clear, specific title. Students search by course name." />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

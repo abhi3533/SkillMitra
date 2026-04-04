@@ -1,13 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { createClient } from "npm:@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
 const BRAND_COLOR = '#1A56DB'
-const APP_URL = 'https://skillmitra-online.lovable.app'
+const APP_URL = 'https://skillmitra.online'
 const FROM_EMAIL = 'SkillMitra <contact@skillmitra.online>'
 const ADMIN_EMAIL = 'contact@skillmitra.online'
 
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
       const subject = isAdminNudge
         ? 'Action Required — Complete your SkillMitra application'
-        : 'Complete Your SkillMitra Profile'
+        : 'Please complete your SkillMitra onboarding to get approved'
 
       const html = isAdminNudge
         ? layout(`
@@ -71,7 +71,8 @@ Deno.serve(async (req) => {
         `)
         : layout(`
           <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'not set up yet'}. Finish it to start teaching and earning on SkillMitra!</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Please complete your SkillMitra onboarding to get approved as a trainer.</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'not set up yet'}. Finish it to start teaching and earning!</p>
           ${btn(step > 0 ? 'Continue Where I Left Off' : 'Complete My Profile', `${APP_URL}/trainer/onboarding`)}
           <p style="font-size: 13px; color: #888; text-align: center;">Need help? Email us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a></p>
         `)
@@ -82,7 +83,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Scheduled: process all draft trainers
+    // Scheduled: send DAILY reminder to ALL trainers who haven't submitted yet
+    // Trainers with onboarding_status 'draft' or 'registered' get a daily email
+    // Stops once they submit (status changes to 'pending', 'submitted', 'approved', etc.)
     const { data: draftTrainers } = await supabase
       .from('trainers')
       .select('*')
@@ -109,59 +112,34 @@ Deno.serve(async (req) => {
 
       const createdAt = new Date(trainer.created_at)
       const hoursSinceSignup = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
+
+      // Skip if signed up less than 24 hours ago (give them time)
+      if (hoursSinceSignup < 24) continue
+
       const step = trainer.onboarding_step || 0
       const name = profile.full_name || 'there'
+      const daysSince = Math.floor(hoursSinceSignup / 24)
 
-      let subject = ''
-      let html = ''
+      const subject = 'Please complete your SkillMitra onboarding to get approved'
+      const html = layout(`
+        <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
+        <p style="font-size: 15px; line-height: 1.6; color: #444;">Please complete your SkillMitra onboarding to get approved as a trainer.</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #444;">Your profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% complete` : 'not yet started'}. Finish it now to start teaching and earning on SkillMitra!</p>
+        ${daysSince > 3 ? `<p style="font-size: 14px; line-height: 1.6; color: #666;">It's been ${daysSince} days since you signed up. Don't miss out — complete your application today!</p>` : ''}
+        ${btn(step > 0 ? 'Continue Where I Left Off' : 'Complete My Application', `${APP_URL}/trainer/onboarding`)}
+        <p style="font-size: 13px; color: #888; text-align: center;">Need help? Email us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a></p>
+      `)
 
-      // 24h reminder
-      if (hoursSinceSignup >= 24 && hoursSinceSignup < 48) {
-        subject = 'Complete Your SkillMitra Profile'
-        html = layout(`
-          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">You signed up as a trainer on SkillMitra but your profile isn't complete yet. It only takes a few minutes!</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Finish your profile to get verified and start teaching students across India.</p>
-          ${btn('Complete My Profile', `${APP_URL}/trainer/onboarding`)}
-        `)
-      }
-      // 48h reminder
-      else if (hoursSinceSignup >= 48 && hoursSinceSignup < 72) {
-        subject = 'Your SkillMitra Profile is Waiting'
-        html = layout(`
-          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Your trainer profile is ${step > 0 ? `${Math.round((step / 6) * 100)}% done` : 'still waiting'}. Students are looking for trainers like you!</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Pick up where you left off — it only takes a few minutes.</p>
-          ${btn('Continue Where I Left Off', `${APP_URL}/trainer/onboarding`)}
-        `)
-      }
-      // 72h final reminder
-      else if (hoursSinceSignup >= 72 && hoursSinceSignup < 96) {
-        subject = 'Last Reminder — Complete Your SkillMitra Profile'
-        html = layout(`
-          <h1 style="font-size: 20px; color: #111; margin-bottom: 12px;">Hi ${name},</h1>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">Just a last reminder — your trainer profile on SkillMitra is still incomplete. Don't miss out on teaching and earning!</p>
-          <p style="font-size: 15px; line-height: 1.6; color: #444;">If you're facing any issues, our support team is here to help:</p>
-          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-            <p style="font-size: 15px; color: ${BRAND_COLOR}; margin: 0; font-weight: 600;">📧 Email us: contact@skillmitra.online</p>
-            <p style="font-size: 13px; color: #666; margin: 4px 0 0;">We'll help you complete your profile</p>
-          </div>
-          ${btn('Complete My Profile Now', `${APP_URL}/trainer/onboarding`)}
-        `)
-      }
-
-      if (subject && html) {
-        try {
-          await sendEmail(RESEND_API_KEY, profile.email, subject, html)
-          sent++
-          console.log(`✅ Onboarding reminder sent to ${profile.email} (${Math.floor(hoursSinceSignup)}h)`)
-        } catch (e) {
-          console.error(`❌ Failed to send to ${profile.email}:`, e)
-        }
+      try {
+        await sendEmail(RESEND_API_KEY, profile.email, subject, html)
+        sent++
+        console.log(`✅ Daily onboarding reminder sent to ${profile.email} (day ${daysSince})`)
+      } catch (e) {
+        console.error(`❌ Failed to send to ${profile.email}:`, e)
       }
     }
 
-    // Daily admin digest — also check if it's around 9 AM IST (3:30 UTC)
+    // Daily admin digest — check if it's around 9 AM IST (3:30 UTC)
     const utcHour = now.getUTCHours()
     const utcMin = now.getUTCMinutes()
     const isDigestTime = (utcHour === 3 && utcMin >= 20) || (utcHour === 3 && utcMin <= 40)

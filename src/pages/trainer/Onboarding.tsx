@@ -867,6 +867,7 @@ const TrainerOnboarding = () => {
                 <div>
                   <Label>Course Duration<RequiredMark /></Label>
                   <Input value={form.courseDuration} onChange={e => update("courseDuration", e.target.value)} placeholder="e.g. 3 months" className="mt-1.5 h-11" />
+                  <FieldHint text="Helps students plan their learning. Be realistic." />
                 </div>
                 <div>
                   <Label>Course Fee (₹)<RequiredMark /></Label>

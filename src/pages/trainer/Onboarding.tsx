@@ -372,11 +372,9 @@ const TrainerOnboarding = () => {
   const validateStep = (s: number): boolean => {
     setStepAttempted(p => ({ ...p, [s]: true }));
     if (s === 0) {
-      if (!profilePhoto && !profilePhotoPreview) { toast({ title: "Profile photo is required", variant: "warning" }); return false; }
       if (!form.dob) { toast({ title: "Date of birth is required", variant: "warning" }); return false; }
       if (!form.gender) { toast({ title: "Gender is required", variant: "warning" }); return false; }
       if (!isValidPhone(form.phone)) { toast({ title: "Valid 10-digit Indian mobile number required", variant: "warning" }); return false; }
-      if (!selfie && !selfiePreview) { toast({ title: "Selfie upload is required for verification", variant: "warning" }); return false; }
       if (!form.city.trim() || !/^[a-zA-Z\s'-]+$/.test(form.city.trim())) { toast({ title: "Please enter a valid city name (letters only)", variant: "warning" }); return false; }
       if (!form.state) { toast({ title: "State is required", variant: "warning" }); return false; }
     }

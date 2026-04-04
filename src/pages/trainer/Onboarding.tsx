@@ -398,6 +398,8 @@ const TrainerOnboarding = () => {
       if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }
     }
     if (s === 4) {
+      if (!profilePhoto && !profilePhotoPreview) { toast({ title: "Profile photo is required", variant: "warning" }); return false; }
+      if (!selfie && !selfiePreview) { toast({ title: "Selfie is required for verification", variant: "warning" }); return false; }
       if (!form.bankAccount.trim()) { toast({ title: "Bank account number is required", variant: "warning" }); return false; }
       if (!form.ifsc.trim() || !isValidIFSC(form.ifsc)) { toast({ title: "Valid IFSC code is required (e.g. SBIN0001234)", variant: "warning" }); return false; }
       if (!form.accountHolderName.trim()) { toast({ title: "Account holder name is required", variant: "warning" }); return false; }

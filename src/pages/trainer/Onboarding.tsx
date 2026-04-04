@@ -76,6 +76,8 @@ const TrainerOnboarding = () => {
     internet: false, webcam: false, microphone: false, environment: false, response: false, cancel: false,
   });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
+  const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const profilePhotoRef = useRef<HTMLInputElement | null>(null);

@@ -72,24 +72,22 @@ Deno.serve(async (req) => {
     let htmlBody: string
 
     if (status === 'approved') {
-      subject = 'Good news — Your trainer profile is approved!'
+      subject = 'Your profile is approved! Please create your first course to go live.'
       htmlBody = layout(`
         <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${trainerName} 🎉</h1>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">Good news — your trainer profile on SkillMitra has been <strong style="color: #059669;">approved</strong>!</p>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">You can now log in, create courses, and start accepting students.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Great news — your trainer profile on SkillMitra has been <strong style="color: #059669;">approved</strong>!</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Please create your first course to go live and start accepting students.</p>
         
         <div style="text-align: center; margin: 28px 0;">
-          <a href="${APP_URL}/trainer/login" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Go to Dashboard</a>
+          <a href="${APP_URL}/trainer/courses" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Create Your First Course</a>
         </div>
 
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">Your profile is live and students can see it now. Here's what to do next:</p>
-        
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
           <p style="font-size: 14px; color: #166534; margin: 0; font-weight: 600;">Next steps:</p>
           <ul style="font-size: 14px; line-height: 1.8; color: #166534; padding-left: 20px; margin: 8px 0 0;">
-            <li>Create your first course</li>
-            <li>Set your availability</li>
-            <li>Share your profile link</li>
+            <li>Create your first course (required to go live)</li>
+            <li>Set your availability for trial sessions</li>
+            <li>Share your profile link to attract students</li>
           </ul>
         </div>
 
@@ -146,7 +144,7 @@ Deno.serve(async (req) => {
       ? "You're approved! 🎉"
       : 'Application update'
     const notifBody = status === 'approved'
-      ? 'Your trainer profile is live! You can now create courses and start teaching.'
+      ? 'Your profile is approved! Create your first course to go live on SkillMitra.'
       : `Your application wasn${String.fromCharCode(39)}t approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
 
     await supabase.from('notifications').insert({

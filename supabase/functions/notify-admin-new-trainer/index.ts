@@ -46,13 +46,13 @@ Deno.serve(async (req) => {
     const appliedAt = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
     const skillsList = (skills && skills.length > 0) ? skills.join(', ') : 'Not specified'
 
-    let subject: string
-    let htmlBody: string
+    let adminSubject: string
+    let adminHtml: string
 
     if (registration_only) {
       // Phase 1: Basic signup only — trainer still needs to complete onboarding
-      subject = 'New Trainer Registered — Onboarding Pending'
-      htmlBody = layout(`
+      adminSubject = 'New Trainer Registered — Onboarding Pending'
+      adminHtml = layout(`
         <h1 style="font-size: 20px; color: #111; margin-bottom: 16px;">📝 New Trainer Registered</h1>
         <p style="font-size: 15px; line-height: 1.7; color: #444;">A new trainer has registered on SkillMitra. They still need to complete their onboarding profile before review.</p>
         
@@ -70,10 +70,10 @@ Deno.serve(async (req) => {
       `)
     } else {
       // Phase 2: Full application submitted — ready for admin review
-      subject = 'New Trainer Application — Action Required'
-      htmlBody = layout(`
+      adminSubject = `New trainer onboarded — please review and approve ${name}`
+      adminHtml = layout(`
         <h1 style="font-size: 20px; color: #111; margin-bottom: 16px;">🆕 New Trainer Application</h1>
-        <p style="font-size: 15px; line-height: 1.7; color: #444;">A trainer has completed their onboarding and submitted their application for your approval.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">New trainer onboarded — please review and approve <strong>${name}</strong>.</p>
         
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
           <table style="width: 100%; font-size: 14px; color: #444;">
@@ -95,6 +95,7 @@ Deno.serve(async (req) => {
       `)
     }
 
+    // Send admin email
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -104,8 +105,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: [ADMIN_EMAIL],
-        subject,
-        html: htmlBody,
+        subject: adminSubject,
+        html: adminHtml,
       }),
     })
 
@@ -116,14 +117,55 @@ Deno.serve(async (req) => {
       console.log(`✅ Admin notification email sent:`, resendData.id)
     }
 
-    // 2. Send in-app notification to all admins
+    // Send trainer confirmation email when application is submitted (not registration)
+    if (!registration_only && email) {
+      const trainerSubject = 'Application submitted! We will review within 24 hours.'
+      const trainerHtml = layout(`
+        <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${name} 🎉</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Your application has been submitted successfully! Our team will review it within 24 hours.</p>
+        
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <p style="font-size: 14px; color: #166534; margin: 0; font-weight: 600;">What happens next?</p>
+          <ul style="font-size: 14px; line-height: 1.8; color: #166534; padding-left: 20px; margin: 8px 0 0;">
+            <li>Our team reviews your profile and documents</li>
+            <li>You'll receive an email once approved</li>
+            <li>After approval, create your first course to go live</li>
+          </ul>
+        </div>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Thank you for joining SkillMitra. We're excited to have you!</p>
+        
+        <p style="font-size: 14px; color: #666; margin-top: 24px;">— Team SkillMitra</p>
+      `)
+
+      try {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: FROM_EMAIL,
+            to: [email],
+            subject: trainerSubject,
+            html: trainerHtml,
+          }),
+        })
+        console.log(`✅ Trainer submission confirmation sent to ${email}`)
+      } catch (e) {
+        console.error(`❌ Failed to send trainer confirmation to ${email}:`, e)
+      }
+    }
+
+    // In-app notification to all admins
     const { data: admins } = await supabase.from('admins').select('user_id')
     const notifTitle = registration_only
       ? '📝 New Trainer Registered'
       : '🆕 New Trainer Application'
     const notifBody = registration_only
       ? `${name} registered — onboarding pending.`
-      : `${name} submitted their application — review now.`
+      : `New trainer onboarded — please review and approve ${name}.`
 
     for (const admin of admins || []) {
       await supabase.from('notifications').insert({

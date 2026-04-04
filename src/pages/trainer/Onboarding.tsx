@@ -318,15 +318,44 @@ const TrainerOnboarding = () => {
   };
   const removeProfilePhoto = () => { setProfilePhoto(null); setProfilePhotoPreview(null); if (profilePhotoRef.current) profilePhotoRef.current.value = ""; };
 
-  const handleSelfieSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { toast({ title: "Photo must be less than 5MB", variant: "warning" }); return; }
-      setSelfie(file);
-      setSelfiePreview(URL.createObjectURL(file));
+  const openCameraForSelfie = async () => {
+    setShowCameraModal(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      cameraStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err) {
+      toast({ title: "Camera access denied", description: "Please allow camera access to take a selfie.", variant: "destructive" });
+      setShowCameraModal(false);
     }
   };
-  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); if (selfieRef.current) selfieRef.current.value = ""; };
+
+  const captureSelfie = () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+        setSelfie(file);
+        setSelfiePreview(URL.createObjectURL(file));
+      }
+      closeCameraStream();
+    }, "image/jpeg", 0.9);
+  };
+
+  const closeCameraStream = () => {
+    cameraStreamRef.current?.getTracks().forEach(t => t.stop());
+    cameraStreamRef.current = null;
+    setShowCameraModal(false);
+  };
+
+  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); };
 
   const toggleReadiness = (key: string) => setReadinessChecks(p => ({ ...p, [key]: !p[key] }));
   const allReadinessChecked = Object.values(readinessChecks).every(Boolean);

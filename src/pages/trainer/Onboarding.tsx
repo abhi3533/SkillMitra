@@ -76,6 +76,8 @@ const TrainerOnboarding = () => {
     internet: false, webcam: false, microphone: false, environment: false, response: false, cancel: false,
   });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
+  const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const profilePhotoRef = useRef<HTMLInputElement | null>(null);
@@ -407,6 +409,8 @@ const TrainerOnboarding = () => {
       if (!docs["aadhaar"]?.file) { toast({ title: "Aadhaar document upload is required", variant: "warning" }); return false; }
     }
     if (s === 5) {
+      if (referralStatus === "invalid") { toast({ title: "Please fix or remove the invalid referral code", variant: "warning" }); return false; }
+      if (referralStatus === "checking") { toast({ title: "Referral code is being verified, please wait", variant: "warning" }); return false; }
       if (!agreedTraining) { toast({ title: "Please confirm 1-on-1 training commitment", variant: "warning" }); return false; }
       if (!agreedTerms) { toast({ title: "Please agree to Terms and Conditions", variant: "warning" }); return false; }
       if (!allReadinessChecked) { toast({ title: "Please confirm all teaching readiness items", variant: "warning" }); return false; }
@@ -1010,7 +1014,31 @@ const TrainerOnboarding = () => {
             <div className="mt-6 space-y-5">
               <div>
                 <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Input value={form.referralCode} onChange={e => update("referralCode", e.target.value.toUpperCase())} placeholder="e.g. TM-A1B2C3" className="mt-1.5 h-11 font-mono uppercase" maxLength={10} />
+                <Input
+                  value={form.referralCode}
+                  onChange={e => { update("referralCode", e.target.value.toUpperCase()); setReferralStatus("idle"); }}
+                  onBlur={async () => {
+                    const code = form.referralCode.trim().toUpperCase();
+                    if (!code) { setReferralStatus("idle"); return; }
+                    setReferralStatus("checking");
+                    try {
+                      const { data } = await supabase.from("trainers").select("id").eq("referral_code", code).maybeSingle();
+                      setReferralStatus(data ? "valid" : "invalid");
+                    } catch { setReferralStatus("invalid"); }
+                  }}
+                  placeholder="e.g. TM-A1B2C3"
+                  className={`mt-1.5 h-11 font-mono uppercase ${referralStatus === "valid" ? "border-green-500" : referralStatus === "invalid" ? "border-destructive" : ""}`}
+                  maxLength={10}
+                />
+                {referralStatus === "checking" && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" />Verifying referral code...</p>
+                )}
+                {referralStatus === "valid" && (
+                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" />Valid referral code applied!</p>
+                )}
+                {referralStatus === "invalid" && (
+                  <p className="text-xs text-destructive mt-1 flex items-center gap-1"><X className="w-3.5 h-3.5" />Invalid referral code. Please check and try again.</p>
+                )}
                 <div className="mt-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2">
                   <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
                   <p className="text-xs text-emerald-700">Earn <strong>₹1,500 bonus</strong> per successful trainer referral!</p>

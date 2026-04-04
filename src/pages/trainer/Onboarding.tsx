@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2,
-  Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Mic, Volume2, MessageSquare, Clock, Save
+  Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Mic, Volume2, MessageSquare, Clock, Save, Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,11 +28,12 @@ const expertiseOptions = [
   "Business Analysis", "Product Management", "Sales", "HR Management", "Finance"
 ];
 
-const steps = ["Personal Details", "Experience", "Course Details", "Services & Materials", "Payment & Documents", "Referral & Declaration"];
+const steps = ["Personal Details", "Experience", "Course Details", "Availability & Schedule", "Services & Materials", "Payment & Documents", "Referral & Declaration"];
 const stepHeadings = [
   "Complete your trainer profile",
   "Show us your professional journey",
   "Design your 1-on-1 course",
+  "Set your availability and schedule",
   "Go beyond just teaching",
   "Almost done — set up payouts",
   "Join 50+ verified trainers"
@@ -60,7 +61,10 @@ const TrainerOnboarding = () => {
     experience: "", currentRole: "", currentCompany: "", primarySkill: "", secondarySkill: "", workEmail: "",
     verificationMethod: "", verificationValue: "",
     bio: "",
-    courseTitle: "", courseDuration: "", courseFee: "", courseDescription: "",
+    courseTitle: "", courseDescription: "",
+    // Availability & Schedule fields
+    trainerType: "", sessionDurationPerDay: "", weekendAvailability: "",
+    courseDuration: "", courseFee: "",
     additionalServicesDetails: "", courseMaterials: "",
     bankAccount: "", ifsc: "", accountHolderName: "", upiId: "", govtIdType: "",
     referralCode: "",
@@ -69,6 +73,7 @@ const TrainerOnboarding = () => {
   const [sameAsPhone, setSameAsPhone] = useState(false);
   const [expertiseAreas, setExpertiseAreas] = useState<string[]>([]);
   const [servicesOffered, setServicesOffered] = useState<string[]>([]);
+  const [availableTimeBands, setAvailableTimeBands] = useState<string[]>([]);
   const [agreedTraining, setAgreedTraining] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -97,6 +102,18 @@ const TrainerOnboarding = () => {
   };
   const markTouched = (key: string) => setTouched(t => ({ ...t, [key]: true }));
 
+  // Auto-calculate total course hours
+  const calculateTotalHours = () => {
+    const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "90 Minutes": 1.5, "2 Hours": 2 };
+    const weekendDaysMap: Record<string, number> = { "both": 7, "saturday_only": 6, "sunday_only": 6, "no_weekends": 5 };
+    const sessionHours = sessionHoursMap[form.sessionDurationPerDay] || 0;
+    const daysPerWeek = weekendDaysMap[form.weekendAvailability] || 0;
+    const totalDays = parseInt(form.courseDuration) || 0;
+    if (!sessionHours || !daysPerWeek || !totalDays) return null;
+    const totalWeeks = totalDays / 7;
+    return Math.round(totalWeeks * daysPerWeek * sessionHours);
+  };
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -110,7 +127,7 @@ const TrainerOnboarding = () => {
     (async () => {
       const { data: trainer } = await supabase
         .from("trainers")
-        .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code")
+        .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -163,9 +180,14 @@ const TrainerOnboarding = () => {
           upiId: saved.upiId || trainer.upi_id || "",
           govtIdType: saved.govtIdType || trainer.govt_id_type || "",
           referralCode: saved.referralCode || "",
+          trainerType: saved.trainerType || trainer.trainer_type || "",
+          sessionDurationPerDay: saved.sessionDurationPerDay || trainer.session_duration_per_day || "",
+          weekendAvailability: saved.weekendAvailability || trainer.weekend_availability || "",
         }));
         if (saved.expertiseAreas) setExpertiseAreas(saved.expertiseAreas);
         if (saved.servicesOffered) setServicesOffered(saved.servicesOffered);
+        if (saved.availableTimeBands) setAvailableTimeBands(saved.availableTimeBands);
+        else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
       } else {
         // Load from profile + trainer columns
         setForm(f => ({
@@ -200,9 +222,13 @@ const TrainerOnboarding = () => {
           accountHolderName: trainer.account_holder_name || "",
           upiId: trainer.upi_id || "",
           govtIdType: trainer.govt_id_type || "",
+          trainerType: trainer.trainer_type || "",
+          sessionDurationPerDay: trainer.session_duration_per_day || "",
+          weekendAvailability: trainer.weekend_availability || "",
         }));
         if (trainer.expertise_areas) setExpertiseAreas(trainer.expertise_areas as string[]);
         if (trainer.services_offered) setServicesOffered(trainer.services_offered as string[]);
+        if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
       }
 
       // Resume from saved step
@@ -218,7 +244,7 @@ const TrainerOnboarding = () => {
     autoSaveTimer.current = setTimeout(() => saveDraft(false), 3000);
   }, []);
 
-  // Save draft when user switches away from tab (Bug-4 fix)
+  // Save draft when user switches away from tab
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden" && trainerId && user) {
@@ -226,8 +252,6 @@ const TrainerOnboarding = () => {
       }
     };
     const handleBeforeUnload = () => {
-      // beforeunload can't reliably await async. Use visibilitychange instead (fires first).
-      // This is a best-effort fallback only.
       if (trainerId && user) saveDraft(false);
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -246,6 +270,7 @@ const TrainerOnboarding = () => {
         ...form,
         expertiseAreas,
         servicesOffered,
+        availableTimeBands,
       };
 
       const { error } = await supabase.from("trainers").update({
@@ -370,6 +395,9 @@ const TrainerOnboarding = () => {
 
   const toggleExpertise = (e: string) => { setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]); scheduleAutoSave(); };
   const toggleService = (s: string) => { setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]); scheduleAutoSave(); };
+  const toggleTimeBand = (band: string) => { setAvailableTimeBands(p => p.includes(band) ? p.filter(x => x !== band) : [...p, band]); scheduleAutoSave(); };
+
+  const LAST_STEP = steps.length - 1; // 6
 
   const validateStep = (s: number): boolean => {
     setStepAttempted(p => ({ ...p, [s]: true }));
@@ -392,14 +420,20 @@ const TrainerOnboarding = () => {
     if (s === 2) {
       if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
       if (!form.courseTitle.trim()) { toast({ title: "Course title is required", variant: "warning" }); return false; }
-      if (!form.courseDuration.trim()) { toast({ title: "Course duration is required", variant: "warning" }); return false; }
-      if (!form.courseFee.trim() || parseInt(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
     }
     if (s === 3) {
-      if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }
+      if (!form.trainerType) { toast({ title: "Please select Full-Time or Part-Time", variant: "warning" }); return false; }
+      if (!form.sessionDurationPerDay) { toast({ title: "Please select session duration per day", variant: "warning" }); return false; }
+      if (availableTimeBands.length === 0) { toast({ title: "Please select at least one available time band", variant: "warning" }); return false; }
+      if (!form.weekendAvailability) { toast({ title: "Please select weekend availability", variant: "warning" }); return false; }
+      if (!form.courseDuration) { toast({ title: "Please select course duration", variant: "warning" }); return false; }
+      if (!form.courseFee.trim() || parseInt(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
     }
     if (s === 4) {
+      if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }
+    }
+    if (s === 5) {
       if (!profilePhoto && !profilePhotoPreview) { toast({ title: "Profile photo is required", variant: "warning" }); return false; }
       if (!selfie && !selfiePreview) { toast({ title: "Selfie is required for verification", variant: "warning" }); return false; }
       if (!form.bankAccount.trim()) { toast({ title: "Bank account number is required", variant: "warning" }); return false; }
@@ -408,7 +442,7 @@ const TrainerOnboarding = () => {
       if (!form.govtIdType) { toast({ title: "Government ID type is required", variant: "warning" }); return false; }
       if (!docs["aadhaar"]?.file) { toast({ title: "Aadhaar document upload is required", variant: "warning" }); return false; }
     }
-    if (s === 5) {
+    if (s === 6) {
       if (referralStatus === "invalid") { toast({ title: "Please fix or remove the invalid referral code", variant: "warning" }); return false; }
       if (referralStatus === "checking") { toast({ title: "Referral code is being verified, please wait", variant: "warning" }); return false; }
       if (!agreedTraining) { toast({ title: "Please confirm 1-on-1 training commitment", variant: "warning" }); return false; }
@@ -424,7 +458,7 @@ const TrainerOnboarding = () => {
       setStep(newStep);
       // Save draft after advancing
       if (trainerId && user) {
-        const onboardingData = { ...form, expertiseAreas, servicesOffered };
+        const onboardingData = { ...form, expertiseAreas, servicesOffered, availableTimeBands };
         await supabase.from("trainers").update({
           onboarding_step: newStep,
           onboarding_data: onboardingData as any,
@@ -437,7 +471,7 @@ const TrainerOnboarding = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(5) || !user || !trainerId) return;
+    if (!validateStep(LAST_STEP) || !user || !trainerId) return;
     setSubmitting(true);
     try {
       // Upload files
@@ -527,6 +561,11 @@ const TrainerOnboarding = () => {
             course_description: form.courseDescription || null,
             verification_method: form.verificationMethod || null,
             verification_value: form.verificationValue || null,
+            // New availability fields
+            trainer_type: form.trainerType || null,
+            session_duration_per_day: form.sessionDurationPerDay || null,
+            available_time_bands: availableTimeBands,
+            weekend_availability: form.weekendAvailability || null,
           },
         },
       });
@@ -535,7 +574,7 @@ const TrainerOnboarding = () => {
       // Update onboarding status to pending
       await supabase.from("trainers").update({
         onboarding_status: "pending",
-        onboarding_step: 6,
+        onboarding_step: steps.length,
         last_saved_at: new Date().toISOString(),
       }).eq("id", trainerId);
 
@@ -599,6 +638,19 @@ const TrainerOnboarding = () => {
     </div>
   );
 
+  const RadioOption = ({ value, selected, label, sublabel, onClick }: { value: string; selected: boolean; label: string; sublabel?: string; onClick: () => void }) => (
+    <button type="button" onClick={onClick}
+      className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all w-full ${selected ? "bg-primary/5 border-primary/40 ring-1 ring-primary/20" : "bg-secondary/30 border-border hover:bg-secondary/60"}`}>
+      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-primary" : "border-muted-foreground/30"}`}>
+        {selected && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+      </div>
+      <div>
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        {sublabel && <p className="text-[11px] text-muted-foreground mt-0.5">{sublabel}</p>}
+      </div>
+    </button>
+  );
+
   const lastSavedText = lastSaved
     ? (() => {
         const diff = Math.floor((Date.now() - lastSaved.getTime()) / 1000);
@@ -616,6 +668,8 @@ const TrainerOnboarding = () => {
       </div>
     );
   }
+
+  const totalHours = calculateTotalHours();
 
   return (
     <div className="min-h-screen bg-background">
@@ -873,19 +927,6 @@ const TrainerOnboarding = () => {
                 <Input value={form.courseTitle} onChange={e => update("courseTitle", e.target.value)} placeholder="e.g. Full Stack Web Development" className="mt-1.5 h-11" />
                 <FieldHint text="Choose a clear, specific title. Students search by course name." />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>Course Duration<RequiredMark /></Label>
-                  <Input value={form.courseDuration} onChange={e => update("courseDuration", e.target.value)} placeholder="e.g. 3 months" className="mt-1.5 h-11" />
-                  <FieldHint text="Helps students plan their learning. Be realistic." />
-                </div>
-                <div>
-                  <Label>Course Fee (₹)<RequiredMark /></Label>
-                  <Input type="number" value={form.courseFee} onChange={e => update("courseFee", e.target.value)} placeholder="Min ₹500" className="mt-1.5 h-11" min="500" />
-                  <FieldHint text="Set a competitive price. You can always adjust it later." />
-                  {touched.courseFee && form.courseFee && parseInt(form.courseFee) < 500 && <p className="text-xs text-destructive mt-1">Minimum fee is ₹500</p>}
-                </div>
-              </div>
               <div>
                 <Label>Course Description<RequiredMark /></Label>
                 <Textarea value={form.courseDescription} onChange={e => update("courseDescription", e.target.value)} placeholder="Describe what students will learn..." className="mt-1.5 min-h-[120px]" />
@@ -899,8 +940,100 @@ const TrainerOnboarding = () => {
             </div>
           )}
 
-          {/* ========== STEP 3: Services & Materials ========== */}
+          {/* ========== STEP 3: Availability & Schedule ========== */}
           {step === 3 && (
+            <div className="mt-6 space-y-6">
+              {/* 1. Trainer Type */}
+              <div>
+                <Label className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Trainer Type<RequiredMark /></Label>
+                <FieldHint text="Are you available to teach full-time or part-time?" />
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <RadioOption value="full_time" selected={form.trainerType === "full_time"} label="Full-Time" sublabel="Available daily" onClick={() => update("trainerType", "full_time")} />
+                  <RadioOption value="part_time" selected={form.trainerType === "part_time"} label="Part-Time" sublabel="Limited hours" onClick={() => update("trainerType", "part_time")} />
+                </div>
+                {stepAttempted[3] && !form.trainerType && <p className="text-xs text-destructive mt-1">Please select trainer type</p>}
+              </div>
+
+              {/* 2. Session Duration */}
+              <div>
+                <Label>Session Duration Per Day<RequiredMark /></Label>
+                <FieldHint text="How long will each daily session be?" />
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  <RadioOption value="1 Hour" selected={form.sessionDurationPerDay === "1 Hour"} label="1 Hour" onClick={() => update("sessionDurationPerDay", "1 Hour")} />
+                  <RadioOption value="90 Minutes" selected={form.sessionDurationPerDay === "90 Minutes"} label="90 Min" onClick={() => update("sessionDurationPerDay", "90 Minutes")} />
+                  <RadioOption value="2 Hours" selected={form.sessionDurationPerDay === "2 Hours"} label="2 Hours" onClick={() => update("sessionDurationPerDay", "2 Hours")} />
+                </div>
+                {stepAttempted[3] && !form.sessionDurationPerDay && <p className="text-xs text-destructive mt-1">Please select session duration</p>}
+              </div>
+
+              {/* 3. Available Time Bands */}
+              <div>
+                <Label>Available Time Bands<RequiredMark /></Label>
+                <FieldHint text="Select when you are available to teach. You can select multiple." />
+                <div className="space-y-2.5 mt-2">
+                  {[
+                    { value: "morning", label: "Morning", time: "6:00 AM – 9:00 AM" },
+                    { value: "afternoon", label: "Afternoon", time: "9:00 AM – 4:00 PM" },
+                    { value: "evening", label: "Evening", time: "4:00 PM – 9:00 PM" },
+                  ].map(band => (
+                    <label key={band.value}
+                      className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${availableTimeBands.includes(band.value) ? "bg-primary/5 border-primary/40 ring-1 ring-primary/20" : "bg-secondary/30 border-border hover:bg-secondary/60"}`}>
+                      <Checkbox checked={availableTimeBands.includes(band.value)} onCheckedChange={() => toggleTimeBand(band.value)} />
+                      <div>
+                        <span className="text-sm font-medium text-foreground">{band.label}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{band.time}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                {stepAttempted[3] && availableTimeBands.length === 0 && <p className="text-xs text-destructive mt-1">Select at least one time band</p>}
+              </div>
+
+              {/* 4. Weekend Availability */}
+              <div>
+                <Label>Weekend Availability<RequiredMark /></Label>
+                <FieldHint text="Which weekend days are you available to teach?" />
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <RadioOption value="both" selected={form.weekendAvailability === "both"} label="Sat & Sun" sublabel="Both days" onClick={() => update("weekendAvailability", "both")} />
+                  <RadioOption value="saturday_only" selected={form.weekendAvailability === "saturday_only"} label="Saturday Only" onClick={() => update("weekendAvailability", "saturday_only")} />
+                  <RadioOption value="sunday_only" selected={form.weekendAvailability === "sunday_only"} label="Sunday Only" onClick={() => update("weekendAvailability", "sunday_only")} />
+                  <RadioOption value="no_weekends" selected={form.weekendAvailability === "no_weekends"} label="No Weekends" sublabel="Weekdays only" onClick={() => update("weekendAvailability", "no_weekends")} />
+                </div>
+                {stepAttempted[3] && !form.weekendAvailability && <p className="text-xs text-destructive mt-1">Please select weekend availability</p>}
+              </div>
+
+              {/* 5. Course Duration */}
+              <div>
+                <Label>Course Duration<RequiredMark /></Label>
+                <FieldHint text="Total duration of your complete course." />
+                <div className="grid grid-cols-4 gap-3 mt-2">
+                  {["30", "45", "60", "90"].map(d => (
+                    <RadioOption key={d} value={d} selected={form.courseDuration === d} label={`${d} Days`} onClick={() => update("courseDuration", d)} />
+                  ))}
+                </div>
+                {stepAttempted[3] && !form.courseDuration && <p className="text-xs text-destructive mt-1">Please select course duration</p>}
+
+                {/* Auto-calculated total hours */}
+                {totalHours !== null && (
+                  <div className="mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <p className="text-sm font-medium text-emerald-800">Total course hours: <strong>{totalHours} hours</strong></p>
+                  </div>
+                )}
+              </div>
+
+              {/* 6. Course Fee */}
+              <div>
+                <Label>Course Fee (₹)<RequiredMark /></Label>
+                <Input type="number" value={form.courseFee} onChange={e => update("courseFee", e.target.value)} onBlur={() => markTouched("courseFee")} placeholder="e.g. 15000" className="mt-1.5 h-11" min="500" />
+                <FieldHint text="Total fee for complete course. Not per session or per hour." />
+                {touched.courseFee && form.courseFee && parseInt(form.courseFee) < 500 && <p className="text-xs text-destructive mt-1">Minimum fee is ₹500</p>}
+              </div>
+            </div>
+          )}
+
+          {/* ========== STEP 4: Services & Materials ========== */}
+          {step === 4 && (
             <div className="mt-6 space-y-5">
               <div>
                 <Label>Additional Services You Offer<RequiredMark /></Label>
@@ -927,8 +1060,8 @@ const TrainerOnboarding = () => {
             </div>
           )}
 
-          {/* ========== STEP 4: Payment & Documents ========== */}
-          {step === 4 && (
+          {/* ========== STEP 5: Payment & Documents ========== */}
+          {step === 5 && (
             <div className="mt-6 space-y-5">
               {/* Profile Photo & Selfie */}
               <div className="flex gap-6 items-start justify-center">
@@ -941,7 +1074,7 @@ const TrainerOnboarding = () => {
                         <button type="button" onClick={removeProfilePhoto} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
                       </div>
                     ) : (
-                      <button type="button" onClick={() => profilePhotoRef.current?.click()} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[4] && !profilePhoto && !profilePhotoPreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
+                      <button type="button" onClick={() => profilePhotoRef.current?.click()} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[5] && !profilePhoto && !profilePhotoPreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
                         <Upload className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
                       </button>
                     )}
@@ -958,7 +1091,7 @@ const TrainerOnboarding = () => {
                         <button type="button" onClick={removeSelfie} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
                       </div>
                     ) : (
-                      <button type="button" onClick={openCameraForSelfie} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[4] && !selfie && !selfiePreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
+                      <button type="button" onClick={openCameraForSelfie} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[5] && !selfie && !selfiePreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
                         <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
                       </button>
                     )}
@@ -1009,8 +1142,8 @@ const TrainerOnboarding = () => {
             </div>
           )}
 
-          {/* ========== STEP 5: Referral & Declaration ========== */}
-          {step === 5 && (
+          {/* ========== STEP 6: Referral & Declaration ========== */}
+          {step === 6 && (
             <div className="mt-6 space-y-5">
               <div>
                 <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>
@@ -1079,7 +1212,7 @@ const TrainerOnboarding = () => {
                     </label>
                   ))}
                 </div>
-                {!allReadinessChecked && stepAttempted[5] && (
+                {!allReadinessChecked && stepAttempted[6] && (
                   <p className="text-xs text-destructive mt-2">All teaching readiness items must be confirmed</p>
                 )}
               </div>
@@ -1091,7 +1224,7 @@ const TrainerOnboarding = () => {
             {step > 0 ? (
               <Button variant="outline" onClick={() => setStep(step - 1)}><ChevronLeft className="w-4 h-4 mr-1" /> Back</Button>
             ) : <div />}
-            {step < 5 ? (
+            {step < LAST_STEP ? (
               <Button onClick={nextStep} className="hero-gradient border-0">Next <ChevronRight className="w-4 h-4 ml-1" /></Button>
             ) : (
               <Button onClick={handleSubmit} disabled={submitting || !agreedTraining || !agreedTerms || !allReadinessChecked} className="gold-gradient text-accent-foreground border-0 font-semibold">
@@ -1155,7 +1288,7 @@ const TrainerOnboarding = () => {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Featured Course</p>
                 <h4 className="font-semibold text-foreground text-sm">{form.courseTitle}</h4>
                 <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                  {form.courseDuration && <span>{form.courseDuration}</span>}
+                  {form.courseDuration && <span>{form.courseDuration} days</span>}
                   {form.courseFee && <span className="font-semibold text-foreground">₹{parseInt(form.courseFee).toLocaleString()}</span>}
                 </div>
               </div>

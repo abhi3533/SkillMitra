@@ -28,7 +28,7 @@ const PRESET_FREQUENCIES = ["daily", "3x/week", "2x/week", "weekly"];
 const PRESET_LANGUAGES = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi"];
 
 const defaultForm = {
-  title: "", description: "", duration_days: "30", total_sessions: "12",
+  title: "", description: "", duration_days: "30", total_sessions: "13",
   course_fee: "", language: "English", level: "beginner",
   session_duration_mins: "60", session_frequency: "3x/week",
   has_free_trial: true, what_you_learn: "", who_is_it_for: "",

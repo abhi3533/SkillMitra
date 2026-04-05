@@ -22,7 +22,7 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
         <Section style={headerSection}>
           <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
             <tr>
-              <td style={{ textAlign: 'center', padding: '28px 0 20px 0' }}>
+              <td style={{ textAlign: 'center' as const, padding: '28px 0 20px 0' }}>
                 <span style={{ fontSize: '24px', fontWeight: 700, fontFamily, color: '#0F172A' }}>Skill</span>
                 <span style={{ fontSize: '24px', fontWeight: 700, fontFamily, color: '#1A56DB' }}>Mitra</span>
               </td>
@@ -53,21 +53,21 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
           <Text style={text}>
             <strong>We are focused on:</strong>
           </Text>
-          <Text style={listText}>
-            • Advanced Technologies: AI, Machine Learning, Data Science, Java, Python, Cloud Computing{'\n'}
-            • IT & Software Development{'\n'}
-            • Non-IT Skills: Communication, Leadership, Finance, Design{'\n'}
-            • All trending and in-demand skills
-          </Text>
+          <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', marginBottom: '16px' }}>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Advanced Technologies: AI, Machine Learning, Data Science, Java, Python, Cloud Computing</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>IT & Software Development</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Non-IT Skills: Communication, Leadership, Finance, Design</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>All trending and in-demand skills</td></tr>
+          </table>
 
           <Section style={statsBox}>
             <Text style={statsTitle}>Our Numbers:</Text>
-            <Text style={statsText}>
-              • Currently onboarding students across India{'\n'}
-              • Target: <strong>5 Lakh+</strong> active students by this year end{'\n'}
-              • Target: <strong>15 Lakh+</strong> students by next year{'\n'}
-              • Target: <strong>50 Lakh+</strong> students across India in 2 years
-            </Text>
+            <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
+              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Currently onboarding students across India</td></tr>
+              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Target: <strong>5 Lakh+</strong> active students by this year end</td></tr>
+              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Target: <strong>15 Lakh+</strong> students by next year</td></tr>
+              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Target: <strong>50 Lakh+</strong> students across India in 2 years</td></tr>
+            </table>
           </Section>
 
           <Text style={text}>
@@ -84,11 +84,11 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
           <Text style={text}>
             <strong>We do not onboard:</strong>
           </Text>
-          <Text style={listText}>
-            • Fake or unverified profiles{'\n'}
-            • Trainers without genuine expertise{'\n'}
-            • Anyone who is not committed to their students
-          </Text>
+          <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', marginBottom: '16px' }}>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Fake or unverified profiles</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Trainers without genuine expertise</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Anyone who is not committed to their students</td></tr>
+          </table>
           <Text style={{ ...text, fontStyle: 'italic', color: '#1A56DB' }}>
             If you are reading this, we believe YOU have what it takes. Let us make this official!
           </Text>
@@ -102,18 +102,27 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
           </Text>
 
           <Section style={checklistBox}>
-            <Text style={checklistText}>
-              1. <strong>SELFIE PHOTO</strong> — A clear, well-lit selfie for identity verification (not shown publicly){'\n\n'}
-              2. <strong>PROFESSIONAL PROFILE PHOTO</strong> — A clean, professional photo that will be displayed to students{'\n\n'}
-              3. <strong>RESUME</strong> — Updated resume in PDF or image format{'\n\n'}
-              4. <strong>COURSE DETAILS</strong> — Course name, description, curriculum outline{'\n\n'}
-              5. <strong>COURSE DURATION</strong> — Total hours, session duration, number of sessions{'\n\n'}
-              6. <strong>COURSE FEE</strong> — Your pricing per student{'\n\n'}
-              7. <strong>AVAILABILITY</strong> — Your weekly schedule and available time slots{'\n\n'}
-              8. <strong>DEMO CLASS TIMING</strong> — When you can conduct a free demo session{'\n\n'}
-              9. <strong>BANK DETAILS</strong> — For receiving your earnings{'\n\n'}
-              10. <strong>EDUCATION & CERTIFICATIONS</strong> — Your qualifications and credentials
-            </Text>
+            <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
+              <tr><td style={checklistNum}>1.</td><td style={checklistContent}><strong>SELFIE PHOTO</strong> — A clear, well-lit selfie for identity verification (not shown publicly)</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>2.</td><td style={checklistContent}><strong>PROFESSIONAL PROFILE PHOTO</strong> — A clean, professional photo that will be displayed to students</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>3.</td><td style={checklistContent}><strong>RESUME</strong> — Updated resume in PDF or image format</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>4.</td><td style={checklistContent}><strong>COURSE DETAILS</strong> — Course name, description, curriculum outline</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>5.</td><td style={checklistContent}><strong>COURSE DURATION</strong> — Total hours, session duration, number of sessions</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>6.</td><td style={checklistContent}><strong>COURSE FEE</strong> — Your pricing per student</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>7.</td><td style={checklistContent}><strong>AVAILABILITY</strong> — Your weekly schedule and available time slots</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>8.</td><td style={checklistContent}><strong>DEMO CLASS TIMING</strong> — When you can conduct a free demo session</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>9.</td><td style={checklistContent}><strong>BANK DETAILS</strong> — For receiving your earnings</td></tr>
+              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
+              <tr><td style={checklistNum}>10.</td><td style={checklistContent}><strong>EDUCATION & CERTIFICATIONS</strong> — Your qualifications and credentials</td></tr>
+            </table>
           </Section>
 
           <Text style={tipText}>
@@ -125,13 +134,13 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
           {/* What Happens After */}
           <Heading as="h4" style={sectionHeading}>WHAT HAPPENS AFTER YOU SUBMIT?</Heading>
           <Section style={stepsBox}>
-            <Text style={stepsText}>
-              1. Our team will review your application within 24 hours{'\n'}
-              2. If approved, you will receive an email to create your first course{'\n'}
-              3. Once your course is approved, you go LIVE on SkillMitra{'\n'}
-              4. Students across India can find and book you{'\n'}
-              5. You start earning! 🎉
-            </Text>
+            <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
+              <tr><td style={stepNum}>1.</td><td style={stepContent}>Our team will review your application within 24 hours</td></tr>
+              <tr><td style={stepNum}>2.</td><td style={stepContent}>If approved, you will receive an email to create your first course</td></tr>
+              <tr><td style={stepNum}>3.</td><td style={stepContent}>Once your course is approved, you go LIVE on SkillMitra</td></tr>
+              <tr><td style={stepNum}>4.</td><td style={stepContent}>Students across India can find and book you</td></tr>
+              <tr><td style={stepNum}>5.</td><td style={stepContent}>You start earning! 🎉</td></tr>
+            </table>
           </Section>
 
           <Hr style={divider} />
@@ -140,7 +149,7 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
             We are building something truly special for India.{'\n'}And we want YOU to be part of it.
           </Text>
 
-          <Section style={{ textAlign: 'center', margin: '28px 0' }}>
+          <Section style={{ textAlign: 'center' as const, margin: '28px 0' }}>
             <Button href={`${SITE_URL}/trainer/onboarding`} style={button}>
               START MY ONBOARDING →
             </Button>
@@ -177,25 +186,44 @@ export const template = {
 } satisfies TemplateEntry
 
 const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-const main = { backgroundColor: '#ffffff', fontFamily }
-const container = { maxWidth: '560px', margin: '0 auto', backgroundColor: '#ffffff' }
-const headerSection = { backgroundColor: '#ffffff', padding: '0', textAlign: 'center' as const }
-const contentSection = { padding: '0 32px 24px' }
-const footerSection = { padding: '20px 32px 28px', borderTop: '1px solid #e5e7eb', textAlign: 'center' as const }
-const h3 = { margin: '0 0 16px', fontSize: '20px', color: '#111', fontWeight: '600' as const }
-const sectionHeading = { margin: '0 0 12px', fontSize: '15px', color: '#0F172A', fontWeight: '700' as const, letterSpacing: '0.5px' }
-const text = { fontSize: '15px', color: '#444', lineHeight: '1.7', margin: '0 0 16px' }
-const listText = { fontSize: '14px', color: '#444', lineHeight: '1.8', margin: '0 0 16px', whiteSpace: 'pre-line' as const }
-const divider = { borderColor: '#e5e7eb', margin: '24px 0' }
-const statsBox = { background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '16px', margin: '16px 0' }
-const statsTitle = { fontSize: '14px', color: '#1e40af', margin: '0 0 8px', fontWeight: '600' as const }
-const statsText = { fontSize: '14px', color: '#1e40af', margin: '0', lineHeight: '1.8', whiteSpace: 'pre-line' as const }
-const checklistBox = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', margin: '16px 0' }
-const checklistText = { fontSize: '14px', color: '#334155', margin: '0', lineHeight: '1.6', whiteSpace: 'pre-line' as const }
-const tipText = { fontSize: '14px', color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', margin: '16px 0', lineHeight: '1.5' }
-const stepsBox = { background: '#fefce8', border: '1px solid #fde68a', borderRadius: '8px', padding: '16px', margin: '16px 0' }
-const stepsText = { fontSize: '14px', color: '#713f12', margin: '0', lineHeight: '1.8', whiteSpace: 'pre-line' as const }
-const button = { backgroundColor: '#1A56DB', color: '#ffffff', padding: '14px 32px', borderRadius: '8px', fontSize: '16px', fontWeight: '700' as const, textDecoration: 'none', display: 'inline-block' }
-const footerHelpText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 8px' }
-const footerLink = { color: '#9ca3af', textDecoration: 'underline' }
-const footerCopyright = { fontSize: '12px', color: '#9ca3af', margin: '0' }
+const main: React.CSSProperties = { backgroundColor: '#f4f4f5', fontFamily, margin: '0', padding: '40px 0' }
+const container: React.CSSProperties = { maxWidth: '600px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden' as const, border: '1px solid #e5e7eb' }
+const headerSection: React.CSSProperties = { backgroundColor: '#ffffff', padding: '0', textAlign: 'center' as const, borderBottom: '1px solid #e5e7eb' }
+const contentSection: React.CSSProperties = { padding: '32px 40px 24px' }
+const footerSection: React.CSSProperties = { padding: '20px 40px 28px', borderTop: '1px solid #e5e7eb', textAlign: 'center' as const, backgroundColor: '#f9fafb' }
+const h3: React.CSSProperties = { margin: '0 0 20px', fontSize: '20px', color: '#111', fontWeight: '600' as const, lineHeight: '1.4' }
+const sectionHeading: React.CSSProperties = { margin: '0 0 14px', fontSize: '15px', color: '#0F172A', fontWeight: '700' as const, letterSpacing: '0.5px' }
+const text: React.CSSProperties = { fontSize: '15px', color: '#444', lineHeight: '1.7', margin: '0 0 16px' }
+const divider: React.CSSProperties = { borderColor: '#e5e7eb', margin: '28px 0' }
+
+// Bullet point styles using table layout for proper indentation
+const bulletRow: React.CSSProperties = { width: '20px', verticalAlign: 'top' as const, fontSize: '14px', color: '#444', lineHeight: '1.8', paddingRight: '4px' }
+const bulletText: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#444', lineHeight: '1.8', paddingBottom: '2px' }
+
+// Stats box
+const statsBox: React.CSSProperties = { background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '20px 24px', margin: '16px 0' }
+const statsTitle: React.CSSProperties = { fontSize: '14px', color: '#1e40af', margin: '0 0 12px', fontWeight: '600' as const }
+const statsBulletRow: React.CSSProperties = { width: '20px', verticalAlign: 'top' as const, fontSize: '14px', color: '#1e40af', lineHeight: '1.8', paddingRight: '4px' }
+const statsBulletText: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#1e40af', lineHeight: '1.8', paddingBottom: '2px' }
+
+// Checklist box
+const checklistBox: React.CSSProperties = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px 24px 16px', margin: '16px 0' }
+const checklistNum: React.CSSProperties = { width: '28px', verticalAlign: 'top' as const, fontSize: '14px', color: '#334155', fontWeight: '600' as const, lineHeight: '1.6', paddingRight: '4px' }
+const checklistContent: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#334155', lineHeight: '1.6' }
+const checklistSpacer: React.CSSProperties = { height: '10px' }
+
+// Tip
+const tipText: React.CSSProperties = { fontSize: '14px', color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px 20px', margin: '16px 0', lineHeight: '1.5' }
+
+// Steps box
+const stepsBox: React.CSSProperties = { background: '#fefce8', border: '1px solid #fde68a', borderRadius: '8px', padding: '20px 24px', margin: '16px 0' }
+const stepNum: React.CSSProperties = { width: '24px', verticalAlign: 'top' as const, fontSize: '14px', color: '#713f12', fontWeight: '600' as const, lineHeight: '1.8', paddingRight: '4px' }
+const stepContent: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#713f12', lineHeight: '1.8', paddingBottom: '2px' }
+
+// Button
+const button: React.CSSProperties = { backgroundColor: '#1A56DB', color: '#ffffff', padding: '14px 32px', borderRadius: '8px', fontSize: '16px', fontWeight: '700' as const, textDecoration: 'none', display: 'inline-block' }
+
+// Footer
+const footerHelpText: React.CSSProperties = { fontSize: '12px', color: '#9ca3af', margin: '0 0 8px' }
+const footerLink: React.CSSProperties = { color: '#9ca3af', textDecoration: 'underline' }
+const footerCopyright: React.CSSProperties = { fontSize: '12px', color: '#9ca3af', margin: '0' }

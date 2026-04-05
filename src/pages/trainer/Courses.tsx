@@ -410,8 +410,8 @@ const TrainerCourses = () => {
                 )}
               </div>
               <div>
-                <Label>Total Sessions</Label>
-                <Input type="number" value={form.total_sessions} onChange={e => setField("total_sessions", e.target.value)} className="mt-1.5" min={1} max={100} disabled={isApprovedCourse} />
+                <Label>Total Sessions <span className="text-xs text-muted-foreground font-normal">(auto, excl. weekends)</span></Label>
+                <Input type="number" value={form.total_sessions} onChange={e => setField("total_sessions", e.target.value)} className="mt-1.5" min={1} max={365} disabled={isApprovedCourse} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">

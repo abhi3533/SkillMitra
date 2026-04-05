@@ -52,8 +52,8 @@ const BrowseTrainers = () => {
   const [selectedSkill, setSelectedSkill] = useState<string>(searchParams.get("skill") || "");
   const [priceRange, setPriceRange] = useState<[number, number]>(() => {
     const min = parseInt(searchParams.get("pmin") || "500");
-    const max = parseInt(searchParams.get("pmax") || "10000");
-    return [isNaN(min) ? 500 : min, isNaN(max) ? 10000 : max];
+    const max = parseInt(searchParams.get("pmax") || "100000");
+    return [isNaN(min) ? 500 : min, isNaN(max) ? 100000 : max];
   });
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(() => {
     const langs = searchParams.get("lang");
@@ -82,7 +82,7 @@ const BrowseTrainers = () => {
     if (sortBy && sortBy !== "popular") params.set("sort", sortBy);
     if (selectedSkill) params.set("skill", selectedSkill);
     if (priceRange[0] !== 500) params.set("pmin", String(priceRange[0]));
-    if (priceRange[1] !== 10000) params.set("pmax", String(priceRange[1]));
+    if (priceRange[1] !== 100000) params.set("pmax", String(priceRange[1]));
     if (selectedLanguages.length > 0) params.set("lang", selectedLanguages.join(","));
     if (genderPref) params.set("gender", genderPref);
     if (minRating > 0) params.set("rating", String(minRating));
@@ -174,11 +174,11 @@ const BrowseTrainers = () => {
     selectedTimeSlots.length > 0, selectedSchedule.length > 0,
     experienceFilter && experienceFilter !== "any",
     budgetFilter && budgetFilter !== "any",
-    priceRange[0] !== 500 || priceRange[1] !== 10000,
+    priceRange[0] !== 500 || priceRange[1] !== 100000,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
-    setSelectedSkill(""); setPriceRange([500, 10000]); setSelectedLanguages([]);
+    setSelectedSkill(""); setPriceRange([500, 100000]); setSelectedLanguages([]);
     setGenderPref(""); setMinRating(0); setSelectedTimeSlots([]); setSelectedSchedule([]);
     setExperienceFilter("any"); setBudgetFilter("any");
     setVisibleCount(ITEMS_PER_PAGE);
@@ -223,7 +223,7 @@ const BrowseTrainers = () => {
       }
 
       // Price filter for both demo and real trainers
-      if (priceRange[0] !== 500 || priceRange[1] !== 10000) {
+      if (priceRange[0] !== 500 || priceRange[1] !== 100000) {
         const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
         if (demoCourse) {
           if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;
@@ -355,13 +355,13 @@ const BrowseTrainers = () => {
         </div>
         <div className="mt-3 px-1">
           <Slider
-            min={500} max={10000} step={500}
+            min={500} max={100000} step={500}
             value={priceRange}
             onValueChange={(v) => setPriceRange(v as [number, number])}
           />
           <div className="flex justify-between mt-1.5 text-[11px] text-muted-foreground">
             <span>₹500</span>
-            <span>₹10,000</span>
+            <span>₹1,00,000</span>
           </div>
         </div>
       </div>

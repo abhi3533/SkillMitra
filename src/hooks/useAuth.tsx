@@ -102,20 +102,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userRole = confirmedUser.user_metadata?.role || "student";
         setTimeout(async () => {
           try {
-            await supabase.functions.invoke("send-transactional-email", {
-              body: {
-                templateName: "email-confirmed",
-                recipientEmail: confirmedUser.email,
-                idempotencyKey: `email-confirmed-${confirmedUser.id}`,
-                templateData: { name },
-              },
-            });
             if (userRole === "trainer") {
+              // Trainers get the welcome-trainer email only (not email-confirmed)
               await supabase.functions.invoke("send-transactional-email", {
                 body: {
                   templateName: "welcome-trainer",
                   recipientEmail: confirmedUser.email,
                   idempotencyKey: `welcome-trainer-${confirmedUser.id}`,
+                  templateData: { name },
+                },
+              });
+            } else {
+              // Students (and other roles) get the email-confirmed template only
+              await supabase.functions.invoke("send-transactional-email", {
+                body: {
+                  templateName: "email-confirmed",
+                  recipientEmail: confirmedUser.email,
+                  idempotencyKey: `email-confirmed-${confirmedUser.id}`,
                   templateData: { name },
                 },
               });

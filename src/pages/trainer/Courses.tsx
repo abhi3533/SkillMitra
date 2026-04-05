@@ -480,7 +480,7 @@ const TrainerCourses = () => {
               </div>
               <div>
                 <Label>Level</Label>
-                <Select value={form.level} onValueChange={v => setField("level", v)}>
+                <Select value={form.level} onValueChange={v => setField("level", v)} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="beginner">Beginner</SelectItem>

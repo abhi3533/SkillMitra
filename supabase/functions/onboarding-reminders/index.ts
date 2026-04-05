@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       // Skip if signed up less than 24 hours ago (give them time)
       if (hoursSinceSignup < 24) continue
 
-      const step = trainer.onboarding_step || 0
+      const step = Math.min(trainer.onboarding_step || 0, 6)
       const name = profile.full_name || 'there'
       const daysSince = Math.floor(hoursSinceSignup / 24)
 

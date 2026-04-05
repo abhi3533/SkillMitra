@@ -275,7 +275,21 @@ const TrainerCourses = () => {
   const statusColor = (s: string) =>
     s === "approved" ? "bg-emerald-50 text-emerald-700" :
     s === "rejected" ? "bg-destructive/10 text-destructive" :
+    s === "changes_requested" ? "bg-orange-50 text-orange-700" :
     "bg-amber-50 text-amber-700";
+
+  const getStatusMessage = (status: string) => {
+    switch (status) {
+      case "pending":
+        return { text: "Course is under admin review. To request changes email contact@skillmitra.online", color: "border-amber-200 bg-amber-50 text-amber-800" };
+      case "changes_requested":
+        return { text: "Admin requested changes. Please update and resubmit.", color: "border-orange-200 bg-orange-50 text-orange-800" };
+      case "rejected":
+        return { text: "Course was rejected. Please update and resubmit.", color: "border-destructive/30 bg-destructive/5 text-destructive" };
+      default:
+        return null;
+    }
+  };
 
   return (
     <TrainerLayout>

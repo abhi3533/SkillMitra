@@ -338,7 +338,7 @@ const TrainerCourses = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold text-foreground">{c.title}</h3>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${statusColor(c.approval_status)}`}>
-                      {c.approval_status}
+                      {c.approval_status === "changes_requested" ? "changes requested" : c.approval_status}
                     </span>
                     {c.approval_status === "approved" && <Lock className="w-3 h-3 text-muted-foreground" />}
                     {c.has_free_trial && <Badge variant="secondary" className="text-[10px]">Free Trial</Badge>}
@@ -350,12 +350,19 @@ const TrainerCourses = () => {
                     {c.average_rating > 0 && <span className="flex items-center gap-1"><Star className="w-3 h-3" />{c.average_rating} ★</span>}
                     <span>{c.level} • {c.language}</span>
                   </div>
+                  {getStatusMessage(c.approval_status) && (
+                    <p className={`mt-2 text-xs px-3 py-1.5 rounded-md border ${getStatusMessage(c.approval_status)!.color}`}>
+                      {getStatusMessage(c.approval_status)!.text}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <p className="text-lg font-bold text-foreground">₹{c.course_fee?.toLocaleString("en-IN")}</p>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEdit(c)}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
+                  {c.approval_status !== "pending" && (
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEdit(c)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

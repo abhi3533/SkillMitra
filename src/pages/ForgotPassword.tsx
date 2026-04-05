@@ -91,13 +91,13 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:p-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[480px]">
           <div className="flex items-center justify-center mb-6 sm:mb-8">
             <SkillMitraLogo darkText height={32} />
           </div>
 
-          <div className="bg-card rounded-xl border p-4 sm:p-6 space-y-5">
+          <div className="bg-card rounded-xl border p-5 sm:p-8 space-y-5">
             {sent ? (
               <div className="text-center space-y-4">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
@@ -105,7 +105,7 @@ const ForgotPassword = () => {
                 </div>
                 <h1 className="text-lg sm:text-xl font-bold text-foreground">Check your email</h1>
                 <p className="text-sm text-muted-foreground px-1">
-                  We've sent a password reset link to <span className="font-medium text-foreground break-all">{email}</span>.
+                  We've sent a password reset link to <span className="font-medium text-foreground" style={{ wordBreak: "break-all" }}>{email}</span>.
                   The link expires in 1 hour.
                 </p>
                 <Link to={loginPath} className="inline-flex items-center gap-1 text-sm text-primary font-semibold hover:underline">
@@ -121,7 +121,7 @@ const ForgotPassword = () => {
                 <p className="text-sm text-destructive px-1">
                   No account found with this email address. Please check your email or sign up for free.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mx-auto w-full max-w-[320px]">
                   <Button variant="outline" onClick={handleTryAgain} className="gap-1 w-full sm:w-auto">
                     <ArrowLeft className="w-4 h-4" /> Try Again
                   </Button>
@@ -156,9 +156,11 @@ const ForgotPassword = () => {
                       </p>
                     )}
                   </div>
-                  <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
-                    {loading ? "Checking..." : "Send Reset Link"}
-                  </Button>
+                  <div className="mx-auto w-full max-w-[320px]">
+                    <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">
+                      {loading ? "Checking..." : "Send Reset Link"}
+                    </Button>
+                  </div>
                 </form>
                 <Link to={loginPath} className="inline-flex items-center gap-1 text-sm text-primary font-semibold hover:underline">
                   <ArrowLeft className="w-4 h-4" /> Back to login

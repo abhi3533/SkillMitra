@@ -11,12 +11,12 @@ const EmailVerified = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:p-6">
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-md text-center"
+          className="w-full max-w-[480px] text-center"
         >
           <div className="mb-6 sm:mb-8">
             <SkillMitraLogo darkText height={32} />
@@ -31,7 +31,7 @@ const EmailVerified = () => {
             Your email has been successfully verified. You can now login to SkillMitra.
           </p>
 
-          <div className="mt-6 sm:mt-8 space-y-3">
+          <div className="mt-6 sm:mt-8 space-y-3 mx-auto w-full max-w-[320px]">
             <Link to="/student/login" className="block">
               <Button className="hero-gradient border-0 font-semibold w-full h-11 text-base">
                 Go to Login <ArrowRight className="ml-2 w-4 h-4" />

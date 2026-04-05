@@ -74,13 +74,13 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:p-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[480px]">
           <div className="flex items-center justify-center mb-6 sm:mb-8">
             <SkillMitraLogo darkText height={32} />
           </div>
 
-          <div className="bg-card rounded-xl border p-4 sm:p-6 space-y-5">
+          <div className="bg-card rounded-xl border p-5 sm:p-8 space-y-5">
             {success ? (
               <div className="text-center space-y-4">
                 <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto">
@@ -136,13 +136,15 @@ const ResetPassword = () => {
                       required
                     />
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={loading || !isPasswordValid(password) || password !== confirmPassword}
-                    className="w-full h-11 hero-gradient font-semibold border-0"
-                  >
-                    {loading ? "Updating..." : "Update Password"}
-                  </Button>
+                  <div className="mx-auto w-full max-w-[320px]">
+                    <Button
+                      type="submit"
+                      disabled={loading || !isPasswordValid(password) || password !== confirmPassword}
+                      className="w-full h-11 hero-gradient font-semibold border-0"
+                    >
+                      {loading ? "Updating..." : "Update Password"}
+                    </Button>
+                  </div>
                 </form>
               </>
             )}

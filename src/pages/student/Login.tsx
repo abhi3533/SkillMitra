@@ -219,7 +219,7 @@ const StudentLogin = () => {
               <Link to="/forgot-password?role=student" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
             </div>
 
-            <Button type="submit" disabled={loading || locked.locked} className="w-full h-11 hero-gradient font-semibold border-0">
+            <Button type="submit" disabled={loading || locked.locked} className="w-full max-w-[320px] mx-auto h-11 hero-gradient font-semibold border-0">
               {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : <>Sign In <ArrowRight className="ml-2 w-4 h-4" /></>}
             </Button>
           </form>

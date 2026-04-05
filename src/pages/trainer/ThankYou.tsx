@@ -4,8 +4,8 @@ import { CheckCircle, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const TrainerThankYou = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 sm:p-6">
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md text-center">
+  <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-[480px] text-center">
       <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full hero-gradient flex items-center justify-center mb-5 sm:mb-6">
         <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
       </div>
@@ -20,7 +20,7 @@ const TrainerThankYou = () => (
         </div>
       </div>
       <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground px-2">You'll receive an email notification once your profile is approved.</p>
-      <div className="mt-6 sm:mt-8">
+      <div className="mt-6 sm:mt-8 mx-auto w-full max-w-[320px]">
         <Link to="/" className="block">
           <Button className="hero-gradient border-0 font-semibold w-full h-11">Back to Home <ArrowRight className="ml-2 w-4 h-4" /></Button>
         </Link>

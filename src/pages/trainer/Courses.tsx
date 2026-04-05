@@ -123,7 +123,45 @@ const TrainerCourses = () => {
   const updateWeek = (idx: number, field: keyof CurriculumWeek, val: string) => {
     setCurriculum(prev => prev.map((w, i) => i === idx ? { ...w, [field]: val } : w));
   };
-  const setField = (field: string, value: any) => setForm(f => ({ ...f, [field]: value }));
+  // Calculate total sessions excluding weekends based on duration & frequency
+  const calculateSessions = (durationDays: string, customDuration: string, frequency: string): string | null => {
+    const days = durationDays === "custom" ? parseInt(customDuration) : parseInt(durationDays);
+    if (!days || days < 1) return null;
+
+    // Count weekdays in the duration
+    let weekdays = 0;
+    const start = new Date();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const day = d.getDay();
+      if (day !== 0 && day !== 6) weekdays++;
+    }
+
+    let sessionsPerWeek: number;
+    switch (frequency) {
+      case "daily": return String(weekdays); // weekdays only
+      case "3x/week": sessionsPerWeek = 3; break;
+      case "2x/week": sessionsPerWeek = 2; break;
+      case "weekly": sessionsPerWeek = 1; break;
+      default: return null; // custom frequency, can't auto-calc
+    }
+
+    const weeks = Math.ceil(days / 7);
+    return String(Math.min(weeks * sessionsPerWeek, weekdays));
+  };
+
+  const setField = (field: string, value: any) => {
+    setForm(f => {
+      const updated = { ...f, [field]: value };
+      // Auto-calculate total_sessions when duration or frequency changes
+      if (["duration_days", "custom_duration", "session_frequency"].includes(field)) {
+        const calc = calculateSessions(updated.duration_days, updated.custom_duration, updated.session_frequency);
+        if (calc) updated.total_sessions = calc;
+      }
+      return updated;
+    });
+  };
 
   const handleSubmit = async () => {
     if (!form.title.trim()) { toast({ title: "Course title is required", variant: "warning" }); return; }

@@ -223,7 +223,7 @@ const BrowseTrainers = () => {
       }
 
       // Price filter for both demo and real trainers
-      if (priceRange[0] !== 500 || priceRange[1] !== 10000) {
+      if (priceRange[0] !== 500 || priceRange[1] !== 100000) {
         const demoCourse = t.id?.startsWith("demo-") ? getDemoCourse(t.id)?.[0] : null;
         if (demoCourse) {
           if (demoCourse.fee < priceRange[0] || demoCourse.fee > priceRange[1]) return false;

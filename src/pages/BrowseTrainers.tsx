@@ -82,7 +82,7 @@ const BrowseTrainers = () => {
     if (sortBy && sortBy !== "popular") params.set("sort", sortBy);
     if (selectedSkill) params.set("skill", selectedSkill);
     if (priceRange[0] !== 500) params.set("pmin", String(priceRange[0]));
-    if (priceRange[1] !== 10000) params.set("pmax", String(priceRange[1]));
+    if (priceRange[1] !== 100000) params.set("pmax", String(priceRange[1]));
     if (selectedLanguages.length > 0) params.set("lang", selectedLanguages.join(","));
     if (genderPref) params.set("gender", genderPref);
     if (minRating > 0) params.set("rating", String(minRating));

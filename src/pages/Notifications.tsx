@@ -1,13 +1,44 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Bell, Check, ArrowLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgoIST } from "@/lib/dateUtils";
 
+const getNotificationRoute = (n: any, role: string | null): string | null => {
+  // Use action_url from DB if set
+  if (n.action_url) return n.action_url;
+
+  const title = (n.title || "").toLowerCase();
+  const type = (n.type || "").toLowerCase();
+
+  if (role === "trainer") {
+    if (title.includes("course approved") || title.includes("course changes requested")) return "/trainer/courses";
+    if (title.includes("you're approved") || title.includes("you are approved")) return "/trainer/courses";
+    if (title.includes("application rejected") || title.includes("rejected")) return "/trainer/onboarding";
+    if (title.includes("referral")) return "/trainer/referrals";
+    if (title.includes("withdrawal") || title.includes("payout")) return "/trainer/wallet";
+    return "/trainer/dashboard";
+  }
+
+  if (role === "admin") {
+    if (title.includes("trainer application") || title.includes("new trainer")) return "/admin/trainers";
+    if (title.includes("course submitted") || title.includes("new course")) return "/admin/courses";
+    if (title.includes("withdrawal") || title.includes("payout")) return "/admin/payouts";
+    if (title.includes("referral")) return "/admin/referrals";
+    return "/admin";
+  }
+
+  // student / default
+  if (title.includes("referral")) return "/student/referrals";
+  if (title.includes("enrollment")) return "/student/dashboard";
+  return "/student/dashboard";
+};
+
 const Notifications = () => {
   const { user, role } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,9 +64,13 @@ const Notifications = () => {
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 
-  const markRead = async (id: string) => {
-    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+  const handleNotificationClick = async (n: any) => {
+    if (!n.is_read) {
+      await supabase.from("notifications").update({ is_read: true }).eq("id", n.id);
+      setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, is_read: true } : item));
+    }
+    const route = getNotificationRoute(n, role);
+    if (route) navigate(route);
   };
 
   const backPath = role === "trainer" ? "/trainer/dashboard" : role === "admin" ? "/admin" : "/student/dashboard";
@@ -72,8 +107,8 @@ const Notifications = () => {
         ) : (
           <div className="space-y-2">
             {notifications.map(n => (
-              <div key={n.id} onClick={() => !n.is_read && markRead(n.id)}
-                className={`p-4 rounded-xl border cursor-pointer transition-colors ${n.is_read ? "bg-card" : "bg-primary/5 border-l-4 border-l-primary"}`}>
+              <div key={n.id} onClick={() => handleNotificationClick(n)}
+                className={`p-4 rounded-xl border cursor-pointer transition-colors hover:bg-accent/50 ${n.is_read ? "bg-card" : "bg-primary/5 border-l-4 border-l-primary"}`}>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center flex-shrink-0">
                     <Bell className="w-4 h-4 text-primary-foreground" />

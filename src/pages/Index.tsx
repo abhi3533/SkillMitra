@@ -105,7 +105,7 @@ const benefits = [
   { title: "Learn in Your Language", desc: "Sessions in Telugu, Hindi, Tamil, English, and more. Learn comfortably.", icon: Globe },
   { title: "Learn From Home", desc: "No travel, no fixed batch times. Join live sessions on Google Meet from anywhere.", icon: Home },
   { title: "Verified Trainers", desc: "Every trainer goes through ID check and profile review before they can teach.", icon: Shield },
-  { title: "Starts at ₹999", desc: "Quality 1:1 training at prices that won't break the bank. Seriously.", icon: IndianRupee },
+  { title: "Starts at ₹2499", desc: "Quality 1:1 training at prices that won't break the bank. Seriously.", icon: IndianRupee },
   { title: "Get Certified", desc: "Earn a SkillMitra certificate with QR verification. Add it to your LinkedIn.", icon: Award },
 ];
 

@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       if (!profile?.email) throw new Error('No email found')
 
       const name = profile.full_name || 'there'
-      const step = trainer.onboarding_step || 0
+      const step = Math.min(trainer.onboarding_step || 0, 6)
       const isAdminNudge = body.reminder_type === 'admin_nudge'
 
       const subject = isAdminNudge

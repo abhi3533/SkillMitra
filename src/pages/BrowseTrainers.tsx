@@ -174,7 +174,7 @@ const BrowseTrainers = () => {
     selectedTimeSlots.length > 0, selectedSchedule.length > 0,
     experienceFilter && experienceFilter !== "any",
     budgetFilter && budgetFilter !== "any",
-    priceRange[0] !== 500 || priceRange[1] !== 10000,
+    priceRange[0] !== 500 || priceRange[1] !== 100000,
   ].filter(Boolean).length;
 
   const clearFilters = () => {

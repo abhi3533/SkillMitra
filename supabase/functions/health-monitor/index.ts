@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
   if (logErr) console.error("Failed to write monitoring log:", logErr.message)
 
   // Send alert email if degraded/critical
-  if (overallStatus === "critical" && resendKey) {
+  if (overallStatus !== "healthy" && resendKey) {
     const failedList = failed.map(f => `- ${f.name}: ${f.message}`).join("\n")
     const emailBody = {
       to: ALERT_EMAIL,

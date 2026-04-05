@@ -84,41 +84,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Send post-verification emails when email is confirmed
-      if ((event === "INITIAL_SESSION" || event === "SIGNED_IN") && newSession?.user?.email_confirmed_at && !emailConfirmedRef.current) {
-        const user = newSession.user;
-        const confirmedAt = new Date(user.email_confirmed_at).getTime();
-        const now = Date.now();
-        // Only trigger if confirmed within the last 2 minutes (fresh verification)
-        if (now - confirmedAt < 2 * 60 * 1000) {
-          emailConfirmedRef.current = true;
-          const name = user.user_metadata?.full_name || "";
-          const userRole = user.user_metadata?.role || "student";
-          setTimeout(async () => {
-            try {
+      // Detect email_confirmed_at transition: null/undefined → timestamp
+      const currentConfirmedAt = newSession?.user?.email_confirmed_at ?? null;
+      const prevConfirmedAt = prevEmailConfirmedAtRef.current;
+      const isFirstLoad = prevConfirmedAt === undefined;
+      
+      if (
+        !emailConfirmedRef.current &&
+        currentConfirmedAt &&
+        !isFirstLoad &&
+        !prevConfirmedAt
+      ) {
+        // email_confirmed_at just transitioned from null → timestamp (USER_UPDATED after verification)
+        emailConfirmedRef.current = true;
+        const confirmedUser = newSession!.user;
+        const name = confirmedUser.user_metadata?.full_name || "";
+        const userRole = confirmedUser.user_metadata?.role || "student";
+        setTimeout(async () => {
+          try {
+            await supabase.functions.invoke("send-transactional-email", {
+              body: {
+                templateName: "email-confirmed",
+                recipientEmail: confirmedUser.email,
+                idempotencyKey: `email-confirmed-${confirmedUser.id}`,
+                templateData: { name },
+              },
+            });
+            if (userRole === "trainer") {
               await supabase.functions.invoke("send-transactional-email", {
                 body: {
-                  templateName: "email-confirmed",
-                  recipientEmail: user.email,
-                  idempotencyKey: `email-confirmed-${user.id}`,
+                  templateName: "welcome-trainer",
+                  recipientEmail: confirmedUser.email,
+                  idempotencyKey: `welcome-trainer-${confirmedUser.id}`,
                   templateData: { name },
                 },
               });
-              if (userRole === "trainer") {
-                await supabase.functions.invoke("send-transactional-email", {
-                  body: {
-                    templateName: "welcome-trainer",
-                    recipientEmail: user.email,
-                    idempotencyKey: `welcome-trainer-${user.id}`,
-                    templateData: { name },
-                  },
-                });
-              }
-            } catch (err) {
-              console.error("Failed to send post-verification emails:", err);
             }
-          }, 0);
-        }
+          } catch (err) {
+            console.error("Failed to send post-verification emails:", err);
+          }
+        }, 0);
       }
+      
+      // Track previous value for next event
+      prevEmailConfirmedAtRef.current = currentConfirmedAt;
 
       if (event === "TOKEN_REFRESHED" && !newSession) {
         setRole(null);

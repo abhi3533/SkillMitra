@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<any>(null);
   
   const fetchingRef = useRef(false);
+  const emailConfirmedRef = useRef(false);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

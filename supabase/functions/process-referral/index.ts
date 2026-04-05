@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
     // Update referred_by on new student
     await supabase.from('students').update({ referred_by: referral_code.toUpperCase().trim() }).eq('id', newStudent.id)
 
-    // Notify referrer
+    // Notify referrer (in-app)
     await supabase.from('notifications').insert({
       user_id: referrer.user_id,
       title: 'New Referral! 🎉',
@@ -108,6 +108,54 @@ Deno.serve(async (req) => {
       type: 'referral',
       action_url: '/student/referrals',
     })
+
+    // --- Send referral emails ---
+    // Get profiles for both users
+    const [{ data: referrerProfile }, { data: referredProfile }] = await Promise.all([
+      supabase.from('profiles').select('full_name, email').eq('id', referrer.user_id).single(),
+      supabase.from('profiles').select('full_name, email').eq('id', new_user_id).single(),
+    ])
+
+    // Email to referrer (Student A)
+    if (referrerProfile?.email) {
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'referral-signup-referrer',
+            recipientEmail: referrerProfile.email,
+            idempotencyKey: `referral-signup-referrer-${referrer.id}-${newStudent.id}`,
+            templateData: {
+              referrerName: referrerProfile.full_name || '',
+              referredName: referredProfile?.full_name || 'A new student',
+              rewardAmount: REWARD,
+            },
+          },
+        })
+        console.log(`📧 Referral email sent to referrer: ${referrerProfile.email}`)
+      } catch (emailErr) {
+        console.error('⚠️ Failed to send referrer email:', emailErr)
+      }
+    }
+
+    // Email to referred student (Student B)
+    if (referredProfile?.email) {
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'referral-signup-referred',
+            recipientEmail: referredProfile.email,
+            idempotencyKey: `referral-signup-referred-${newStudent.id}`,
+            templateData: {
+              name: referredProfile.full_name || '',
+              rewardAmount: REWARD,
+            },
+          },
+        })
+        console.log(`📧 Referral email sent to referred: ${referredProfile.email}`)
+      } catch (emailErr) {
+        console.error('⚠️ Failed to send referred email:', emailErr)
+      }
+    }
 
     console.log(`✅ Student referral created: ${referral_code} (pending first paid enrollment)`)
 

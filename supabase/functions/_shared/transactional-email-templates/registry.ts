@@ -15,6 +15,8 @@ import { template as welcomeStudent } from './welcome-student.tsx'
 import { template as enrollmentConfirmation } from './enrollment-confirmation.tsx'
 import { template as emailConfirmed } from './email-confirmed.tsx'
 import { template as welcomeTrainer } from './welcome-trainer.tsx'
+import { template as referralSignupReferrer } from './referral-signup-referrer.tsx'
+import { template as referralSignupReferred } from './referral-signup-referred.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
@@ -23,4 +25,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'enrollment-confirmation': enrollmentConfirmation,
   'email-confirmed': emailConfirmed,
   'welcome-trainer': welcomeTrainer,
+  'referral-signup-referrer': referralSignupReferrer,
+  'referral-signup-referred': referralSignupReferred,
 }

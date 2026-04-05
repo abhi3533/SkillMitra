@@ -52,8 +52,8 @@ const BrowseTrainers = () => {
   const [selectedSkill, setSelectedSkill] = useState<string>(searchParams.get("skill") || "");
   const [priceRange, setPriceRange] = useState<[number, number]>(() => {
     const min = parseInt(searchParams.get("pmin") || "500");
-    const max = parseInt(searchParams.get("pmax") || "10000");
-    return [isNaN(min) ? 500 : min, isNaN(max) ? 10000 : max];
+    const max = parseInt(searchParams.get("pmax") || "100000");
+    return [isNaN(min) ? 500 : min, isNaN(max) ? 100000 : max];
   });
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(() => {
     const langs = searchParams.get("lang");

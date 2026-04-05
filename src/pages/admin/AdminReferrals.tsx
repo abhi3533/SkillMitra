@@ -161,12 +161,28 @@ const AdminReferrals = () => {
   useEffect(() => { loadData(); }, []);
 
   const handleOverride = async (id: string, table: "referrals" | "trainer_referrals", newStatus: string) => {
-    const { error } = await supabase.from(table).update({ status: newStatus }).eq("id", id);
-    if (error) {
-      toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+    if (newStatus === "paid") {
+      // Use edge function to credit wallet + update status + send notifications
+      try {
+        const { data, error } = await supabase.functions.invoke("admin-mark-referral-paid", {
+          body: { referral_id: id, table },
+        });
+        if (error) throw error;
+        if (data && !data.success) throw new Error(data.error || "Failed to process");
+        toast({ title: "Referral Paid", description: "Status updated, wallet credited, and notification sent." });
+        loadData();
+      } catch (err: any) {
+        toast({ title: "Failed to process", description: err.message, variant: "destructive" });
+      }
     } else {
-      toast({ title: "Updated", description: `Referral marked as ${newStatus}` });
-      loadData();
+      // For revert (paid → pending), just update the status
+      const { error } = await supabase.from(table).update({ status: newStatus }).eq("id", id);
+      if (error) {
+        toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Updated", description: `Referral marked as ${newStatus}` });
+        loadData();
+      }
     }
   };
 

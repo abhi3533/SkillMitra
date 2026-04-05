@@ -162,122 +162,126 @@ const TrainerSignup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Left Panel */}
-      <div className="hidden lg:flex fixed top-0 left-0 w-[40%] h-screen hero-gradient items-center justify-center p-12 overflow-hidden z-10">
-        <div className="max-w-md">
-          <SkillMitraLogo darkText={false} height={40} className="mb-12" />
-          <h2 className="text-3xl font-bold text-primary-foreground">Start earning from your expertise</h2>
-          <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join verified trainers earning from home teaching skills they love.</p>
-          <div className="mt-10 space-y-4">
-            {["Create your account", "Verify your email", "Complete your profile", "Start teaching"].map((s, i) => (
-              <div key={s} className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                  i === 0 ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary-foreground/5 text-primary-foreground/30"
-                }`}>
-                  {i + 1}
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex">
+        {/* Left Panel */}
+        <div className="hidden lg:flex lg:w-[40%] hero-gradient items-center justify-center p-12 overflow-hidden sticky top-0 h-screen">
+          <div className="max-w-md">
+            <SkillMitraLogo darkText={false} height={40} className="mb-12" />
+            <h2 className="text-3xl font-bold text-primary-foreground">Start earning from your expertise</h2>
+            <p className="mt-4 text-primary-foreground/60 leading-relaxed">Join verified trainers earning from home teaching skills they love.</p>
+            <div className="mt-10 space-y-4">
+              {["Create your account", "Verify your email", "Complete your profile", "Start teaching"].map((s, i) => (
+                <div key={s} className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                    i === 0 ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary-foreground/5 text-primary-foreground/30"
+                  }`}>
+                    {i + 1}
+                  </div>
+                  <span className={`text-sm ${i === 0 ? "text-primary-foreground" : "text-primary-foreground/30"}`}>{s}</span>
                 </div>
-                <span className={`text-sm ${i === 0 ? "text-primary-foreground" : "text-primary-foreground/30"}`}>{s}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Right Panel */}
-      <div className="lg:ml-[40%] flex-1 flex items-start justify-center p-6 lg:p-12 min-h-screen">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
-          <div className="lg:hidden mb-6">
-            <SkillMitraLogo darkText height={32} />
-          </div>
-
-          <h1 className="text-2xl font-bold text-foreground">Create Your Trainer Account</h1>
-          <p className="text-sm text-muted-foreground mt-1">Quick signup — complete your full profile after email verification</p>
-
-          <div className="mt-6 space-y-4">
-
-            <div>
-              <Label>Full Name<span className="text-destructive ml-0.5">*</span></Label>
-              <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} onBlur={() => markTouched("fullName")} placeholder="Your full name"
-                className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() && isValidName(form.fullName) ? "border-green-500" : "border-destructive") : ""}`} />
-              {touched.fullName && !form.fullName.trim() && <p className="text-xs text-destructive mt-1">Required</p>}
-              {touched.fullName && form.fullName.trim() && !isValidName(form.fullName) && <p className="text-xs text-destructive mt-1">Name must contain only letters</p>}
+        {/* Right Panel */}
+        <div className="flex-1 flex items-start justify-center p-6 lg:p-12">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
+            <div className="lg:hidden mb-6">
+              <SkillMitraLogo darkText height={32} />
             </div>
 
-            <div>
-              <Label>Email<span className="text-destructive ml-0.5">*</span></Label>
-              <Input type="email" value={form.email} onChange={e => { update("email", e.target.value); setEmailTypo(null); setEmailError(""); }} onBlur={handleEmailBlur} placeholder="you@email.com"
-                className={`mt-1.5 h-11 ${touched.email ? (isValidEmail(form.email) && !emailError ? "border-green-500" : "border-destructive") : ""}`} />
-              {emailError && (
-                <p className="text-xs text-destructive mt-1">
-                  {emailError}{" "}
-                  {emailError.includes("student") && <Link to="/student/login" className="text-primary underline font-medium">Student Login</Link>}
-                  {emailError.includes("login instead") && <Link to="/trainer/login" className="text-primary underline font-medium">Login here</Link>}
-                </p>
-              )}
-              {emailTypo && <p className="text-xs text-amber-600 mt-1">{emailTypo}</p>}
-            </div>
+            <h1 className="text-2xl font-bold text-foreground">Create Your Trainer Account</h1>
+            <p className="text-sm text-muted-foreground mt-1">Quick signup — complete your full profile after email verification</p>
 
-            <div>
-              <Label className="flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5" />
-                Mobile Number<span className="text-destructive ml-0.5">*</span>
-              </Label>
-              <Input
-                value={form.phone}
-                onChange={e => update("phone", cleanPhone(e.target.value))}
-                onBlur={() => markTouched("phone")}
-                placeholder="9876543210"
-                maxLength={10}
-                inputMode="numeric"
-                className={`mt-1.5 h-11 ${touched.phone ? (isValidPhone(form.phone) ? "border-green-500" : "border-destructive") : ""}`}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Required for admin follow-up and verification</p>
-            </div>
+            <div className="mt-6 space-y-4">
 
-            <div>
-              <Label>Password<span className="text-destructive ml-0.5">*</span></Label>
-              <div className="relative mt-1.5">
-                <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+              <div>
+                <Label>Full Name<span className="text-destructive ml-0.5">*</span></Label>
+                <Input value={form.fullName} onChange={e => update("fullName", e.target.value)} onBlur={() => markTouched("fullName")} placeholder="Your full name"
+                  className={`mt-1.5 h-11 ${touched.fullName ? (form.fullName.trim() && isValidName(form.fullName) ? "border-green-500" : "border-destructive") : ""}`} />
+                {touched.fullName && !form.fullName.trim() && <p className="text-xs text-destructive mt-1">Required</p>}
+                {touched.fullName && form.fullName.trim() && !isValidName(form.fullName) && <p className="text-xs text-destructive mt-1">Name must contain only letters</p>}
               </div>
-              <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
-              <p className="text-xs text-muted-foreground mt-1">Avoid common passwords like Test@1234, Password@1, Admin@123</p>
+
+              <div>
+                <Label>Email<span className="text-destructive ml-0.5">*</span></Label>
+                <Input type="email" value={form.email} onChange={e => { update("email", e.target.value); setEmailTypo(null); setEmailError(""); }} onBlur={handleEmailBlur} placeholder="you@email.com"
+                  className={`mt-1.5 h-11 ${touched.email ? (isValidEmail(form.email) && !emailError ? "border-green-500" : "border-destructive") : ""}`} />
+                {emailError && (
+                  <p className="text-xs text-destructive mt-1">
+                    {emailError}{" "}
+                    {emailError.includes("student") && <Link to="/student/login" className="text-primary underline font-medium">Student Login</Link>}
+                    {emailError.includes("login instead") && <Link to="/trainer/login" className="text-primary underline font-medium">Login here</Link>}
+                  </p>
+                )}
+                {emailTypo && <p className="text-xs text-amber-600 mt-1">{emailTypo}</p>}
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5" />
+                  Mobile Number<span className="text-destructive ml-0.5">*</span>
+                </Label>
+                <Input
+                  value={form.phone}
+                  onChange={e => update("phone", cleanPhone(e.target.value))}
+                  onBlur={() => markTouched("phone")}
+                  placeholder="9876543210"
+                  maxLength={10}
+                  inputMode="numeric"
+                  className={`mt-1.5 h-11 ${touched.phone ? (isValidPhone(form.phone) ? "border-green-500" : "border-destructive") : ""}`}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Required for admin follow-up and verification</p>
+              </div>
+
+              <div>
+                <Label>Password<span className="text-destructive ml-0.5">*</span></Label>
+                <div className="relative mt-1.5">
+                  <Input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} placeholder="Min 8 characters" className="h-11 pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <PasswordStrengthIndicator password={form.password} confirmPassword={confirmPassword} showConfirm />
+                <p className="text-xs text-muted-foreground mt-1">Avoid common passwords like Test@1234, Password@1, Admin@123</p>
+              </div>
+
+              <div>
+                <Label>Confirm Password<span className="text-destructive ml-0.5">*</span></Label>
+                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-1.5">
+                  <Gift className="w-3.5 h-3.5 text-primary" />
+                  Have a referral code? Enter it here <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-ABC123" className="mt-1.5 h-11" maxLength={12} />
+              </div>
+
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+                <Shield className="w-4 h-4 text-primary shrink-0" />
+                <p className="text-xs text-muted-foreground">Your data is encrypted and protected.</p>
+              </div>
+
+              <Button onClick={handleSubmit} disabled={loading || !!(form.fullName.trim() && !isValidName(form.fullName))} className="w-full h-11 hero-gradient border-0 font-semibold text-base">
+                {loading
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Account...</>
+                  : <>Create Account & Verify Email <ArrowRight className="ml-2 w-4 h-4" /></>
+                }
+              </Button>
             </div>
 
-            <div>
-              <Label>Confirm Password<span className="text-destructive ml-0.5">*</span></Label>
-              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
-            </div>
-
-            <div>
-              <Label className="flex items-center gap-1.5">
-                <Gift className="w-3.5 h-3.5 text-primary" />
-                Have a referral code? Enter it here <span className="text-muted-foreground font-normal">(Optional)</span>
-              </Label>
-              <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-ABC123" className="mt-1.5 h-11" maxLength={12} />
-            </div>
-
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-              <Shield className="w-4 h-4 text-primary shrink-0" />
-              <p className="text-xs text-muted-foreground">Your data is encrypted and protected.</p>
-            </div>
-
-            <Button onClick={handleSubmit} disabled={loading || !!(form.fullName.trim() && !isValidName(form.fullName))} className="w-full h-11 hero-gradient border-0 font-semibold text-base">
-              {loading
-                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Account...</>
-                : <>Create Account & Verify Email <ArrowRight className="ml-2 w-4 h-4" /></>
-              }
-            </Button>
-          </div>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Already registered? <Link to="/trainer/login" className="text-primary font-semibold hover:underline">Trainer Login</Link>
-          </p>
-        </motion.div>
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Already registered? <Link to="/trainer/login" className="text-primary font-semibold hover:underline">Trainer Login</Link>
+            </p>
+          </motion.div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };

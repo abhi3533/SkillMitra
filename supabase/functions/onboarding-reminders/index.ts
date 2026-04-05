@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       if (!profile?.email) throw new Error('No email found')
 
       const name = profile.full_name || 'there'
-      const step = trainer.onboarding_step || 0
+      const step = Math.min(trainer.onboarding_step || 0, 6)
       const isAdminNudge = body.reminder_type === 'admin_nudge'
 
       const subject = isAdminNudge
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       // Skip if signed up less than 24 hours ago (give them time)
       if (hoursSinceSignup < 24) continue
 
-      const step = trainer.onboarding_step || 0
+      const step = Math.min(trainer.onboarding_step || 0, 6)
       const name = profile.full_name || 'there'
       const daysSince = Math.floor(hoursSinceSignup / 24)
 
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.full_name || 'Unknown'}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.phone || '—'}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.email || '—'}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Step ${t.onboarding_step || 0}/6</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Step ${Math.min(t.onboarding_step || 0, 6)}/6</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${lastActive}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${daysSince}d</td>
           </tr>`

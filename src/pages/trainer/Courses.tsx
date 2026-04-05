@@ -493,7 +493,7 @@ const TrainerCourses = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Language</Label>
-                <Select value={form.language} onValueChange={v => setField("language", v)}>
+                <Select value={form.language} onValueChange={v => setField("language", v)} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRESET_LANGUAGES.map(l => (

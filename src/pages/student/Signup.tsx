@@ -204,9 +204,9 @@ const StudentSignup = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <div className="flex-1">
-      {/* Left Panel - Fixed */}
-      <div className="hidden lg:flex fixed top-0 left-0 w-[40%] h-screen hero-gradient items-center justify-center p-12 overflow-hidden z-10">
+      <div className="flex-1 flex">
+      {/* Left Panel */}
+      <div className="hidden lg:flex lg:w-[40%] hero-gradient items-center justify-center p-12 overflow-hidden sticky top-0 h-screen">
         <div className="max-w-md">
           <SkillMitraLogo darkText={false} height={40} className="mb-12" />
           <h2 className="text-3xl font-bold text-primary-foreground">Start your learning journey today</h2>
@@ -225,7 +225,7 @@ const StudentSignup = () => {
       </div>
 
       {/* Right Panel */}
-      <div className="lg:ml-[40%] flex-1 flex items-start justify-center p-6 lg:p-12 min-h-screen">
+      <div className="flex-1 flex items-start justify-center p-6 lg:p-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg py-8">
           <div className="lg:hidden mb-8">
             <SkillMitraLogo darkText height={32} />

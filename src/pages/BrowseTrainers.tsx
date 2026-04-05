@@ -355,7 +355,7 @@ const BrowseTrainers = () => {
         </div>
         <div className="mt-3 px-1">
           <Slider
-            min={500} max={10000} step={500}
+            min={500} max={100000} step={500}
             value={priceRange}
             onValueChange={(v) => setPriceRange(v as [number, number])}
           />

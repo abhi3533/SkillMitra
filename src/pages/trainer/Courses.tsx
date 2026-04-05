@@ -275,7 +275,21 @@ const TrainerCourses = () => {
   const statusColor = (s: string) =>
     s === "approved" ? "bg-emerald-50 text-emerald-700" :
     s === "rejected" ? "bg-destructive/10 text-destructive" :
+    s === "changes_requested" ? "bg-orange-50 text-orange-700" :
     "bg-amber-50 text-amber-700";
+
+  const getStatusMessage = (status: string) => {
+    switch (status) {
+      case "pending":
+        return { text: "Course is under admin review. To request changes email contact@skillmitra.online", color: "border-amber-200 bg-amber-50 text-amber-800" };
+      case "changes_requested":
+        return { text: "Admin requested changes. Please update and resubmit.", color: "border-orange-200 bg-orange-50 text-orange-800" };
+      case "rejected":
+        return { text: "Course was rejected. Please update and resubmit.", color: "border-destructive/30 bg-destructive/5 text-destructive" };
+      default:
+        return null;
+    }
+  };
 
   return (
     <TrainerLayout>
@@ -324,7 +338,7 @@ const TrainerCourses = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold text-foreground">{c.title}</h3>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${statusColor(c.approval_status)}`}>
-                      {c.approval_status}
+                      {c.approval_status === "changes_requested" ? "changes requested" : c.approval_status}
                     </span>
                     {c.approval_status === "approved" && <Lock className="w-3 h-3 text-muted-foreground" />}
                     {c.has_free_trial && <Badge variant="secondary" className="text-[10px]">Free Trial</Badge>}
@@ -336,12 +350,19 @@ const TrainerCourses = () => {
                     {c.average_rating > 0 && <span className="flex items-center gap-1"><Star className="w-3 h-3" />{c.average_rating} ★</span>}
                     <span>{c.level} • {c.language}</span>
                   </div>
+                  {getStatusMessage(c.approval_status) && (
+                    <p className={`mt-2 text-xs px-3 py-1.5 rounded-md border ${getStatusMessage(c.approval_status)!.color}`}>
+                      {getStatusMessage(c.approval_status)!.text}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <p className="text-lg font-bold text-foreground">₹{c.course_fee?.toLocaleString("en-IN")}</p>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEdit(c)}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
+                  {c.approval_status !== "pending" && (
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEdit(c)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -459,7 +480,7 @@ const TrainerCourses = () => {
               </div>
               <div>
                 <Label>Level</Label>
-                <Select value={form.level} onValueChange={v => setField("level", v)}>
+                <Select value={form.level} onValueChange={v => setField("level", v)} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="beginner">Beginner</SelectItem>
@@ -472,7 +493,7 @@ const TrainerCourses = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Language</Label>
-                <Select value={form.language} onValueChange={v => setField("language", v)}>
+                <Select value={form.language} onValueChange={v => setField("language", v)} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRESET_LANGUAGES.map(l => (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatDateTimeIST } from "@/lib/dateUtils";
-import { Wallet, ArrowUpRight, ArrowDownLeft, IndianRupee, Filter, Banknote } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, IndianRupee, Filter, Banknote, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +22,7 @@ const TrainerWallet = () => {
   const [requesting, setRequesting] = useState(false);
   const [trainerId, setTrainerId] = useState<string | null>(null);
   const [trainerData, setTrainerData] = useState<any>(null);
+  const [hasConfirmedBooking, setHasConfirmedBooking] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -36,15 +37,29 @@ const TrainerWallet = () => {
       setTransactions(tx || []);
       setTrainerId(t?.id || null);
       setTrainerData(t);
+
+      // Check if trainer has at least one confirmed enrollment
+      if (t?.id) {
+        const { count } = await supabase
+          .from("enrollments")
+          .select("id", { count: "exact", head: true })
+          .eq("trainer_id", t.id)
+          .in("status", ["active", "completed"]);
+        setHasConfirmedBooking((count ?? 0) > 0);
+      }
+
       setLoading(false);
     };
     load();
   }, [user]);
 
+  const totalBalance = Number(wallet?.balance || 0);
+  const withdrawableBalance = hasConfirmedBooking ? totalBalance : 0;
+
   const requestPayout = async () => {
     const amount = Number(payoutAmount);
     if (amount < 500) { toast({ title: "Minimum ₹500 required", variant: "warning" }); return; }
-    if (amount > Number(wallet?.balance || 0)) { toast({ title: "Insufficient balance", variant: "warning" }); return; }
+    if (amount > withdrawableBalance) { toast({ title: "Insufficient withdrawable balance", variant: "warning" }); return; }
     if (!trainerId || !wallet) return;
 
     setRequesting(true);
@@ -59,8 +74,7 @@ const TrainerWallet = () => {
     if (error) {
       toast({ title: "Failed to submit", description: error.message, variant: "destructive" });
     } else {
-      // Deduct from wallet balance and record transaction
-      const newBalance = Number(wallet.balance) - amount;
+      const newBalance = totalBalance - amount;
       const newWithdrawn = Number(wallet.total_withdrawn || 0) + amount;
       await supabase.from("wallets").update({
         balance: newBalance,
@@ -98,12 +112,19 @@ const TrainerWallet = () => {
         ) : (
           <div className="mt-6 bg-gradient-to-br from-primary to-primary/80 rounded-xl p-6 text-primary-foreground">
             <div className="flex items-center gap-2 text-primary-foreground/80 text-sm">
-              <Wallet className="w-4 h-4" /> Available Balance
+              <Wallet className="w-4 h-4" /> Total Balance
             </div>
             <p className="text-3xl font-bold mt-2 flex items-center">
-              <IndianRupee className="w-7 h-7" />{Number(wallet?.balance || 0).toLocaleString("en-IN")}
+              <IndianRupee className="w-7 h-7" />{totalBalance.toLocaleString("en-IN")}
             </p>
             <div className="flex gap-6 mt-4 text-sm">
+              <div>
+                <p className="text-primary-foreground/70">Withdrawable</p>
+                <p className="font-semibold flex items-center gap-1">
+                  ₹{withdrawableBalance.toLocaleString("en-IN")}
+                  {!hasConfirmedBooking && <Lock className="w-3 h-3" />}
+                </p>
+              </div>
               <div>
                 <p className="text-primary-foreground/70">Total Earned</p>
                 <p className="font-semibold">₹{Number(wallet?.total_earned || 0).toLocaleString("en-IN")}</p>
@@ -116,32 +137,68 @@ const TrainerWallet = () => {
           </div>
         )}
 
+        {/* No booking message */}
+        {!loading && !hasConfirmedBooking && totalBalance > 0 && (
+          <div className="mt-4 p-4 bg-accent/10 border border-accent/30 rounded-xl flex items-start gap-3">
+            <Lock className="w-5 h-5 text-accent mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Withdrawals locked</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Get your first student to unlock withdrawals! Your balance will become withdrawable once your first student booking is confirmed.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Payout CTA */}
-        {!loading && Number(wallet?.balance || 0) >= 500 && (
+        {!loading && (
           <div className="mt-4 p-4 bg-card border rounded-xl">
-            {!showPayout ? (
+            {!hasConfirmedBooking ? (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Banknote className="w-5 h-5 text-primary" />
+                  <Banknote className="w-5 h-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium text-foreground">Request Withdrawal</p>
-                    <p className="text-xs text-muted-foreground">Min ₹500 • Processed within 3-5 days</p>
+                    <p className="text-xs text-muted-foreground">Withdrawal available after your first student booking is confirmed</p>
                   </div>
                 </div>
-                <Button size="sm" onClick={() => setShowPayout(true)}>Withdraw</Button>
+                <Button size="sm" disabled>
+                  <Lock className="w-3 h-3 mr-1" />Withdraw
+                </Button>
               </div>
+            ) : withdrawableBalance >= 500 ? (
+              !showPayout ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Banknote className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Request Withdrawal</p>
+                      <p className="text-xs text-muted-foreground">Min ₹500 • Processed within 3-5 days</p>
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={() => setShowPayout(true)}>Withdraw</Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-foreground">Enter withdrawal amount</p>
+                  <Input type="number" placeholder="Min ₹500" value={payoutAmount} onChange={e => setPayoutAmount(e.target.value)} className="h-9" />
+                  <p className="text-xs text-muted-foreground">
+                    {trainerData?.upi_id ? `UPI: ${trainerData.upi_id}` : trainerData?.bank_account_number ? `Bank: ****${trainerData.bank_account_number.slice(-4)}` : "Add bank details in Profile first"}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={requestPayout} disabled={requesting || !payoutAmount}>
+                      {requesting ? "Submitting..." : "Request Payout"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setShowPayout(false)}>Cancel</Button>
+                  </div>
+                </div>
+              )
             ) : (
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-foreground">Enter withdrawal amount</p>
-                <Input type="number" placeholder="Min ₹500" value={payoutAmount} onChange={e => setPayoutAmount(e.target.value)} className="h-9" />
-                <p className="text-xs text-muted-foreground">
-                  {trainerData?.upi_id ? `UPI: ${trainerData.upi_id}` : trainerData?.bank_account_number ? `Bank: ****${trainerData.bank_account_number.slice(-4)}` : "Add bank details in Profile first"}
-                </p>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={requestPayout} disabled={requesting || !payoutAmount}>
-                    {requesting ? "Submitting..." : "Request Payout"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setShowPayout(false)}>Cancel</Button>
+              <div className="flex items-center gap-3">
+                <Banknote className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Request Withdrawal</p>
+                  <p className="text-xs text-muted-foreground">Min ₹500 required • Current withdrawable: ₹{withdrawableBalance.toLocaleString("en-IN")}</p>
                 </div>
               </div>
             )}

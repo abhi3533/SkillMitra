@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { DollarSign, TrendingUp, ArrowUpRight, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, ArrowUpRight, Wallet, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -19,6 +19,7 @@ const TrainerEarnings = () => {
   const [payoutAmount, setPayoutAmount] = useState("");
   const [requesting, setRequesting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [hasConfirmedBooking, setHasConfirmedBooking] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -30,22 +31,27 @@ const TrainerEarnings = () => {
       setTrainer(t);
       setWallet(w);
       if (t) {
-        const { data: p } = await supabase.from("payout_requests").select("*").eq("trainer_id", t.id).order("requested_at", { ascending: false });
+        const [{ data: p }, { count }] = await Promise.all([
+          supabase.from("payout_requests").select("*").eq("trainer_id", t.id).order("requested_at", { ascending: false }),
+          supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("trainer_id", t.id).in("status", ["active", "completed"]),
+        ]);
         setPayouts(p || []);
+        setHasConfirmedBooking((count ?? 0) > 0);
       }
       setLoading(false);
     };
     fetch();
   }, [user]);
 
-  const availableBalance = Number(wallet?.balance || 0);
+  const totalBalance = Number(wallet?.balance || 0);
+  const withdrawableBalance = hasConfirmedBooking ? totalBalance : 0;
   const totalEarned = Number(wallet?.total_earned || 0);
   const totalWithdrawn = Number(wallet?.total_withdrawn || 0);
 
   const requestPayout = async () => {
     const amount = parseFloat(payoutAmount);
     if (amount < 500) { toast({ title: "Minimum ₹500", variant: "warning" }); return; }
-    if (amount > availableBalance) { toast({ title: "Insufficient balance", variant: "warning" }); return; }
+    if (amount > withdrawableBalance) { toast({ title: "Insufficient withdrawable balance", variant: "warning" }); return; }
     if (!trainer || !wallet) return;
     setRequesting(true);
     try {
@@ -54,13 +60,11 @@ const TrainerEarnings = () => {
         bank_account_number: trainer.bank_account_number, ifsc_code: trainer.ifsc_code, upi_id: trainer.upi_id,
       });
       if (error) throw error;
-      // Deduct from wallets table
       await supabase.from("wallets").update({
-        balance: availableBalance - amount,
+        balance: totalBalance - amount,
         total_withdrawn: totalWithdrawn + amount,
         last_updated: new Date().toISOString(),
       }).eq("id", wallet.id);
-      // Record debit transaction
       await supabase.from("wallet_transactions").insert({
         wallet_id: wallet.id,
         user_id: user!.id,
@@ -72,8 +76,7 @@ const TrainerEarnings = () => {
       toast({ title: "Payout requested!", description: "Will be processed within 2-3 business days.", variant: "success" });
       setDialogOpen(false);
       setPayoutAmount("");
-      // Refresh wallet state
-      setWallet({ ...wallet, balance: availableBalance - amount, total_withdrawn: totalWithdrawn + amount });
+      setWallet({ ...wallet, balance: totalBalance - amount, total_withdrawn: totalWithdrawn + amount });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -86,11 +89,17 @@ const TrainerEarnings = () => {
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-foreground">Earnings</h1><p className="mt-1 text-muted-foreground">Track your income and request payouts</p></div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild><Button className="gold-gradient text-accent-foreground border-0"><Wallet className="w-4 h-4 mr-2" />Request Payout</Button></DialogTrigger>
+          <DialogTrigger asChild>
+            <Button className="gold-gradient text-accent-foreground border-0" disabled={!hasConfirmedBooking}>
+              {!hasConfirmedBooking && <Lock className="w-4 h-4 mr-2" />}
+              {hasConfirmedBooking && <Wallet className="w-4 h-4 mr-2" />}
+              Request Payout
+            </Button>
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Request Payout</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
-              <p className="text-sm text-muted-foreground">Available Balance: <span className="font-bold text-foreground text-lg">₹{availableBalance.toLocaleString("en-IN")}</span></p>
+              <p className="text-sm text-muted-foreground">Withdrawable Balance: <span className="font-bold text-foreground text-lg">₹{withdrawableBalance.toLocaleString("en-IN")}</span></p>
               <div><Input type="number" value={payoutAmount} onChange={e => setPayoutAmount(e.target.value)} placeholder="Enter amount (min ₹500)" /></div>
               <p className="text-xs text-muted-foreground">Bank: {trainer?.bank_account_number ? `****${trainer.bank_account_number.slice(-4)}` : "Not set"} | UPI: {trainer?.upi_id || "Not set"}</p>
               <Button onClick={requestPayout} disabled={requesting} className="w-full hero-gradient border-0">{requesting ? "Requesting..." : "Confirm Payout"}</Button>
@@ -99,12 +108,25 @@ const TrainerEarnings = () => {
         </Dialog>
       </div>
 
+      {/* Booking lock banner */}
+      {!loading && !hasConfirmedBooking && totalBalance > 0 && (
+        <div className="mt-4 p-4 bg-accent/10 border border-accent/30 rounded-xl flex items-start gap-3">
+          <Lock className="w-5 h-5 text-accent mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Withdrawals locked</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Get your first student to unlock withdrawals! Your balance will become withdrawable once your first student booking is confirmed.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {[
-          { label: "Available Balance", value: `₹${availableBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-success" },
+          { label: "Total Balance", value: `₹${totalBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-success" },
+          { label: "Withdrawable", value: `₹${withdrawableBalance.toLocaleString("en-IN")}`, icon: hasConfirmedBooking ? Wallet : Lock, color: hasConfirmedBooking ? "hero-gradient" : "bg-muted" },
           { label: "Total Earned", value: `₹${totalEarned.toLocaleString("en-IN")}`, icon: TrendingUp, color: "hero-gradient" },
           { label: "Total Withdrawn", value: `₹${totalWithdrawn.toLocaleString("en-IN")}`, icon: ArrowUpRight, color: "gold-gradient" },
-          { label: "Pending Payouts", value: `₹${payouts.filter(p => p.status === "pending").reduce((s, p) => s + Number(p.requested_amount || 0), 0).toLocaleString("en-IN")}`, icon: DollarSign, color: "hero-gradient" },
         ].map(c => (
           <div key={c.label} className="bg-card rounded-xl border p-5">
             <div className={`w-10 h-10 rounded-lg ${c.color} flex items-center justify-center mb-3`}>

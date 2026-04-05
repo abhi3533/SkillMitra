@@ -361,7 +361,7 @@ const BrowseTrainers = () => {
           />
           <div className="flex justify-between mt-1.5 text-[11px] text-muted-foreground">
             <span>₹500</span>
-            <span>₹10,000</span>
+            <span>₹1,00,000</span>
           </div>
         </div>
       </div>

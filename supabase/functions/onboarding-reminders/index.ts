@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.full_name || 'Unknown'}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.phone || '—'}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.email || '—'}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Step ${t.onboarding_step || 0}/6</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Step ${Math.min(t.onboarding_step || 0, 6)}/6</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${lastActive}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${daysSince}d</td>
           </tr>`

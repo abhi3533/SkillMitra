@@ -254,7 +254,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
               )}
             </div>
 
-            <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type} />
+            <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type ? trainer.trainer_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
           </div>
 
           {/* ─── ABOUT ─── */}

@@ -56,13 +56,17 @@ const TrainerReferrals = () => {
               .in("id", userIds);
             (profiles || []).forEach(p => { profileMap[p.id] = p; });
           }
-          setReferrals(refs.map((r: any) => ({
-            ...r,
-            referred_name: profileMap[r.referred?.user_id]?.full_name || "Trainer",
-            referred_email: profileMap[r.referred?.user_id]?.email || "",
-            referred_date: profileMap[r.referred?.user_id]?.created_at || r.created_at,
-            approval_status: r.referred?.approval_status || "pending",
-          })));
+          setReferrals(refs.map((r: any) => {
+            const profile = profileMap[r.referred?.user_id];
+            return {
+              ...r,
+              referred_name: profile?.full_name || "Trainer",
+              referred_email: profile?.email || "",
+              referred_photo: profile?.profile_picture_url || null,
+              referred_date: profile?.created_at || r.created_at,
+              approval_status: r.referred?.approval_status || "pending",
+            };
+          }));
         } else {
           setReferrals([]);
         }

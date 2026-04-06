@@ -241,22 +241,23 @@ const Index = () => {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="min-w-0">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.07] border border-primary/10 mb-6 max-w-full overflow-hidden">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
-                <span className="text-xs font-semibold text-primary tracking-wide truncate">⚡ Get Matched in 30 Minutes — Verified Trainers Across India</span>
+                <span className="text-xs font-semibold text-primary tracking-wide truncate">⚡ Find Your Expert Trainer in 30 Minutes</span>
               </div>
 
               <h1 className="text-[22px] sm:text-[32px] md:text-[44px] lg:text-[56px] font-extrabold leading-[1.15] tracking-tight break-words overflow-hidden max-w-full">
-                <span className="text-foreground block">Get Matched with</span>
+                <span className="text-foreground block">Learn{' '}
+                <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
+                  1-on-1
+                </span>{' '}with</span>
                 <span className="text-foreground block">India's{' '}
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
-                  Top Trainers
+                  Verified Expert
                 </span></span>
-                <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent block">
-                  in 30 Minutes
-                </span>
+                <span className="text-foreground block">Trainers</span>
               </h1>
 
               <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
-                Learn any skill with verified experts. Book your free trial and start today.
+                Connect with industry experts for personalized 1-on-1 training. Book your free trial and start today.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3 max-w-full">

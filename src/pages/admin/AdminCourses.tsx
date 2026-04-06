@@ -304,7 +304,7 @@ const AdminCourses = () => {
                       {c.has_free_trial && <Badge variant="secondary" className="text-[10px]">Trial</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {c.trainerName} • {formatINR(Number(c.course_fee))} • {c.duration_days}d • {c.total_sessions} sessions • {c.level}
+                      {c.trainerName} • {formatINR(Number(c.course_fee))} • {c.duration_days} days • {c.total_sessions} sessions • {c.level}
                     </p>
                     {c.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.description}</p>}
                     <p className="text-[11px] text-muted-foreground mt-1">Submitted {formatDateIST(c.created_at)}</p>

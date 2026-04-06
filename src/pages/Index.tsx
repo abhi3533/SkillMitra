@@ -244,16 +244,15 @@ const Index = () => {
                 <span className="text-xs font-semibold text-primary tracking-wide truncate">⚡ Find Your Expert Trainer in 30 Minutes</span>
               </div>
 
-              <h1 className="text-[22px] sm:text-[32px] md:text-[44px] lg:text-[56px] font-extrabold leading-[1.15] tracking-tight break-words overflow-hidden max-w-full">
-                <span className="text-foreground block">Learn{' '}
+              <h1 className="text-[22px] sm:text-[30px] md:text-[40px] lg:text-[50px] font-extrabold leading-[1.18] tracking-tight break-words overflow-hidden max-w-full">
+                <span className="text-foreground">Learn{' '}
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
                   1-on-1
-                </span>{' '}with</span>
-                <span className="text-foreground block">India's{' '}
+                </span>{' '}with India's</span>{' '}
                 <span className="bg-gradient-to-r from-primary via-[hsl(221,79%,40%)] to-primary bg-clip-text text-transparent">
                   Verified Expert
-                </span></span>
-                <span className="text-foreground block">Trainers</span>
+                </span>{' '}
+                <span className="text-foreground">Trainers</span>
               </h1>
 
               <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">

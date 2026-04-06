@@ -52,7 +52,7 @@ const TrainerReferrals = () => {
           if (userIds.length > 0) {
             const { data: profiles } = await supabase
               .from("profiles")
-              .select("id, full_name, email, created_at")
+              .select("id, full_name, email, created_at, profile_picture_url")
               .in("id", userIds);
             (profiles || []).forEach(p => { profileMap[p.id] = p; });
           }

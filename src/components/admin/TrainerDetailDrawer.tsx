@@ -290,6 +290,16 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             </div>
             <InfoRow icon={Calendar} label="Weekend Availability" value={trainer.weekend_availability ? trainer.weekend_availability.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
             <InfoRow icon={Calendar} label="Course Duration" value={trainer.course_duration ? `${trainer.course_duration} days` : null} />
+            <InfoRow icon={Clock} label="Total Hours" value={(() => {
+              const durationPerDay = trainer.session_duration_per_day;
+              const courseDays = trainer.course_duration;
+              if (!durationPerDay || !courseDays) return null;
+              const hoursMatch = String(durationPerDay).match(/(\d+(\.\d+)?)/);
+              if (!hoursMatch) return null;
+              const hoursPerDay = parseFloat(hoursMatch[1]);
+              const totalHours = Math.round(hoursPerDay * Number(courseDays));
+              return `${totalHours} hrs`;
+            })()} />
             <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />
           </div>
 

@@ -223,8 +223,14 @@ const TrainerReferrals = () => {
                   return (
                     <div key={r.id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/50">
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <span className="text-primary font-bold text-xs">{(r.referred_name || "T")[0]}</span>
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                          {r.referred_photo ? (
+                            <img src={r.referred_photo} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" />
+                          ) : (
+                            <span className="text-primary font-bold text-xs">
+                              {(r.referred_name || "T").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{r.referred_name || "Trainer"}</p>

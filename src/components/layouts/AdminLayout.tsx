@@ -44,7 +44,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <button className="lg:hidden mr-4 p-1" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
         </button>
-        <SkillMitraLogo darkText height={32} />
+        <SkillMitraLogo darkText height={32} linkTo="/admin/dashboard" />
         <span className="ml-3 text-[10px] font-bold px-2 py-1 rounded-md bg-primary/10 text-primary uppercase tracking-wider">Admin</span>
         <div className="flex-1" />
         <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted mr-2 transition-colors">

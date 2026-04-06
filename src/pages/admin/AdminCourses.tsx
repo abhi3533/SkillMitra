@@ -377,7 +377,9 @@ const AdminCourses = () => {
                   {[
                     { icon: IndianRupee, label: "Fee", value: formatINR(Number(selectedCourse.course_fee)) },
                     { icon: Calendar, label: "Duration", value: `${selectedCourse.duration_days} days` },
-                    { icon: Clock, label: "Sessions", value: `${selectedCourse.total_sessions} × ${selectedCourse.session_duration_mins || 60}min` },
+                    { icon: Clock, label: "Session Duration", value: `${selectedCourse.session_duration_mins || 60} mins` },
+                    { icon: Clock, label: "Sessions", value: `${selectedCourse.total_sessions} sessions` },
+                    { icon: Clock, label: "Total Hours", value: `${Math.round(((selectedCourse.total_sessions || 0) * (selectedCourse.session_duration_mins || 60)) / 60)} hrs` },
                     { icon: Users, label: "Enrolled", value: String(selectedCourse.total_enrolled || 0) },
                     { icon: BookOpen, label: "Level", value: selectedCourse.level || "N/A" },
                     { icon: Star, label: "Language", value: selectedCourse.language || "English" },
@@ -393,7 +395,7 @@ const AdminCourses = () => {
                 </div>
                 <div className="flex items-center gap-3 mt-3">
                   {selectedCourse.has_free_trial && <Badge variant="secondary" className="text-xs">Free Trial Available</Badge>}
-                  {selectedCourse.session_frequency && <Badge variant="outline" className="text-xs">{selectedCourse.session_frequency}</Badge>}
+                  {selectedCourse.session_frequency && <Badge variant="outline" className="text-xs">Frequency: {selectedCourse.session_frequency}</Badge>}
                 </div>
               </div>
 

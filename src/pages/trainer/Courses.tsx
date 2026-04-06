@@ -345,7 +345,7 @@ const TrainerCourses = () => {
                   </div>
                   {c.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{c.description}</p>}
                   <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{c.duration_days}d • {c.total_sessions} sessions</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{c.duration_days} days • {c.total_sessions} sessions • {Math.round(((c.total_sessions || 0) * (c.session_duration_mins || 60)) / 60)} hrs total</span>
                     <span className="flex items-center gap-1"><Users className="w-3 h-3" />{c.total_enrolled || 0} enrolled</span>
                     {c.average_rating > 0 && <span className="flex items-center gap-1"><Star className="w-3 h-3" />{c.average_rating} ★</span>}
                     <span>{c.level} • {c.language}</span>

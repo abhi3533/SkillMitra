@@ -304,7 +304,7 @@ const AdminCourses = () => {
                       {c.has_free_trial && <Badge variant="secondary" className="text-[10px]">Trial</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {c.trainerName} • {formatINR(Number(c.course_fee))} • {c.duration_days}d • {c.total_sessions} sessions • {c.level}
+                      {c.trainerName} • {formatINR(Number(c.course_fee))} • {c.duration_days} days • {c.total_sessions} sessions • {c.level}
                     </p>
                     {c.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.description}</p>}
                     <p className="text-[11px] text-muted-foreground mt-1">Submitted {formatDateIST(c.created_at)}</p>
@@ -377,7 +377,9 @@ const AdminCourses = () => {
                   {[
                     { icon: IndianRupee, label: "Fee", value: formatINR(Number(selectedCourse.course_fee)) },
                     { icon: Calendar, label: "Duration", value: `${selectedCourse.duration_days} days` },
-                    { icon: Clock, label: "Sessions", value: `${selectedCourse.total_sessions} × ${selectedCourse.session_duration_mins || 60}min` },
+                    { icon: Clock, label: "Session Duration", value: `${selectedCourse.session_duration_mins || 60} mins` },
+                    { icon: Clock, label: "Sessions", value: `${selectedCourse.total_sessions} sessions` },
+                    { icon: Clock, label: "Total Hours", value: `${Math.round(((selectedCourse.total_sessions || 0) * (selectedCourse.session_duration_mins || 60)) / 60)} hrs` },
                     { icon: Users, label: "Enrolled", value: String(selectedCourse.total_enrolled || 0) },
                     { icon: BookOpen, label: "Level", value: selectedCourse.level || "N/A" },
                     { icon: Star, label: "Language", value: selectedCourse.language || "English" },
@@ -393,7 +395,7 @@ const AdminCourses = () => {
                 </div>
                 <div className="flex items-center gap-3 mt-3">
                   {selectedCourse.has_free_trial && <Badge variant="secondary" className="text-xs">Free Trial Available</Badge>}
-                  {selectedCourse.session_frequency && <Badge variant="outline" className="text-xs">{selectedCourse.session_frequency}</Badge>}
+                  {selectedCourse.session_frequency && <Badge variant="outline" className="text-xs">Frequency: {selectedCourse.session_frequency}</Badge>}
                 </div>
               </div>
 

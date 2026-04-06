@@ -288,9 +288,9 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}
             </div>
-            <InfoRow icon={Calendar} label="Weekend Availability" value={trainer.weekend_available != null ? (trainer.weekend_available ? "Yes" : "No") : null} />
-            <InfoRow icon={Calendar} label="Course Duration" value={trainer.course_duration} />
-            <InfoRow icon={Clock} label="Total Hours" value={trainer.total_hours ? `${trainer.total_hours} hrs` : null} />
+            <InfoRow icon={Calendar} label="Weekend Availability" value={trainer.weekend_availability || null} />
+            <InfoRow icon={Calendar} label="Course Duration" value={trainer.course_duration ? `${trainer.course_duration}` : null} />
+            <InfoRow icon={Clock} label="Session Duration/Day" value={trainer.session_duration_per_day || null} />
             <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />
           </div>
 

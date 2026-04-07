@@ -463,7 +463,7 @@ const TrainerOnboarding = () => {
       setStep(newStep);
       // Save draft after advancing
       if (trainerId && user) {
-        const onboardingData = { ...form, expertiseAreas, servicesOffered, availableTimeBands };
+        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands };
         await supabase.from("trainers").update({
           onboarding_step: newStep,
           onboarding_data: onboardingData as any,

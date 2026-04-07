@@ -416,7 +416,8 @@ const TrainerOnboarding = () => {
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
       if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
       if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
-      if (!docs["resume"]?.file) { toast({ title: "Resume upload is required", variant: "warning" }); return false; }
+      if (!docs["resume"]?.file) { toast({ title: "Please upload your resume to continue", variant: "warning" }); return false; }
+      if (teachingLanguages.length === 0) { toast({ title: "Please select at least one teaching language to continue", variant: "warning" }); return false; }
     }
     if (s === 2) {
       if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }

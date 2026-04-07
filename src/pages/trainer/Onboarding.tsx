@@ -399,6 +399,7 @@ const TrainerOnboarding = () => {
   const toggleExpertise = (e: string) => { setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]); scheduleAutoSave(); };
   const toggleService = (s: string) => { setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]); scheduleAutoSave(); };
   const toggleTimeBand = (band: string) => { setAvailableTimeBands(p => p.includes(band) ? p.filter(x => x !== band) : [...p, band]); scheduleAutoSave(); };
+  const toggleTeachingLanguage = (lang: string) => { setTeachingLanguages(p => p.includes(lang) ? p.filter(x => x !== lang) : [...p, lang]); scheduleAutoSave(); };
 
   const LAST_STEP = steps.length - 1; // 6
 

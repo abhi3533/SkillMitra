@@ -222,6 +222,27 @@ const AdminDashboard = () => {
         </Link>
       )}
 
+      {/* Pending Course Reviews Alert Card */}
+      {!loading && stats.pendingCourses > 0 && (
+        <Link to="/admin/courses" className="block mt-4">
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-center justify-between hover:border-blue-300 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Pending Course Reviews</p>
+                <p className="text-sm text-muted-foreground">{stats.pendingCourses} course{stats.pendingCourses > 1 ? 's' : ''} waiting for approval</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 rounded-full">{stats.pendingCourses}</span>
+              <ArrowUpRight className="w-4 h-4 text-primary" />
+            </div>
+          </div>
+        </Link>
+      )}
+
       {/* Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mt-6">
         {statCards.map(card => (

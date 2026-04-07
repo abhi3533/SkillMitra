@@ -421,6 +421,7 @@ const TrainerOnboarding = () => {
     }
     if (s === 2) {
       if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
+      if (!docs["intro_video"]?.file) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
       if (!form.courseTitle.trim()) { toast({ title: "Course title is required", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
     }

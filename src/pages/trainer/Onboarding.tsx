@@ -72,6 +72,7 @@ const TrainerOnboarding = () => {
 
   const [sameAsPhone, setSameAsPhone] = useState(false);
   const [expertiseAreas, setExpertiseAreas] = useState<string[]>([]);
+  const [teachingLanguages, setTeachingLanguages] = useState<string[]>([]);
   const [servicesOffered, setServicesOffered] = useState<string[]>([]);
   const [availableTimeBands, setAvailableTimeBands] = useState<string[]>([]);
   const [agreedTraining, setAgreedTraining] = useState(false);
@@ -185,6 +186,7 @@ const TrainerOnboarding = () => {
           weekendAvailability: saved.weekendAvailability || trainer.weekend_availability || "",
         }));
         if (saved.expertiseAreas) setExpertiseAreas(saved.expertiseAreas);
+        if (saved.teachingLanguages) setTeachingLanguages(saved.teachingLanguages);
         if (saved.servicesOffered) setServicesOffered(saved.servicesOffered);
         if (saved.availableTimeBands) setAvailableTimeBands(saved.availableTimeBands);
         else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
@@ -269,6 +271,7 @@ const TrainerOnboarding = () => {
       const onboardingData = {
         ...form,
         expertiseAreas,
+        teachingLanguages,
         servicesOffered,
         availableTimeBands,
       };
@@ -396,6 +399,7 @@ const TrainerOnboarding = () => {
   const toggleExpertise = (e: string) => { setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]); scheduleAutoSave(); };
   const toggleService = (s: string) => { setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]); scheduleAutoSave(); };
   const toggleTimeBand = (band: string) => { setAvailableTimeBands(p => p.includes(band) ? p.filter(x => x !== band) : [...p, band]); scheduleAutoSave(); };
+  const toggleTeachingLanguage = (lang: string) => { setTeachingLanguages(p => p.includes(lang) ? p.filter(x => x !== lang) : [...p, lang]); scheduleAutoSave(); };
 
   const LAST_STEP = steps.length - 1; // 6
 
@@ -415,10 +419,12 @@ const TrainerOnboarding = () => {
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
       if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
       if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
-      if (!docs["resume"]?.file) { toast({ title: "Resume upload is required", variant: "warning" }); return false; }
+      if (!docs["resume"]?.file) { toast({ title: "Please upload your resume to continue", variant: "warning" }); return false; }
+      if (teachingLanguages.length === 0) { toast({ title: "Please select at least one teaching language to continue", variant: "warning" }); return false; }
     }
     if (s === 2) {
       if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
+      if (!docs["intro_video"]?.file) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
       if (!form.courseTitle.trim()) { toast({ title: "Course title is required", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
     }
@@ -459,7 +465,7 @@ const TrainerOnboarding = () => {
       setStep(newStep);
       // Save draft after advancing
       if (trainerId && user) {
-        const onboardingData = { ...form, expertiseAreas, servicesOffered, availableTimeBands };
+        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands };
         await supabase.from("trainers").update({
           onboarding_step: newStep,
           onboarding_data: onboardingData as any,
@@ -526,7 +532,7 @@ const TrainerOnboarding = () => {
           trainer_data: {
             bio: form.bio,
             skills: [form.primarySkill, form.secondarySkill].filter(Boolean),
-            teaching_languages: [],
+            teaching_languages: teachingLanguages,
             experience_years: parseInt(form.experience) || 0,
             current_role: form.currentRole,
             current_company: form.currentCompany,
@@ -873,6 +879,20 @@ const TrainerOnboarding = () => {
               </div>
 
               <div>
+                <Label>Teaching Languages<RequiredMark /></Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Select at least one language you can teach in</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Marathi", "Bengali", "Gujarati", "Punjabi", "Odia", "Urdu"].map(lang => (
+                    <button key={lang} type="button" onClick={() => toggleTeachingLanguage(lang)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${teachingLanguages.includes(lang) ? "hero-gradient text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+                {stepAttempted[1] && teachingLanguages.length === 0 && <p className="text-xs text-destructive mt-1">Please select at least one teaching language</p>}
+              </div>
+
+              <div>
                 <Label>About You (Bio)<RequiredMark /></Label>
                 <Textarea value={form.bio} onChange={e => update("bio", e.target.value)} onBlur={() => markTouched("bio")}
                   placeholder="Tell students about yourself — your background, experience, teaching style and passion for teaching..."
@@ -920,7 +940,7 @@ const TrainerOnboarding = () => {
               </div>
 
               <FileUploadBox docKey="demo_video" label="Course Demo Video (5-10 min)" required accept="video/*" hint="Video file, max 100MB" />
-              <FileUploadBox docKey="intro_video" label="About Yourself Video (2-3 min)" accept="video/*" hint="Optional intro video" />
+              <FileUploadBox docKey="intro_video" label="About Yourself Video (2-3 min)" required accept="video/*" hint="Video file, max 100MB" />
               <FileUploadBox docKey="curriculum_pdf" label="Course Curriculum PDF" accept=".pdf" hint="Optional PDF document" />
 
               <div>

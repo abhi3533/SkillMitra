@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2,
-  Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Mic, Volume2, MessageSquare, Clock, Save, Calendar
+  Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Mic, Volume2, Clock, Save, Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

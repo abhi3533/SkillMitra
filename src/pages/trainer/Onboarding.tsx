@@ -879,6 +879,20 @@ const TrainerOnboarding = () => {
               </div>
 
               <div>
+                <Label>Teaching Languages<RequiredMark /></Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Select at least one language you can teach in</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Marathi", "Bengali", "Gujarati", "Punjabi", "Odia", "Urdu"].map(lang => (
+                    <button key={lang} type="button" onClick={() => toggleTeachingLanguage(lang)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${teachingLanguages.includes(lang) ? "hero-gradient text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+                {stepAttempted[1] && teachingLanguages.length === 0 && <p className="text-xs text-destructive mt-1">Please select at least one teaching language</p>}
+              </div>
+
+              <div>
                 <Label>About You (Bio)<RequiredMark /></Label>
                 <Textarea value={form.bio} onChange={e => update("bio", e.target.value)} onBlur={() => markTouched("bio")}
                   placeholder="Tell students about yourself — your background, experience, teaching style and passion for teaching..."

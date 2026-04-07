@@ -24,6 +24,7 @@ const AdminDashboard = () => {
   const [recentDisputes, setRecentDisputes] = useState<any[]>([]);
   const [recentPayouts, setRecentPayouts] = useState<any[]>([]);
   const [activityLog, setActivityLog] = useState<any[]>([]);
+  const [pendingCourses, setPendingCourses] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {

@@ -696,10 +696,6 @@ const TrainerProfile = () => {
                   <span className="text-foreground font-medium">Today, 6 PM</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Response time</span>
-                  <span className="text-foreground font-medium">&lt; 2 hours</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
                   <span>Students trained</span>
                   <span className="text-foreground font-medium">{trainer.total_students}</span>
                 </div>

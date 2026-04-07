@@ -1223,7 +1223,7 @@ const TrainerOnboarding = () => {
                     { key: "webcam", icon: <Camera className="w-4 h-4" />, label: "I have a working webcam" },
                     { key: "microphone", icon: <Mic className="w-4 h-4" />, label: "I have a working microphone" },
                     { key: "environment", icon: <Volume2 className="w-4 h-4" />, label: "I have a quiet, distraction-free environment" },
-                    { key: "response", icon: <MessageSquare className="w-4 h-4" />, label: "I will respond to student messages within 2 hours" },
+                    
                     { key: "cancel", icon: <Clock className="w-4 h-4" />, label: "I will not cancel sessions less than 24 hours before scheduled time" },
                   ].map(item => (
                     <label key={item.key} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${readinessChecks[item.key] ? "bg-emerald-50 border-emerald-200" : "bg-secondary/50 border-border hover:bg-secondary/80"}`}>

@@ -186,6 +186,7 @@ const TrainerOnboarding = () => {
           weekendAvailability: saved.weekendAvailability || trainer.weekend_availability || "",
         }));
         if (saved.expertiseAreas) setExpertiseAreas(saved.expertiseAreas);
+        if (saved.teachingLanguages) setTeachingLanguages(saved.teachingLanguages);
         if (saved.servicesOffered) setServicesOffered(saved.servicesOffered);
         if (saved.availableTimeBands) setAvailableTimeBands(saved.availableTimeBands);
         else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);

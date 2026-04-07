@@ -125,6 +125,17 @@ const AdminDashboard = () => {
           (trainersData || []).forEach(t => { nameMap[t.id] = profileMap[t.user_id]?.full_name || "Trainer"; });
           setRecentPayouts(payoutRes.data.map(p => ({ ...p, trainerName: nameMap[p.trainer_id] || "Trainer" })));
         }
+
+        // Enrich pending courses with trainer names
+        if (pendingCoursesRes.data && pendingCoursesRes.data.length > 0) {
+          const courseTrainerIds = pendingCoursesRes.data.map(c => c.trainer_id);
+          const { data: courseTrainers } = await supabase.from("trainers").select("id, user_id").in("id", courseTrainerIds);
+          const courseUserIds = (courseTrainers || []).map(t => t.user_id);
+          const courseProfileMap = await fetchProfilesMap(courseUserIds);
+          const courseTrainerNameMap: Record<string, string> = {};
+          (courseTrainers || []).forEach(t => { courseTrainerNameMap[t.id] = courseProfileMap[t.user_id]?.full_name || "Trainer"; });
+          setPendingCourses(pendingCoursesRes.data.map(c => ({ ...c, trainerName: courseTrainerNameMap[c.trainer_id] || "Trainer" })));
+        }
       } catch (err) {
         console.error("Admin dashboard fetch error:", err);
       }

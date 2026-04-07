@@ -270,6 +270,7 @@ const TrainerOnboarding = () => {
       const onboardingData = {
         ...form,
         expertiseAreas,
+        teachingLanguages,
         servicesOffered,
         availableTimeBands,
       };

@@ -488,7 +488,7 @@ const TrainerProfile = () => {
                 <span className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent" /> {trainer.average_rating} ({reviews.length} reviews)</span>
                 <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {trainer.total_students} students</span>
                 {trainer.teaching_languages && <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {trainer.teaching_languages.join(", ")}</span>}
-                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responds &lt; 2 hours</span>
+                
               </div>
               {user && id && (
                 <Button variant="ghost" size="sm" onClick={() => setShowReport(true)}
@@ -694,10 +694,6 @@ const TrainerProfile = () => {
                 <div className="flex justify-between text-muted-foreground">
                   <span>Next available slot</span>
                   <span className="text-foreground font-medium">Today, 6 PM</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Response time</span>
-                  <span className="text-foreground font-medium">&lt; 2 hours</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Students trained</span>

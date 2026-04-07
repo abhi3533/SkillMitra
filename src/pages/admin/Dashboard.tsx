@@ -74,12 +74,13 @@ const AdminDashboard = () => {
         });
 
         // Fetch recent data in parallel
-        const [pendingRes, enrollRes, disputeRes, payoutRes, activityRes] = await Promise.all([
+        const [pendingRes, enrollRes, disputeRes, payoutRes, activityRes, pendingCoursesRes] = await Promise.all([
           supabase.from("trainers").select("*").eq("approval_status", "pending").order("created_at", { ascending: false }).limit(5),
           supabase.from("enrollments").select("*, courses(title)").order("enrollment_date", { ascending: false }).limit(5),
           supabase.from("disputes").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(3),
           supabase.from("payout_requests").select("*").eq("status", "pending").order("requested_at", { ascending: false }).limit(3),
           supabase.from("admin_activity_log").select("*").order("created_at", { ascending: false }).limit(15),
+          supabase.from("courses").select("id, title, course_fee, trainer_id, created_at").eq("approval_status", "pending").order("created_at", { ascending: false }).limit(5),
         ]);
 
         setActivityLog(activityRes.data || []);

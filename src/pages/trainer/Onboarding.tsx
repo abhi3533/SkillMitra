@@ -72,6 +72,7 @@ const TrainerOnboarding = () => {
 
   const [sameAsPhone, setSameAsPhone] = useState(false);
   const [expertiseAreas, setExpertiseAreas] = useState<string[]>([]);
+  const [teachingLanguages, setTeachingLanguages] = useState<string[]>([]);
   const [servicesOffered, setServicesOffered] = useState<string[]>([]);
   const [availableTimeBands, setAvailableTimeBands] = useState<string[]>([]);
   const [agreedTraining, setAgreedTraining] = useState(false);

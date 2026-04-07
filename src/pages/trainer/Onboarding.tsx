@@ -530,7 +530,7 @@ const TrainerOnboarding = () => {
           trainer_data: {
             bio: form.bio,
             skills: [form.primarySkill, form.secondarySkill].filter(Boolean),
-            teaching_languages: [],
+            teaching_languages: teachingLanguages,
             experience_years: parseInt(form.experience) || 0,
             current_role: form.currentRole,
             current_company: form.currentCompany,

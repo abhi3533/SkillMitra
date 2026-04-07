@@ -70,6 +70,7 @@ const AdminDashboard = () => {
           contactUnread: contactUnread.count || 0,
           totalReferrals: referralsAll.count || 0,
           pendingTrials: pendingTrials.count || 0,
+          pendingCourses: coursesPending.count || 0,
         });
 
         // Fetch recent data in parallel

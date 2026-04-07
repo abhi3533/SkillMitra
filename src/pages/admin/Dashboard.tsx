@@ -16,7 +16,7 @@ const AdminDashboard = () => {
     students: 0, revenue: 0, activeSessions: 0,
     certificates: 0, openDisputes: 0, pendingPayouts: 0,
     totalCourses: 0, activeEnrollments: 0, contactUnread: 0,
-    totalReferrals: 0, pendingTrials: 0,
+    totalReferrals: 0, pendingTrials: 0, pendingCourses: 0,
   });
   useLoadingTitle(loading);
   const [recentTrainers, setRecentTrainers] = useState<any[]>([]);
@@ -24,6 +24,7 @@ const AdminDashboard = () => {
   const [recentDisputes, setRecentDisputes] = useState<any[]>([]);
   const [recentPayouts, setRecentPayouts] = useState<any[]>([]);
   const [activityLog, setActivityLog] = useState<any[]>([]);
+  const [pendingCourses, setPendingCourses] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -33,7 +34,7 @@ const AdminDashboard = () => {
           studentsAll, revenueData, sessionsToday,
           certsAll, disputesOpen, payoutsPending,
           coursesAll, enrollmentsActive, contactUnread,
-          referralsAll, pendingTrials,
+          referralsAll, pendingTrials, coursesPending,
         ] = await Promise.all([
           supabase.from("trainers").select("id", { count: "exact", head: true }),
           supabase.from("trainers").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
@@ -49,6 +50,7 @@ const AdminDashboard = () => {
           supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("status", "unread"),
           supabase.from("referrals").select("id", { count: "exact", head: true }),
           supabase.from("trial_bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+          supabase.from("courses").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
         ]);
 
         const totalRevenue = (revenueData.data || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
@@ -68,15 +70,17 @@ const AdminDashboard = () => {
           contactUnread: contactUnread.count || 0,
           totalReferrals: referralsAll.count || 0,
           pendingTrials: pendingTrials.count || 0,
+          pendingCourses: coursesPending.count || 0,
         });
 
         // Fetch recent data in parallel
-        const [pendingRes, enrollRes, disputeRes, payoutRes, activityRes] = await Promise.all([
+        const [pendingRes, enrollRes, disputeRes, payoutRes, activityRes, pendingCoursesRes] = await Promise.all([
           supabase.from("trainers").select("*").eq("approval_status", "pending").order("created_at", { ascending: false }).limit(5),
           supabase.from("enrollments").select("*, courses(title)").order("enrollment_date", { ascending: false }).limit(5),
           supabase.from("disputes").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(3),
           supabase.from("payout_requests").select("*").eq("status", "pending").order("requested_at", { ascending: false }).limit(3),
           supabase.from("admin_activity_log").select("*").order("created_at", { ascending: false }).limit(15),
+          supabase.from("courses").select("id, title, course_fee, trainer_id, created_at").eq("approval_status", "pending").order("created_at", { ascending: false }).limit(5),
         ]);
 
         setActivityLog(activityRes.data || []);
@@ -120,6 +124,17 @@ const AdminDashboard = () => {
           const nameMap: Record<string, string> = {};
           (trainersData || []).forEach(t => { nameMap[t.id] = profileMap[t.user_id]?.full_name || "Trainer"; });
           setRecentPayouts(payoutRes.data.map(p => ({ ...p, trainerName: nameMap[p.trainer_id] || "Trainer" })));
+        }
+
+        // Enrich pending courses with trainer names
+        if (pendingCoursesRes.data && pendingCoursesRes.data.length > 0) {
+          const courseTrainerIds = pendingCoursesRes.data.map(c => c.trainer_id);
+          const { data: courseTrainers } = await supabase.from("trainers").select("id, user_id").in("id", courseTrainerIds);
+          const courseUserIds = (courseTrainers || []).map(t => t.user_id);
+          const courseProfileMap = await fetchProfilesMap(courseUserIds);
+          const courseTrainerNameMap: Record<string, string> = {};
+          (courseTrainers || []).forEach(t => { courseTrainerNameMap[t.id] = courseProfileMap[t.user_id]?.full_name || "Trainer"; });
+          setPendingCourses(pendingCoursesRes.data.map(c => ({ ...c, trainerName: courseTrainerNameMap[c.trainer_id] || "Trainer" })));
         }
       } catch (err) {
         console.error("Admin dashboard fetch error:", err);
@@ -202,6 +217,27 @@ const AdminDashboard = () => {
             <div className="flex items-center gap-2">
               <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">{stats.pendingTrainers}</span>
               <ArrowUpRight className="w-4 h-4 text-amber-600" />
+            </div>
+          </div>
+        </Link>
+      )}
+
+      {/* Pending Course Reviews Alert Card */}
+      {!loading && stats.pendingCourses > 0 && (
+        <Link to="/admin/courses" className="block mt-4">
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-center justify-between hover:border-blue-300 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Pending Course Reviews</p>
+                <p className="text-sm text-muted-foreground">{stats.pendingCourses} course{stats.pendingCourses > 1 ? 's' : ''} waiting for approval</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 rounded-full">{stats.pendingCourses}</span>
+              <ArrowUpRight className="w-4 h-4 text-primary" />
             </div>
           </div>
         </Link>
@@ -290,6 +326,41 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <Link to="/admin/trainers"><Button size="sm" variant="outline" className="text-xs h-7">Review</Button></Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Pending Course Reviews */}
+        <div className="bg-card rounded-xl border border-border">
+          <div className="flex items-center justify-between p-5 pb-3">
+            <h2 className="text-base font-semibold text-foreground">Pending Course Reviews</h2>
+            <Link to="/admin/courses" className="text-xs font-medium text-primary hover:underline">View all</Link>
+          </div>
+          <div className="px-5 pb-5">
+            {loading ? (
+              <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-14 skeleton rounded-lg" />)}</div>
+            ) : pendingCourses.length === 0 ? (
+              <div className="text-center py-8">
+                <BookOpen className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No courses pending review</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {pendingCourses.map((c: any) => (
+                  <div key={c.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center">
+                        <BookOpen className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{c.title}</p>
+                        <p className="text-xs text-muted-foreground">{c.trainerName} • ₹{Number(c.course_fee || 0).toLocaleString("en-IN")}</p>
+                      </div>
+                    </div>
+                    <Link to="/admin/courses"><Button size="sm" variant="outline" className="text-xs h-7">Review</Button></Link>
                   </div>
                 ))}
               </div>

@@ -925,7 +925,7 @@ const TrainerOnboarding = () => {
               </div>
 
               <FileUploadBox docKey="demo_video" label="Course Demo Video (5-10 min)" required accept="video/*" hint="Video file, max 100MB" />
-              <FileUploadBox docKey="intro_video" label="About Yourself Video (2-3 min)" accept="video/*" hint="Optional intro video" />
+              <FileUploadBox docKey="intro_video" label="About Yourself Video (2-3 min)" required accept="video/*" hint="Video file, max 100MB" />
               <FileUploadBox docKey="curriculum_pdf" label="Course Curriculum PDF" accept=".pdf" hint="Optional PDF document" />
 
               <div>

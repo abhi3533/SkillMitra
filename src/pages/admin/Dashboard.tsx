@@ -34,7 +34,7 @@ const AdminDashboard = () => {
           studentsAll, revenueData, sessionsToday,
           certsAll, disputesOpen, payoutsPending,
           coursesAll, enrollmentsActive, contactUnread,
-          referralsAll, pendingTrials,
+          referralsAll, pendingTrials, coursesPending,
         ] = await Promise.all([
           supabase.from("trainers").select("id", { count: "exact", head: true }),
           supabase.from("trainers").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
@@ -50,6 +50,7 @@ const AdminDashboard = () => {
           supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("status", "unread"),
           supabase.from("referrals").select("id", { count: "exact", head: true }),
           supabase.from("trial_bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+          supabase.from("courses").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
         ]);
 
         const totalRevenue = (revenueData.data || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);

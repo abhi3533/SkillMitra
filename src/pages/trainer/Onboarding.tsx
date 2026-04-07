@@ -79,7 +79,7 @@ const TrainerOnboarding = () => {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [readinessChecks, setReadinessChecks] = useState<Record<string, boolean>>({
-    internet: false, webcam: false, microphone: false, environment: false, response: false, cancel: false,
+    internet: false, webcam: false, microphone: false, environment: false, cancel: false,
   });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");

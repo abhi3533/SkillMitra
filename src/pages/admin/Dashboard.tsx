@@ -333,6 +333,41 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Pending Course Reviews */}
+        <div className="bg-card rounded-xl border border-border">
+          <div className="flex items-center justify-between p-5 pb-3">
+            <h2 className="text-base font-semibold text-foreground">Pending Course Reviews</h2>
+            <Link to="/admin/courses" className="text-xs font-medium text-primary hover:underline">View all</Link>
+          </div>
+          <div className="px-5 pb-5">
+            {loading ? (
+              <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-14 skeleton rounded-lg" />)}</div>
+            ) : pendingCourses.length === 0 ? (
+              <div className="text-center py-8">
+                <BookOpen className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No courses pending review</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {pendingCourses.map((c: any) => (
+                  <div key={c.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center">
+                        <BookOpen className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{c.title}</p>
+                        <p className="text-xs text-muted-foreground">{c.trainerName} • ₹{Number(c.course_fee || 0).toLocaleString("en-IN")}</p>
+                      </div>
+                    </div>
+                    <Link to="/admin/courses"><Button size="sm" variant="outline" className="text-xs h-7">Review</Button></Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Recent Enrollments */}
         <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between p-5 pb-3">

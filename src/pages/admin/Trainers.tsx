@@ -270,7 +270,7 @@ const AdminTrainers = () => {
 
       <div className="mt-4">
         {tab === "pipeline" ? (
-          <OnboardingPipeline trainers={trainers} loading={loading} />
+          <OnboardingPipeline trainers={trainers} loading={loading} onTrainerClick={(t) => { setSelectedTrainer(t); setDrawerOpen(true); }} />
         ) : loading ? (
           <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-card rounded-xl border animate-pulse" />)}</div>
         ) : filtered.length === 0 ? (

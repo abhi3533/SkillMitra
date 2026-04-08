@@ -194,12 +194,14 @@ const AdminTrainers = () => {
     t.onboarding_status === "draft" || t.onboarding_status === "registered"
   ).length;
 
+  const isPendingReview = (t: any) => t.approval_status === "pending" && (t.onboarding_status === "pending" || t.onboarding_status === "submitted");
+
   const filtered = trainers
     .filter(t => {
       if (tab === "pipeline") return false; // pipeline handled separately
-      // Only show trainers who completed onboarding (onboarding_status === "pending" or beyond) in status tabs
-      if (tab === "pending") return t.approval_status === "pending" && t.onboarding_status === "pending";
-      if (tab === "all") return t.onboarding_status === "pending" || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
+      // Only show trainers who completed onboarding (onboarding_status === "pending"/"submitted" or beyond) in status tabs
+      if (tab === "pending") return isPendingReview(t);
+      if (tab === "all") return isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
       return t.approval_status === tab;
     })
     .filter(t => {
@@ -213,11 +215,11 @@ const AdminTrainers = () => {
     });
 
   const counts = {
-    pending: trainers.filter(t => t.approval_status === "pending" && t.onboarding_status === "pending").length,
+    pending: trainers.filter(t => isPendingReview(t)).length,
     approved: trainers.filter(t => t.approval_status === "approved").length,
     rejected: trainers.filter(t => t.approval_status === "rejected").length,
     suspended: trainers.filter(t => t.approval_status === "suspended").length,
-    all: trainers.filter(t => t.onboarding_status === "pending" || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended").length,
+    all: trainers.filter(t => isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended").length,
   };
 
   return (

@@ -525,6 +525,14 @@ const TrainerOnboarding = () => {
         }
       }
 
+      // Update onboarding status to pending FIRST (before edge function) to ensure it persists
+      const { error: statusUpdateErr } = await supabase.from("trainers").update({
+        onboarding_status: "pending",
+        onboarding_step: steps.length,
+        last_saved_at: new Date().toISOString(),
+      }).eq("id", trainerId);
+      if (statusUpdateErr) console.error("Status update error:", statusUpdateErr);
+
       const { error: completeErr } = await supabase.functions.invoke("complete-signup", {
         body: {
           user_id: user.id,
@@ -568,7 +576,6 @@ const TrainerOnboarding = () => {
             course_description: form.courseDescription || null,
             verification_method: form.verificationMethod || null,
             verification_value: form.verificationValue || null,
-            // New availability fields
             trainer_type: form.trainerType || null,
             session_duration_per_day: form.sessionDurationPerDay || null,
             available_time_bands: availableTimeBands,
@@ -577,13 +584,6 @@ const TrainerOnboarding = () => {
         },
       });
       if (completeErr) console.error("Complete signup error:", completeErr);
-
-      // Update onboarding status to pending
-      await supabase.from("trainers").update({
-        onboarding_status: "pending",
-        onboarding_step: steps.length,
-        last_saved_at: new Date().toISOString(),
-      }).eq("id", trainerId);
 
       // Process referral
       const trimmedRef = form.referralCode.trim().toUpperCase();

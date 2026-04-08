@@ -113,6 +113,14 @@ serve(async (req) => {
         });
       }
 
+      // Update onboarding_status to "pending" so trainer appears in admin Pending tab
+      const { error: statusErr } = await supabaseAdmin.from("trainers").update({
+        onboarding_status: "pending",
+        onboarding_step: 7,
+        last_saved_at: new Date().toISOString(),
+      }).eq("id", trainer.id);
+      if (statusErr) console.error("Onboarding status update failed:", statusErr);
+
       // Insert availability if provided
       if (trainer_data.availability && trainer_data.availability.length > 0) {
         const availRows = trainer_data.availability.map((a: any) => ({

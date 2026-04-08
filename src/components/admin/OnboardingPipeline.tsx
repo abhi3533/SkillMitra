@@ -49,7 +49,7 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
   const stepColor = (step: number) => {
     if (step === 0) return "bg-destructive/10 text-destructive";
     if (step < 3) return "bg-amber-50 text-amber-700";
-    if (step < 6) return "bg-blue-50 text-blue-700";
+    if (step < 5) return "bg-blue-50 text-blue-700";
     return "bg-emerald-50 text-emerald-700";
   };
 
@@ -98,7 +98,7 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
               </TableCell>
               <TableCell>
                 <Badge variant="secondary" className={`text-xs ${stepColor(t.onboarding_step || 0)}`}>
-                  {t.onboarding_step || 0}/6
+                  {t.onboarding_step || 0}/7
                 </Badge>
               </TableCell>
               <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">

@@ -85,6 +85,19 @@ const AdminTrainers = () => {
 
   useEffect(() => { fetchTrainers(); }, []);
 
+  // Real-time subscription for trainer status changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-trainers-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'trainers' },
+        () => { fetchTrainers(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const updateStatus = async (id: string, status: string, rejectionReason?: string) => {
     if (role !== "admin") {
       toast({ title: "Unauthorized", description: "Only admins can perform this action.", variant: "destructive" });

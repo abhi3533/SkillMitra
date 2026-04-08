@@ -10,9 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 interface Props {
   trainers: any[];
   loading: boolean;
+  onTrainerClick?: (trainer: any) => void;
 }
 
-const OnboardingPipeline = ({ trainers, loading }: Props) => {
+const OnboardingPipeline = ({ trainers, loading, onTrainerClick }: Props) => {
   const { toast } = useToast();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
 
@@ -78,9 +79,11 @@ const OnboardingPipeline = ({ trainers, loading }: Props) => {
         </TableHeader>
         <TableBody>
           {pipeline.map(t => (
-            <TableRow key={t.id}>
+            <TableRow key={t.id} className={onTrainerClick ? "cursor-pointer hover:bg-muted/50" : ""} onClick={() => onTrainerClick?.(t)}>
               <TableCell className="font-medium text-foreground">
-                {t.profiles?.full_name || "Unknown"}
+                <span className={onTrainerClick ? "text-primary hover:underline" : ""}>
+                  {t.profiles?.full_name || "Unknown"}
+                </span>
               </TableCell>
               <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
                 {t.profiles?.phone ? (

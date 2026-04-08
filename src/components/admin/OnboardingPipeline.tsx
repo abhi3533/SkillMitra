@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Props {
   trainers: any[];
   loading: boolean;
+  onTrainerClick?: (trainer: any) => void;
 }
 
 const OnboardingPipeline = ({ trainers, loading }: Props) => {

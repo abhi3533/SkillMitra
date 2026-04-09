@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { Users, Gift, IndianRupee, TrendingUp, Search, Download, CheckCircle, Clock, Wallet, Filter } from "lucide-react";
+import { Users, Gift, IndianRupee, TrendingUp, Search, Download, CheckCircle, Clock, Wallet, Filter, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -70,7 +70,7 @@ const AdminReferrals = () => {
   const [wallets, setWallets] = useState<WalletRow[]>([]);
   const [walletTxs, setWalletTxs] = useState<WalletTx[]>([]);
   const [walletSearch, setWalletSearch] = useState("");
-
+  const [deleteRefTarget, setDeleteRefTarget] = useState<{ id: string; table: "referrals" | "trainer_referrals"; name: string } | null>(null);
   const loadData = async () => {
     setLoading(true);
 

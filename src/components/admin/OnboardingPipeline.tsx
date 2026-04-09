@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { formatShortDateIST } from "@/lib/dateUtils";
-import { Send, Phone } from "lucide-react";
+import { Send, Phone, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,11 +12,13 @@ interface Props {
   trainers: any[];
   loading: boolean;
   onTrainerClick?: (trainer: any) => void;
+  onDeleteTrainer?: (trainer: any) => void;
 }
 
-const OnboardingPipeline = ({ trainers, loading, onTrainerClick }: Props) => {
+const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer }: Props) => {
   const { toast } = useToast();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
   const pipeline = trainers
     .filter(t => t.onboarding_status === "draft" || t.onboarding_status === "registered")
@@ -113,21 +116,63 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick }: Props) => {
                 </span>
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1 text-xs px-2"
-                  disabled={sendingTo === t.id}
-                  onClick={() => sendReminder(t)}
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  {sendingTo === t.id ? "Sending..." : "Remind"}
-                </Button>
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1 text-xs px-2"
+                    disabled={sendingTo === t.id}
+                    onClick={(e) => { e.stopPropagation(); sendReminder(t); }}
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    {sendingTo === t.id ? "Sending..." : "Remind"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(t); }}
+                    title="Delete trainer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Pipeline Trainer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{deleteTarget?.profiles?.full_name || "this trainer"}</strong>? This cannot be undone. Their account will be permanently removed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (!deleteTarget) return;
+              const trainerName = deleteTarget.profiles?.full_name || "Trainer";
+              const { error } = await supabase.from("trainers").delete().eq("id", deleteTarget.id);
+              if (error) {
+                toast({ title: "Error", description: error.message, variant: "destructive" });
+                setDeleteTarget(null);
+                return;
+              }
+              if (deleteTarget.user_id) {
+                supabase.functions.invoke("delete-auth-user", { body: { user_id: deleteTarget.user_id } }).catch(console.error);
+              }
+              toast({ title: "Trainer deleted", description: `${trainerName} has been permanently removed.` });
+              onDeleteTrainer?.(deleteTarget);
+              setDeleteTarget(null);
+            }}>Delete Permanently</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

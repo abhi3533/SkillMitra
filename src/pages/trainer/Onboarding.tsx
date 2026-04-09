@@ -48,9 +48,13 @@ const TrainerOnboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => {
+    const cached = localStorage.getItem("trainer_onboarding_step");
+    return cached ? parseInt(cached, 10) : 0;
+  });
   const [trainerId, setTrainerId] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [stepLoaded, setStepLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [submitting, setSubmitting] = useState(false);

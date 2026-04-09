@@ -48,9 +48,13 @@ const TrainerOnboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => {
+    const cached = localStorage.getItem("trainer_onboarding_step");
+    return cached ? parseInt(cached, 10) : 0;
+  });
   const [trainerId, setTrainerId] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [stepLoaded, setStepLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -115,6 +119,13 @@ const TrainerOnboarding = () => {
     return Math.round(totalWeeks * daysPerWeek * sessionHours);
   };
 
+  // Persist step to localStorage on every change
+  useEffect(() => {
+    if (stepLoaded) {
+      localStorage.setItem("trainer_onboarding_step", String(step));
+    }
+  }, [step, stepLoaded]);
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -132,7 +143,7 @@ const TrainerOnboarding = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!trainer) { setInitialLoading(false); return; }
+      if (!trainer) { setStepLoaded(true); setInitialLoading(false); return; }
 
       // If already submitted, redirect to thank you
       if (trainer.onboarding_status === "pending" || trainer.onboarding_status === "approved") {
@@ -234,8 +245,11 @@ const TrainerOnboarding = () => {
       }
 
       // Resume from saved step
-      setStep(trainer.onboarding_step || 0);
+      const savedStep = trainer.onboarding_step || 0;
+      setStep(savedStep);
+      localStorage.setItem("trainer_onboarding_step", String(savedStep));
       if (trainer.last_saved_at) setLastSaved(new Date(trainer.last_saved_at));
+      setStepLoaded(true);
       setInitialLoading(false);
     })();
   }, [user, profile, navigate]);
@@ -668,10 +682,11 @@ const TrainerOnboarding = () => {
       })()
     : null;
 
-  if (authLoading || initialLoading) {
+  if (authLoading || initialLoading || !stepLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading your progress...</p>
       </div>
     );
   }

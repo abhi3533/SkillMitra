@@ -238,8 +238,11 @@ const TrainerOnboarding = () => {
       }
 
       // Resume from saved step
-      setStep(trainer.onboarding_step || 0);
+      const savedStep = trainer.onboarding_step || 0;
+      setStep(savedStep);
+      localStorage.setItem("trainer_onboarding_step", String(savedStep));
       if (trainer.last_saved_at) setLastSaved(new Date(trainer.last_saved_at));
+      setStepLoaded(true);
       setInitialLoading(false);
     })();
   }, [user, profile, navigate]);

@@ -119,6 +119,13 @@ const TrainerOnboarding = () => {
     return Math.round(totalWeeks * daysPerWeek * sessionHours);
   };
 
+  // Persist step to localStorage on every change
+  useEffect(() => {
+    if (stepLoaded) {
+      localStorage.setItem("trainer_onboarding_step", String(step));
+    }
+  }, [step, stepLoaded]);
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {

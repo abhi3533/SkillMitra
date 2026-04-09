@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
 import { Users, Gift, IndianRupee, TrendingUp, Search, Download, CheckCircle, Clock, Wallet, Filter, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -558,6 +559,32 @@ const AdminReferrals = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Delete Referral Confirmation */}
+      <Dialog open={!!deleteRefTarget} onOpenChange={() => setDeleteRefTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Referral</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this referral by <strong>{deleteRefTarget?.name}</strong>? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteRefTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (!deleteRefTarget) return;
+              const { error } = await supabase.from(deleteRefTarget.table).delete().eq("id", deleteRefTarget.id);
+              if (error) {
+                toast({ title: "Error", description: error.message, variant: "destructive" });
+              } else {
+                toast({ title: "Referral deleted", description: "Referral record has been removed." });
+                loadData();
+              }
+              setDeleteRefTarget(null);
+            }}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

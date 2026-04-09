@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { Upload, Send, RefreshCw, Search, Download, MailPlus, CheckCircle, Clock, AlertCircle, Users, UserPlus, TrendingUp, Mail, FileDown, FileSpreadsheet } from "lucide-react";
+import { Upload, Send, RefreshCw, Search, Download, MailPlus, CheckCircle, Clock, AlertCircle, Users, UserPlus, TrendingUp, Mail, FileDown, FileSpreadsheet, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,7 @@ const AdminTrainerInvitations = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [singleEmail, setSingleEmail] = useState("");
   const [sendingSingle, setSendingSingle] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Invitation | null>(null);
 
   const fetchInvitations = async () => {
     setLoading(true);
@@ -413,12 +414,41 @@ const AdminTrainerInvitations = () => {
                   {inv.emails_sent >= 2 && inv.status !== "signed_up" && (
                     <span className="text-[10px] text-muted-foreground">Max sent</span>
                   )}
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setDeleteTarget(inv); }} title="Delete invitation">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Delete Invitation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Invitation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the invitation for <strong>{deleteTarget?.email}</strong>? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (!deleteTarget) return;
+              const { error } = await supabase.from("trainer_invitations").delete().eq("id", deleteTarget.id);
+              if (error) {
+                toast({ title: "Error", description: error.message, variant: "destructive" });
+              } else {
+                toast({ title: "Invitation deleted", description: `Invitation for ${deleteTarget.email} removed.` });
+                setInvitations(prev => prev.filter(i => i.id !== deleteTarget.id));
+              }
+              setDeleteTarget(null);
+            }}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>

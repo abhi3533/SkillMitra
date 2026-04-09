@@ -136,7 +136,7 @@ const TrainerOnboarding = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!trainer) { setInitialLoading(false); return; }
+      if (!trainer) { setStepLoaded(true); setInitialLoading(false); return; }
 
       // If already submitted, redirect to thank you
       if (trainer.onboarding_status === "pending" || trainer.onboarding_status === "approved") {

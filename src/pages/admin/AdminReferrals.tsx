@@ -309,18 +309,24 @@ const AdminReferrals = () => {
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{formatDateIST(r.created_at)}</TableCell>
                 <TableCell>
-                  {r.status === "pending" && (
-                    <Button variant="ghost" size="sm" className="gap-1 text-xs h-7"
-                      onClick={() => handleOverride(r.id, table, "paid")}>
-                      <CheckCircle className="w-3 h-3" /> Mark Paid
+                  <div className="flex items-center gap-1">
+                    {r.status === "pending" && (
+                      <Button variant="ghost" size="sm" className="gap-1 text-xs h-7"
+                        onClick={() => handleOverride(r.id, table, "paid")}>
+                        <CheckCircle className="w-3 h-3" /> Mark Paid
+                      </Button>
+                    )}
+                    {r.status === "paid" && (
+                      <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 text-muted-foreground"
+                        onClick={() => handleOverride(r.id, table, "pending")}>
+                        <Clock className="w-3 h-3" /> Revert
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                      onClick={() => setDeleteRefTarget({ id: r.id, table, name: r.referrerName })} title="Delete referral">
+                      <Trash2 className="w-3 h-3" />
                     </Button>
-                  )}
-                  {r.status === "paid" && (
-                    <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 text-muted-foreground"
-                      onClick={() => handleOverride(r.id, table, "pending")}>
-                      <Clock className="w-3 h-3" /> Revert
-                    </Button>
-                  )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

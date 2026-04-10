@@ -74,27 +74,42 @@ const TrainerWallet = () => {
     if (error) {
       toast({ title: "Failed to submit", description: error.message, variant: "destructive" });
     } else {
-      const newBalance = totalBalance - amount;
-      const newWithdrawn = Number(wallet.total_withdrawn || 0) + amount;
-      await supabase.from("wallets").update({
-        balance: newBalance,
-        total_withdrawn: newWithdrawn,
-        last_updated: new Date().toISOString(),
-      }).eq("id", wallet.id);
-
-      await supabase.from("wallet_transactions").insert({
-        wallet_id: wallet.id,
-        user_id: user!.id,
-        type: "debit",
-        amount,
-        description: "Payout withdrawal request",
-        reference_id: trainerId,
+      // Atomically debit the wallet balance via RPC — eliminates the stale-read race
+      // condition that occurred when computing newBalance from React state then writing it
+      // to DB. credit_wallet_atomic handles the balance UPDATE and wallet_transactions
+      // INSERT in one round-trip; a negative amount makes it a debit.
+      const { error: rpcError } = await supabase.rpc("credit_wallet_atomic", {
+        p_user_id: user!.id,
+        p_amount: -amount,
+        p_description: "Payout withdrawal request",
+        p_reference_id: trainerId,
       });
 
-      setWallet({ ...wallet, balance: newBalance, total_withdrawn: newWithdrawn });
-      toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted`, variant: "success" });
-      setShowPayout(false);
-      setPayoutAmount("");
+      if (rpcError) {
+        console.error("Wallet debit RPC failed:", rpcError);
+        toast({ title: "Payout submitted", description: "Request recorded but balance update failed. Contact support.", variant: "warning" });
+      } else {
+        // Update total_withdrawn counter — safe to do non-atomically: it only ever grows
+        // and payout requests are user-initiated sequentially (button disabled during request).
+        const newWithdrawn = Number(wallet.total_withdrawn || 0) + amount;
+        await supabase.from("wallets").update({
+          total_withdrawn: newWithdrawn,
+          last_updated: new Date().toISOString(),
+        }).eq("id", wallet.id);
+
+        // Re-fetch wallet and transactions so UI reflects the atomically updated balance
+        // and the transaction record created by the RPC.
+        const [{ data: refreshedWallet }, { data: refreshedTx }] = await Promise.all([
+          supabase.from("wallets").select("*").eq("user_id", user!.id).maybeSingle(),
+          supabase.from("wallet_transactions").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }),
+        ]);
+        if (refreshedWallet) setWallet(refreshedWallet);
+        if (refreshedTx) setTransactions(refreshedTx);
+
+        toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted`, variant: "success" });
+        setShowPayout(false);
+        setPayoutAmount("");
+      }
     }
     setRequesting(false);
   };

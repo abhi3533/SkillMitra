@@ -289,10 +289,15 @@ const TrainerOnboarding = () => {
     })();
   }, [user, profile, navigate]);
 
+  // Ref that always holds the latest saveDraft function. useCallback with [] would capture
+  // the initial (stale) saveDraft closure, so we use a ref instead. The ref is updated
+  // after every render via the useEffect below (declared after saveDraft is defined).
+  const saveDraftRef = useRef<((showToast: boolean) => Promise<void>) | null>(null);
+
   // Auto-save draft
   const scheduleAutoSave = useCallback(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => saveDraft(false), 3000);
+    autoSaveTimer.current = setTimeout(() => saveDraftRef.current?.(false), 3000);
   }, []);
 
   // Save draft when user switches away from tab
@@ -345,6 +350,10 @@ const TrainerOnboarding = () => {
       setSaving(false);
     }
   };
+
+  // Keep saveDraftRef current so scheduleAutoSave always calls the latest saveDraft
+  // (which closes over the current form state, trainerId, etc.)
+  useEffect(() => { saveDraftRef.current = saveDraft; });
 
   const handleSaveAndContinueLater = async () => {
     await saveDraft(true);
@@ -576,14 +585,9 @@ const TrainerOnboarding = () => {
         }
       }
 
-      // Update onboarding status to pending FIRST (before edge function) to ensure it persists
-      const { error: statusUpdateErr } = await supabase.from("trainers").update({
-        onboarding_status: "pending",
-        onboarding_step: steps.length,
-        last_saved_at: new Date().toISOString(),
-      }).eq("id", trainerId);
-      if (statusUpdateErr) console.error("Status update error:", statusUpdateErr);
-
+      // Save all trainer profile data via edge function FIRST.
+      // Only mark onboarding_status as "pending" after this succeeds so that if the
+      // function call fails the trainer is not left with incomplete data but a pending status.
       const { error: completeErr } = await supabase.functions.invoke("complete-signup", {
         body: {
           user_id: user.id,
@@ -634,7 +638,17 @@ const TrainerOnboarding = () => {
           },
         },
       });
-      if (completeErr) console.error("Complete signup error:", completeErr);
+      // complete-signup already sets onboarding_status="pending" inside the edge function.
+      // If it fails, throw so the catch block shows the error and does NOT redirect.
+      if (completeErr) throw new Error("Failed to save your application data. Please try again.");
+
+      // Belt-and-suspenders: also update status from the client side after confirmed success.
+      const { error: statusUpdateErr } = await supabase.from("trainers").update({
+        onboarding_status: "pending",
+        onboarding_step: steps.length,
+        last_saved_at: new Date().toISOString(),
+      }).eq("id", trainerId);
+      if (statusUpdateErr) console.error("Status update error:", statusUpdateErr);
 
       // Process referral
       const trimmedRef = form.referralCode.trim().toUpperCase();

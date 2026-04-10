@@ -104,10 +104,11 @@ const AdminTrainers = () => {
       return;
     }
 
-    // Block approval if onboarding not completed
+    // Block approval if onboarding not submitted
     if (status === "approved") {
       const trainer = trainers.find(t => t.id === id);
-      if (trainer?.onboarding_status !== "completed") {
+      const onboardingDone = trainer?.onboarding_status === "pending" || trainer?.onboarding_status === "submitted";
+      if (!onboardingDone) {
         toast({
           title: "Cannot Approve",
           description: `Trainer's onboarding is not complete (status: "${trainer?.onboarding_status || "unknown"}"). Ask them to finish their profile first.`,

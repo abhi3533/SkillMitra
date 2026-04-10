@@ -86,6 +86,7 @@ const TrainerOnboarding = () => {
     internet: false, webcam: false, microphone: false, environment: false, cancel: false,
   });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
+  const [uploadedDocKeys, setUploadedDocKeys] = useState<string[]>([]);
   const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
 
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
@@ -201,6 +202,7 @@ const TrainerOnboarding = () => {
         if (saved.servicesOffered) setServicesOffered(saved.servicesOffered);
         if (saved.availableTimeBands) setAvailableTimeBands(saved.availableTimeBands);
         else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
+        if (saved.uploadedDocKeys) setUploadedDocKeys(saved.uploadedDocKeys);
       } else {
         // Load from profile + trainer columns
         setForm(f => ({
@@ -243,6 +245,39 @@ const TrainerOnboarding = () => {
         if (trainer.services_offered) setServicesOffered(trainer.services_offered as string[]);
         if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
       }
+
+      // Restore previously uploaded file indicators from trainer columns & trainer_documents
+      const restoredKeys: string[] = saved?.uploadedDocKeys || [];
+      if (trainer.selfie_url && !restoredKeys.includes("selfie")) restoredKeys.push("selfie");
+      if (trainer.demo_video_url && !restoredKeys.includes("demo_video")) restoredKeys.push("demo_video");
+      if ((trainer as any).intro_video_url && !restoredKeys.includes("intro_video")) restoredKeys.push("intro_video");
+      if (trainer.aadhaar_url && !restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar");
+
+      // Check trainer_documents table for resume and other docs
+      const { data: existingDocs } = await supabase
+        .from("trainer_documents")
+        .select("document_type, document_name")
+        .eq("trainer_id", trainer.id);
+      if (existingDocs) {
+        for (const doc of existingDocs) {
+          if (doc.document_type && !restoredKeys.includes(doc.document_type)) {
+            restoredKeys.push(doc.document_type);
+          }
+        }
+      }
+
+      // Restore selfie preview from storage
+      if (trainer.selfie_url) {
+        const { data: signedData } = await supabase.storage.from("trainer-documents").createSignedUrl(trainer.selfie_url, 3600);
+        if (signedData?.signedUrl) setSelfiePreview(signedData.signedUrl);
+      }
+
+      // Restore profile picture preview
+      if (profile?.profile_picture_url) {
+        setProfilePhotoPreview(profile.profile_picture_url);
+      }
+
+      setUploadedDocKeys(restoredKeys);
 
       // Resume from saved step
       const savedStep = trainer.onboarding_step || 0;
@@ -288,6 +323,7 @@ const TrainerOnboarding = () => {
         teachingLanguages,
         servicesOffered,
         availableTimeBands,
+        uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])],
       };
 
       const { error } = await supabase.from("trainers").update({
@@ -344,6 +380,7 @@ const TrainerOnboarding = () => {
     }
 
     setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
+    setUploadedDocKeys(prev => prev.includes(docKey) ? prev : [...prev, docKey]);
   };
 
   const isPhoneFilled = isValidPhone(form.phone);
@@ -405,9 +442,9 @@ const TrainerOnboarding = () => {
   const allReadinessChecked = Object.values(readinessChecks).every(Boolean);
 
   const previewBadges = getTrainerBadges({
-    hasAadhaar: !!docs["aadhaar"]?.file || !!form.govtIdType,
-    hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file),
-    hasDemoVideo: !!docs["demo_video"]?.file,
+    hasAadhaar: !!docs["aadhaar"]?.file || uploadedDocKeys.includes("aadhaar") || !!form.govtIdType,
+    hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file || uploadedDocKeys.includes("joining_letter") || uploadedDocKeys.includes("relieving_letter") || uploadedDocKeys.includes("experience_letter")),
+    hasDemoVideo: !!docs["demo_video"]?.file || uploadedDocKeys.includes("demo_video"),
   });
 
   const toggleExpertise = (e: string) => { setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]); scheduleAutoSave(); };
@@ -433,12 +470,12 @@ const TrainerOnboarding = () => {
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
       if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
       if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
-      if (!docs["resume"]?.file) { toast({ title: "Please upload your resume to continue", variant: "warning" }); return false; }
+      if (!docs["resume"]?.file && !uploadedDocKeys.includes("resume")) { toast({ title: "Please upload your resume to continue", variant: "warning" }); return false; }
       if (teachingLanguages.length === 0) { toast({ title: "Please select at least one teaching language to continue", variant: "warning" }); return false; }
     }
     if (s === 2) {
-      if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
-      if (!docs["intro_video"]?.file) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
+      if (!docs["demo_video"]?.file && !uploadedDocKeys.includes("demo_video")) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
+      if (!docs["intro_video"]?.file && !uploadedDocKeys.includes("intro_video")) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
       if (!form.courseTitle.trim()) { toast({ title: "Course title is required", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
     }
@@ -461,7 +498,7 @@ const TrainerOnboarding = () => {
       const effectiveAccountName = (profile?.full_name || form.accountHolderName || "").trim();
       if (!effectiveAccountName) { toast({ title: "Account holder name is required", variant: "warning" }); return false; }
       if (!form.govtIdType) { toast({ title: "Government ID type is required", variant: "warning" }); return false; }
-      if (!docs["aadhaar"]?.file) { toast({ title: "Aadhaar document upload is required", variant: "warning" }); return false; }
+      if (!docs["aadhaar"]?.file && !uploadedDocKeys.includes("aadhaar")) { toast({ title: "Aadhaar document upload is required", variant: "warning" }); return false; }
     }
     if (s === 6) {
       if (referralStatus === "invalid") { toast({ title: "Please fix or remove the invalid referral code", variant: "warning" }); return false; }
@@ -479,7 +516,7 @@ const TrainerOnboarding = () => {
       setStep(newStep);
       // Save draft after advancing
       if (trainerId && user) {
-        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands };
+        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands, uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])] };
         await supabase.from("trainers").update({
           onboarding_step: newStep,
           onboarding_data: onboardingData as any,
@@ -640,24 +677,31 @@ const TrainerOnboarding = () => {
     }
   };
 
-  const FileUploadBox = ({ docKey, label, required, accept, hint }: { docKey: string; label: string; required?: boolean; accept: string; hint?: string }) => (
-    <div className={`border rounded-xl p-4 transition-colors ${required && stepAttempted[step] && !docs[docKey]?.file ? "border-destructive" : "border-dashed border-border hover:border-primary/30"}`}>
+  const FileUploadBox = ({ docKey, label, required, accept, hint }: { docKey: string; label: string; required?: boolean; accept: string; hint?: string }) => {
+    const hasNewFile = !!docs[docKey]?.file;
+    const hasPreviousUpload = uploadedDocKeys.includes(docKey);
+    const hasFile = hasNewFile || hasPreviousUpload;
+    return (
+    <div className={`border rounded-xl p-4 transition-colors ${required && stepAttempted[step] && !hasFile ? "border-destructive" : "border-dashed border-border hover:border-primary/30"}`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">{label}{required && <RequiredMark />}</p>
-          {docs[docKey] ? (
+          {hasNewFile ? (
             <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />{docs[docKey].name}</p>
+          ) : hasPreviousUpload ? (
+            <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />Previously uploaded</p>
           ) : (
             <p className="text-xs text-muted-foreground mt-0.5">{hint || "PDF, JPG, PNG up to 10MB"}</p>
           )}
         </div>
         <div>
           <input type="file" ref={el => { fileRefs.current[docKey] = el; }} accept={accept} className="hidden" onChange={e => handleFileSelect(docKey, e.target.files?.[0] || null)} />
-          <Button variant="outline" size="sm" onClick={() => fileRefs.current[docKey]?.click()}><Upload className="w-4 h-4 mr-2" />{docs[docKey] ? "Change" : "Upload"}</Button>
+          <Button variant="outline" size="sm" onClick={() => fileRefs.current[docKey]?.click()}><Upload className="w-4 h-4 mr-2" />{hasFile ? "Change" : "Upload"}</Button>
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const RadioOption = ({ value, selected, label, sublabel, onClick }: { value: string; selected: boolean; label: string; sublabel?: string; onClick: () => void }) => (
     <button type="button" onClick={onClick}

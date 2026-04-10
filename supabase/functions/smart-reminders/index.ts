@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
+import { getCorsHeaders } from "../_shared/cors.ts"
 
 // Helper to send email via the send-email edge function
 async function sendEmail(supabaseUrl: string, serviceKey: string, payload: { type: string; to: string; data: Record<string, any> }) {
@@ -21,12 +22,8 @@ async function sendEmail(supabaseUrl: string, serviceKey: string, payload: { typ
   }
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-}
-
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }

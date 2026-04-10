@@ -439,7 +439,7 @@ Deno.serve(async (req) => {
 
     // Send enrollment confirmation email
     try {
-      const { data: studentProfile } = await serviceClient.from("profiles").select("full_name, email").eq("id", studentUserId).single();
+      const { data: studentProfile } = await serviceClient.from("profiles").select("full_name, email").eq("id", userId).single();
       const { data: trainerProfile } = await serviceClient.from("profiles").select("full_name").eq("id", trainer?.user_id).single();
       if (studentProfile?.email) {
         await serviceClient.functions.invoke("send-transactional-email", {

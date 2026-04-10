@@ -202,6 +202,7 @@ const TrainerOnboarding = () => {
         if (saved.servicesOffered) setServicesOffered(saved.servicesOffered);
         if (saved.availableTimeBands) setAvailableTimeBands(saved.availableTimeBands);
         else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
+        if (saved.uploadedDocKeys) setUploadedDocKeys(saved.uploadedDocKeys);
       } else {
         // Load from profile + trainer columns
         setForm(f => ({
@@ -244,6 +245,39 @@ const TrainerOnboarding = () => {
         if (trainer.services_offered) setServicesOffered(trainer.services_offered as string[]);
         if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
       }
+
+      // Restore previously uploaded file indicators from trainer columns & trainer_documents
+      const restoredKeys: string[] = saved?.uploadedDocKeys || [];
+      if (trainer.selfie_url && !restoredKeys.includes("selfie")) restoredKeys.push("selfie");
+      if (trainer.demo_video_url && !restoredKeys.includes("demo_video")) restoredKeys.push("demo_video");
+      if ((trainer as any).intro_video_url && !restoredKeys.includes("intro_video")) restoredKeys.push("intro_video");
+      if (trainer.aadhaar_url && !restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar");
+
+      // Check trainer_documents table for resume and other docs
+      const { data: existingDocs } = await supabase
+        .from("trainer_documents")
+        .select("document_type, document_name")
+        .eq("trainer_id", trainer.id);
+      if (existingDocs) {
+        for (const doc of existingDocs) {
+          if (doc.document_type && !restoredKeys.includes(doc.document_type)) {
+            restoredKeys.push(doc.document_type);
+          }
+        }
+      }
+
+      // Restore selfie preview from storage
+      if (trainer.selfie_url) {
+        const { data: signedData } = await supabase.storage.from("trainer-documents").createSignedUrl(trainer.selfie_url, 3600);
+        if (signedData?.signedUrl) setSelfiePreview(signedData.signedUrl);
+      }
+
+      // Restore profile picture preview
+      if (profile?.profile_picture_url) {
+        setProfilePhotoPreview(profile.profile_picture_url);
+      }
+
+      setUploadedDocKeys(restoredKeys);
 
       // Resume from saved step
       const savedStep = trainer.onboarding_step || 0;

@@ -4,6 +4,7 @@ import { Loader2, Check, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +15,7 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, role } = useAuth();
@@ -82,7 +84,11 @@ const AdminLogin = () => {
               <Label>Password</Label>
               <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1" required />
             </div>
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
+                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
+              </div>
               <Link to="/forgot-password?role=admin" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
             </div>
             <Button type="submit" disabled={loading} className="w-full h-11 hero-gradient font-semibold border-0">

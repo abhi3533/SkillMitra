@@ -201,9 +201,14 @@ const AdminTrainers = () => {
     }
     // Also delete from auth.users so email can be reused
     if (trainerUserId) {
-      supabase.functions.invoke("delete-auth-user", {
+      const { error: deleteAuthErr } = await supabase.functions.invoke("delete-auth-user", {
         body: { user_id: trainerUserId },
-      }).catch(err => console.error("Auth user cleanup failed:", err));
+      });
+      if (deleteAuthErr) {
+        toast({ title: "Error", description: "Trainer record deleted but auth user removal failed. The email address may remain locked.", variant: "destructive" });
+        setRemoveTarget(null);
+        return;
+      }
     }
     setTrainers(prev => prev.filter(t => t.id !== trainerId));
     setDrawerOpen(false);

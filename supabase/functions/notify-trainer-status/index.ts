@@ -112,16 +112,32 @@ Deno.serve(async (req) => {
         <p style="font-size: 14px; line-height: 1.6; color: #666;">Welcome to SkillMitra!</p>
         <p style="font-size: 14px; color: #666; margin-top: 8px;">— Team SkillMitra</p>
       `)
+    } else if (status === 'removed') {
+      subject = 'Your SkillMitra trainer account has been removed'
+      htmlBody = layout(`
+        <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${trainerName},</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">We're writing to let you know that your trainer account on SkillMitra has been <strong style="color: #dc2626;">permanently removed</strong> from our platform.</p>
+
+        ${rejection_reason ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Reason:</strong> ${rejection_reason}</p>
+        </div>` : ''}
+
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Your profile, courses, and associated data have been deleted. If you believe this was done in error, please contact us.</p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">If you have questions, write to us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a>.</p>
+
+        <p style="font-size: 14px; color: #666; margin-top: 24px;">— Team SkillMitra</p>
+      `)
     } else {
       subject = 'Your SkillMitra application needs attention'
       htmlBody = layout(`
         <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${trainerName},</h1>
         <p style="font-size: 15px; line-height: 1.7; color: #444;">After reviewing your application, we found the following issue:</p>
-        
+
         ${rejection_reason ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0;">
           <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Issue:</strong> ${rejection_reason}</p>
         </div>` : ''}
-        
+
         <p style="font-size: 15px; line-height: 1.7; color: #444;">Please login, update your profile and resubmit your application. We'd love to have you on SkillMitra!</p>
 
         <div style="text-align: center; margin: 28px 0;">
@@ -129,7 +145,7 @@ Deno.serve(async (req) => {
         </div>
 
         <p style="font-size: 15px; line-height: 1.7; color: #444;">If you have questions, write to us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a>.</p>
-        
+
         <p style="font-size: 14px; color: #666; margin-top: 24px;">— Team SkillMitra</p>
       `)
     }
@@ -160,18 +176,24 @@ Deno.serve(async (req) => {
     // Create in-app notification
     const notifTitle = status === 'approved'
       ? "You're approved! 🎉"
-      : 'Application update'
+      : status === 'removed'
+        ? 'Account removed'
+        : 'Application update'
     const notifBody = status === 'approved'
       ? 'Your profile is approved! Create your first course to go live on SkillMitra.'
-      : `Your application wasn${String.fromCharCode(39)}t approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
+      : status === 'removed'
+        ? 'Your trainer account has been permanently removed from SkillMitra. Contact support if you believe this is an error.'
+        : `Your application wasn${String.fromCharCode(39)}t approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
 
-    await supabase.from('notifications').insert({
-      user_id: trainer.user_id,
-      title: notifTitle,
-      body: notifBody,
-      type: 'trainer_status',
-      action_url: status === 'approved' ? '/trainer/courses' : '/trainer/dashboard',
-    })
+    if (status !== 'removed') {
+      await supabase.from('notifications').insert({
+        user_id: trainer.user_id,
+        title: notifTitle,
+        body: notifBody,
+        type: 'trainer_status',
+        action_url: status === 'approved' ? '/trainer/courses' : '/trainer/dashboard',
+      })
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 

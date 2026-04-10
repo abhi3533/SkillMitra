@@ -293,7 +293,7 @@ const TrainerOnboarding = () => {
   // Ref that always holds the latest saveDraft function. useCallback with [] would capture
   // the initial (stale) saveDraft closure, so we use a ref instead. The ref is updated
   // after every render via the useEffect below (declared after saveDraft is defined).
-  const saveDraftRef = useRef<((showToast: boolean) => Promise<void>) | null>(null);
+  const saveDraftRef = useRef<((showToast: boolean) => Promise<boolean>) | null>(null);
 
   // Auto-save draft
   const scheduleAutoSave = useCallback(() => {
@@ -319,9 +319,10 @@ const TrainerOnboarding = () => {
     };
   }, [trainerId, user]);
 
-  const saveDraft = async (showToast = false) => {
-    if (!trainerId || !user) return;
+  const saveDraft = async (showToast = false): Promise<boolean> => {
+    if (!trainerId || !user) return false;
     setSaving(true);
+    let succeeded = false;
     try {
       const onboardingData = {
         ...form,
@@ -344,12 +345,14 @@ const TrainerOnboarding = () => {
         if (showToast) {
           toast({ title: "Progress saved!", description: "Your progress has been saved. Continue anytime.", variant: "success" });
         }
+        succeeded = true;
       }
     } catch (err) {
       console.error("Auto-save error:", err);
     } finally {
       setSaving(false);
     }
+    return succeeded;
   };
 
   // Keep saveDraftRef current so scheduleAutoSave always calls the latest saveDraft
@@ -357,8 +360,8 @@ const TrainerOnboarding = () => {
   useEffect(() => { saveDraftRef.current = saveDraft; });
 
   const handleSaveAndContinueLater = async () => {
-    await saveDraft(true);
-    navigate("/trainer/dashboard");
+    const saved = await saveDraft(true);
+    if (saved) navigate("/trainer/dashboard");
   };
 
   const handlePhoneChange = (val: string) => {

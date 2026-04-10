@@ -80,6 +80,27 @@ Deno.serve(async (req) => {
     })
   }
 
+  // BUG-A-02: Only service-role or admin users may trigger referral completion.
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const bearerToken = authHeader.replace('Bearer ', '')
+  const isServiceRole = bearerToken === serviceRoleKey
+
+  if (!isServiceRole) {
+    const adminCheck = createClient(Deno.env.get('SUPABASE_URL')!, serviceRoleKey)
+    const { data: roleData } = await adminCheck
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', callerUser.id)
+      .eq('role', 'admin')
+      .maybeSingle()
+
+    if (!roleData) {
+      return new Response(JSON.stringify({ error: 'Forbidden: admin only' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
   try {
     const { trainer_id } = await req.json()
     if (!trainer_id) throw new Error('trainer_id is required')
@@ -189,7 +210,7 @@ Deno.serve(async (req) => {
 
         if (referrerProfile?.email) {
           await sendEmail(RESEND_API_KEY, referrerProfile.email,
-            'Your ₹1,500 bonus will be credited shortly!',
+            `Your ₹${REWARD.toLocaleString('en-IN')} bonus will be credited shortly!`,
             layout(`
               <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${referrerProfile.full_name || 'Trainer'} 🎉</h1>
               <p style="font-size: 15px; line-height: 1.7; color: #444;">Great news! The trainer you referred has been <strong style="color: #059669;">approved</strong> by our team.</p>

@@ -47,10 +47,13 @@ async function sendEmail(apiKey: string, to: string, subject: string, html: stri
       body: JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html }),
     })
     const data = await res.json()
-    if (!res.ok) console.error('Resend error:', data)
-    else console.log(`✅ Email sent to ${to}:`, data.id)
+    if (!res.ok) {
+      console.error(`❌ Resend error sending to ${to} (subject: "${subject}") [HTTP ${res.status}]:`, JSON.stringify(data))
+    } else {
+      console.log(`✅ Email sent to ${to}:`, data.id)
+    }
   } catch (e) {
-    console.error('Email send failed:', e)
+    console.error(`❌ Email send failed to ${to} (subject: "${subject}"):`, e)
   }
 }
 

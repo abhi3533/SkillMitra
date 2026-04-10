@@ -985,7 +985,7 @@ const TrainerOnboarding = () => {
                   placeholder="Tell students about yourself — your background, experience, teaching style and passion for teaching..."
                   className={`mt-1.5 min-h-[120px] ${touched.bio ? (form.bio.trim().length >= 100 ? "border-green-500" : "border-destructive") : ""}`} />
                 <FieldHint text="Tell students about yourself — your background, experience, teaching style and passion for teaching." />
-                <p className="text-xs text-muted-foreground mt-1">{form.bio.length}/100 characters minimum</p>
+                <p className="text-xs text-muted-foreground mt-1">{form.bio.trim().length}/100 characters minimum</p>
               </div>
 
               <div className="space-y-3">
@@ -1039,7 +1039,7 @@ const TrainerOnboarding = () => {
                 <Label>Course Description<RequiredMark /></Label>
                 <Textarea value={form.courseDescription} onChange={e => update("courseDescription", e.target.value)} placeholder="Describe what students will learn..." className="mt-1.5 min-h-[120px]" />
                 <FieldHint text="This is your first impression to students. Make it clear and professional." />
-                <p className="text-xs text-muted-foreground mt-1">{form.courseDescription.length}/100 characters minimum</p>
+                <p className="text-xs text-muted-foreground mt-1">{form.courseDescription.trim().length}/100 characters minimum</p>
               </div>
 
               <Button type="button" variant="outline" className="w-full mt-4 border-primary text-primary hover:bg-primary/5" onClick={() => setShowPreview(true)}>

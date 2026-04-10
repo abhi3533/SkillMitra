@@ -70,7 +70,10 @@ const AdminReferrals = () => {
   const [studentRefs, setStudentRefs] = useState<EnrichedRef[]>([]);
   const [wallets, setWallets] = useState<WalletRow[]>([]);
   const [walletTxs, setWalletTxs] = useState<WalletTx[]>([]);
+  const [walletTxOffset, setWalletTxOffset] = useState(0);
+  const [hasMoreTxs, setHasMoreTxs] = useState(false);
   const [walletSearch, setWalletSearch] = useState("");
+  const TX_PAGE_SIZE = 50;
   const [deleteRefTarget, setDeleteRefTarget] = useState<{ id: string; table: "referrals" | "trainer_referrals"; name: string } | null>(null);
   const loadData = async () => {
     setLoading(true);
@@ -79,7 +82,7 @@ const AdminReferrals = () => {
       supabase.from("trainer_referrals").select("*").order("created_at", { ascending: false }),
       supabase.from("referrals").select("*").order("created_at", { ascending: false }),
       supabase.from("wallets").select("*").order("balance", { ascending: false }),
-      supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }).limit(500),
+      supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }).limit(TX_PAGE_SIZE),
     ]);
 
     // Enrich trainer referrals
@@ -154,9 +157,29 @@ const AdminReferrals = () => {
         ...t,
         userName: profileMap[t.user_id]?.full_name || "Unknown",
       })));
+    } else {
+      setWalletTxs([]);
     }
+    setWalletTxOffset(0);
+    setHasMoreTxs(txData.length === TX_PAGE_SIZE);
 
     setLoading(false);
+  };
+
+  const loadMoreTxs = async () => {
+    const newOffset = walletTxOffset + TX_PAGE_SIZE;
+    const { data: moreTxs } = await supabase
+      .from("wallet_transactions")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(newOffset, newOffset + TX_PAGE_SIZE - 1);
+    if (!moreTxs || moreTxs.length === 0) { setHasMoreTxs(false); return; }
+    const txUserIds = [...new Set(moreTxs.map(t => t.user_id))];
+    const profileMap = await fetchProfilesMap(txUserIds);
+    const enriched = moreTxs.map(t => ({ ...t, userName: profileMap[t.user_id]?.full_name || "Unknown" }));
+    setWalletTxs(prev => [...prev, ...enriched]);
+    setWalletTxOffset(newOffset);
+    setHasMoreTxs(moreTxs.length === TX_PAGE_SIZE);
   };
 
   useEffect(() => { loadData(); }, []);
@@ -538,7 +561,7 @@ const AdminReferrals = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {walletTxs.slice(0, 20).map(tx => (
+                      {walletTxs.map(tx => (
                         <TableRow key={tx.id}>
                           <TableCell className="text-sm text-foreground">{tx.userName}</TableCell>
                           <TableCell>
@@ -555,6 +578,11 @@ const AdminReferrals = () => {
                   </Table>
                 </div>
               </div>
+              {hasMoreTxs && (
+                <div className="mt-3 text-center">
+                  <Button variant="outline" size="sm" onClick={loadMoreTxs}>Load More</Button>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>

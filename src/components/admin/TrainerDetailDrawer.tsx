@@ -52,9 +52,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
     if (t.curriculum_pdf_url && !t.curriculum_pdf_url.startsWith("http")) {
       promises.push(resolveStorageUrl(t.curriculum_pdf_url).then(u => { urls.curriculum_pdf = u; }));
     }
-    if (t.resume_url) {
-      promises.push(resolveStorageUrl(t.resume_url).then(u => { urls.resume = u; }));
-    }
 
     await Promise.all(promises);
     setSignedUrls(urls);
@@ -291,13 +288,13 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             <InfoRow icon={Calendar} label="Weekend Availability" value={trainer.weekend_availability ? trainer.weekend_availability.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
             <InfoRow icon={Calendar} label="Course Duration" value={trainer.course_duration ? `${trainer.course_duration} days` : null} />
             <InfoRow icon={Clock} label="Total Hours" value={(() => {
-              const durationPerDay = trainer.session_duration_per_day;
-              const courseDays = trainer.course_duration;
-              if (!durationPerDay || !courseDays) return null;
-              const hoursMatch = String(durationPerDay).match(/(\d+(\.\d+)?)/);
-              if (!hoursMatch) return null;
-              const hoursPerDay = parseFloat(hoursMatch[1]);
-              const totalHours = Math.round(hoursPerDay * Number(courseDays));
+              const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "90 Minutes": 1.5, "2 Hours": 2 };
+              const weekendDaysMap: Record<string, number> = { "both": 7, "saturday_only": 6, "sunday_only": 6, "no_weekends": 5 };
+              const sessionHours = sessionHoursMap[trainer.session_duration_per_day] || 0;
+              const daysPerWeek = weekendDaysMap[trainer.weekend_availability] || 0;
+              const totalDays = Number(trainer.course_duration) || 0;
+              if (!sessionHours || !daysPerWeek || !totalDays) return null;
+              const totalHours = Math.round((totalDays / 7) * daysPerWeek * sessionHours);
               return `${totalHours} hrs`;
             })()} />
             <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />

@@ -121,13 +121,16 @@ const AdminTrainers = () => {
     const update: any = { approval_status: status };
     if (rejectionReason) update.rejection_reason = rejectionReason;
 
-    // Extend: sync profile_status with approval decision
+    // Extend: sync profile_status and trainer_status with approval decision
     if (status === "approved") {
       update.profile_status = "approved";
+      update.trainer_status = "active";
     } else if (status === "rejected") {
       update.profile_status = "rejected";
+      update.trainer_status = "inactive";
     } else if (status === "suspended") {
       update.profile_status = "suspended";
+      update.trainer_status = "inactive";
     }
 
     const { error } = await supabase.from("trainers").update(update).eq("id", id);

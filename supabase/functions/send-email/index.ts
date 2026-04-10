@@ -17,8 +17,8 @@ type EmailType =
   | 'trainer_rejected' 
   | 'student_welcome' 
   | 'trainer_welcome'
-  | 'enrollment_confirmation' 
-  | 'new_enrollment_trainer'
+  | 'enrollment_confirmation'  // @deprecated — never called; use enrollment_confirmed_student instead
+  | 'new_enrollment_trainer'   // @deprecated — never called; use enrollment_confirmed_trainer instead
   | 'session_reminder'
   | 'student_trainer_match'
   | 'trainer_student_match'
@@ -141,6 +141,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
         `)
       }
 
+    // @deprecated — never called from any active code path; superseded by enrollment_confirmed_student
     case 'enrollment_confirmation':
       return {
         subject: `You're enrolled in ${data.course_name || 'a course'}! 📚`,
@@ -171,6 +172,7 @@ function buildEmail(type: EmailType, data: Record<string, any>): { subject: stri
         `)
       }
 
+    // @deprecated — never called from any active code path; superseded by enrollment_confirmed_trainer
     case 'new_enrollment_trainer':
       return {
         subject: `🎉 New Student Enrolled in ${data.course_name || 'Your Course'}!`,

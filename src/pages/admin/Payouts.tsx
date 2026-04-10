@@ -45,6 +45,15 @@ const AdminPayouts = () => {
     setPayouts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     toast({ title: `Payout ${status}`, variant: "success" });
 
+    // Notify trainer of payout decision
+    supabase.functions.invoke("notify-payout-status", {
+      body: {
+        payout_request_id: id,
+        action: status === "completed" ? "approved" : "rejected",
+        ...(txRef ? { transaction_reference: txRef } : {}),
+      },
+    }).catch(console.error);
+
     // Log activity
     supabase.from("admin_activity_log").insert({
       event_type: status === "completed" ? "payout_approved" : "payout_rejected",

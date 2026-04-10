@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
 import { getCorsHeaders } from "../_shared/cors.ts"
+import { formatIST } from "../_shared/dateUtils.ts"
 
 // Helper to send email via the send-email edge function
 async function sendEmail(supabaseUrl: string, serviceKey: string, payload: { type: string; to: string; data: Record<string, any> }) {
@@ -65,7 +66,15 @@ Deno.serve(async (req) => {
             body: `Your "${courseTitle}" session is on ${time}. Don't forget!`,
             action_url: s.id, icon: 'calendar',
           })
-          results.push(`24h notification → student ${studentUserId}`)
+          const { data: studentProf } = await supabase.from('profiles').select('email, full_name').eq('id', studentUserId).single()
+          if (studentProf?.email) {
+            await sendEmail(supabaseUrl, serviceKey, {
+              type: 'session_reminder',
+              to: studentProf.email,
+              data: { name: studentProf.full_name || 'there', session_title: courseTitle, scheduled_time: formatIST(s.scheduled_at!), meet_link: s.meet_link },
+            })
+          }
+          results.push(`24h notification + email → student ${studentUserId}`)
         }
       }
 
@@ -78,7 +87,15 @@ Deno.serve(async (req) => {
             body: `Your "${courseTitle}" session is on ${time}. Don't forget!`,
             action_url: s.id, icon: 'calendar',
           })
-          results.push(`24h notification → trainer ${trainer.user_id}`)
+          const { data: trainerProf } = await supabase.from('profiles').select('email, full_name').eq('id', trainer.user_id).single()
+          if (trainerProf?.email) {
+            await sendEmail(supabaseUrl, serviceKey, {
+              type: 'session_reminder',
+              to: trainerProf.email,
+              data: { name: trainerProf.full_name || 'Trainer', session_title: courseTitle, scheduled_time: formatIST(s.scheduled_at!), meet_link: s.meet_link },
+            })
+          }
+          results.push(`24h notification + email → trainer ${trainer.user_id}`)
         }
       }
     }

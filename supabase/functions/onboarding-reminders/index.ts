@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
 import { getCorsHeaders } from "../_shared/cors.ts"
+import { formatIST } from "../_shared/dateUtils.ts"
 
 const BRAND_COLOR = '#1A56DB'
 const APP_URL = 'https://skillmitra.online'
@@ -151,7 +152,7 @@ Deno.serve(async (req) => {
         const rows = inactiveTrainers.map(t => {
           const p = profileMap[t.user_id]
           const daysSince = Math.floor((now.getTime() - new Date(t.created_at).getTime()) / (1000 * 60 * 60 * 24))
-          const lastActive = new Date(t.last_saved_at || t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })
+          const lastActive = formatIST(t.last_saved_at || t.created_at)
           return `<tr>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.full_name || 'Unknown'}</td>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${p?.phone || '—'}</td>

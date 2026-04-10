@@ -63,13 +63,13 @@ const TrainerWallet = () => {
     if (!trainerId || !wallet) return;
 
     setRequesting(true);
-    const { error } = await supabase.from("payout_requests").insert({
+    const { data: payoutRow, error } = await supabase.from("payout_requests").insert({
       trainer_id: trainerId,
       requested_amount: amount,
       upi_id: trainerData?.upi_id,
       bank_account_number: trainerData?.bank_account_number,
       ifsc_code: trainerData?.ifsc_code,
-    });
+    }).select("id").single();
 
     if (error) {
       toast({ title: "Failed to submit", description: error.message, variant: "destructive" });
@@ -107,6 +107,11 @@ const TrainerWallet = () => {
         if (refreshedTx) setTransactions(refreshedTx);
 
         toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted`, variant: "success" });
+        if (payoutRow?.id) {
+          supabase.functions.invoke("notify-payout-status", {
+            body: { payout_request_id: payoutRow.id, action: "requested" },
+          }).catch(console.error);
+        }
         setShowPayout(false);
         setPayoutAmount("");
       }

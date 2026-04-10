@@ -128,6 +128,22 @@ Deno.serve(async (req) => {
 
         <p style="font-size: 14px; color: #666; margin-top: 24px;">— Team SkillMitra</p>
       `)
+    } else if (status === 'suspended') {
+      subject = 'Your SkillMitra trainer account has been suspended'
+      htmlBody = layout(`
+        <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${trainerName},</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">Your trainer account on SkillMitra has been <strong style="color: #d97706;">suspended</strong>.</p>
+
+        ${rejection_reason ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <p style="font-size: 14px; color: #991b1b; margin: 0;"><strong>Reason:</strong> ${rejection_reason}</p>
+        </div>` : ''}
+
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">While suspended, your profile and courses will not be visible to students, and you will not be able to accept new bookings.</p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #444;">If you believe this is an error or would like to appeal, please contact us at <a href="mailto:contact@skillmitra.online" style="color: ${BRAND_COLOR};">contact@skillmitra.online</a>.</p>
+
+        <p style="font-size: 14px; color: #666; margin-top: 24px;">— Team SkillMitra</p>
+      `)
     } else {
       subject = 'Your SkillMitra application needs attention'
       htmlBody = layout(`
@@ -178,12 +194,16 @@ Deno.serve(async (req) => {
       ? "You're approved! 🎉"
       : status === 'removed'
         ? 'Account removed'
-        : 'Application update'
+        : status === 'suspended'
+          ? 'Account suspended'
+          : 'Application update'
     const notifBody = status === 'approved'
       ? 'Your profile is approved! Create your first course to go live on SkillMitra.'
       : status === 'removed'
         ? 'Your trainer account has been permanently removed from SkillMitra. Contact support if you believe this is an error.'
-        : `Your application wasn${String.fromCharCode(39)}t approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
+        : status === 'suspended'
+          ? `Your trainer account has been suspended and is no longer visible to students.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Contact support for assistance.'}`
+          : `Your application wasn${String.fromCharCode(39)}t approved this time.${rejection_reason ? ` Reason: ${rejection_reason}` : ' Check your email for details.'}`
 
     if (status !== 'removed') {
       await supabase.from('notifications').insert({

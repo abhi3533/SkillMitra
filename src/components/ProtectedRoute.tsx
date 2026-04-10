@@ -29,8 +29,15 @@ const ProtectedRoute = ({ children, allowedRoles }: Props) => {
     return <Navigate to="/student/login" replace />;
   }
 
-  if (role && !allowedRoles.includes(role)) {
-    // Redirect to correct dashboard
+  if (!role) {
+    // User exists but has no assigned role — treat as unauthorized
+    if (allowedRoles.includes("admin")) return <Navigate to="/admin/login" replace />;
+    if (allowedRoles.includes("trainer")) return <Navigate to="/trainer/login" replace />;
+    return <Navigate to="/student/login" replace />;
+  }
+
+  if (!allowedRoles.includes(role)) {
+    // Wrong role — redirect to their own dashboard
     if (role === "student") return <Navigate to="/student/dashboard" replace />;
     if (role === "trainer") return <Navigate to="/trainer/dashboard" replace />;
     if (role === "admin") return <Navigate to="/admin/dashboard" replace />;

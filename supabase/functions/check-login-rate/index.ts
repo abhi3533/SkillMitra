@@ -36,6 +36,37 @@ Deno.serve(async (req) => {
     ).toISOString();
 
     if (action === "clear") {
+      // Only admins can clear rate limits — verify caller identity and role
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const anonClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: { user: callerUser }, error: authErr } = await anonClient.auth.getUser();
+      if (authErr || !callerUser) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: roleRow } = await serviceClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerUser.id)
+        .maybeSingle();
+      if (roleRow?.role !== "admin") {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       await serviceClient
         .from("login_attempts")
         .delete()

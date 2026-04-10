@@ -25,31 +25,20 @@ function layout(content: string): string {
 }
 
 async function creditWallet(supabase: any, userId: string, amount: number, description: string, referenceId: string) {
-  const { data: wallet } = await supabase
-    .from('wallets')
-    .select('id, balance, total_earned')
-    .eq('user_id', userId)
-    .single()
+  // Single atomic RPC: UPDATE balance + INSERT transaction in one DB round-trip.
+  // Eliminates the read-modify-write race condition that caused duplicate credits
+  // when two concurrent calls read the same balance before either wrote back.
+  const { error } = await supabase.rpc('credit_wallet_atomic', {
+    p_user_id: userId,
+    p_amount: amount,
+    p_description: description,
+    p_reference_id: referenceId,
+  })
 
-  if (!wallet) {
-    console.error(`No wallet found for user ${userId}`)
+  if (error) {
+    console.error(`Failed to credit wallet for user ${userId}:`, error)
     return false
   }
-
-  await supabase.from('wallets').update({
-    balance: Number(wallet.balance) + amount,
-    total_earned: Number(wallet.total_earned) + amount,
-    last_updated: new Date().toISOString(),
-  }).eq('id', wallet.id)
-
-  await supabase.from('wallet_transactions').insert({
-    wallet_id: wallet.id,
-    user_id: userId,
-    type: 'credit',
-    amount,
-    description,
-    reference_id: referenceId,
-  })
 
   return true
 }

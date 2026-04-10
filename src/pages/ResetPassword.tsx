@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, CheckCircle, AlertTriangle } from "lucide-react";
@@ -22,6 +22,9 @@ const ResetPassword = () => {
   const [success, setSuccess] = useState(false);
   const [expired, setExpired] = useState(false);
   const [hasSession, setHasSession] = useState(false);
+  // Ref mirrors the state so the setTimeout closure always reads the latest value
+  // rather than the stale value captured at the time setTimeout was scheduled.
+  const hasSessionRef = useRef(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -31,16 +34,20 @@ const ResetPassword = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        hasSessionRef.current = true;
         setHasSession(true);
       } else {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
           if (event === "PASSWORD_RECOVERY") {
+            hasSessionRef.current = true;
             setHasSession(true);
           }
         });
+        // 8 s gives slow networks time to complete the token exchange before
+        // we assume the link is expired (was 3 s which is too short).
         setTimeout(() => {
-          if (!hasSession) setExpired(true);
-        }, 3000);
+          if (!hasSessionRef.current) setExpired(true);
+        }, 8000);
         return () => subscription.unsubscribe();
       }
     };

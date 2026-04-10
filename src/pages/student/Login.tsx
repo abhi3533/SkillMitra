@@ -5,7 +5,6 @@ import { Eye, EyeOff, ArrowRight, Loader2, ShieldAlert, Check } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +22,6 @@ const StudentLogin = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [locked, setLocked] = useState<{ locked: boolean; minutesLeft: number }>({ locked: false, minutesLeft: 0 });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -211,11 +209,7 @@ const StudentLogin = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(c) => setRememberMe(!!c)} />
-                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me</label>
-              </div>
+            <div className="flex items-center justify-end">
               <Link to="/forgot-password?role=student" className="text-sm text-primary font-semibold hover:underline">Forgot password?</Link>
             </div>
 

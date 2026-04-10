@@ -46,7 +46,46 @@ serve(async (req) => {
       });
     }
 
-    if (role === "trainer" && trainer_data) {
+    if (role === "trainer") {
+      // Always ensure the trainer has a referral_code (mirrors the student path).
+      // The DB trigger generates one at INSERT time, but it can be missing if the
+      // trigger didn't fire or produced a collision. Re-generate here if absent.
+      const { data: trainerRow } = await supabaseAdmin
+        .from("trainers")
+        .select("id, referral_code")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+      if (trainerRow && !trainerRow.referral_code) {
+        let referralCode: string | null = null;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const candidate = "TM-" + Math.random().toString(36).toUpperCase().slice(2, 8);
+          const { data: existing } = await supabaseAdmin
+            .from("trainers")
+            .select("id")
+            .eq("referral_code", candidate)
+            .maybeSingle();
+          if (!existing) {
+            referralCode = candidate;
+            break;
+          }
+        }
+        if (referralCode) {
+          const { error: codeErr } = await supabaseAdmin
+            .from("trainers")
+            .update({ referral_code: referralCode })
+            .eq("id", trainerRow.id);
+          if (codeErr) console.error("Trainer referral code update failed:", codeErr);
+        }
+      }
+
+      if (!trainer_data) {
+        // Called only for referral code generation — no profile update needed.
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: trainer, error: trainerErr } = await supabaseAdmin
         .from("trainers")
         .select("id")

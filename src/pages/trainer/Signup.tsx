@@ -97,6 +97,12 @@ const TrainerSignup = () => {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Signup failed");
 
+      // Generate referral code for the trainer (mirrors student signup).
+      // Fire-and-forget — non-blocking, failure doesn't affect the signup flow.
+      supabase.functions.invoke("complete-signup", {
+        body: { user_id: authData.user.id, role: "trainer" },
+      }).catch(e => console.error("complete-signup error:", e));
+
       // Send admin notification about new registration
       supabase.functions.invoke("notify-admin-new-trainer", {
         body: {

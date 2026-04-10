@@ -176,27 +176,27 @@ Deno.serve(async (req) => {
   })
   if (logErr) console.error("Failed to write monitoring log:", logErr.message)
 
-  // Send alert email if degraded/critical
-  if (overallStatus !== "healthy" && resendKey) {
-    const failedList = failed.map(f => `- ${f.name}: ${f.message}`).join("\n")
-    const emailBody = {
-      to: ALERT_EMAIL,
-      subject: `🚨 SkillMitra Monitor: ${overallStatus.toUpperCase()} (${failed.length} failures)`,
-      html: `<h2>SkillMitra Health Alert</h2>
-<p>Status: <strong>${overallStatus}</strong> — ${passed}/${checks.length} checks passed.</p>
-<h3>Failed Checks:</h3>
-<pre>${failedList}</pre>
-<p>Checked at: ${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Asia/Kolkata' })} IST</p>`,
-    }
-    // Call send-email with service role key
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+  // Send alert email only if critical (3+ failures) — skip degraded to save Resend quota
+  if (overallStatus === "critical" && resendKey) {
+    const failedList = failed.map(f => `- ${f.name}: ${f.message}`).join("<br>")
+    // Call Resend API directly — health-monitor already has the key and this avoids
+    // routing a system alert through send-email which expects typed template payloads.
+    await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${supabaseServiceKey}`,
+        "Authorization": `Bearer ${resendKey}`,
       },
-      body: JSON.stringify(emailBody),
+      body: JSON.stringify({
+        from: "SkillMitra Monitor <contact@skillmitra.online>",
+        to: [ALERT_EMAIL],
+        subject: `🚨 SkillMitra Monitor: ${overallStatus.toUpperCase()} (${failed.length} failures)`,
+        html: `<h2>SkillMitra Health Alert</h2>
+<p>Status: <strong>${overallStatus}</strong> — ${passed}/${checks.length} checks passed.</p>
+<h3>Failed Checks:</h3>
+<p>${failedList}</p>
+<p>Checked at: ${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Asia/Kolkata' })} IST</p>`,
+      }),
     }).catch(e => console.error("Alert email failed:", e))
   }
 

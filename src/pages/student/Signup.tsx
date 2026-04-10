@@ -243,7 +243,7 @@ const StudentSignup = () => {
             <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
               <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
               <p className="text-sm text-emerald-700">
-                Referral code <span className="font-bold">{referralCode.toUpperCase()}</span> applied — you'll get ₹200 wallet credit!
+                Referral code <span className="font-bold">{referralCode.toUpperCase()}</span> applied — you'll get ₹100 wallet credit after your first enrollment!
               </p>
             </div>
           )}
@@ -439,7 +439,7 @@ const StudentSignup = () => {
                 className="mt-1.5 h-11 font-mono uppercase"
                 maxLength={10}
               />
-              <p className="text-xs text-muted-foreground mt-1">Have a friend's code? Both of you get ₹200 wallet credit!</p>
+              <p className="text-xs text-muted-foreground mt-1">Have a friend's code? Referrer gets ₹500, you get ₹100 wallet credit after your first enrollment.</p>
             </div>
 
             <div>

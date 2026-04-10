@@ -1,6 +1,12 @@
 project_id = "elxjvidacewshkltstdd"
 
 [functions]
+  [functions.health-monitor]
+    verify_jwt = false
+
+  [functions.ai-chat]
+    verify_jwt = false
+
   [functions.auth-email-hook]
     verify_jwt = false
 

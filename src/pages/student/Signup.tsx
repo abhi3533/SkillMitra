@@ -184,11 +184,8 @@ const StudentSignup = () => {
         });
       }
 
-      // Welcome email and profile matching are best-effort — failure is non-critical.
-      supabase.functions.invoke("send-email", {
-        body: { type: "student_welcome", to: form.email, data: { name: form.fullName } },
-      }).then(({ error: fnErr }) => { if (fnErr) console.error("Welcome email error:", fnErr); });
-
+      // Profile matching is best-effort — failure is non-critical.
+      // Welcome email is sent by the complete-signup edge function to avoid duplicates.
       if (signupData?.user?.id) {
         supabase.functions.invoke("profile-matching", {
           body: { new_user_id: signupData.user.id, role: "student" },

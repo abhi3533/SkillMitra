@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2,
@@ -46,6 +46,7 @@ const FieldHint = ({ text }: { text: string }) => <p className="text-[11px] text
 const TrainerOnboarding = () => {
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   const [step, setStep] = useState(() => {
@@ -71,7 +72,7 @@ const TrainerOnboarding = () => {
     courseDuration: "", courseFee: "",
     additionalServicesDetails: "", courseMaterials: "",
     bankAccount: "", ifsc: "", accountHolderName: "", upiId: "", govtIdType: "",
-    referralCode: "",
+    referralCode: searchParams.get("ref")?.toUpperCase() || "",
   });
 
   const [sameAsPhone, setSameAsPhone] = useState(false);
@@ -192,7 +193,7 @@ const TrainerOnboarding = () => {
           accountHolderName: saved.accountHolderName || trainer.account_holder_name || "",
           upiId: saved.upiId || trainer.upi_id || "",
           govtIdType: saved.govtIdType || trainer.govt_id_type || "",
-          referralCode: saved.referralCode || "",
+          referralCode: saved.referralCode || searchParams.get("ref")?.toUpperCase() || "",
           trainerType: saved.trainerType || trainer.trainer_type || "",
           sessionDurationPerDay: saved.sessionDurationPerDay || trainer.session_duration_per_day || "",
           weekendAvailability: saved.weekendAvailability || trainer.weekend_availability || "",
@@ -384,6 +385,16 @@ const TrainerOnboarding = () => {
       }
       if (file.size > 5 * 1024 * 1024) {
         toast({ title: "File too large", description: "Maximum file size is 5MB for Aadhaar document.", variant: "destructive" });
+        return;
+      }
+    } else if (docKey === "demo_video" || docKey === "intro_video") {
+      if (file.size > 100 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Maximum file size is 100MB for video uploads.", variant: "destructive" });
+        return;
+      }
+    } else {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Maximum file size is 5MB for document uploads.", variant: "destructive" });
         return;
       }
     }

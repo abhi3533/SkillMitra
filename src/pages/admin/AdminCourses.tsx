@@ -185,6 +185,7 @@ const AdminCourses = () => {
     const { error } = await supabase.from("courses").update({
       approval_status: newStatus,
       is_active: false,
+      rejection_reason: commentText.trim(),
     }).eq("id", commentCourseId);
 
     if (error) {
@@ -202,8 +203,8 @@ const AdminCourses = () => {
       await supabase.from("trainers").update({ course_status: "changes_requested" }).eq("id", course.trainer_id);
     }
 
-    setCourses(prev => prev.map(c => c.id === commentCourseId ? { ...c, approval_status: newStatus, is_active: false } : c));
-    if (selectedCourse?.id === commentCourseId) setSelectedCourse(prev => prev ? { ...prev, approval_status: newStatus } : prev);
+    setCourses(prev => prev.map(c => c.id === commentCourseId ? { ...c, approval_status: newStatus, is_active: false, rejection_reason: commentText.trim() } : c));
+    if (selectedCourse?.id === commentCourseId) setSelectedCourse(prev => prev ? { ...prev, approval_status: newStatus, rejection_reason: commentText.trim() } : prev);
     setDrawerOpen(false);
     setCommentModalOpen(false);
 

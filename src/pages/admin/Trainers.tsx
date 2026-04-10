@@ -126,6 +126,8 @@ const AdminTrainers = () => {
       update.profile_status = "approved";
     } else if (status === "rejected") {
       update.profile_status = "rejected";
+    } else if (status === "suspended") {
+      update.profile_status = "suspended";
     }
 
     const { error } = await supabase.from("trainers").update(update).eq("id", id);

@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { formatIST } from "../_shared/dateUtils.ts";
 
 async function sendEmail(supabaseUrl: string, serviceKey: string, type: string, to: string, data: Record<string, any>) {
   try {
@@ -137,9 +138,7 @@ Deno.serve(async (req) => {
         responded_at: new Date().toISOString(),
       }).eq("id", trial_booking_id);
 
-      const scheduledTimeStr = firstDate.toLocaleString("en-IN", {
-        weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-      });
+      const scheduledTimeStr = formatIST(firstDate.toISOString());
 
       // Notifications
       await serviceClient.from("notifications").insert({

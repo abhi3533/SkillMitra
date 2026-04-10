@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { formatIST } from "../_shared/dateUtils.ts";
 
 const ALLOWED_ORIGINS = [
   "https://skillmitra.online",
@@ -37,23 +38,6 @@ async function verifySignature(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
   return expectedSignature === signature;
-}
-
-async function sendEmail(serviceClient: any, type: string, to: string, data: Record<string, any>) {
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${serviceKey}`,
-      },
-      body: JSON.stringify({ type, to, data }),
-    });
-  } catch (err) {
-    console.error(`Email send error (${type}):`, err);
-  }
 }
 
 async function logActivity(serviceClient: any, eventType: string, title: string, description: string, metadata: Record<string, any> = {}) {
@@ -304,13 +288,7 @@ Deno.serve(async (req) => {
       }) : { data: null },
     ]);
 
-    const scheduledTimeStr = firstDate.toLocaleString("en-IN", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const scheduledTimeStr = formatIST(firstDate.toISOString());
 
     // In-app notifications
     if (trainer?.user_id) {
@@ -330,50 +308,6 @@ Deno.serve(async (req) => {
       type: "enrollment",
       action_url: "/student/sessions",
     });
-
-    // ==================== SEND EMAILS ====================
-
-    // Email to STUDENT
-    if (studentProfile?.email) {
-      await sendEmail(serviceClient, "enrollment_confirmed_student", studentProfile.email, {
-        name: studentProfile.full_name || "Student",
-        course_name: course.title,
-        trainer_name: trainerProfile?.full_name || "Trainer",
-        total_sessions: totalSessions,
-        first_session: scheduledTimeStr,
-        amount_paid: courseFee.toLocaleString(),
-        meet_link: firstMeetLink,
-        payment_id: razorpay_payment_id,
-      });
-    }
-
-    // Email to TRAINER
-    if (trainerProfile?.email) {
-      await sendEmail(serviceClient, "enrollment_confirmed_trainer", trainerProfile.email, {
-        trainer_name: trainerProfile.full_name || "Trainer",
-        course_name: course.title,
-        student_name: studentProfile?.full_name || "Student",
-        trainer_payout: trainerPayout.toLocaleString(),
-        first_session: scheduledTimeStr,
-        total_sessions: totalSessions,
-      });
-    }
-
-    // Email to ADMIN
-    const { data: adminUsers } = await serviceClient.from("admins").select("email").eq("is_active", true).limit(3);
-    for (const admin of (adminUsers || [])) {
-      if (admin.email) {
-        await sendEmail(serviceClient, "enrollment_confirmed_admin", admin.email, {
-          student_name: studentProfile?.full_name || "Student",
-          trainer_name: trainerProfile?.full_name || "Trainer",
-          course_name: course.title,
-          amount_paid: courseFee.toLocaleString(),
-          platform_commission: platformCommission.toLocaleString(),
-          trainer_payout: trainerPayout.toLocaleString(),
-          payment_id: razorpay_payment_id,
-        });
-      }
-    }
 
     // Log admin activity
     await logActivity(serviceClient, "payment", "New Payment Received", 

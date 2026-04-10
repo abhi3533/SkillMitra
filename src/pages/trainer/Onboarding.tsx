@@ -671,7 +671,6 @@ const TrainerOnboarding = () => {
       }
 
       // Notifications
-      supabase.functions.invoke("send-email", { body: { type: "trainer_welcome", to: profile?.email || user.email, data: { name: profile?.full_name } } }).catch(console.error);
       supabase.functions.invoke("notify-admin-new-trainer", {
         body: {
           user_id: user.id,

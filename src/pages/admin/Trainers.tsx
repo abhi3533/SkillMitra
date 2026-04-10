@@ -103,6 +103,20 @@ const AdminTrainers = () => {
       toast({ title: "Unauthorized", description: "Only admins can perform this action.", variant: "destructive" });
       return;
     }
+
+    // Block approval if onboarding not completed
+    if (status === "approved") {
+      const trainer = trainers.find(t => t.id === id);
+      if (trainer?.onboarding_status !== "completed") {
+        toast({
+          title: "Cannot Approve",
+          description: `Trainer's onboarding is not complete (status: "${trainer?.onboarding_status || "unknown"}"). Ask them to finish their profile first.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const update: any = { approval_status: status };
     if (rejectionReason) update.rejection_reason = rejectionReason;
 

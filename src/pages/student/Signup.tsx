@@ -133,6 +133,11 @@ const StudentSignup = () => {
       toast({ title: "Please enter a valid 10-digit Indian mobile number", variant: "warning" });
       return;
     }
+    const trimmedRef = referralCode.trim();
+    if (trimmedRef && !/^[A-Z0-9]{4,10}$/i.test(trimmedRef)) {
+      toast({ title: "Invalid Referral Code", description: "Referral code must be 4–10 characters, letters and numbers only.", variant: "warning" });
+      return;
+    }
     setLoading(true);
     try {
       const { data: signupData, error } = await supabase.auth.signUp({

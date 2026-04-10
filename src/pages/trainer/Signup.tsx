@@ -108,16 +108,6 @@ const TrainerSignup = () => {
         },
       }).catch(console.error);
 
-      // Process trainer referral code if provided
-      if (referralCode.trim()) {
-        supabase.functions.invoke("process-trainer-referral", {
-          body: {
-            referral_code: referralCode.trim(),
-            new_user_id: authData.user.id,
-          },
-        }).catch(console.error);
-      }
-
       setSubmitted(true);
       toast({ title: "Account created!", description: "Check your email to verify your account.", variant: "success" });
     } catch (err: any) {

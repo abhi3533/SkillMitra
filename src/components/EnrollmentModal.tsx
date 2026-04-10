@@ -168,6 +168,23 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
       const firstDate = getNextScheduledDate(selectedDay, selectedSlot);
       const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
 
+      // Check for duplicate trial: same student, same trainer, same scheduled date
+      const scheduledDateStr = firstDate.toISOString().slice(0, 10);
+      const { data: existingOnDate } = await supabase
+        .from("trial_bookings")
+        .select("id")
+        .eq("student_id", studentId)
+        .eq("trainer_id", trainer.id)
+        .gte("scheduled_at", `${scheduledDateStr}T00:00:00.000Z`)
+        .lt("scheduled_at", `${scheduledDateStr}T23:59:59.999Z`)
+        .limit(1);
+
+      if (existingOnDate && existingOnDate.length > 0) {
+        toast({ title: "Duplicate Booking", description: "You already have a trial booked with this trainer on that date. Please choose a different day.", variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+
       // Create trial booking request (pending approval)
       const { error: tbError } = await supabase.from("trial_bookings").insert({
         student_id: studentId,
@@ -282,11 +299,18 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         return;
       }
 
+      const courseFeeAmount = Number(course.course_fee);
+      if (!courseFeeAmount || courseFeeAmount <= 0) {
+        toast({ title: "Invalid Course Fee", description: "This course has no valid fee set. Please contact support.", variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+
       const { data: orderData, error: orderError } = await supabase.functions.invoke("create-razorpay-order", {
         body: {
           course_id: course.id,
           student_id: studentId,
-          amount: Number(course.course_fee),
+          amount: courseFeeAmount,
         },
       });
 

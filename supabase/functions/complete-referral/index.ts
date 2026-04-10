@@ -114,13 +114,13 @@ Deno.serve(async (req) => {
     const REFERRER_REWARD = Number(referral.reward_amount || 500)
     const REFERRED_BONUS = 100
 
-    // Update referral status to paid
-    await supabase.from('referrals').update({ status: 'paid' }).eq('id', referral.id)
-
-    // Credit referrer wallet — ₹500
+    // Credit referrer wallet — ₹500 (mark paid only after this succeeds)
     const referrerUserId = (referral.referrer as any)?.user_id
     if (referrerUserId) {
-      await creditWallet(supabase, referrerUserId, REFERRER_REWARD, 'Referral reward — referred student completed first paid enrollment', student_id)
+      const credited = await creditWallet(supabase, referrerUserId, REFERRER_REWARD, 'Referral reward — referred student completed first paid enrollment', student_id)
+      if (!credited) {
+        throw new Error(`Failed to credit referrer wallet for user ${referrerUserId}`)
+      }
 
       // Update referral_credits on students table
       const { data: referrerStudent } = await supabase
@@ -173,6 +173,9 @@ Deno.serve(async (req) => {
         }
       }
     }
+
+    // Mark referral as paid only after wallet credit succeeded
+    await supabase.from('referrals').update({ status: 'paid' }).eq('id', referral.id)
 
     // Credit referred student wallet — ₹100 bonus
     await creditWallet(supabase, student.user_id, REFERRED_BONUS, 'Welcome referral bonus — ₹100 credited on first enrollment', referral.referrer_id)

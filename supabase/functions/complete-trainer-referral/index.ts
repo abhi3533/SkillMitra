@@ -133,17 +133,27 @@ Deno.serve(async (req) => {
 
     const REWARD = Number(referral.reward_amount || 1500)
 
-    // Update referral status to paid
-    await supabase.from('trainer_referrals').update({ status: 'paid' }).eq('id', referral.id)
-
-    // Credit referrer wallet
+    // Ensure referrer account still exists before crediting
     const referrerUserId = (referral.referrer as any)?.user_id
+    if (!referrerUserId) {
+      return new Response(JSON.stringify({ success: false, error: 'Referrer account has been deleted — cannot process reward' }), {
+        status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Credit referrer wallet (mark paid only after this succeeds)
     if (referrerUserId) {
-      await creditWallet(
+      const credited = await creditWallet(
         supabase, referrerUserId, REWARD,
         'Trainer referral reward — referred trainer got admin approved',
         trainer_id
       )
+      if (!credited) {
+        throw new Error(`Failed to credit referrer wallet for user ${referrerUserId}`)
+      }
+
+      // Mark referral as paid only after wallet credit succeeded
+      await supabase.from('trainer_referrals').update({ status: 'paid' }).eq('id', referral.id)
 
       // Update referral_credits on trainers table
       const { data: referrerTrainer } = await supabase

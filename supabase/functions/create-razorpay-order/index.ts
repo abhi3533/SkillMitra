@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
         Authorization: "Basic " + btoa(`${keyId}:${keySecret}`),
       },
       body: JSON.stringify({
-        amount: Math.round(Number(amount) * 100), // paise
+        amount: Math.trunc(Number(amount)) * 100, // paise — integer-safe, no float precision errors
         currency: "INR",
         receipt: `sm_${course_id.slice(0, 8)}_${Date.now()}`,
         notes: {

@@ -10,7 +10,7 @@ export function generateMeetLink(courseTitle: string, sessionNumber?: number): s
     .toLowerCase()
     .slice(0, 30);
 
-  const uniqueId = Math.random().toString(36).substring(2, 10);
+  const uniqueId = crypto.randomUUID().replace(/-/g, "").slice(0, 8);
   const sessionTag = sessionNumber ? `-s${sessionNumber}` : "";
 
   return `https://meet.jit.si/skillmitra-${slug}${sessionTag}-${uniqueId}`;

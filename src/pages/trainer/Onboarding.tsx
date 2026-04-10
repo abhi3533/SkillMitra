@@ -442,9 +442,9 @@ const TrainerOnboarding = () => {
   const allReadinessChecked = Object.values(readinessChecks).every(Boolean);
 
   const previewBadges = getTrainerBadges({
-    hasAadhaar: !!docs["aadhaar"]?.file || !!form.govtIdType,
-    hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file),
-    hasDemoVideo: !!docs["demo_video"]?.file,
+    hasAadhaar: !!docs["aadhaar"]?.file || uploadedDocKeys.includes("aadhaar") || !!form.govtIdType,
+    hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file || uploadedDocKeys.includes("joining_letter") || uploadedDocKeys.includes("relieving_letter") || uploadedDocKeys.includes("experience_letter")),
+    hasDemoVideo: !!docs["demo_video"]?.file || uploadedDocKeys.includes("demo_video"),
   });
 
   const toggleExpertise = (e: string) => { setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]); scheduleAutoSave(); };

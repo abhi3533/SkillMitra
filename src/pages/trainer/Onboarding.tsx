@@ -676,24 +676,31 @@ const TrainerOnboarding = () => {
     }
   };
 
-  const FileUploadBox = ({ docKey, label, required, accept, hint }: { docKey: string; label: string; required?: boolean; accept: string; hint?: string }) => (
-    <div className={`border rounded-xl p-4 transition-colors ${required && stepAttempted[step] && !docs[docKey]?.file ? "border-destructive" : "border-dashed border-border hover:border-primary/30"}`}>
+  const FileUploadBox = ({ docKey, label, required, accept, hint }: { docKey: string; label: string; required?: boolean; accept: string; hint?: string }) => {
+    const hasNewFile = !!docs[docKey]?.file;
+    const hasPreviousUpload = uploadedDocKeys.includes(docKey);
+    const hasFile = hasNewFile || hasPreviousUpload;
+    return (
+    <div className={`border rounded-xl p-4 transition-colors ${required && stepAttempted[step] && !hasFile ? "border-destructive" : "border-dashed border-border hover:border-primary/30"}`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">{label}{required && <RequiredMark />}</p>
-          {docs[docKey] ? (
+          {hasNewFile ? (
             <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />{docs[docKey].name}</p>
+          ) : hasPreviousUpload ? (
+            <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />Previously uploaded</p>
           ) : (
             <p className="text-xs text-muted-foreground mt-0.5">{hint || "PDF, JPG, PNG up to 10MB"}</p>
           )}
         </div>
         <div>
           <input type="file" ref={el => { fileRefs.current[docKey] = el; }} accept={accept} className="hidden" onChange={e => handleFileSelect(docKey, e.target.files?.[0] || null)} />
-          <Button variant="outline" size="sm" onClick={() => fileRefs.current[docKey]?.click()}><Upload className="w-4 h-4 mr-2" />{docs[docKey] ? "Change" : "Upload"}</Button>
+          <Button variant="outline" size="sm" onClick={() => fileRefs.current[docKey]?.click()}><Upload className="w-4 h-4 mr-2" />{hasFile ? "Change" : "Upload"}</Button>
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const RadioOption = ({ value, selected, label, sublabel, onClick }: { value: string; selected: boolean; label: string; sublabel?: string; onClick: () => void }) => (
     <button type="button" onClick={onClick}

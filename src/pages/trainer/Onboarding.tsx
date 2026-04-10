@@ -323,6 +323,7 @@ const TrainerOnboarding = () => {
         teachingLanguages,
         servicesOffered,
         availableTimeBands,
+        uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])],
       };
 
       const { error } = await supabase.from("trainers").update({
@@ -468,12 +469,12 @@ const TrainerOnboarding = () => {
       if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
       if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
       if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
-      if (!docs["resume"]?.file) { toast({ title: "Please upload your resume to continue", variant: "warning" }); return false; }
+      if (!docs["resume"]?.file && !uploadedDocKeys.includes("resume")) { toast({ title: "Please upload your resume to continue", variant: "warning" }); return false; }
       if (teachingLanguages.length === 0) { toast({ title: "Please select at least one teaching language to continue", variant: "warning" }); return false; }
     }
     if (s === 2) {
-      if (!docs["demo_video"]?.file) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
-      if (!docs["intro_video"]?.file) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
+      if (!docs["demo_video"]?.file && !uploadedDocKeys.includes("demo_video")) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
+      if (!docs["intro_video"]?.file && !uploadedDocKeys.includes("intro_video")) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
       if (!form.courseTitle.trim()) { toast({ title: "Course title is required", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
     }
@@ -496,7 +497,7 @@ const TrainerOnboarding = () => {
       const effectiveAccountName = (profile?.full_name || form.accountHolderName || "").trim();
       if (!effectiveAccountName) { toast({ title: "Account holder name is required", variant: "warning" }); return false; }
       if (!form.govtIdType) { toast({ title: "Government ID type is required", variant: "warning" }); return false; }
-      if (!docs["aadhaar"]?.file) { toast({ title: "Aadhaar document upload is required", variant: "warning" }); return false; }
+      if (!docs["aadhaar"]?.file && !uploadedDocKeys.includes("aadhaar")) { toast({ title: "Aadhaar document upload is required", variant: "warning" }); return false; }
     }
     if (s === 6) {
       if (referralStatus === "invalid") { toast({ title: "Please fix or remove the invalid referral code", variant: "warning" }); return false; }
@@ -514,7 +515,7 @@ const TrainerOnboarding = () => {
       setStep(newStep);
       // Save draft after advancing
       if (trainerId && user) {
-        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands };
+        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands, uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])] };
         await supabase.from("trainers").update({
           onboarding_step: newStep,
           onboarding_data: onboardingData as any,

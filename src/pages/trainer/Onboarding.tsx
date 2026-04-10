@@ -505,7 +505,7 @@ const TrainerOnboarding = () => {
       if (availableTimeBands.length === 0) { toast({ title: "Please select at least one available time band", variant: "warning" }); return false; }
       if (!form.weekendAvailability) { toast({ title: "Please select weekend availability", variant: "warning" }); return false; }
       if (!form.courseDuration) { toast({ title: "Please select course duration", variant: "warning" }); return false; }
-      if (!form.courseFee.trim() || parseInt(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
+      if (!form.courseFee.trim() || isNaN(Number(form.courseFee)) || Number(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
     }
     if (s === 4) {
       if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }

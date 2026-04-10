@@ -31,10 +31,16 @@ const TrainerReferrals = () => {
         let code = t.referral_code || "";
         if (!code) {
           const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-          code = "TM-";
-          for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-          await supabase.from("trainers").update({ referral_code: code }).eq("id", t.id);
-          t.referral_code = code;
+          for (let attempt = 0; attempt < 5; attempt++) {
+            let candidate = "TM-";
+            for (let i = 0; i < 6; i++) candidate += chars[Math.floor(Math.random() * chars.length)];
+            const { data: existing } = await supabase.from("trainers").select("id").eq("referral_code", candidate).maybeSingle();
+            if (!existing) { code = candidate; break; }
+          }
+          if (code) {
+            await supabase.from("trainers").update({ referral_code: code }).eq("id", t.id);
+            t.referral_code = code;
+          }
         }
       }
       setTrainer(t);

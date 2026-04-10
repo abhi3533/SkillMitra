@@ -51,7 +51,7 @@ const TrainerDashboard = () => {
       });
 
       // Check onboarding status
-      if (trainer.onboarding_status === "draft" || trainer.onboarding_status === "registered" || (trainer.onboarding_step !== null && trainer.onboarding_step < 6 && trainer.onboarding_status !== "pending")) {
+      if (trainer.onboarding_status === "draft" || trainer.onboarding_status === "registered" || (trainer.onboarding_step !== null && trainer.onboarding_step < 7 && trainer.onboarding_status !== "pending")) {
         setOnboardingInfo({ step: trainer.onboarding_step || 0, status: trainer.onboarding_status || "draft" });
       }
 

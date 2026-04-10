@@ -27,6 +27,21 @@ const AdminPayouts = () => {
     const { error } = await supabase.from("payout_requests").update(updates).eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     const payout = payouts.find(p => p.id === id);
+
+    // When a payout is rejected, credit the deducted amount back to the trainer's wallet
+    if (status === "rejected" && payout?.trainers?.user_id && payout?.requested_amount) {
+      const { error: rpcError } = await supabase.rpc("credit_wallet_atomic", {
+        p_user_id: payout.trainers.user_id,
+        p_amount: Number(payout.requested_amount),
+        p_description: "Payout request rejected — amount reversed",
+        p_reference_id: id,
+      });
+      if (rpcError) {
+        console.error("Wallet reversal failed:", rpcError);
+        toast({ title: "Payout rejected", description: "Status updated but wallet reversal failed. Contact support.", variant: "warning" });
+      }
+    }
+
     setPayouts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     toast({ title: `Payout ${status}`, variant: "success" });
 

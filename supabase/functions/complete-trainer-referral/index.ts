@@ -117,6 +117,22 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Atomically claim the referral: only update if status is still 'pending'.
+    // If two admin approvals race, only one UPDATE will match the eq('status','pending')
+    // filter — the other gets 0 rows back and returns early, preventing double-credit.
+    const { data: claimed } = await supabase
+      .from('trainer_referrals')
+      .update({ status: 'processing' })
+      .eq('id', referral.id)
+      .eq('status', 'pending')
+      .select('id')
+
+    if (!claimed || claimed.length === 0) {
+      return new Response(JSON.stringify({ success: false, message: 'Referral already being processed' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const REWARD = Number(referral.reward_amount || 1500)
 
     // Ensure referrer account still exists before crediting

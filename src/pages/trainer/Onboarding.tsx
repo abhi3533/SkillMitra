@@ -380,6 +380,7 @@ const TrainerOnboarding = () => {
     }
 
     setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
+    setUploadedDocKeys(prev => prev.includes(docKey) ? prev : [...prev, docKey]);
   };
 
   const isPhoneFilled = isValidPhone(form.phone);

@@ -125,6 +125,11 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
   const trialBlocked = hasTrialBooked || hasExistingTrialWithTrainer || trialSlotsFullThisMonth;
 
+  const courseFee = Number(course?.course_fee || 0);
+  const referralDiscount = (bookingType === "enroll" && isReferred) ? 100 : 0;
+  const walletDeduction = (bookingType === "enroll" && useWallet) ? Math.min(walletBalance, courseFee - referralDiscount) : 0;
+  const finalAmount = Math.max(0, courseFee - referralDiscount - walletDeduction);
+
   const availableDays = trainerAvailability.length > 0
     ? [...new Set(trainerAvailability.map(a => a.day_of_week))].sort()
     : DAYS.map(d => d.value);
@@ -299,8 +304,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         return;
       }
 
-      const courseFeeAmount = Number(course.course_fee);
-      if (!courseFeeAmount || courseFeeAmount <= 0) {
+      if (!courseFee || courseFee <= 0) {
         toast({ title: "Invalid Course Fee", description: "This course has no valid fee set. Please contact support.", variant: "destructive" });
         setSubmitting(false);
         return;
@@ -310,7 +314,9 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         body: {
           course_id: course.id,
           student_id: studentId,
-          amount: courseFeeAmount,
+          amount: finalAmount,
+          wallet_deduction: walletDeduction,
+          referral_discount: referralDiscount,
         },
       });
 
@@ -510,11 +516,6 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
         {/* Step 3: Confirmation */}
         {step === "confirm" && (() => {
-          const courseFee = Number(course.course_fee);
-          const referralDiscount = (bookingType === "enroll" && isReferred) ? 100 : 0;
-          const walletDeduction = (bookingType === "enroll" && useWallet) ? Math.min(walletBalance, courseFee - referralDiscount) : 0;
-          const finalAmount = Math.max(0, courseFee - referralDiscount - walletDeduction);
-
           return (
           <div className="space-y-5">
             <div className="bg-muted rounded-xl p-4 space-y-3">

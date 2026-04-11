@@ -1449,8 +1449,13 @@ const TrainerOnboarding = () => {
               <div className="border border-border rounded-xl p-4 bg-card">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Featured Course</p>
                 <h4 className="font-semibold text-foreground text-sm">{form.courseTitle}</h4>
-                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                  {form.courseDuration && <span>{form.courseDuration} days</span>}
+                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
+                  {form.sessionDurationPerDay && <span>{form.sessionDurationPerDay} sessions</span>}
+                  {form.sessionDurationPerDay && form.totalSessions && <span>|</span>}
+                  {form.totalSessions && <span>{form.totalSessions} Sessions</span>}
+                  {form.totalSessions && form.courseDuration && <span>|</span>}
+                  {form.courseDuration && <span>{form.courseDuration} Days</span>}
+                  {(form.sessionDurationPerDay || form.totalSessions || form.courseDuration) && form.courseFee && <span>|</span>}
                   {form.courseFee && <span className="font-semibold text-foreground">₹{parseInt(form.courseFee).toLocaleString()}</span>}
                 </div>
               </div>

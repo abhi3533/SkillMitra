@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone, Gift } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,6 @@ const TRAINER_VERIFICATION_REDIRECT = `${window.location.origin}/trainer/onboard
 const TrainerSignup = () => {
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "" });
-  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,6 +28,14 @@ const TrainerSignup = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Save referral code from URL to localStorage for use in onboarding Step 6
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      localStorage.setItem("trainer_referral_code", ref.toUpperCase());
+    }
+  }, [searchParams]);
 
   const update = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
   const markTouched = (key: string) => setTouched(t => ({ ...t, [key]: true }));
@@ -114,15 +121,6 @@ const TrainerSignup = () => {
         },
       }).catch(console.error);
 
-      // Link referral code if one was provided — fire-and-forget.
-      // The trainer row may not exist yet (complete-signup is async), so this can fail
-      // silently; process-trainer-referral is also invoked at onboarding submit as a
-      // reliable fallback.
-      if (referralCode.trim()) {
-        supabase.functions.invoke("process-trainer-referral", {
-          body: { referral_code: referralCode.trim().toUpperCase(), new_user_id: authData.user.id },
-        }).catch(console.error);
-      }
 
       setSubmitted(true);
       toast({ title: "Account created!", description: "Check your email to verify your account.", variant: "success" });
@@ -260,13 +258,6 @@ const TrainerSignup = () => {
                 <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="mt-1.5 h-11" />
               </div>
 
-              <div>
-                <Label className="flex items-center gap-1.5">
-                  <Gift className="w-3.5 h-3.5 text-primary" />
-                  Have a referral code? Enter it here <span className="text-muted-foreground font-normal">(Optional)</span>
-                </Label>
-                <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-ABC123" className="mt-1.5 h-11" maxLength={10} />
-              </div>
 
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
                 <Shield className="w-4 h-4 text-primary shrink-0" />

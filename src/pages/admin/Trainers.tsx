@@ -419,6 +419,9 @@ const AdminTrainers = () => {
           const t = trainers.find(tr => tr.id === id);
           if (t) handleRejectClick(t);
         }}
+        onSuspend={(t) => { setDrawerOpen(false); handleSuspendClick(t); }}
+        onRemove={(t) => { setDrawerOpen(false); handleRemoveClick(t); }}
+        onEdit={(t) => { setDrawerOpen(false); setEditTarget(t); }}
       />
 
       <RejectTrainerModal

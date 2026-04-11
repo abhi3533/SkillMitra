@@ -23,7 +23,18 @@ const resolveStorageUrl = async (
   bucket = "trainer-documents",
   expiresIn = 3600,
 ): Promise<string> => {
-  if (pathOrUrl.startsWith("http")) return pathOrUrl;
+  // If it's a full URL pointing to a private bucket (trainer-documents), extract the path and get a signed URL
+  if (pathOrUrl.startsWith("http")) {
+    const privateBucketMatch = pathOrUrl.match(/\/storage\/v1\/object\/(?:public|sign)\/trainer-documents\/(.+?)(\?.*)?$/);
+    if (privateBucketMatch) {
+      const extractedPath = decodeURIComponent(privateBucketMatch[1]);
+      const { data, error } = await supabase.storage
+        .from("trainer-documents")
+        .createSignedUrl(extractedPath, expiresIn);
+      if (!error && data?.signedUrl) return data.signedUrl;
+    }
+    return pathOrUrl;
+  }
   const { data, error } = await supabase.storage
     .from(bucket)
     .createSignedUrl(pathOrUrl, expiresIn);

@@ -115,7 +115,20 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer
   }
 
   return (
-    <div className="border rounded-xl overflow-hidden bg-card">
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1 text-xs"
+          disabled={sendingAll}
+          onClick={remindAll}
+        >
+          <Send className="w-3.5 h-3.5" />
+          {sendingAll ? "Sending..." : `Remind All (${pipeline.length})`}
+        </Button>
+      </div>
+      <div className="border rounded-xl overflow-hidden bg-card">
       <Table>
         <TableHeader>
           <TableRow>

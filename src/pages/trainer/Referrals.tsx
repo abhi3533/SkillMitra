@@ -56,20 +56,23 @@ const TrainerReferrals = () => {
           const userIds = refs.map((r: any) => r.referred?.user_id).filter(Boolean);
           let profileMap: Record<string, any> = {};
           if (userIds.length > 0) {
-            const { data: profiles } = await supabase
-              .from("profiles")
-              .select("id, full_name, email, created_at, profile_picture_url")
-              .in("id", userIds);
-            (profiles || []).forEach(p => { profileMap[p.id] = p; });
+            const { data: profiles } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: userIds });
+            (profiles || []).forEach((p: any) => {
+              profileMap[p.p_id] = {
+                id: p.p_id,
+                full_name: p.p_full_name,
+                profile_picture_url: p.p_profile_picture_url,
+              };
+            });
           }
           setReferrals(refs.map((r: any) => {
             const profile = profileMap[r.referred?.user_id];
             return {
               ...r,
               referred_name: profile?.full_name || "Trainer",
-              referred_email: profile?.email || "",
+              referred_email: "",
               referred_photo: profile?.profile_picture_url || null,
-              referred_date: profile?.created_at || r.created_at,
+              referred_date: r.created_at,
               approval_status: r.referred?.approval_status || "pending",
             };
           }));

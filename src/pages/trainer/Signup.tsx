@@ -14,7 +14,7 @@ import SkillMitraLogo from "@/components/SkillMitraLogo";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const TRAINER_VERIFICATION_REDIRECT = "https://skillmitra.online/trainer/onboarding";
+const TRAINER_VERIFICATION_REDIRECT = `${window.location.origin}/trainer/onboarding`;
 
 const TrainerSignup = () => {
   const [searchParams] = useSearchParams();
@@ -265,7 +265,7 @@ const TrainerSignup = () => {
                   <Gift className="w-3.5 h-3.5 text-primary" />
                   Have a referral code? Enter it here <span className="text-muted-foreground font-normal">(Optional)</span>
                 </Label>
-                <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-ABC123" className="mt-1.5 h-11" maxLength={12} />
+                <Input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. TM-ABC123" className="mt-1.5 h-11" maxLength={10} />
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">

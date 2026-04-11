@@ -165,6 +165,7 @@ const TrainerCourses = () => {
 
   const handleSubmit = async () => {
     if (!form.title.trim()) { toast({ title: "Course title is required", variant: "warning" }); return; }
+    if (form.description.trim().length < 100) { toast({ title: "Description too short", description: "Course description must be at least 100 characters.", variant: "warning" }); return; }
     if (!form.course_fee.trim() || parseFloat(form.course_fee) < 500) { toast({ title: "Minimum course fee is ₹500", variant: "warning" }); return; }
     if (!trainerId) { toast({ title: "Trainer profile not found", variant: "warning" }); return; }
 

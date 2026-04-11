@@ -279,14 +279,16 @@ const AdminReferrals = () => {
     return w.userName.toLowerCase().includes(q) || w.userEmail.toLowerCase().includes(q);
   });
 
-  // Summary stats
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  // Summary stats — monthStart uses UTC so it matches DB ISO timestamps correctly
+  const monthStart = useMemo(() => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+  }, []);
   const totalPaidThisMonth = useMemo(() => {
     const tPaid = trainerRefs.filter(r => r.status === "paid" && r.created_at >= monthStart).reduce((s, r) => s + r.reward_amount, 0);
     const sPaid = studentRefs.filter(r => r.status === "paid" && r.created_at >= monthStart).reduce((s, r) => s + r.reward_amount, 0);
     return tPaid + sPaid;
-  }, [trainerRefs, studentRefs]);
+  }, [trainerRefs, studentRefs, monthStart]);
 
   const totalActiveCodes = useMemo(() => {
     const tCodes = new Set(trainerRefs.map(r => r.referral_code).filter(Boolean));

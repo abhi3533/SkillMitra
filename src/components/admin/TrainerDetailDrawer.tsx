@@ -86,46 +86,47 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
       setLoadingDocs(false);
     })();
 
-    if (trainer.referred_by) {
-      (async () => {
-        const { data: refData } = await supabase
-          .from("trainer_referrals")
-          .select("status, referral_code, referrer_id")
-          .eq("referred_id", trainer.id)
-          .limit(1)
-          .maybeSingle();
+    // Always check trainer_referrals by referred_id — referred_by on the trainer row
+    // may not be set if the async complete-signup edge function hadn't finished yet.
+    (async () => {
+      const { data: refData } = await supabase
+        .from("trainer_referrals")
+        .select("status, referral_code, referrer_id")
+        .eq("referred_id", trainer.id)
+        .limit(1)
+        .maybeSingle();
 
-        if (refData) {
-          const { data: referrerTrainer } = await supabase
-            .from("trainers")
-            .select("user_id")
-            .eq("id", refData.referrer_id)
+      if (refData) {
+        const { data: referrerTrainer } = await supabase
+          .from("trainers")
+          .select("user_id")
+          .eq("id", refData.referrer_id)
+          .single();
+
+        let referrerName = "Unknown";
+        if (referrerTrainer?.user_id) {
+          const { data: referrerProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", referrerTrainer.user_id)
             .single();
-
-          let referrerName = "Unknown";
-          if (referrerTrainer?.user_id) {
-            const { data: referrerProfile } = await supabase
-              .from("profiles")
-              .select("full_name")
-              .eq("id", referrerTrainer.user_id)
-              .single();
-            referrerName = referrerProfile?.full_name || "Unknown";
-          }
-
-          setReferralInfo({
-            referrerName,
-            code: refData.referral_code || trainer.referred_by,
-            status: refData.status || "pending",
-          });
-        } else {
-          setReferralInfo({
-            referrerName: "—",
-            code: trainer.referred_by,
-            status: "pending",
-          });
+          referrerName = referrerProfile?.full_name || "Unknown";
         }
-      })();
-    }
+
+        setReferralInfo({
+          referrerName,
+          code: refData.referral_code || trainer.referred_by || "—",
+          status: refData.status || "pending",
+        });
+      } else if (trainer.referred_by) {
+        // Fallback: referral row doesn't exist yet but referred_by is set
+        setReferralInfo({
+          referrerName: "—",
+          code: trainer.referred_by,
+          status: "pending",
+        });
+      }
+    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trainer?.id, open]);
 

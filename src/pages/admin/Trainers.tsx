@@ -364,11 +364,6 @@ const AdminTrainers = () => {
                       </Button>
                     </>
                   )}
-                  {t.approval_status === "rejected" && (
-                    <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2" onClick={() => sendReminder(t)} disabled={reminderSending === t.id} title="Send reminder email">
-                      <Bell className="w-3.5 h-3.5" /> {reminderSending === t.id ? "..." : "Remind"}
-                    </Button>
-                  )}
                   {t.approval_status === "approved" && (
                     <>
                       <Button size="sm" variant="outline" className="h-8 gap-1 text-xs px-2 border-orange-300 text-orange-700 hover:bg-orange-50" onClick={() => handleSuspendClick(t)}>

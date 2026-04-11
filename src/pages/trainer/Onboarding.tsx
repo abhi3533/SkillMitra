@@ -443,7 +443,9 @@ const TrainerOnboarding = () => {
   const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size < 10 * 1024) { toast({ title: "Photo too small", description: "Minimum file size is 10KB. Please upload a clear photo.", variant: "warning" }); return; }
       if (file.size > 5 * 1024 * 1024) { toast({ title: "Photo must be less than 5MB", variant: "warning" }); return; }
+      if (!file.type.startsWith("image/")) { toast({ title: "Please select an image file (JPG, PNG)", variant: "warning" }); return; }
       setProfilePhoto(file);
       setProfilePhotoPreview(URL.createObjectURL(file));
     }
@@ -472,6 +474,10 @@ const TrainerOnboarding = () => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       toast({ title: "Please select an image file", variant: "warning" });
+      return;
+    }
+    if (file.size < 10 * 1024) {
+      toast({ title: "Photo too small", description: "Minimum file size is 10KB. Please upload a clear photo.", variant: "warning" });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {

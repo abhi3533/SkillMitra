@@ -72,7 +72,7 @@ const TrainerOnboarding = () => {
     courseDuration: "", courseFee: "", totalSessions: "",
     additionalServicesDetails: "", courseMaterials: "",
     bankAccount: "", ifsc: "", accountHolderName: "", upiId: "", govtIdType: "",
-    referralCode: searchParams.get("ref")?.toUpperCase() || "",
+    referralCode: searchParams.get("ref")?.toUpperCase() || localStorage.getItem("trainer_referral_code") || "",
   });
 
   const [sameAsPhone, setSameAsPhone] = useState(false);
@@ -198,7 +198,7 @@ const TrainerOnboarding = () => {
           accountHolderName: saved.accountHolderName || trainer.account_holder_name || "",
           upiId: saved.upiId || trainer.upi_id || "",
           govtIdType: saved.govtIdType || trainer.govt_id_type || "",
-          referralCode: saved.referralCode || searchParams.get("ref")?.toUpperCase() || "",
+          referralCode: saved.referralCode || searchParams.get("ref")?.toUpperCase() || localStorage.getItem("trainer_referral_code") || "",
           trainerType: saved.trainerType || trainer.trainer_type || "",
           sessionDurationPerDay: saved.sessionDurationPerDay || trainer.session_duration_per_day || "",
           weekendAvailability: saved.weekendAvailability || trainer.weekend_availability || "",

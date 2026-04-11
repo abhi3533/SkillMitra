@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { formatShortDateIST } from "@/lib/dateUtils";
 import { Send, Phone, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ interface Props {
 const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer }: Props) => {
   const { toast } = useToast();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [sendingAll, setSendingAll] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [reminderSentMap, setReminderSentMap] = useState<Record<string, string>>(() => {
     try {
@@ -65,6 +66,39 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer
     }
   };
 
+  const remindAll = useCallback(async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const eligible = pipeline.filter(t => reminderSentMap[t.id] !== today);
+    if (eligible.length === 0) {
+      toast({ title: "All reminders already sent today", description: "Try again tomorrow.", variant: "warning" });
+      return;
+    }
+    setSendingAll(true);
+    let sent = 0;
+    let failed = 0;
+    const updated = { ...reminderSentMap };
+    for (const trainer of eligible) {
+      try {
+        const { error } = await supabase.functions.invoke("onboarding-reminders", {
+          body: { trainer_id: trainer.id, reminder_type: "admin_nudge" },
+        });
+        if (error) throw error;
+        updated[trainer.id] = today;
+        sent++;
+      } catch {
+        failed++;
+      }
+    }
+    setReminderSentMap(updated);
+    localStorage.setItem("admin_trainer_reminders", JSON.stringify(updated));
+    toast({
+      title: `Reminders sent: ${sent}/${sent + failed}`,
+      description: failed > 0 ? `${failed} failed to send.` : "All reminders sent successfully.",
+      variant: failed > 0 ? "warning" : "success",
+    });
+    setSendingAll(false);
+  }, [pipeline, reminderSentMap, toast]);
+
   const stepColor = (step: number) => {
     if (step === 0) return "bg-destructive/10 text-destructive";
     if (step < 3) return "bg-amber-50 text-amber-700";
@@ -81,7 +115,20 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer
   }
 
   return (
-    <div className="border rounded-xl overflow-hidden bg-card">
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1 text-xs"
+          disabled={sendingAll}
+          onClick={remindAll}
+        >
+          <Send className="w-3.5 h-3.5" />
+          {sendingAll ? "Sending..." : `Remind All (${pipeline.length})`}
+        </Button>
+      </div>
+      <div className="border rounded-xl overflow-hidden bg-card">
       <Table>
         <TableHeader>
           <TableRow>
@@ -188,6 +235,7 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

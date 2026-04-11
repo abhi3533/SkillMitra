@@ -1810,6 +1810,7 @@ export type Database = {
           subscription_plan: string | null
           teaching_languages: string[] | null
           total_earnings: number | null
+          total_sessions: number | null
           total_students: number | null
           total_withdrawn: number | null
           trainer_status: string
@@ -1875,6 +1876,7 @@ export type Database = {
           subscription_plan?: string | null
           teaching_languages?: string[] | null
           total_earnings?: number | null
+          total_sessions?: number | null
           total_students?: number | null
           total_withdrawn?: number | null
           trainer_status?: string
@@ -1940,6 +1942,7 @@ export type Database = {
           subscription_plan?: string | null
           teaching_languages?: string[] | null
           total_earnings?: number | null
+          total_sessions?: number | null
           total_students?: number | null
           total_withdrawn?: number | null
           trainer_status?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.trainers ADD COLUMN total_sessions integer;

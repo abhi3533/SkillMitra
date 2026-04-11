@@ -2124,6 +2124,15 @@ export type Database = {
         }
         Returns: string
       }
+      credit_wallet_atomic: {
+        Args: {
+          p_amount: number
+          p_description: string
+          p_reference_id?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

@@ -34,6 +34,7 @@ interface CourseWithTrainer {
   trainer_id: string;
   trainerName: string;
   trainerEmail: string;
+  rejection_reason: string | null;
 }
 
 const AdminCourses = () => {

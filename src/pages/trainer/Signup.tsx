@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone, Gift } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, Shield, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,6 @@ const TRAINER_VERIFICATION_REDIRECT = `${window.location.origin}/trainer/onboard
 const TrainerSignup = () => {
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "" });
-  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

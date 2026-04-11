@@ -216,7 +216,11 @@ const TrainerCourses = () => {
       let courseId: string;
 
       if (editingCourse) {
-        const { error } = await supabase.from("courses").update(courseData).eq("id", editingCourse.id);
+        // If the course was rejected or had changes requested, reset it to "pending"
+        // so the admin queue picks it up for re-review.
+        const needsReview = ["rejected", "changes_requested"].includes(editingCourse.approval_status);
+        const updateData = needsReview ? { ...courseData, approval_status: "pending" } : courseData;
+        const { error } = await supabase.from("courses").update(updateData).eq("id", editingCourse.id);
         if (error) throw error;
         courseId = editingCourse.id;
         // Delete old curriculum

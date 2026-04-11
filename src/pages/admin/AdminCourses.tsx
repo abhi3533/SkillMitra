@@ -147,10 +147,12 @@ const AdminCourses = () => {
       return;
     }
 
-    // Sync course_status on trainer
+    // Sync course_status on trainer and mark trainer as live — the trainer is fully
+    // active once their profile is approved (done at trainer approval time) AND their
+    // first course is approved.
     const course = courses.find(c => c.id === id);
     if (course?.trainer_id) {
-      await supabase.from("trainers").update({ course_status: "approved" }).eq("id", course.trainer_id);
+      await supabase.from("trainers").update({ course_status: "approved", trainer_status: "live" }).eq("id", course.trainer_id);
     }
 
     setCourses(prev => prev.map(c => c.id === id ? { ...c, approval_status: "approved", is_active: true } : c));

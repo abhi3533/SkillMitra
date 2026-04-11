@@ -114,6 +114,16 @@ const TrainerSignup = () => {
         },
       }).catch(console.error);
 
+      // Link referral code if one was provided — fire-and-forget.
+      // The trainer row may not exist yet (complete-signup is async), so this can fail
+      // silently; process-trainer-referral is also invoked at onboarding submit as a
+      // reliable fallback.
+      if (referralCode.trim()) {
+        supabase.functions.invoke("process-trainer-referral", {
+          body: { referral_code: referralCode.trim().toUpperCase(), new_user_id: authData.user.id },
+        }).catch(console.error);
+      }
+
       setSubmitted(true);
       toast({ title: "Account created!", description: "Check your email to verify your account.", variant: "success" });
     } catch (err: any) {

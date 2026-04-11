@@ -199,7 +199,35 @@ const AdminReferrals = () => {
         toast({ title: "Failed to process", description: err.message, variant: "destructive" });
       }
     } else {
-      // For revert (paid → pending), just update the status
+      // For revert (paid → pending) — reverse the wallet credit before updating status
+      // so the referrer does not keep the reward after the revert.
+      const allRefs = [...trainerRefs, ...studentRefs];
+      const ref = allRefs.find(r => r.id === id);
+      if (ref?.status === "paid" && ref.reward_amount > 0) {
+        // Resolve referrer's auth user_id from the trainer/student row
+        let referrerUserId: string | null = null;
+        if (table === "trainer_referrals") {
+          const { data: t } = await supabase.from("trainers").select("user_id").eq("id", ref.referrer_id).maybeSingle();
+          referrerUserId = t?.user_id ?? null;
+        } else {
+          const { data: s } = await supabase.from("students").select("user_id").eq("id", ref.referrer_id).maybeSingle();
+          referrerUserId = s?.user_id ?? null;
+        }
+        if (referrerUserId) {
+          const { error: rpcError } = await supabase.rpc("credit_wallet_atomic", {
+            p_user_id: referrerUserId,
+            p_amount: -ref.reward_amount,
+            p_description: "Referral reward reversed by admin",
+            p_reference_id: id,
+          });
+          if (rpcError) {
+            console.error("Wallet reversal failed on revert:", rpcError);
+            toast({ title: "Reversal failed", description: "Could not reverse wallet credit. Revert aborted.", variant: "destructive" });
+            return;
+          }
+        }
+      }
+
       const { error } = await supabase.from(table).update({ status: newStatus }).eq("id", id);
       if (error) {
         toast({ title: "Failed to update", description: error.message, variant: "destructive" });
@@ -601,6 +629,36 @@ const AdminReferrals = () => {
             <Button variant="outline" onClick={() => setDeleteRefTarget(null)}>Cancel</Button>
             <Button variant="destructive" onClick={async () => {
               if (!deleteRefTarget) return;
+
+              // If the referral was already paid, reverse the wallet credit before deleting
+              // so the referrer does not keep the reward with no audit trail.
+              const allRefs = [...trainerRefs, ...studentRefs];
+              const ref = allRefs.find(r => r.id === deleteRefTarget.id);
+              if (ref?.status === "paid" && ref.reward_amount > 0) {
+                let referrerUserId: string | null = null;
+                if (deleteRefTarget.table === "trainer_referrals") {
+                  const { data: t } = await supabase.from("trainers").select("user_id").eq("id", ref.referrer_id).maybeSingle();
+                  referrerUserId = t?.user_id ?? null;
+                } else {
+                  const { data: s } = await supabase.from("students").select("user_id").eq("id", ref.referrer_id).maybeSingle();
+                  referrerUserId = s?.user_id ?? null;
+                }
+                if (referrerUserId) {
+                  const { error: rpcError } = await supabase.rpc("credit_wallet_atomic", {
+                    p_user_id: referrerUserId,
+                    p_amount: -ref.reward_amount,
+                    p_description: "Referral reward reversed — referral deleted by admin",
+                    p_reference_id: deleteRefTarget.id,
+                  });
+                  if (rpcError) {
+                    console.error("Wallet reversal failed on delete:", rpcError);
+                    toast({ title: "Reversal failed", description: "Could not reverse wallet credit. Delete aborted.", variant: "destructive" });
+                    setDeleteRefTarget(null);
+                    return;
+                  }
+                }
+              }
+
               const { error } = await supabase.from(deleteRefTarget.table).delete().eq("id", deleteRefTarget.id);
               if (error) {
                 toast({ title: "Error", description: error.message, variant: "destructive" });

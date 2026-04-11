@@ -168,6 +168,19 @@ const AdminTrainers = () => {
       });
     }
 
+    // If rejected, mark any pending referral for this trainer as rejected so
+    // Trainer A's dashboard doesn't show "Pending Approval" forever.
+    if (status === "rejected") {
+      supabase
+        .from("trainer_referrals")
+        .update({ status: "rejected" })
+        .eq("referred_id", id)
+        .eq("status", "pending")
+        .then(({ error: refErr }) => {
+          if (refErr) console.error("Failed to reject referral on trainer rejection:", refErr);
+        });
+    }
+
     // Log activity
     supabase.from("admin_activity_log").insert({
       event_type: status === "approved" ? "trainer_approved" : "trainer_rejected",

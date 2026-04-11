@@ -233,29 +233,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Email referred trainer — welcome bonus
-    if (RESEND_API_KEY) {
-      const { data: referredProfile } = await supabase
-        .from('profiles')
-        .select('full_name, email')
-        .eq('id', trainer.user_id)
-        .single()
-
-      if (referredProfile?.email) {
-        await sendEmail(RESEND_API_KEY, referredProfile.email,
-          'Welcome to SkillMitra — You joined via referral! 🎓',
-          layout(`
-            <h1 style="font-size: 22px; color: #111; margin-bottom: 16px;">Hi ${referredProfile.full_name || 'Trainer'} 👋</h1>
-            <p style="font-size: 15px; line-height: 1.7; color: #444;">Welcome to SkillMitra! You joined through a referral, and your profile has been approved.</p>
-            <p style="font-size: 15px; line-height: 1.7; color: #444;">Start creating courses and teaching students right away!</p>
-            <div style="text-align: center; margin: 24px 0;">
-              <a href="${APP_URL}/trainer/dashboard" style="display: inline-block; background: ${BRAND_COLOR}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Go to Dashboard</a>
-            </div>
-            <p style="font-size: 14px; color: #666;">— Team SkillMitra</p>
-          `)
-        )
-      }
-    }
+    // Note: no separate email to Trainer B here — notify-trainer-status already sends
+    // an approval email when admin approves, avoiding a duplicate message.
 
     console.log(`✅ Trainer referral completed: trainer ${trainer_id}, reward ₹${REWARD} to referrer`)
 

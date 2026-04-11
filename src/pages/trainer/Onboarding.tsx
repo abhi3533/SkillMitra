@@ -689,10 +689,18 @@ const TrainerOnboarding = () => {
       }).eq("id", trainerId);
       if (statusUpdateErr) console.error("Status update error:", statusUpdateErr);
 
-      // Process referral
+      // Process referral — awaited so we can write referred_by as a fallback if the
+      // edge function fails (ensures admin approval still triggers the reward later).
       const trimmedRef = form.referralCode.trim().toUpperCase();
       if (trimmedRef) {
-        supabase.functions.invoke("process-trainer-referral", { body: { referral_code: trimmedRef, new_user_id: user.id } }).catch(console.error);
+        const { data: refResult, error: refErr } = await supabase.functions.invoke(
+          "process-trainer-referral",
+          { body: { referral_code: trimmedRef, new_user_id: user.id } }
+        );
+        if (refErr || !refResult?.success) {
+          console.warn("process-trainer-referral failed — setting referred_by as fallback:", refErr);
+          await supabase.from("trainers").update({ referred_by: trimmedRef }).eq("user_id", user.id);
+        }
       }
 
       // Notifications

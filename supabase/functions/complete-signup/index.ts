@@ -57,9 +57,11 @@ serve(async (req) => {
         .maybeSingle();
 
       if (trainerRow && !trainerRow.referral_code) {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let referralCode: string | null = null;
         for (let attempt = 0; attempt < 5; attempt++) {
-          const candidate = "TM-" + Math.random().toString(36).toUpperCase().slice(2, 8);
+          let candidate = "TM-";
+          for (let i = 0; i < 6; i++) candidate += chars[Math.floor(Math.random() * chars.length)];
           const { data: existing } = await supabaseAdmin
             .from("trainers")
             .select("id")

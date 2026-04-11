@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { formatTimeIST, formatDateIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
-import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck, Sparkles, GraduationCap, MapPin, Smartphone, CheckCircle, Info, Eye, Mail as MailIcon } from "lucide-react";
+import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck, Sparkles, GraduationCap, MapPin, Smartphone, CheckCircle, Info, Eye, Mail as MailIcon, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +22,7 @@ const TrainerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [onboardingInfo, setOnboardingInfo] = useState<{ step: number; status: string } | null>(null);
   const [trainerLifecycle, setTrainerLifecycle] = useState<{ profile_status: string; course_status: string; trainer_status: string } | null>(null);
+  const [referredByInfo, setReferredByInfo] = useState<{ referrerName: string } | null>(null);
   const [data, setData] = useState({
     activeStudents: 0, totalStudents: 0, monthEarnings: 0, totalEarnings: 0,
     availableBalance: 0, totalSessions: 0, completedSessions: 0, upcomingSessions: 0,
@@ -38,10 +39,20 @@ const TrainerDashboard = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     await (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status, rejection_reason").eq("user_id", user.id).maybeSingle();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status, rejection_reason, referred_by").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
       setTrainerRowId(trainer.id);
       setRejectionReason(trainer.rejection_reason || null);
+
+      // Look up referrer name if referred_by is set
+      if (trainer.referred_by) {
+        const { data: referrerTrainer } = await supabase.from("trainers").select("user_id").eq("referral_code", trainer.referred_by).maybeSingle();
+        if (referrerTrainer?.user_id) {
+          const { data: referrerProfile } = await supabase.rpc("get_public_profile", { profile_id: referrerTrainer.user_id });
+          const name = referrerProfile?.[0]?.p_full_name || "a fellow trainer";
+          setReferredByInfo({ referrerName: name });
+        }
+      }
 
       // Set lifecycle statuses
       setTrainerLifecycle({
@@ -293,6 +304,17 @@ const TrainerDashboard = () => {
                 Resubmit Application
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Referral Info Card */}
+      {!loading && referredByInfo && data.approvalStatus !== "approved" && (
+        <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+          <Gift className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">You joined via referral from {referredByInfo.referrerName}! 🎉</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Your ₹1,500 bonus will be credited to your wallet after your profile is approved.</p>
           </div>
         </div>
       )}

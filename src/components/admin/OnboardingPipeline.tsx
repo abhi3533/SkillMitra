@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { formatShortDateIST } from "@/lib/dateUtils";
 import { Send, Phone, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";

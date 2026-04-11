@@ -69,7 +69,7 @@ const TrainerOnboarding = () => {
     courseTitle: "", courseDescription: "",
     // Availability & Schedule fields
     trainerType: "", sessionDurationPerDay: "", weekendAvailability: "",
-    courseDuration: "", courseFee: "",
+    courseDuration: "", courseFee: "", totalSessions: "",
     additionalServicesDetails: "", courseMaterials: "",
     bankAccount: "", ifsc: "", accountHolderName: "", upiId: "", govtIdType: "",
     referralCode: searchParams.get("ref")?.toUpperCase() || "",
@@ -113,14 +113,11 @@ const TrainerOnboarding = () => {
 
   // Auto-calculate total course hours
   const calculateTotalHours = () => {
-    const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "90 Minutes": 1.5, "2 Hours": 2 };
-    const weekendDaysMap: Record<string, number> = { "both": 7, "saturday_only": 6, "sunday_only": 6, "no_weekends": 5 };
+    const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "1.5 Hours": 1.5, "2 Hours": 2 };
     const sessionHours = sessionHoursMap[form.sessionDurationPerDay] || 0;
-    const daysPerWeek = weekendDaysMap[form.weekendAvailability] || 0;
-    const totalDays = parseInt(form.courseDuration) || 0;
-    if (!sessionHours || !daysPerWeek || !totalDays) return null;
-    const totalWeeks = totalDays / 7;
-    return Math.round(totalWeeks * daysPerWeek * sessionHours);
+    const totalSessions = parseInt(form.totalSessions) || 0;
+    if (!sessionHours || !totalSessions) return null;
+    return Math.round(totalSessions * sessionHours);
   };
 
   // Persist step to localStorage on every change
@@ -143,7 +140,7 @@ const TrainerOnboarding = () => {
     (async () => {
       const { data: trainer } = await supabase
         .from("trainers")
-        .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability")
+        .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability, total_sessions")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -189,7 +186,8 @@ const TrainerOnboarding = () => {
           verificationValue: saved.verificationValue || trainer.verification_value || "",
           bio: saved.bio || trainer.bio || "",
           courseTitle: saved.courseTitle || trainer.course_title || "",
-          courseDuration: saved.courseDuration || trainer.course_duration || "",
+           courseDuration: saved.courseDuration || trainer.course_duration || "",
+           totalSessions: saved.totalSessions || String(trainer.total_sessions || ""),
           courseFee: saved.courseFee || String(trainer.course_fee || ""),
           courseDescription: saved.courseDescription || trainer.course_description || "",
           additionalServicesDetails: saved.additionalServicesDetails || trainer.additional_services_details || "",
@@ -234,7 +232,8 @@ const TrainerOnboarding = () => {
           verificationValue: trainer.verification_value || "",
           bio: trainer.bio || "",
           courseTitle: trainer.course_title || "",
-          courseDuration: trainer.course_duration || "",
+           courseDuration: trainer.course_duration || "",
+           totalSessions: String(trainer.total_sessions || ""),
           courseFee: String(trainer.course_fee || ""),
           courseDescription: trainer.course_description || "",
           additionalServicesDetails: trainer.additional_services_details || "",
@@ -531,6 +530,7 @@ const TrainerOnboarding = () => {
       if (availableTimeBands.length === 0) { toast({ title: "Please select at least one available time band", variant: "warning" }); return false; }
       if (!form.weekendAvailability) { toast({ title: "Please select weekend availability", variant: "warning" }); return false; }
       if (!form.courseDuration) { toast({ title: "Please select course duration", variant: "warning" }); return false; }
+      if (!form.totalSessions) { toast({ title: "Please select total number of sessions", variant: "warning" }); return false; }
       if (!form.courseFee.trim() || isNaN(Number(form.courseFee)) || Number(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
     }
     if (s === 4) {
@@ -664,6 +664,7 @@ const TrainerOnboarding = () => {
             additional_services_details: form.additionalServicesDetails || null,
             course_title: form.courseTitle || null,
             course_duration: form.courseDuration || null,
+            total_sessions: form.totalSessions ? parseInt(form.totalSessions) : null,
             course_fee: parseFloat(form.courseFee) || 0,
             course_description: form.courseDescription || null,
             verification_method: form.verificationMethod || null,
@@ -1084,13 +1085,13 @@ const TrainerOnboarding = () => {
                 {stepAttempted[3] && !form.trainerType && <p className="text-xs text-destructive mt-1">Please select trainer type</p>}
               </div>
 
-              {/* 2. Session Duration */}
+              {/* 2. Daily Session Duration */}
               <div>
-                <Label>Session Duration Per Day<RequiredMark /></Label>
+                <Label>Daily Session Duration<RequiredMark /></Label>
                 <FieldHint text="How long will each daily session be?" />
                 <div className="grid grid-cols-3 gap-3 mt-2">
                   <RadioOption value="1 Hour" selected={form.sessionDurationPerDay === "1 Hour"} label="1 Hour" onClick={() => update("sessionDurationPerDay", "1 Hour")} />
-                  <RadioOption value="90 Minutes" selected={form.sessionDurationPerDay === "90 Minutes"} label="90 Min" onClick={() => update("sessionDurationPerDay", "90 Minutes")} />
+                  <RadioOption value="1.5 Hours" selected={form.sessionDurationPerDay === "1.5 Hours"} label="1.5 Hours" onClick={() => update("sessionDurationPerDay", "1.5 Hours")} />
                   <RadioOption value="2 Hours" selected={form.sessionDurationPerDay === "2 Hours"} label="2 Hours" onClick={() => update("sessionDurationPerDay", "2 Hours")} />
                 </div>
                 {stepAttempted[3] && !form.sessionDurationPerDay && <p className="text-xs text-destructive mt-1">Please select session duration</p>}
@@ -1132,10 +1133,22 @@ const TrainerOnboarding = () => {
                 {stepAttempted[3] && !form.weekendAvailability && <p className="text-xs text-destructive mt-1">Please select weekend availability</p>}
               </div>
 
-              {/* 5. Course Duration */}
+              {/* 5. Total Number of Sessions */}
               <div>
-                <Label>Course Duration<RequiredMark /></Label>
-                <FieldHint text="Total duration of your complete course." />
+                <Label>Total Number of Sessions<RequiredMark /></Label>
+                <FieldHint text="Total number of sessions in the complete course." />
+                <div className="grid grid-cols-4 gap-3 mt-2">
+                  {["30", "45", "60", "90"].map(s => (
+                    <RadioOption key={s} value={s} selected={form.totalSessions === s} label={`${s} Sessions`} onClick={() => update("totalSessions", s)} />
+                  ))}
+                </div>
+                {stepAttempted[3] && !form.totalSessions && <p className="text-xs text-destructive mt-1">Please select total sessions</p>}
+              </div>
+
+              {/* 6. Total Course Duration */}
+              <div>
+                <Label>Total Course Duration<RequiredMark /></Label>
+                <FieldHint text="Total duration of your complete course in days." />
                 <div className="grid grid-cols-4 gap-3 mt-2">
                   {["30", "45", "60", "90"].map(d => (
                     <RadioOption key={d} value={d} selected={form.courseDuration === d} label={`${d} Days`} onClick={() => update("courseDuration", d)} />
@@ -1436,8 +1449,13 @@ const TrainerOnboarding = () => {
               <div className="border border-border rounded-xl p-4 bg-card">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Featured Course</p>
                 <h4 className="font-semibold text-foreground text-sm">{form.courseTitle}</h4>
-                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                  {form.courseDuration && <span>{form.courseDuration} days</span>}
+                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
+                  {form.sessionDurationPerDay && <span>{form.sessionDurationPerDay} sessions</span>}
+                  {form.sessionDurationPerDay && form.totalSessions && <span>|</span>}
+                  {form.totalSessions && <span>{form.totalSessions} Sessions</span>}
+                  {form.totalSessions && form.courseDuration && <span>|</span>}
+                  {form.courseDuration && <span>{form.courseDuration} Days</span>}
+                  {(form.sessionDurationPerDay || form.totalSessions || form.courseDuration) && form.courseFee && <span>|</span>}
                   {form.courseFee && <span className="font-semibold text-foreground">₹{parseInt(form.courseFee).toLocaleString()}</span>}
                 </div>
               </div>

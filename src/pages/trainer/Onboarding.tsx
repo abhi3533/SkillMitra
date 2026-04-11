@@ -140,7 +140,7 @@ const TrainerOnboarding = () => {
     (async () => {
       const { data: trainer } = await supabase
         .from("trainers")
-        .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability, total_sessions")
+        .select("id, approval_status, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability, total_sessions")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -152,14 +152,7 @@ const TrainerOnboarding = () => {
         return;
       }
 
-      // Check approval_status to allow rejected trainers to re-edit
-      const { data: trainerStatus } = await supabase
-        .from("trainers")
-        .select("approval_status")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (trainer.onboarding_status === "pending" && trainerStatus?.approval_status !== "rejected") {
+      if (trainer.onboarding_status === "pending" && trainer.approval_status !== "rejected") {
         navigate("/trainer/signup/thankyou", { replace: true });
         return;
       }

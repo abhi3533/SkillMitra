@@ -98,6 +98,8 @@ const TrainerOnboarding = () => {
   const [showCameraModal, setShowCameraModal] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
+  const selfieFileRef = useRef<HTMLInputElement | null>(null);
+  const [cameraUnavailable, setCameraUnavailable] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [stepAttempted, setStepAttempted] = useState<Record<number, boolean>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -436,9 +438,26 @@ const TrainerOnboarding = () => {
         videoRef.current.play();
       }
     } catch (err) {
-      toast({ title: "Camera access denied", description: "Please allow camera access to take a selfie.", variant: "destructive" });
+      console.error("Camera access failed:", err);
+      toast({ title: "Camera unavailable", description: "You can upload a photo instead.", variant: "warning" });
       setShowCameraModal(false);
+      setCameraUnavailable(true);
     }
+  };
+
+  const handleSelfieFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Please select an image file", variant: "warning" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Image must be under 5MB", variant: "warning" });
+      return;
+    }
+    setSelfie(file);
+    setSelfiePreview(URL.createObjectURL(file));
   };
 
   const captureSelfie = () => {
@@ -1202,12 +1221,22 @@ const TrainerOnboarding = () => {
                         <button type="button" onClick={removeSelfie} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
                       </div>
                     ) : (
-                      <button type="button" onClick={openCameraForSelfie} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[5] && !selfie && !selfiePreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
-                        <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
-                      </button>
+                      <div className="flex flex-col items-center gap-2">
+                        <button type="button" onClick={openCameraForSelfie} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[5] && !selfie && !selfiePreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
+                          <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
+                        </button>
+                        {cameraUnavailable && (
+                          <>
+                            <button type="button" onClick={() => selfieFileRef.current?.click()} className="text-xs text-primary underline hover:text-primary/80">
+                              <Upload className="w-3 h-3 inline mr-1" />Upload photo instead
+                            </button>
+                            <input ref={selfieFileRef} type="file" accept="image/*" onChange={handleSelfieFileUpload} className="hidden" />
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
-                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">Live camera capture only. Used for identity verification. NOT shown publicly.</p>
+                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">{cameraUnavailable ? "Upload a clear photo of your face for identity verification. NOT shown publicly." : "Live camera capture only. Used for identity verification. NOT shown publicly."}</p>
                 </div>
               </div>
 

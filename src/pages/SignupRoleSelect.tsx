@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { GraduationCap, BookOpen } from "lucide-react";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
 
-const LoginRoleSelect = () => {
+const SignupRoleSelect = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <motion.div
@@ -12,11 +12,11 @@ const LoginRoleSelect = () => {
         className="w-full max-w-md text-center"
       >
         <SkillMitraLogo darkText height={36} className="mx-auto mb-8" />
-        <h1 className="text-2xl font-bold text-foreground">Welcome back!</h1>
-        <p className="text-muted-foreground mt-2 mb-8">How would you like to log in?</p>
+        <h1 className="text-2xl font-bold text-foreground">Join SkillMitra</h1>
+        <p className="text-muted-foreground mt-2 mb-8">How would you like to sign up?</p>
 
         <div className="grid grid-cols-2 gap-4">
-          <Link to="/student/login">
+          <Link to="/student/signup">
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -32,7 +32,7 @@ const LoginRoleSelect = () => {
             </motion.div>
           </Link>
 
-          <Link to="/trainer/login">
+          <Link to="/trainer/signup">
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -50,12 +50,12 @@ const LoginRoleSelect = () => {
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-primary font-semibold hover:underline">Sign up</Link>
+          Already have an account?{" "}
+          <Link to="/login" className="text-primary font-semibold hover:underline">Log in</Link>
         </p>
       </motion.div>
     </div>
   );
 };
 
-export default LoginRoleSelect;
+export default SignupRoleSelect;

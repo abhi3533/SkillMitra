@@ -29,6 +29,7 @@ const Standards = lazy(() => import("./pages/Standards"));
 const CertificateVerify = lazy(() => import("./pages/CertificateVerify"));
 const ReferPage = lazy(() => import("./pages/Refer"));
 const LoginRoleSelect = lazy(() => import("./pages/LoginRoleSelect"));
+const SignupRoleSelect = lazy(() => import("./pages/SignupRoleSelect"));
 const JoinRedirect = lazy(() => import("./pages/JoinRedirect"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -123,7 +124,7 @@ const useAuthRedirect = () => {
     if (hasRedirected.current) return;
 
     const path = location.pathname;
-    const loginPages = ["/login", "/student/login", "/trainer/login", "/admin/login", "/student/signup", "/trainer/signup"];
+    const loginPages = ["/login", "/signup", "/student/login", "/trainer/login", "/admin/login", "/student/signup", "/trainer/signup"];
     const isLoginPage = loginPages.includes(path);
     const isRoot = path === "/";
     // Also handle OAuth callback paths
@@ -174,6 +175,7 @@ const AppContent = () => {
 
           {/* Auth pages */}
           <Route path="/login" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 rounded-lg hero-gradient animate-pulse" /></div>}><LoginRoleSelect /></Suspense>} />
+          <Route path="/signup" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 rounded-lg hero-gradient animate-pulse" /></div>}><SignupRoleSelect /></Suspense>} />
           <Route path="/student/login" element={<StudentLogin />} />
           <Route path="/student/signup" element={<StudentSignup />} />
           <Route path="/trainer/login" element={<TrainerLogin />} />

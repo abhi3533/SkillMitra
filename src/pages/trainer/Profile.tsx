@@ -727,7 +727,7 @@ const TrainerProfile = () => {
               </p>
             </div>
             <div className="flex flex-col gap-2.5 w-full mt-1">
-              <Button className="w-full h-11 text-base font-semibold" onClick={() => { setShowAuthPrompt(false); navigate(`/student/signup`); }}>
+              <Button className="w-full h-11 text-base font-semibold" onClick={() => { setShowAuthPrompt(false); navigate(`/signup`); }}>
                 Sign Up Free
               </Button>
               <Button variant="outline" className="w-full h-11" onClick={() => { setShowAuthPrompt(false); navigate(`/student/login?redirect=/trainer/${resolvedId}`); }}>

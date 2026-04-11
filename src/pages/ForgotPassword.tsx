@@ -125,7 +125,7 @@ const ForgotPassword = () => {
                   <Button variant="outline" onClick={handleTryAgain} className="gap-1 w-full sm:w-auto">
                     <ArrowLeft className="w-4 h-4" /> Try Again
                   </Button>
-                  <Link to="/student/signup" className="block">
+                  <Link to="/signup" className="block">
                     <Button className="hero-gradient border-0 font-semibold w-full sm:w-auto">Sign Up Free</Button>
                   </Link>
                 </div>

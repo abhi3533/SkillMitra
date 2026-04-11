@@ -170,6 +170,7 @@ const AdminTrainers = () => {
 
     // If rejected, mark any pending referral for this trainer as rejected so
     // Trainer A's dashboard doesn't show "Pending Approval" forever.
+    // Then notify Trainer A via email + in-app notification.
     if (status === "rejected") {
       supabase
         .from("trainer_referrals")
@@ -177,7 +178,17 @@ const AdminTrainers = () => {
         .eq("referred_id", id)
         .eq("status", "pending")
         .then(({ error: refErr }) => {
-          if (refErr) console.error("Failed to reject referral on trainer rejection:", refErr);
+          if (refErr) {
+            console.error("Failed to reject referral on trainer rejection:", refErr);
+            return;
+          }
+          // Notify the referrer (Trainer A) that their referred trainer was not approved.
+          // Fire-and-forget — failure here is non-critical.
+          supabase.functions.invoke("notify-referral-rejected", {
+            body: { referred_trainer_id: id },
+          }).then(({ error: notifErr }) => {
+            if (notifErr) console.error("Failed to notify referrer of trainer rejection:", notifErr);
+          });
         });
     }
 

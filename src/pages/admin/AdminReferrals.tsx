@@ -245,6 +245,11 @@ const AdminReferrals = () => {
             toast({ title: "Reversal failed", description: "Could not reverse wallet credit. Revert aborted.", variant: "destructive" });
             return;
           }
+          // Wallet reversal succeeded — notify Trainer A via email + in-app notification.
+          // Fire-and-forget — failure here is non-critical.
+          supabase.functions.invoke("notify-referral-reversed", {
+            body: { referrer_user_id: referrerUserId, amount: ref.reward_amount },
+          }).catch(err => console.error("notify-referral-reversed failed on revert:", err));
         }
       }
 
@@ -678,6 +683,11 @@ const AdminReferrals = () => {
                     setDeleteRefTarget(null);
                     return;
                   }
+                  // Wallet reversal succeeded — notify Trainer A via email + in-app notification.
+                  // Fire-and-forget — failure here is non-critical.
+                  supabase.functions.invoke("notify-referral-reversed", {
+                    body: { referrer_user_id: referrerUserId, amount: ref.reward_amount },
+                  }).catch(err => console.error("notify-referral-reversed failed on delete:", err));
                 }
               }
 

@@ -1028,7 +1028,7 @@ const TrainerOnboarding = () => {
               <div className="space-y-3">
                 <Label>Resume<RequiredMark /></Label>
                 <FieldHint text="Helps our team verify your experience and qualifications before approval." />
-                <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, max 5MB" />
+                <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, min 10KB, max 5MB" />
               </div>
 
               <div>
@@ -1342,7 +1342,7 @@ const TrainerOnboarding = () => {
                     <SelectItem value="driving_license">Driving License</SelectItem>
                   </SelectContent>
                 </Select>
-                <FileUploadBox docKey="aadhaar" label="Aadhaar Document Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="JPG, PNG or PDF only, max 5MB" />
+                <FileUploadBox docKey="aadhaar" label="Aadhaar Document Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="JPG, PNG or PDF, min 20KB, max 5MB" />
               </div>
             </div>
           )}

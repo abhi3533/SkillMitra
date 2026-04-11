@@ -276,14 +276,11 @@ const TrainerDashboard = () => {
                 className="text-xs hero-gradient border-0"
                 onClick={async () => {
                   if (!trainerRowId) return;
-                  const { error } = await supabase.from("trainers").update({
-                    approval_status: "pending",
-                    profile_status: "pending",
-                    onboarding_status: "pending",
-                    rejection_reason: null,
-                  }).eq("id", trainerRowId);
+                  const { data: result, error } = await supabase.functions.invoke("resubmit-trainer");
                   if (error) {
                     toast({ title: "Error", description: error.message, variant: "destructive" });
+                  } else if (result?.error) {
+                    toast({ title: "Error", description: result.error, variant: "destructive" });
                   } else {
                     toast({ title: "Resubmitted!", description: "Your application has been resubmitted for review.", variant: "success" });
                     supabase.functions.invoke("notify-admin-new-trainer", {

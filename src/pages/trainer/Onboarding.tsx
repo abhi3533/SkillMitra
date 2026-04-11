@@ -146,12 +146,20 @@ const TrainerOnboarding = () => {
 
       if (!trainer) { setStepLoaded(true); setInitialLoading(false); return; }
 
-      // If already submitted, redirect to thank you
+      // If already submitted, redirect to thank you (but allow rejected trainers to edit)
       if (trainer.onboarding_status === "approved") {
         navigate("/trainer/dashboard", { replace: true });
         return;
       }
-      if (trainer.onboarding_status === "pending") {
+
+      // Check approval_status to allow rejected trainers to re-edit
+      const { data: trainerStatus } = await supabase
+        .from("trainers")
+        .select("approval_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (trainer.onboarding_status === "pending" && trainerStatus?.approval_status !== "rejected") {
         navigate("/trainer/signup/thankyou", { replace: true });
         return;
       }

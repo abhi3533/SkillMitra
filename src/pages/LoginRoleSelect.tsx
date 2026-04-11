@@ -51,7 +51,7 @@ const LoginRoleSelect = () => {
 
         <p className="mt-6 text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <Link to="/student/signup" className="text-primary font-semibold hover:underline">Sign up</Link>
+          <Link to="/signup" className="text-primary font-semibold hover:underline">Sign up</Link>
         </p>
       </motion.div>
     </div>

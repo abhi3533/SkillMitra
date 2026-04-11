@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { formatLongDateIST } from "@/lib/dateUtils";
+import { formatLongDateIST, formatDateIST } from "@/lib/dateUtils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download, Gift, Clock, Video, Image } from "lucide-react";
+import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download, Gift, Clock, Video, Image, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TrainerDetailDrawerProps {
@@ -13,6 +13,9 @@ interface TrainerDetailDrawerProps {
   onClose: () => void;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
+  onSuspend?: (trainer: any) => void;
+  onRemove?: (trainer: any) => void;
+  onEdit?: (trainer: any) => void;
 }
 
 const resolveStorageUrl = async (

@@ -163,10 +163,52 @@ const TrainerCourses = () => {
     });
   };
 
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): Record<string, string> => {
+    const errors: Record<string, string> = {};
+    if (!form.title.trim()) errors.title = "Course title is required";
+    else if (form.title.trim().length < 10) errors.title = "Title must be at least 10 characters";
+    else if (form.title.trim().length > 100) errors.title = "Title must be under 100 characters";
+
+    if (!form.description.trim()) errors.description = "Description is required";
+    else if (form.description.trim().length < 100) errors.description = "Description must be at least 100 characters";
+    else if (form.description.trim().length > 1000) errors.description = "Description must be under 1000 characters";
+
+    if (!form.course_fee.trim()) errors.course_fee = "Course fee is required";
+    else if (parseFloat(form.course_fee) < 500) errors.course_fee = "Minimum course fee is ₹500";
+    else if (parseFloat(form.course_fee) > 500000) errors.course_fee = "Maximum course fee is ₹5,00,000";
+
+    if (!form.what_you_learn.trim()) errors.what_you_learn = "At least one learning point is required";
+    if (!form.who_is_it_for.trim()) errors.who_is_it_for = "Target audience is required";
+    else if (form.who_is_it_for.trim().length < 10) errors.who_is_it_for = "Please describe the target audience (min 10 chars)";
+    else if (form.who_is_it_for.trim().length > 200) errors.who_is_it_for = "Must be under 200 characters";
+
+    if (form.duration_days === "custom" && (!form.custom_duration || parseInt(form.custom_duration) < 1 || parseInt(form.custom_duration) > 365)) {
+      errors.duration_days = "Duration must be between 1 and 365 days";
+    }
+    if (form.session_duration_mins === "custom" && (!form.custom_session_duration || parseInt(form.custom_session_duration) < 15 || parseInt(form.custom_session_duration) > 180)) {
+      errors.session_duration_mins = "Session duration must be between 15 and 180 minutes";
+    }
+    if (form.session_frequency === "custom" && !form.custom_frequency.trim()) {
+      errors.session_frequency = "Please specify the frequency";
+    }
+    if (form.language === "other" && !form.custom_language.trim()) {
+      errors.language = "Please specify the language";
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async () => {
-    if (!form.title.trim()) { toast({ title: "Course title is required", variant: "warning" }); return; }
-    if (form.description.trim().length < 100) { toast({ title: "Description too short", description: "Course description must be at least 100 characters.", variant: "warning" }); return; }
-    if (!form.course_fee.trim() || parseFloat(form.course_fee) < 500) { toast({ title: "Minimum course fee is ₹500", variant: "warning" }); return; }
+    if (!isApprovedCourse) {
+      const errors = validateForm();
+      setValidationErrors(errors);
+      if (Object.keys(errors).length > 0) {
+        toast({ title: "Please fix all errors", description: "Some required fields are missing or invalid.", variant: "warning" });
+        return;
+      }
+    }
     if (!trainerId) { toast({ title: "Trainer profile not found", variant: "warning" }); return; }
 
     setCreating(true);

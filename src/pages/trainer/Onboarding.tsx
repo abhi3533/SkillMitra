@@ -1255,8 +1255,17 @@ const TrainerOnboarding = () => {
                 </div>
                 <div>
                   <Label>Account Holder Name<RequiredMark /></Label>
-                  <Input value={profile?.full_name || form.accountHolderName} readOnly disabled placeholder="Name as per bank" className="mt-1.5 h-11 bg-muted cursor-not-allowed" />
-                  <FieldHint text="Account holder name is automatically set from your registered profile name to prevent misuse and ensure secure payments." />
+                  {profile?.full_name ? (
+                    <>
+                      <Input value={profile.full_name} readOnly disabled placeholder="Name as per bank" className="mt-1.5 h-11 bg-muted cursor-not-allowed" />
+                      <FieldHint text="Account holder name is automatically set from your registered profile name to prevent misuse and ensure secure payments." />
+                    </>
+                  ) : (
+                    <>
+                      <Input value={form.accountHolderName} onChange={e => setForm(f => ({ ...f, accountHolderName: e.target.value }))} placeholder="Enter name as per bank account" className="mt-1.5 h-11" />
+                      <FieldHint text="Please enter your name exactly as it appears on your bank account." />
+                    </>
+                  )}
                 </div>
               </div>
               <div>

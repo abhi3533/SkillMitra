@@ -67,7 +67,20 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     setSignedUrls({});
     setDocuments([]);
     setReferralInfo(null);
+    setCourses([]);
     resolveUrls(trainer);
+
+    // Fetch courses for this trainer
+    (async () => {
+      setLoadingCourses(true);
+      const { data } = await supabase
+        .from("courses")
+        .select("*")
+        .eq("trainer_id", trainer.id)
+        .order("created_at", { ascending: false });
+      setCourses(data || []);
+      setLoadingCourses(false);
+    })();
 
     (async () => {
       setLoadingDocs(true);

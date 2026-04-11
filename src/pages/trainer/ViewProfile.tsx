@@ -122,9 +122,13 @@ const TrainerViewProfile = () => {
 
         <Section title="Availability & Schedule">
           <InfoRow icon={Clock} label="Trainer Type" value={trainer?.trainer_type} />
-          <InfoRow icon={Clock} label="Session Duration" value={trainer?.session_duration_per_day} />
+          <InfoRow icon={Clock} label="Course Schedule" value={
+            [trainer?.session_duration_per_day && `${trainer.session_duration_per_day} sessions`,
+             trainer?.total_sessions && `${trainer.total_sessions} Sessions`,
+             trainer?.course_duration && `${trainer.course_duration} Days`
+            ].filter(Boolean).join(" | ") || null
+          } />
           <InfoRow icon={Clock} label="Weekend Availability" value={trainer?.weekend_availability} />
-          <InfoRow icon={Clock} label="Course Duration" value={trainer?.course_duration} />
           <InfoRow icon={BookOpen} label="Course Fee" value={trainer?.course_fee ? `₹${trainer.course_fee}` : null} />
           <div className="py-2">
             <p className="text-xs text-muted-foreground mb-1.5">Available Time Bands</p>

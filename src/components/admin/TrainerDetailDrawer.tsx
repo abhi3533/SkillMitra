@@ -287,16 +287,18 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
               )}
             </div>
             <InfoRow icon={Calendar} label="Weekend Availability" value={trainer.weekend_availability ? trainer.weekend_availability.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
-            <InfoRow icon={Calendar} label="Course Duration" value={trainer.course_duration ? `${trainer.course_duration} days` : null} />
+            <InfoRow icon={Calendar} label="Course Schedule" value={
+              [trainer.session_duration_per_day && `${trainer.session_duration_per_day} sessions`,
+               (trainer as any).total_sessions && `${(trainer as any).total_sessions} Sessions`,
+               trainer.course_duration && `${trainer.course_duration} Days`
+              ].filter(Boolean).join(" | ") || null
+            } />
             <InfoRow icon={Clock} label="Total Hours" value={(() => {
-              const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "90 Minutes": 1.5, "2 Hours": 2 };
-              const weekendDaysMap: Record<string, number> = { "both": 7, "saturday_only": 6, "sunday_only": 6, "no_weekends": 5 };
+              const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "1.5 Hours": 1.5, "2 Hours": 2 };
+              const totalSessions = Number((trainer as any).total_sessions) || 0;
               const sessionHours = sessionHoursMap[trainer.session_duration_per_day] || 0;
-              const daysPerWeek = weekendDaysMap[trainer.weekend_availability] || 0;
-              const totalDays = Number(trainer.course_duration) || 0;
-              if (!sessionHours || !daysPerWeek || !totalDays) return null;
-              const totalHours = Math.round((totalDays / 7) * daysPerWeek * sessionHours);
-              return `${totalHours} hrs`;
+              if (!sessionHours || !totalSessions) return null;
+              return `${Math.round(totalSessions * sessionHours)} hrs`;
             })()} />
             <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />
           </div>

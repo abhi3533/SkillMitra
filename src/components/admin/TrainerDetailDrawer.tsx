@@ -36,11 +36,13 @@ const resolveStorageUrl = async (
 
 const NP = "Not provided";
 
-const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: TrainerDetailDrawerProps) => {
+const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSuspend, onRemove, onEdit }: TrainerDetailDrawerProps) => {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string; status: string } | null>(null);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
 
   const resolveUrls = async (t: any) => {
     const urls: Record<string, string> = {};

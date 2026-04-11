@@ -431,7 +431,16 @@ const AdminCourses = () => {
                 </>
               )}
 
-              {/* Curriculum */}
+              {/* Rejection Reason */}
+              {selectedCourse.rejection_reason && (
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1">Admin Comment / Rejection Reason</h4>
+                    <p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md">{selectedCourse.rejection_reason}</p>
+                  </div>
+                </>
+              )}
               <Separator />
               <div>
                 <h4 className="text-sm font-semibold text-foreground mb-2">Curriculum</h4>

@@ -43,10 +43,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!currentSession?.user) {
       setRole(null);
       setProfile(null);
+      // No user — session check is complete, safe to stop showing the loader.
+      setLoading(false);
       return;
     }
 
-    // Prevent duplicate concurrent fetches
+    // A fetch is already in progress. Do not start a duplicate — the in-progress
+    // fetch owns the setLoading(false) call and will fire it when it finishes.
     if (fetchingRef.current) return;
     fetchingRef.current = true;
 
@@ -66,6 +69,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile(profileData);
     } finally {
       fetchingRef.current = false;
+      // Always mark loading done once the full round-trip completes, regardless
+      // of success or error. This is the only place setLoading(false) fires for
+      // the authenticated path, preventing the flash where role is still null.
+      setLoading(false);
     }
   }, []);
 
@@ -140,20 +147,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (newSession?.user) {
-        // Fire and forget — do NOT await inside onAuthStateChange
-        setTimeout(() => {
-          fetchUserData(newSession).then(() => setLoading(false));
-        }, 0);
+        // Fire and forget — do NOT await inside onAuthStateChange.
+        // setLoading(false) is owned by fetchUserData; do not call it here.
+        setTimeout(() => { fetchUserData(newSession); }, 0);
       } else {
         setLoading(false);
       }
     });
 
-    // Then restore session
+    // Then restore session. setLoading(false) is owned by fetchUserData; do not
+    // chain it here — doing so caused the race where loading became false before
+    // fetchUserData finished when fetchingRef blocked a duplicate call.
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
-      fetchUserData(existingSession).then(() => setLoading(false));
+      fetchUserData(existingSession);
     });
 
     return () => subscription.unsubscribe();

@@ -65,8 +65,15 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     if (t.aadhaar_url) {
       promises.push(resolveStorageUrl(t.aadhaar_url).then(u => { urls.aadhaar = u; }));
     }
-    if (t.curriculum_pdf_url && !t.curriculum_pdf_url.startsWith("http")) {
+    if (t.curriculum_pdf_url) {
       promises.push(resolveStorageUrl(t.curriculum_pdf_url).then(u => { urls.curriculum_pdf = u; }));
+    }
+    // Resolve intro/demo video URLs in case they're stored as paths
+    if (t.intro_video_url && !t.intro_video_url.startsWith("http")) {
+      promises.push(resolveStorageUrl(t.intro_video_url, "intro-videos").then(u => { urls.intro_video = u; }));
+    }
+    if (t.demo_video_url && !t.demo_video_url.startsWith("http")) {
+      promises.push(resolveStorageUrl(t.demo_video_url, "intro-videos").then(u => { urls.demo_video = u; }));
     }
 
     await Promise.all(promises);

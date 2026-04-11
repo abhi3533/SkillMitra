@@ -412,7 +412,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             <div className="py-2">
               <p className="text-[11px] text-muted-foreground mb-1">Intro Video</p>
               {trainer.intro_video_url ? (
-                <a href={trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <a href={signedUrls.intro_video || trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
                   <Video className="w-3.5 h-3.5" /> Watch Intro Video
                 </a>
               ) : (
@@ -424,7 +424,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             <div className="py-2">
               <p className="text-[11px] text-muted-foreground mb-1">Demo Video</p>
               {trainer.demo_video_url ? (
-                <a href={trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <a href={signedUrls.demo_video || trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
                   <Video className="w-3.5 h-3.5" /> Watch Demo Video
                 </a>
               ) : (

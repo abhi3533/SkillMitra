@@ -248,7 +248,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               scheduled_time: scheduledTimeStr,
             },
           },
-        }).catch(() => {});
+        }).catch(e => console.error("trial_request_student email failed:", e));
       }
 
       // Email to trainer  
@@ -266,7 +266,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               student_email: studentEmail,
             },
           },
-        }).catch(() => {});
+        }).catch(e => console.error("trial_request_trainer email failed:", e));
       }
 
       // Email to admin
@@ -280,7 +280,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
             course_name: course.title,
           },
         },
-      }).catch(() => {});
+      }).catch(e => console.error("trial_request_admin email failed:", e));
 
       toast({ title: "Trial Request Sent! 📩", description: "Your trial request has been sent to the trainer. You'll get an email when they respond.", variant: "success" });
       onClose();

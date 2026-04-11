@@ -1085,13 +1085,13 @@ const TrainerOnboarding = () => {
                 {stepAttempted[3] && !form.trainerType && <p className="text-xs text-destructive mt-1">Please select trainer type</p>}
               </div>
 
-              {/* 2. Session Duration */}
+              {/* 2. Daily Session Duration */}
               <div>
-                <Label>Session Duration Per Day<RequiredMark /></Label>
+                <Label>Daily Session Duration<RequiredMark /></Label>
                 <FieldHint text="How long will each daily session be?" />
                 <div className="grid grid-cols-3 gap-3 mt-2">
                   <RadioOption value="1 Hour" selected={form.sessionDurationPerDay === "1 Hour"} label="1 Hour" onClick={() => update("sessionDurationPerDay", "1 Hour")} />
-                  <RadioOption value="90 Minutes" selected={form.sessionDurationPerDay === "90 Minutes"} label="90 Min" onClick={() => update("sessionDurationPerDay", "90 Minutes")} />
+                  <RadioOption value="1.5 Hours" selected={form.sessionDurationPerDay === "1.5 Hours"} label="1.5 Hours" onClick={() => update("sessionDurationPerDay", "1.5 Hours")} />
                   <RadioOption value="2 Hours" selected={form.sessionDurationPerDay === "2 Hours"} label="2 Hours" onClick={() => update("sessionDurationPerDay", "2 Hours")} />
                 </div>
                 {stepAttempted[3] && !form.sessionDurationPerDay && <p className="text-xs text-destructive mt-1">Please select session duration</p>}
@@ -1133,10 +1133,22 @@ const TrainerOnboarding = () => {
                 {stepAttempted[3] && !form.weekendAvailability && <p className="text-xs text-destructive mt-1">Please select weekend availability</p>}
               </div>
 
-              {/* 5. Course Duration */}
+              {/* 5. Total Number of Sessions */}
               <div>
-                <Label>Course Duration<RequiredMark /></Label>
-                <FieldHint text="Total duration of your complete course." />
+                <Label>Total Number of Sessions<RequiredMark /></Label>
+                <FieldHint text="Total number of sessions in the complete course." />
+                <div className="grid grid-cols-4 gap-3 mt-2">
+                  {["30", "45", "60", "90"].map(s => (
+                    <RadioOption key={s} value={s} selected={form.totalSessions === s} label={`${s} Sessions`} onClick={() => update("totalSessions", s)} />
+                  ))}
+                </div>
+                {stepAttempted[3] && !form.totalSessions && <p className="text-xs text-destructive mt-1">Please select total sessions</p>}
+              </div>
+
+              {/* 6. Total Course Duration */}
+              <div>
+                <Label>Total Course Duration<RequiredMark /></Label>
+                <FieldHint text="Total duration of your complete course in days." />
                 <div className="grid grid-cols-4 gap-3 mt-2">
                   {["30", "45", "60", "90"].map(d => (
                     <RadioOption key={d} value={d} selected={form.courseDuration === d} label={`${d} Days`} onClick={() => update("courseDuration", d)} />

@@ -234,7 +234,7 @@ const TrainerProfile = () => {
       }
       supabase.functions.invoke('profile-view-notify', {
         body: { trainer_user_id: trainer.user_id, viewer_city: viewerCity },
-      }).catch(() => {});
+      }).catch(e => console.error("profile-view-notify email failed:", e));
     })();
   }, [trainer, resolvedId, user]);
 

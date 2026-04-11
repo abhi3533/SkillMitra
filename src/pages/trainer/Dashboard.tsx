@@ -301,7 +301,7 @@ const TrainerDashboard = () => {
       )}
 
       {/* Trainer Lifecycle Status Banner - hide during incomplete onboarding or when approval/pending banner already showing */}
-      {!loading && trainerLifecycle && !(onboardingInfo && onboardingInfo.status === "draft") && data.approvalStatus !== "pending" && data.approvalStatus !== "rejected" && (() => {
+      {!loading && trainerLifecycle && !(onboardingInfo && (onboardingInfo.status === "draft" || onboardingInfo.status === "registered")) && data.approvalStatus !== "pending" && data.approvalStatus !== "rejected" && (() => {
         const { profile_status, course_status, trainer_status } = trainerLifecycle;
         if (trainer_status === "live") {
           return (

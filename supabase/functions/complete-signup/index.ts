@@ -102,7 +102,11 @@ serve(async (req) => {
         });
       }
 
-      const { error: updateErr } = await supabaseAdmin.from("trainers").update({
+      // Build the update object. Text/scalar fields are always overwritten.
+      // URL/file fields are ONLY included when the incoming value is non-empty so
+      // that a resubmission where the trainer didn't re-upload a file doesn't
+      // overwrite the previously stored URL with null.
+      const trainerUpdate: Record<string, unknown> = {
         bio: trainer_data.bio || null,
         skills: trainer_data.skills || [],
         teaching_languages: trainer_data.teaching_languages || [],
@@ -116,23 +120,17 @@ serve(async (req) => {
         upi_id: trainer_data.upi_id || null,
         pan_number: trainer_data.pan_number || null,
         account_holder_name: trainer_data.account_holder_name || null,
-        intro_video_url: trainer_data.intro_video_url || null,
-        // New fields
         dob: trainer_data.dob || null,
         whatsapp: trainer_data.whatsapp || null,
-        selfie_url: trainer_data.selfie_url || null,
         address: trainer_data.address || null,
         pincode: trainer_data.pincode || null,
         portfolio_url: trainer_data.portfolio_url || null,
         secondary_skill: trainer_data.secondary_skill || null,
         work_email: trainer_data.work_email || null,
         expertise_areas: trainer_data.expertise_areas || [],
-        demo_video_url: trainer_data.demo_video_url || null,
-        curriculum_pdf_url: trainer_data.curriculum_pdf_url || null,
         services_offered: trainer_data.services_offered || [],
         course_materials: trainer_data.course_materials || null,
         govt_id_type: trainer_data.govt_id_type || null,
-        aadhaar_url: trainer_data.aadhaar_url || null,
         additional_services_details: trainer_data.additional_services_details || null,
         course_title: trainer_data.course_title || null,
         course_duration: trainer_data.course_duration || null,
@@ -144,7 +142,16 @@ serve(async (req) => {
         session_duration_per_day: trainer_data.session_duration_per_day || null,
         available_time_bands: trainer_data.available_time_bands || [],
         weekend_availability: trainer_data.weekend_availability || null,
-      }).eq("id", trainer.id);
+      };
+
+      // Conditionally include file URL fields — never overwrite existing DB value with null
+      if (trainer_data.intro_video_url) trainerUpdate.intro_video_url = trainer_data.intro_video_url;
+      if (trainer_data.demo_video_url) trainerUpdate.demo_video_url = trainer_data.demo_video_url;
+      if (trainer_data.selfie_url) trainerUpdate.selfie_url = trainer_data.selfie_url;
+      if (trainer_data.aadhaar_url) trainerUpdate.aadhaar_url = trainer_data.aadhaar_url;
+      if (trainer_data.curriculum_pdf_url) trainerUpdate.curriculum_pdf_url = trainer_data.curriculum_pdf_url;
+
+      const { error: updateErr } = await supabaseAdmin.from("trainers").update(trainerUpdate).eq("id", trainer.id);
 
       if (updateErr) {
         console.error("Trainer update failed:", updateErr);

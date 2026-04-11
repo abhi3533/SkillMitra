@@ -335,14 +335,22 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject }: Tr
             {/* Resume */}
             <div className="py-2">
               <p className="text-[11px] text-muted-foreground mb-1">Resume</p>
-              {resumeDoc?.resolved_url ? (
-                <a href={resumeDoc.resolved_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                  <Download className="w-3.5 h-3.5" /> Download Resume
-                </a>
-              ) : signedUrls.resume ? (
-                <a href={signedUrls.resume} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                  <Download className="w-3.5 h-3.5" /> Download Resume
-                </a>
+              {resumeDoc?.document_url ? (
+                resumeDoc.resolved_url ? (
+                  <a href={resumeDoc.resolved_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                    <Download className="w-3.5 h-3.5" /> Download Resume
+                  </a>
+                ) : (
+                  <button
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                    onClick={async () => {
+                      const url = await resolveStorageUrl(resumeDoc.document_url);
+                      if (url) window.open(url, "_blank");
+                    }}
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Resume
+                  </button>
+                )
               ) : (
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}

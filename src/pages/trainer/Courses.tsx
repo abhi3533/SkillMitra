@@ -163,10 +163,52 @@ const TrainerCourses = () => {
     });
   };
 
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): Record<string, string> => {
+    const errors: Record<string, string> = {};
+    if (!form.title.trim()) errors.title = "Course title is required";
+    else if (form.title.trim().length < 10) errors.title = "Title must be at least 10 characters";
+    else if (form.title.trim().length > 100) errors.title = "Title must be under 100 characters";
+
+    if (!form.description.trim()) errors.description = "Description is required";
+    else if (form.description.trim().length < 100) errors.description = "Description must be at least 100 characters";
+    else if (form.description.trim().length > 1000) errors.description = "Description must be under 1000 characters";
+
+    if (!form.course_fee.trim()) errors.course_fee = "Course fee is required";
+    else if (parseFloat(form.course_fee) < 500) errors.course_fee = "Minimum course fee is ₹500";
+    else if (parseFloat(form.course_fee) > 500000) errors.course_fee = "Maximum course fee is ₹5,00,000";
+
+    if (!form.what_you_learn.trim()) errors.what_you_learn = "At least one learning point is required";
+    if (!form.who_is_it_for.trim()) errors.who_is_it_for = "Target audience is required";
+    else if (form.who_is_it_for.trim().length < 10) errors.who_is_it_for = "Please describe the target audience (min 10 chars)";
+    else if (form.who_is_it_for.trim().length > 200) errors.who_is_it_for = "Must be under 200 characters";
+
+    if (form.duration_days === "custom" && (!form.custom_duration || parseInt(form.custom_duration) < 1 || parseInt(form.custom_duration) > 365)) {
+      errors.duration_days = "Duration must be between 1 and 365 days";
+    }
+    if (form.session_duration_mins === "custom" && (!form.custom_session_duration || parseInt(form.custom_session_duration) < 15 || parseInt(form.custom_session_duration) > 180)) {
+      errors.session_duration_mins = "Session duration must be between 15 and 180 minutes";
+    }
+    if (form.session_frequency === "custom" && !form.custom_frequency.trim()) {
+      errors.session_frequency = "Please specify the frequency";
+    }
+    if (form.language === "other" && !form.custom_language.trim()) {
+      errors.language = "Please specify the language";
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async () => {
-    if (!form.title.trim()) { toast({ title: "Course title is required", variant: "warning" }); return; }
-    if (form.description.trim().length < 100) { toast({ title: "Description too short", description: "Course description must be at least 100 characters.", variant: "warning" }); return; }
-    if (!form.course_fee.trim() || parseFloat(form.course_fee) < 500) { toast({ title: "Minimum course fee is ₹500", variant: "warning" }); return; }
+    if (!isApprovedCourse) {
+      const errors = validateForm();
+      setValidationErrors(errors);
+      if (Object.keys(errors).length > 0) {
+        toast({ title: "Please fix all errors", description: "Some required fields are missing or invalid.", variant: "warning" });
+        return;
+      }
+    }
     if (!trainerId) { toast({ title: "Trainer profile not found", variant: "warning" }); return; }
 
     setCreating(true);
@@ -409,11 +451,15 @@ const TrainerCourses = () => {
             {/* Basic Info */}
             <div>
               <Label>Course Title *</Label>
-              <Input value={form.title} onChange={e => setField("title", e.target.value)} className="mt-1.5" placeholder="e.g. Full Stack Web Development" maxLength={100} disabled={isApprovedCourse} />
+              <Input value={form.title} onChange={e => { setField("title", e.target.value); setValidationErrors(prev => ({ ...prev, title: "" })); }} className="mt-1.5" placeholder="e.g. Full Stack Web Development" maxLength={100} disabled={isApprovedCourse} />
+              <p className="text-[11px] text-muted-foreground mt-1">A clear, descriptive title for your course (10–100 characters). {form.title.length}/100</p>
+              {validationErrors.title && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.title}</p>}
             </div>
             <div>
-              <Label>Description</Label>
-              <Textarea value={form.description} onChange={e => setField("description", e.target.value)} className="mt-1.5" placeholder="What students will learn..." rows={3} maxLength={1000} disabled={isApprovedCourse} />
+              <Label>Description *</Label>
+              <Textarea value={form.description} onChange={e => { setField("description", e.target.value); setValidationErrors(prev => ({ ...prev, description: "" })); }} className="mt-1.5" placeholder="Describe what students will learn, course structure, and outcomes..." rows={4} maxLength={1000} disabled={isApprovedCourse} />
+              <p className="text-[11px] text-muted-foreground mt-1">Detailed course description covering topics, outcomes & structure (100–1000 characters). {form.description.length}/1000</p>
+              {validationErrors.description && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.description}</p>}
             </div>
 
             <Separator />
@@ -421,8 +467,8 @@ const TrainerCourses = () => {
             {/* Course Structure */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Duration</Label>
-                <Select value={form.duration_days} onValueChange={v => setField("duration_days", v)} disabled={isApprovedCourse}>
+                <Label>Duration *</Label>
+                <Select value={form.duration_days} onValueChange={v => { setField("duration_days", v); setValidationErrors(prev => ({ ...prev, duration_days: "" })); }} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="30">30 days</SelectItem>
@@ -432,18 +478,21 @@ const TrainerCourses = () => {
                   </SelectContent>
                 </Select>
                 {form.duration_days === "custom" && (
-                  <Input type="number" value={form.custom_duration} onChange={e => setField("custom_duration", e.target.value)} className="mt-1.5" placeholder="Days (1-365)" min={1} max={365} disabled={isApprovedCourse} />
+                  <Input type="number" value={form.custom_duration} onChange={e => { setField("custom_duration", e.target.value); setValidationErrors(prev => ({ ...prev, duration_days: "" })); }} className="mt-1.5" placeholder="Days (1-365)" min={1} max={365} disabled={isApprovedCourse} />
                 )}
+                <p className="text-[11px] text-muted-foreground mt-1">Total course duration in days</p>
+                {validationErrors.duration_days && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.duration_days}</p>}
               </div>
               <div>
-                <Label>Total Sessions <span className="text-xs text-muted-foreground font-normal">(auto, excl. weekends)</span></Label>
+                <Label>Total Sessions <span className="text-xs text-muted-foreground font-normal">(auto-calculated)</span></Label>
                 <Input type="number" value={form.total_sessions} onChange={e => setField("total_sessions", e.target.value)} className="mt-1.5" min={1} max={365} disabled={isApprovedCourse} />
+                <p className="text-[11px] text-muted-foreground mt-1">Auto-calculated excluding weekends</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Session Duration</Label>
-                <Select value={form.session_duration_mins} onValueChange={v => setField("session_duration_mins", v)} disabled={isApprovedCourse}>
+                <Label>Session Duration *</Label>
+                <Select value={form.session_duration_mins} onValueChange={v => { setField("session_duration_mins", v); setValidationErrors(prev => ({ ...prev, session_duration_mins: "" })); }} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="30">30 min</SelectItem>
@@ -454,12 +503,14 @@ const TrainerCourses = () => {
                   </SelectContent>
                 </Select>
                 {form.session_duration_mins === "custom" && (
-                  <Input type="number" value={form.custom_session_duration} onChange={e => setField("custom_session_duration", e.target.value)} className="mt-1.5" placeholder="Minutes (15-180)" min={15} max={180} disabled={isApprovedCourse} />
+                  <Input type="number" value={form.custom_session_duration} onChange={e => { setField("custom_session_duration", e.target.value); setValidationErrors(prev => ({ ...prev, session_duration_mins: "" })); }} className="mt-1.5" placeholder="Minutes (15-180)" min={15} max={180} disabled={isApprovedCourse} />
                 )}
+                <p className="text-[11px] text-muted-foreground mt-1">Duration of each session (15–180 min)</p>
+                {validationErrors.session_duration_mins && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.session_duration_mins}</p>}
               </div>
               <div>
-                <Label>Frequency</Label>
-                <Select value={form.session_frequency} onValueChange={v => setField("session_frequency", v)}>
+                <Label>Frequency *</Label>
+                <Select value={form.session_frequency} onValueChange={v => { setField("session_frequency", v); setValidationErrors(prev => ({ ...prev, session_frequency: "" })); }}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="daily">Daily</SelectItem>
@@ -470,8 +521,10 @@ const TrainerCourses = () => {
                   </SelectContent>
                 </Select>
                 {form.session_frequency === "custom" && (
-                  <Input value={form.custom_frequency} onChange={e => setField("custom_frequency", e.target.value)} className="mt-1.5" placeholder="e.g. 4x/week, Weekends only" maxLength={50} />
+                  <Input value={form.custom_frequency} onChange={e => { setField("custom_frequency", e.target.value); setValidationErrors(prev => ({ ...prev, session_frequency: "" })); }} className="mt-1.5" placeholder="e.g. 4x/week, Weekends only" maxLength={50} />
                 )}
+                <p className="text-[11px] text-muted-foreground mt-1">How often sessions happen per week</p>
+                {validationErrors.session_frequency && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.session_frequency}</p>}
               </div>
             </div>
 
@@ -481,10 +534,12 @@ const TrainerCourses = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Course Fee (₹) *</Label>
-                <Input type="number" value={form.course_fee} onChange={e => setField("course_fee", e.target.value)} className="mt-1.5" placeholder="e.g. 14999" min={0} disabled={isApprovedCourse} />
+                <Input type="number" value={form.course_fee} onChange={e => { setField("course_fee", e.target.value); setValidationErrors(prev => ({ ...prev, course_fee: "" })); }} className="mt-1.5" placeholder="e.g. 14999" min={500} max={500000} disabled={isApprovedCourse} />
+                <p className="text-[11px] text-muted-foreground mt-1">Total course fee in INR (₹500 – ₹5,00,000)</p>
+                {validationErrors.course_fee && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.course_fee}</p>}
               </div>
               <div>
-                <Label>Level</Label>
+                <Label>Level *</Label>
                 <Select value={form.level} onValueChange={v => setField("level", v)} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -493,12 +548,13 @@ const TrainerCourses = () => {
                     <SelectItem value="advanced">Advanced</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-[11px] text-muted-foreground mt-1">Skill level required for this course</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Language</Label>
-                <Select value={form.language} onValueChange={v => setField("language", v)} disabled={isApprovedCourse}>
+                <Label>Language *</Label>
+                <Select value={form.language} onValueChange={v => { setField("language", v); setValidationErrors(prev => ({ ...prev, language: "" })); }} disabled={isApprovedCourse}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRESET_LANGUAGES.map(l => (
@@ -508,8 +564,10 @@ const TrainerCourses = () => {
                   </SelectContent>
                 </Select>
                 {form.language === "other" && (
-                  <Input value={form.custom_language} onChange={e => setField("custom_language", e.target.value)} className="mt-1.5" placeholder="Enter language" maxLength={50} />
+                  <Input value={form.custom_language} onChange={e => { setField("custom_language", e.target.value); setValidationErrors(prev => ({ ...prev, language: "" })); }} className="mt-1.5" placeholder="Enter language" maxLength={50} />
                 )}
+                <p className="text-[11px] text-muted-foreground mt-1">Primary language of instruction</p>
+                {validationErrors.language && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.language}</p>}
               </div>
               <div className="flex items-end gap-2 pb-1">
                 <Switch checked={form.has_free_trial} onCheckedChange={v => setField("has_free_trial", v)} id="trial" />
@@ -521,13 +579,16 @@ const TrainerCourses = () => {
 
             {/* What You'll Learn */}
             <div>
-              <Label>What You'll Learn</Label>
-              <Textarea value={form.what_you_learn} onChange={e => setField("what_you_learn", e.target.value)} className="mt-1.5" placeholder="One learning point per line, e.g.&#10;Build REST APIs&#10;Deploy to cloud" rows={3} disabled={isApprovedCourse} />
-              <p className="text-[11px] text-muted-foreground mt-1">One point per line</p>
+              <Label>What You'll Learn *</Label>
+              <Textarea value={form.what_you_learn} onChange={e => { setField("what_you_learn", e.target.value); setValidationErrors(prev => ({ ...prev, what_you_learn: "" })); }} className="mt-1.5" placeholder="One learning point per line, e.g.&#10;Build REST APIs&#10;Deploy to cloud&#10;Master React fundamentals" rows={4} disabled={isApprovedCourse} />
+              <p className="text-[11px] text-muted-foreground mt-1">List key skills students will gain — one per line (minimum 1 point)</p>
+              {validationErrors.what_you_learn && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.what_you_learn}</p>}
             </div>
             <div>
-              <Label>Who Is It For?</Label>
-              <Input value={form.who_is_it_for} onChange={e => setField("who_is_it_for", e.target.value)} className="mt-1.5" placeholder="e.g. College students looking to enter tech" maxLength={200} disabled={isApprovedCourse} />
+              <Label>Who Is It For? *</Label>
+              <Input value={form.who_is_it_for} onChange={e => { setField("who_is_it_for", e.target.value); setValidationErrors(prev => ({ ...prev, who_is_it_for: "" })); }} className="mt-1.5" placeholder="e.g. College students looking to enter tech" maxLength={200} disabled={isApprovedCourse} />
+              <p className="text-[11px] text-muted-foreground mt-1">Describe your target audience (10–200 characters). {form.who_is_it_for.length}/200</p>
+              {validationErrors.who_is_it_for && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.who_is_it_for}</p>}
             </div>
 
             <Separator />
@@ -535,6 +596,7 @@ const TrainerCourses = () => {
             {/* Curriculum */}
             <div>
               <Label className="text-sm font-semibold">Weekly Curriculum (Optional)</Label>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Add a week-by-week breakdown of what you'll cover. Helps students understand the course structure.</p>
               {curriculum.map((w, i) => (
                 <div key={i} className="mt-3 p-3 rounded-lg bg-muted/50 border space-y-2">
                   <div className="flex items-center justify-between">
@@ -545,9 +607,9 @@ const TrainerCourses = () => {
                       </Button>
                     )}
                   </div>
-                  <Input value={w.weekTitle} onChange={e => updateWeek(i, "weekTitle", e.target.value)} placeholder="Week title" className="h-8 text-sm" disabled={isApprovedCourse} />
-                  <Input value={w.topics} onChange={e => updateWeek(i, "topics", e.target.value)} placeholder="Topics (comma separated)" className="h-8 text-sm" disabled={isApprovedCourse} />
-                  <Input value={w.learningOutcome} onChange={e => updateWeek(i, "learningOutcome", e.target.value)} placeholder="Learning outcome" className="h-8 text-sm" disabled={isApprovedCourse} />
+                  <Input value={w.weekTitle} onChange={e => updateWeek(i, "weekTitle", e.target.value)} placeholder="Week title, e.g. Introduction & Setup" className="h-8 text-sm" disabled={isApprovedCourse} />
+                  <Input value={w.topics} onChange={e => updateWeek(i, "topics", e.target.value)} placeholder="Topics (comma separated), e.g. HTML, CSS, JS basics" className="h-8 text-sm" disabled={isApprovedCourse} />
+                  <Input value={w.learningOutcome} onChange={e => updateWeek(i, "learningOutcome", e.target.value)} placeholder="Learning outcome, e.g. Build a basic webpage" className="h-8 text-sm" disabled={isApprovedCourse} />
                 </div>
               ))}
               {!isApprovedCourse && (
@@ -555,7 +617,7 @@ const TrainerCourses = () => {
               )}
             </div>
 
-            <Button onClick={handleSubmit} disabled={creating || !form.title.trim() || !form.course_fee} className="w-full">
+            <Button onClick={handleSubmit} disabled={creating} className="w-full">
               {creating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{editingCourse ? "Saving..." : "Creating..."}</> : editingCourse ? "Save Changes" : "Create Course"}
             </Button>
           </div>

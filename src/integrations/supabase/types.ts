@@ -487,6 +487,7 @@ export type Database = {
           is_active: boolean | null
           language: string | null
           level: string | null
+          rejection_reason: string | null
           session_duration_mins: number | null
           session_frequency: string | null
           title: string
@@ -508,6 +509,7 @@ export type Database = {
           is_active?: boolean | null
           language?: string | null
           level?: string | null
+          rejection_reason?: string | null
           session_duration_mins?: number | null
           session_frequency?: string | null
           title: string
@@ -529,6 +531,7 @@ export type Database = {
           is_active?: boolean | null
           language?: string | null
           level?: string | null
+          rejection_reason?: string | null
           session_duration_mins?: number | null
           session_frequency?: string | null
           title?: string

@@ -18,6 +18,7 @@ interface Props {
 const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer }: Props) => {
   const { toast } = useToast();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [sendingAll, setSendingAll] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [reminderSentMap, setReminderSentMap] = useState<Record<string, string>>(() => {
     try {

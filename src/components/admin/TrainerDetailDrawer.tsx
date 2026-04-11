@@ -506,6 +506,57 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             </>
           )}
 
+          {/* ─── COURSES ─── */}
+          <Separator />
+          <div>
+            <SectionTitle>Courses ({courses.length})</SectionTitle>
+            {loadingCourses ? (
+              <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />)}</div>
+            ) : courses.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">No courses created</p>
+            ) : (
+              <div className="space-y-2">
+                {courses.map(c => {
+                  const statusColor = c.approval_status === "approved" ? "bg-emerald-50 text-emerald-700" :
+                    c.approval_status === "rejected" ? "bg-destructive/10 text-destructive" :
+                    c.approval_status === "changes_requested" ? "bg-orange-50 text-orange-700" :
+                    "bg-amber-50 text-amber-700";
+                  return (
+                    <div key={c.id} className="p-3 rounded-lg bg-muted/50 border">
+                      <div className="flex items-center justify-between gap-2">
+                        <h5 className="text-sm font-medium text-foreground truncate">{c.title}</h5>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${statusColor}`}>
+                          {c.approval_status === "changes_requested" ? "Changes" : c.approval_status}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground flex-wrap">
+                        <span className="flex items-center gap-1"><IndianRupee className="w-3 h-3" />₹{Number(c.course_fee).toLocaleString("en-IN")}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{c.duration_days} days</span>
+                        <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" />{c.total_sessions} sessions</span>
+                        <span>{c.level}</span>
+                        <span>{c.language}</span>
+                      </div>
+                      {c.description && <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{c.description}</p>}
+                      {c.has_free_trial && <Badge variant="secondary" className="text-[10px] mt-1.5">Free Trial</Badge>}
+                      {c.what_you_learn?.length > 0 && (
+                        <div className="mt-1.5">
+                          <p className="text-[10px] text-muted-foreground font-medium">What students learn:</p>
+                          <ul className="text-[11px] text-muted-foreground mt-0.5">
+                            {c.what_you_learn.slice(0, 3).map((item: string, i: number) => (
+                              <li key={i}>• {item}</li>
+                            ))}
+                            {c.what_you_learn.length > 3 && <li className="text-[10px]">+{c.what_you_learn.length - 3} more</li>}
+                          </ul>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-1">Created {formatDateIST(c.created_at)}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Rejection reason */}
           {trainer.approval_status === "rejected" && trainer.rejection_reason && (
             <>
@@ -521,17 +572,52 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
           <Separator />
           <p className="text-xs text-muted-foreground">Applied on {formatLongDateIST(trainer.created_at)}</p>
 
-          {/* Action Buttons */}
-          {isPending && (
-            <div className="flex gap-2 pt-2">
-              <Button className="flex-1 gap-1.5" onClick={() => onApprove(trainer.id)}>
-                <Check className="w-4 h-4" /> Approve
+          {/* ─── CONTACT BUTTON ─── */}
+          <div className="pt-1">
+            <Button
+              variant="outline"
+              className="w-full gap-1.5 text-sm"
+              onClick={() => {
+                const email = profile?.email;
+                const name = profile?.full_name || "Trainer";
+                if (email) {
+                  window.open(`mailto:${email}?subject=SkillMitra Admin — Message for ${name}&body=Hi ${name},%0D%0A%0D%0A`, "_blank");
+                }
+              }}
+              disabled={!profile?.email}
+            >
+              <Send className="w-4 h-4" /> Email {profile?.full_name || "Trainer"}
+            </Button>
+          </div>
+
+          {/* ─── ACTION BUTTONS ─── */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {isPending && (
+              <>
+                <Button className="flex-1 gap-1.5" onClick={() => onApprove(trainer.id)}>
+                  <Check className="w-4 h-4" /> Approve
+                </Button>
+                <Button variant="destructive" className="flex-1 gap-1.5" onClick={() => onReject(trainer.id)}>
+                  <X className="w-4 h-4" /> Reject
+                </Button>
+              </>
+            )}
+            {onEdit && (
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => onEdit(trainer)}>
+                <Pencil className="w-3.5 h-3.5" /> Edit
               </Button>
-              <Button variant="destructive" className="flex-1 gap-1.5" onClick={() => onReject(trainer.id)}>
-                <X className="w-4 h-4" /> Reject
+            )}
+            {trainer.approval_status === "approved" && onSuspend && (
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs border-orange-300 text-orange-600 hover:bg-orange-50" onClick={() => onSuspend(trainer)}>
+                <ShieldOff className="w-3.5 h-3.5" /> Suspend
               </Button>
-            </div>
-          )}
+            )}
+            {onRemove && (
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => onRemove(trainer)}>
+                <Trash2 className="w-3.5 h-3.5" /> Remove
+              </Button>
+            )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>

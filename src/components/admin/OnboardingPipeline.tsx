@@ -235,6 +235,7 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

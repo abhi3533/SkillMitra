@@ -530,6 +530,7 @@ const TrainerOnboarding = () => {
       if (availableTimeBands.length === 0) { toast({ title: "Please select at least one available time band", variant: "warning" }); return false; }
       if (!form.weekendAvailability) { toast({ title: "Please select weekend availability", variant: "warning" }); return false; }
       if (!form.courseDuration) { toast({ title: "Please select course duration", variant: "warning" }); return false; }
+      if (!form.totalSessions) { toast({ title: "Please select total number of sessions", variant: "warning" }); return false; }
       if (!form.courseFee.trim() || isNaN(Number(form.courseFee)) || Number(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
     }
     if (s === 4) {
@@ -663,6 +664,7 @@ const TrainerOnboarding = () => {
             additional_services_details: form.additionalServicesDetails || null,
             course_title: form.courseTitle || null,
             course_duration: form.courseDuration || null,
+            total_sessions: form.totalSessions ? parseInt(form.totalSessions) : null,
             course_fee: parseFloat(form.courseFee) || 0,
             course_description: form.courseDescription || null,
             verification_method: form.verificationMethod || null,

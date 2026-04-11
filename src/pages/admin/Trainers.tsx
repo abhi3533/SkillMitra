@@ -25,6 +25,7 @@ const AdminTrainers = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<any>(null);
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
+  const [suspendReason, setSuspendReason] = useState("");
   const [removeTarget, setRemoveTarget] = useState<any>(null);
   const [editTarget, setEditTarget] = useState<any>(null);
   const [reminderSending, setReminderSending] = useState<string | null>(null);
@@ -182,8 +183,13 @@ const AdminTrainers = () => {
 
   const handleSuspendConfirm = async () => {
     if (!suspendTarget) return;
-    await updateStatus(suspendTarget.id, "suspended");
+    if (!suspendReason.trim()) {
+      toast({ title: "Reason required", description: "Please enter a reason for suspension.", variant: "warning" });
+      return;
+    }
+    await updateStatus(suspendTarget.id, "suspended", suspendReason.trim());
     setSuspendTarget(null);
+    setSuspendReason("");
   };
 
   const handleRemoveConfirm = async () => {
@@ -403,7 +409,7 @@ const AdminTrainers = () => {
         onConfirm={(reason) => updateStatus(rejectTarget.id, "rejected", reason)}
       />
 
-      <Dialog open={!!suspendTarget} onOpenChange={() => setSuspendTarget(null)}>
+      <Dialog open={!!suspendTarget} onOpenChange={() => { setSuspendTarget(null); setSuspendReason(""); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Suspend Trainer</DialogTitle>
@@ -411,9 +417,16 @@ const AdminTrainers = () => {
               Are you sure you want to suspend <strong>{suspendTarget?.profiles?.full_name || "this trainer"}</strong>? They will not be able to log in or be visible to students.
             </DialogDescription>
           </DialogHeader>
+          <div className="py-2">
+            <Input
+              placeholder="Reason for suspension (required)"
+              value={suspendReason}
+              onChange={e => setSuspendReason(e.target.value)}
+            />
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSuspendTarget(null)}>Cancel</Button>
-            <Button className="bg-orange-600 hover:bg-orange-700" onClick={handleSuspendConfirm}>Suspend</Button>
+            <Button variant="outline" onClick={() => { setSuspendTarget(null); setSuspendReason(""); }}>Cancel</Button>
+            <Button className="bg-orange-600 hover:bg-orange-700" onClick={handleSuspendConfirm} disabled={!suspendReason.trim()}>Suspend</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

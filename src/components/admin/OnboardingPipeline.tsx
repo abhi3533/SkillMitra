@@ -19,6 +19,12 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer
   const { toast } = useToast();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [reminderSentMap, setReminderSentMap] = useState<Record<string, string>>(() => {
+    try {
+      const stored = localStorage.getItem("admin_trainer_reminders");
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
 
   const pipeline = trainers
     .filter(t => t.onboarding_status === "draft" || t.onboarding_status === "registered")
@@ -32,12 +38,21 @@ const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer
     .sort((a, b) => b.daysSince - a.daysSince);
 
   const sendReminder = async (trainer: any) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastSent = reminderSentMap[trainer.id];
+    if (lastSent === today) {
+      toast({ title: "Reminder already sent today", description: "Try again tomorrow.", variant: "warning" });
+      return;
+    }
     setSendingTo(trainer.id);
     try {
       const { error } = await supabase.functions.invoke("onboarding-reminders", {
-        body: { trainer_id: trainer.id },
+        body: { trainer_id: trainer.id, reminder_type: "admin_nudge" },
       });
       if (error) throw error;
+      const updated = { ...reminderSentMap, [trainer.id]: today };
+      setReminderSentMap(updated);
+      localStorage.setItem("admin_trainer_reminders", JSON.stringify(updated));
       toast({
         title: "Reminder sent",
         description: `Reminder sent to ${trainer.profiles?.full_name || "trainer"}.`,

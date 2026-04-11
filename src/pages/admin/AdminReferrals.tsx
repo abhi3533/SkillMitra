@@ -186,6 +186,26 @@ const AdminReferrals = () => {
 
   const handleOverride = async (id: string, table: "referrals" | "trainer_referrals", newStatus: string) => {
     if (newStatus === "paid") {
+      // For trainer referrals, verify the referred trainer is approved before crediting reward
+      if (table === "trainer_referrals") {
+        const ref = trainerRefs.find(r => r.id === id);
+        if (ref?.referred_id) {
+          const { data: tRow } = await supabase
+            .from("trainers")
+            .select("approval_status")
+            .eq("id", ref.referred_id)
+            .maybeSingle();
+          if (tRow?.approval_status !== "approved") {
+            toast({
+              title: "Trainer not approved",
+              description: "The referred trainer must be approved before marking this referral as paid.",
+              variant: "warning",
+            });
+            return;
+          }
+        }
+      }
+
       // Use edge function to credit wallet + update status + send notifications
       try {
         const { data, error } = await supabase.functions.invoke("admin-mark-referral-paid", {

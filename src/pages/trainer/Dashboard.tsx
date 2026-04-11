@@ -142,6 +142,7 @@ const TrainerDashboard = () => {
           .from("students")
           .select("id, user_id, course_interests")
           .not("course_interests", "is", null)
+          .overlaps("course_interests", trainerSkills)
           .limit(50);
 
         if (allStudents?.length) {
@@ -285,6 +286,9 @@ const TrainerDashboard = () => {
                     toast({ title: "Error", description: error.message, variant: "destructive" });
                   } else {
                     toast({ title: "Resubmitted!", description: "Your application has been resubmitted for review.", variant: "success" });
+                    supabase.functions.invoke("notify-admin-new-trainer", {
+                      body: { user_id: user?.id, trainer_name: profile?.full_name, email: profile?.email, resubmission: true },
+                    }).catch(console.error);
                     fetchData();
                   }
                 }}

@@ -23,6 +23,9 @@ const TrainerWallet = () => {
   const [trainerId, setTrainerId] = useState<string | null>(null);
   const [trainerData, setTrainerData] = useState<any>(null);
   const [hasConfirmedBooking, setHasConfirmedBooking] = useState(false);
+  const [hasMoreTx, setHasMoreTx] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const TX_LIMIT = 50;
 
   useEffect(() => {
     if (!user) return;
@@ -30,11 +33,12 @@ const TrainerWallet = () => {
       setLoading(true);
       const [{ data: w }, { data: tx }, { data: t }] = await Promise.all([
         supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
-        supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(TX_LIMIT),
         supabase.from("trainers").select("id, upi_id, bank_account_number, ifsc_code").eq("user_id", user.id).maybeSingle(),
       ]);
       setWallet(w);
       setTransactions(tx || []);
+      setHasMoreTx((tx?.length ?? 0) === TX_LIMIT);
       setTrainerId(t?.id || null);
       setTrainerData(t);
 
@@ -52,6 +56,22 @@ const TrainerWallet = () => {
     };
     load();
   }, [user]);
+
+  const loadMoreTransactions = async () => {
+    if (!user || loadingMore) return;
+    setLoadingMore(true);
+    const { data: more } = await supabase
+      .from("wallet_transactions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(transactions.length, transactions.length + TX_LIMIT - 1);
+    if (more) {
+      setTransactions(prev => [...prev, ...more]);
+      setHasMoreTx(more.length === TX_LIMIT);
+    }
+    setLoadingMore(false);
+  };
 
   const totalBalance = Number(wallet?.balance || 0);
   const withdrawableBalance = hasConfirmedBooking ? totalBalance : 0;
@@ -107,10 +127,10 @@ const TrainerWallet = () => {
       // and the transaction record created by the RPC.
       const [{ data: refreshedWallet }, { data: refreshedTx }] = await Promise.all([
         supabase.from("wallets").select("*").eq("user_id", user!.id).maybeSingle(),
-        supabase.from("wallet_transactions").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }),
+        supabase.from("wallet_transactions").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(TX_LIMIT),
       ]);
       if (refreshedWallet) setWallet(refreshedWallet);
-      if (refreshedTx) setTransactions(refreshedTx);
+      if (refreshedTx) { setTransactions(refreshedTx); setHasMoreTx(refreshedTx.length === TX_LIMIT); }
 
       toast({ title: "Payout requested", description: `₹${amount} withdrawal request submitted`, variant: "success" });
       if (payoutRow?.id) {
@@ -274,6 +294,13 @@ const TrainerWallet = () => {
                   </p>
                 </div>
               ))}
+            </div>
+          )}
+          {hasMoreTx && !loading && (
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm" onClick={loadMoreTransactions} disabled={loadingMore}>
+                {loadingMore ? "Loading..." : "Load more"}
+              </Button>
             </div>
           )}
         </div>

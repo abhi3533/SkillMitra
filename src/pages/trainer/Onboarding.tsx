@@ -309,11 +309,11 @@ const TrainerOnboarding = () => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden" && trainerId && user) {
-        saveDraft(false);
+        saveDraftRef.current?.(false);
       }
     };
     const handleBeforeUnload = () => {
-      if (trainerId && user) saveDraft(false);
+      if (trainerId && user) saveDraftRef.current?.(false);
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("beforeunload", handleBeforeUnload);

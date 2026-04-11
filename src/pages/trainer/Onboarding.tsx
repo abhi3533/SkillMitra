@@ -69,7 +69,7 @@ const TrainerOnboarding = () => {
     courseTitle: "", courseDescription: "",
     // Availability & Schedule fields
     trainerType: "", sessionDurationPerDay: "", weekendAvailability: "",
-    courseDuration: "", courseFee: "",
+    courseDuration: "", courseFee: "", totalSessions: "",
     additionalServicesDetails: "", courseMaterials: "",
     bankAccount: "", ifsc: "", accountHolderName: "", upiId: "", govtIdType: "",
     referralCode: searchParams.get("ref")?.toUpperCase() || "",
@@ -113,14 +113,11 @@ const TrainerOnboarding = () => {
 
   // Auto-calculate total course hours
   const calculateTotalHours = () => {
-    const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "90 Minutes": 1.5, "2 Hours": 2 };
-    const weekendDaysMap: Record<string, number> = { "both": 7, "saturday_only": 6, "sunday_only": 6, "no_weekends": 5 };
+    const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "1.5 Hours": 1.5, "2 Hours": 2 };
     const sessionHours = sessionHoursMap[form.sessionDurationPerDay] || 0;
-    const daysPerWeek = weekendDaysMap[form.weekendAvailability] || 0;
-    const totalDays = parseInt(form.courseDuration) || 0;
-    if (!sessionHours || !daysPerWeek || !totalDays) return null;
-    const totalWeeks = totalDays / 7;
-    return Math.round(totalWeeks * daysPerWeek * sessionHours);
+    const totalSessions = parseInt(form.totalSessions) || 0;
+    if (!sessionHours || !totalSessions) return null;
+    return Math.round(totalSessions * sessionHours);
   };
 
   // Persist step to localStorage on every change
@@ -143,7 +140,7 @@ const TrainerOnboarding = () => {
     (async () => {
       const { data: trainer } = await supabase
         .from("trainers")
-        .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability")
+        .select("id, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability, total_sessions")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -189,7 +186,8 @@ const TrainerOnboarding = () => {
           verificationValue: saved.verificationValue || trainer.verification_value || "",
           bio: saved.bio || trainer.bio || "",
           courseTitle: saved.courseTitle || trainer.course_title || "",
-          courseDuration: saved.courseDuration || trainer.course_duration || "",
+           courseDuration: saved.courseDuration || trainer.course_duration || "",
+           totalSessions: saved.totalSessions || String(trainer.total_sessions || ""),
           courseFee: saved.courseFee || String(trainer.course_fee || ""),
           courseDescription: saved.courseDescription || trainer.course_description || "",
           additionalServicesDetails: saved.additionalServicesDetails || trainer.additional_services_details || "",
@@ -234,7 +232,8 @@ const TrainerOnboarding = () => {
           verificationValue: trainer.verification_value || "",
           bio: trainer.bio || "",
           courseTitle: trainer.course_title || "",
-          courseDuration: trainer.course_duration || "",
+           courseDuration: trainer.course_duration || "",
+           totalSessions: String(trainer.total_sessions || ""),
           courseFee: String(trainer.course_fee || ""),
           courseDescription: trainer.course_description || "",
           additionalServicesDetails: trainer.additional_services_details || "",

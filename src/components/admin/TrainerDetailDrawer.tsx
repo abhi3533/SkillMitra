@@ -23,7 +23,18 @@ const resolveStorageUrl = async (
   bucket = "trainer-documents",
   expiresIn = 3600,
 ): Promise<string> => {
-  if (pathOrUrl.startsWith("http")) return pathOrUrl;
+  // If it's a full URL pointing to a private bucket (trainer-documents), extract the path and get a signed URL
+  if (pathOrUrl.startsWith("http")) {
+    const privateBucketMatch = pathOrUrl.match(/\/storage\/v1\/object\/(?:public|sign)\/trainer-documents\/(.+?)(\?.*)?$/);
+    if (privateBucketMatch) {
+      const extractedPath = decodeURIComponent(privateBucketMatch[1]);
+      const { data, error } = await supabase.storage
+        .from("trainer-documents")
+        .createSignedUrl(extractedPath, expiresIn);
+      if (!error && data?.signedUrl) return data.signedUrl;
+    }
+    return pathOrUrl;
+  }
   const { data, error } = await supabase.storage
     .from(bucket)
     .createSignedUrl(pathOrUrl, expiresIn);
@@ -54,8 +65,15 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     if (t.aadhaar_url) {
       promises.push(resolveStorageUrl(t.aadhaar_url).then(u => { urls.aadhaar = u; }));
     }
-    if (t.curriculum_pdf_url && !t.curriculum_pdf_url.startsWith("http")) {
+    if (t.curriculum_pdf_url) {
       promises.push(resolveStorageUrl(t.curriculum_pdf_url).then(u => { urls.curriculum_pdf = u; }));
+    }
+    // Resolve intro/demo video URLs in case they're stored as paths
+    if (t.intro_video_url && !t.intro_video_url.startsWith("http")) {
+      promises.push(resolveStorageUrl(t.intro_video_url, "intro-videos").then(u => { urls.intro_video = u; }));
+    }
+    if (t.demo_video_url && !t.demo_video_url.startsWith("http")) {
+      promises.push(resolveStorageUrl(t.demo_video_url, "intro-videos").then(u => { urls.demo_video = u; }));
     }
 
     await Promise.all(promises);
@@ -394,7 +412,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             <div className="py-2">
               <p className="text-[11px] text-muted-foreground mb-1">Intro Video</p>
               {trainer.intro_video_url ? (
-                <a href={trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <a href={signedUrls.intro_video || trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
                   <Video className="w-3.5 h-3.5" /> Watch Intro Video
                 </a>
               ) : (
@@ -406,7 +424,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             <div className="py-2">
               <p className="text-[11px] text-muted-foreground mb-1">Demo Video</p>
               {trainer.demo_video_url ? (
-                <a href={trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <a href={signedUrls.demo_video || trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
                   <Video className="w-3.5 h-3.5" /> Watch Demo Video
                 </a>
               ) : (

@@ -380,8 +380,22 @@ const TrainerOnboarding = () => {
     if (checked) update("whatsapp", form.phone);
   };
 
+  // File size limits config
+  const fileSizeLimits: Record<string, { min: number; max: number; minLabel: string; maxLabel: string }> = {
+    resume: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
+    aadhaar: { min: 20 * 1024, max: 5 * 1024 * 1024, minLabel: "20KB", maxLabel: "5MB" },
+    demo_video: { min: 500 * 1024, max: 100 * 1024 * 1024, minLabel: "500KB", maxLabel: "100MB" },
+    intro_video: { min: 500 * 1024, max: 100 * 1024 * 1024, minLabel: "500KB", maxLabel: "100MB" },
+    curriculum_pdf: { min: 5 * 1024, max: 10 * 1024 * 1024, minLabel: "5KB", maxLabel: "10MB" },
+    joining_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
+    relieving_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
+    experience_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
+  };
+
   const handleFileSelect = (docKey: string, file: File | null) => {
     if (!file) return;
+
+    const limits = fileSizeLimits[docKey] || { min: 5 * 1024, max: 5 * 1024 * 1024, minLabel: "5KB", maxLabel: "5MB" };
 
     // Strict validation for Aadhaar document
     if (docKey === "aadhaar") {
@@ -392,20 +406,28 @@ const TrainerOnboarding = () => {
         toast({ title: "Invalid file format", description: "Please upload only JPG, PNG or PDF format. Aadhaar card image or PDF only.", variant: "destructive" });
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Maximum file size is 5MB for Aadhaar document.", variant: "destructive" });
-        return;
-      }
     } else if (docKey === "demo_video" || docKey === "intro_video") {
-      if (file.size > 100 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Maximum file size is 100MB for video uploads.", variant: "destructive" });
+      if (!file.type.startsWith("video/")) {
+        toast({ title: "Invalid file format", description: "Please upload a video file (MP4, MOV, etc.)", variant: "destructive" });
         return;
       }
-    } else {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Maximum file size is 5MB for document uploads.", variant: "destructive" });
+    } else if (docKey === "resume") {
+      const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+      const allowedExts = [".pdf", ".doc", ".docx"];
+      const ext = file.name.toLowerCase().substring(file.name.lastIndexOf("."));
+      if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+        toast({ title: "Invalid file format", description: "Please upload PDF or DOC/DOCX format only.", variant: "destructive" });
         return;
       }
+    }
+
+    if (file.size < limits.min) {
+      toast({ title: "File too small", description: `Minimum file size is ${limits.minLabel}. The file may be corrupted or empty.`, variant: "warning" });
+      return;
+    }
+    if (file.size > limits.max) {
+      toast({ title: "File too large", description: `Maximum file size is ${limits.maxLabel}.`, variant: "destructive" });
+      return;
     }
 
     setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
@@ -741,6 +763,8 @@ const TrainerOnboarding = () => {
     const hasNewFile = !!docs[docKey]?.file;
     const hasPreviousUpload = uploadedDocKeys.includes(docKey);
     const hasFile = hasNewFile || hasPreviousUpload;
+    const limits = fileSizeLimits[docKey];
+    const sizeHint = limits ? `Min ${limits.minLabel}, Max ${limits.maxLabel}` : "";
     return (
     <div className={`border rounded-xl p-4 transition-colors ${required && stepAttempted[step] && !hasFile ? "border-destructive" : "border-dashed border-border hover:border-primary/30"}`}>
       <div className="flex items-center justify-between">
@@ -753,12 +777,16 @@ const TrainerOnboarding = () => {
           ) : (
             <p className="text-xs text-muted-foreground mt-0.5">{hint || "PDF, JPG, PNG up to 10MB"}</p>
           )}
+          {sizeHint && <p className="text-[10px] text-muted-foreground mt-0.5">{sizeHint}</p>}
         </div>
         <div>
           <input type="file" ref={el => { fileRefs.current[docKey] = el; }} accept={accept} className="hidden" onChange={e => handleFileSelect(docKey, e.target.files?.[0] || null)} />
           <Button variant="outline" size="sm" onClick={() => fileRefs.current[docKey]?.click()}><Upload className="w-4 h-4 mr-2" />{hasFile ? "Change" : "Upload"}</Button>
         </div>
       </div>
+      {required && stepAttempted[step] && !hasFile && (
+        <p className="text-xs text-destructive mt-1.5">This upload is mandatory. Please upload the file to continue.</p>
+      )}
     </div>
     );
   };

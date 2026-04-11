@@ -148,7 +148,11 @@ const TrainerOnboarding = () => {
       if (!trainer) { setStepLoaded(true); setInitialLoading(false); return; }
 
       // If already submitted, redirect to thank you
-      if (trainer.onboarding_status === "pending" || trainer.onboarding_status === "approved") {
+      if (trainer.onboarding_status === "approved") {
+        navigate("/trainer/dashboard", { replace: true });
+        return;
+      }
+      if (trainer.onboarding_status === "pending") {
         navigate("/trainer/signup/thankyou", { replace: true });
         return;
       }

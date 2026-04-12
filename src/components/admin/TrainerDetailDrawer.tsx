@@ -605,17 +605,78 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
               variant="outline"
               className="w-full gap-1.5 text-sm"
               onClick={() => {
-                const email = profile?.email;
-                const name = profile?.full_name || "Trainer";
-                if (email) {
-                  window.open(`mailto:${email}?subject=SkillMitra Admin — Message for ${name}&body=Hi ${name},%0D%0A%0D%0A`, "_blank");
-                }
+                setEmailSubject("Message from SkillMitra Admin");
+                setEmailBody("");
+                setEmailDialogOpen(true);
               }}
               disabled={!profile?.email}
             >
               <Send className="w-4 h-4" /> Email {profile?.full_name || "Trainer"}
             </Button>
           </div>
+
+          {/* ─── EMAIL DIALOG ─── */}
+          <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Email to {profile?.full_name || "Trainer"}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <Label htmlFor="email-to">To</Label>
+                  <Input id="email-to" value={profile?.email || ""} disabled />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email-subject">Subject</Label>
+                  <Input
+                    id="email-subject"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Enter subject"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email-body">Message</Label>
+                  <Textarea
+                    id="email-body"
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    placeholder="Type your message here..."
+                    rows={6}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>Cancel</Button>
+                <Button
+                  disabled={sendingEmail || !emailSubject.trim() || !emailBody.trim()}
+                  onClick={async () => {
+                    setSendingEmail(true);
+                    try {
+                      const { error } = await supabase.functions.invoke("send-email", {
+                        body: {
+                          to: profile?.email,
+                          subject: emailSubject,
+                          html: `<p>Hi ${profile?.full_name || "Trainer"},</p><p>${emailBody.replace(/\n/g, "<br/>")}</p><p>Best regards,<br/>SkillMitra Admin Team</p>`,
+                        },
+                      });
+                      if (error) throw error;
+                      toast.success("Email sent successfully!");
+                      setEmailDialogOpen(false);
+                    } catch (err: any) {
+                      console.error("Send email failed:", err);
+                      toast.error("Failed to send email. Please try again.");
+                    } finally {
+                      setSendingEmail(false);
+                    }
+                  }}
+                >
+                  {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {sendingEmail ? "Sending..." : "Send"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* ─── ACTION BUTTONS ─── */}
           <div className="flex flex-wrap gap-2 pt-1">

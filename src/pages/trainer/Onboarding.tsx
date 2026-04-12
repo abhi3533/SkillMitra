@@ -256,20 +256,26 @@ const TrainerOnboarding = () => {
 
       // Restore previously uploaded file indicators from trainer columns & trainer_documents
       const restoredKeys: string[] = saved?.uploadedDocKeys || [];
-      if (trainer.selfie_url && !restoredKeys.includes("selfie")) restoredKeys.push("selfie");
-      if (trainer.demo_video_url && !restoredKeys.includes("demo_video")) restoredKeys.push("demo_video");
-      if ((trainer as any).intro_video_url && !restoredKeys.includes("intro_video")) restoredKeys.push("intro_video");
-      if (trainer.aadhaar_url && !restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar");
+      const restoredPaths: Record<string, string> = saved?.uploadedPaths || {};
+
+      // Rebuild paths from trainer columns if they exist
+      if (trainer.selfie_url) { if (!restoredKeys.includes("selfie")) restoredKeys.push("selfie"); restoredPaths["selfie"] = trainer.selfie_url; }
+      if (trainer.demo_video_url) { if (!restoredKeys.includes("demo_video")) restoredKeys.push("demo_video"); restoredPaths["demo_video"] = trainer.demo_video_url; }
+      if ((trainer as any).intro_video_url) { if (!restoredKeys.includes("intro_video")) restoredKeys.push("intro_video"); restoredPaths["intro_video"] = (trainer as any).intro_video_url; }
+      if (trainer.aadhaar_url) { if (!restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar"); restoredPaths["aadhaar"] = trainer.aadhaar_url; }
 
       // Check trainer_documents table for resume and other docs
       const { data: existingDocs } = await supabase
         .from("trainer_documents")
-        .select("document_type, document_name")
+        .select("document_type, document_name, document_url")
         .eq("trainer_id", trainer.id);
       if (existingDocs) {
         for (const doc of existingDocs) {
           if (doc.document_type && !restoredKeys.includes(doc.document_type)) {
             restoredKeys.push(doc.document_type);
+          }
+          if (doc.document_type && doc.document_url) {
+            restoredPaths[doc.document_type] = doc.document_url;
           }
         }
       }
@@ -286,6 +292,7 @@ const TrainerOnboarding = () => {
       }
 
       setUploadedDocKeys(restoredKeys);
+      setUploadedPaths(restoredPaths);
 
       // Resume from saved step
       const savedStep = trainer.onboarding_step || 0;

@@ -22,6 +22,7 @@ const AdminTrainers = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("pending");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name-asc" | "name-desc" | "status">("newest");
   const [selectedTrainer, setSelectedTrainer] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<any>(null);

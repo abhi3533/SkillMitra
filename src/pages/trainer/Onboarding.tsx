@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Eye, EyeOff, ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2,
-  Camera, X, Gift, Shield, Info, AlertTriangle, Star, Wifi, Mic, Volume2, Clock, Save, Calendar
+  ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2,
+  Camera, X, Gift, Shield, Wifi, Mic, Volume2, Clock, Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { cleanPhone, isValidPhone, isValidEmail } from "@/lib/formValidation";
+import { cleanPhone } from "@/lib/formValidation";
 import SkillMitraLogo from "@/components/SkillMitraLogo";
-import TrainerBadges, { getTrainerBadges } from "@/components/TrainerBadges";
 import { useAuth } from "@/hooks/useAuth";
 
 const stateOptions = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
@@ -28,15 +26,11 @@ const expertiseOptions = [
   "Business Analysis", "Product Management", "Sales", "HR Management", "Finance"
 ];
 
-const steps = ["Personal Details", "Experience", "Course Details", "Availability & Schedule", "Services & Materials", "Payment & Documents", "Referral & Declaration"];
+const steps = ["Personal Details", "Professional Details", "Basic Verification"];
 const stepHeadings = [
   "Complete your trainer profile",
   "Show us your professional journey",
-  "Design your 1-on-1 course",
-  "Set your availability and schedule",
-  "Go beyond just teaching",
-  "Almost done — set up payouts",
-  "Join 50+ verified trainers"
+  "Almost there — final verification",
 ];
 
 interface DocFile { file: File | null; name: string; }
@@ -60,6 +54,7 @@ const TrainerOnboarding = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // All existing form state keys preserved for backward compatibility
   const [form, setForm] = useState({
     dob: "", gender: "", phone: "", whatsapp: "", address: "", city: "", state: "", pincode: "",
     linkedinUrl: "", portfolioUrl: "",
@@ -67,7 +62,6 @@ const TrainerOnboarding = () => {
     verificationMethod: "", verificationValue: "",
     bio: "",
     courseTitle: "", courseDescription: "",
-    // Availability & Schedule fields
     trainerType: "", sessionDurationPerDay: "", weekendAvailability: "",
     courseDuration: "", courseFee: "", totalSessions: "",
     additionalServicesDetails: "", courseMaterials: "",
@@ -77,12 +71,13 @@ const TrainerOnboarding = () => {
 
   const [sameAsPhone, setSameAsPhone] = useState(false);
   const [expertiseAreas, setExpertiseAreas] = useState<string[]>([]);
+  const [customExpertise, setCustomExpertise] = useState("");
   const [teachingLanguages, setTeachingLanguages] = useState<string[]>([]);
+  // Kept for backward compat with saved draft data
   const [servicesOffered, setServicesOffered] = useState<string[]>([]);
   const [availableTimeBands, setAvailableTimeBands] = useState<string[]>([]);
   const [agreedTraining, setAgreedTraining] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [readinessChecks, setReadinessChecks] = useState<Record<string, boolean>>({
     internet: false, webcam: false, microphone: false, environment: false, cancel: false,
   });
@@ -94,13 +89,7 @@ const TrainerOnboarding = () => {
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const profilePhotoRef = useRef<HTMLInputElement | null>(null);
-  const [selfie, setSelfie] = useState<File | null>(null);
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
-  const [showCameraModal, setShowCameraModal] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const cameraStreamRef = useRef<MediaStream | null>(null);
-  const selfieFileRef = useRef<HTMLInputElement | null>(null);
-  const [cameraUnavailable, setCameraUnavailable] = useState(false);
+
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [stepAttempted, setStepAttempted] = useState<Record<number, boolean>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -111,15 +100,6 @@ const TrainerOnboarding = () => {
     scheduleAutoSave();
   };
   const markTouched = (key: string) => setTouched(t => ({ ...t, [key]: true }));
-
-  // Auto-calculate total course hours
-  const calculateTotalHours = () => {
-    const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "1.5 Hours": 1.5, "2 Hours": 2 };
-    const sessionHours = sessionHoursMap[form.sessionDurationPerDay] || 0;
-    const totalSessions = parseInt(form.totalSessions) || 0;
-    if (!sessionHours || !totalSessions) return null;
-    return Math.round(totalSessions * sessionHours);
-  };
 
   // Persist step to localStorage on every change
   useEffect(() => {
@@ -141,13 +121,12 @@ const TrainerOnboarding = () => {
     (async () => {
       const { data: trainer } = await supabase
         .from("trainers")
-        .select("id, approval_status, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, selfie_url, demo_video_url, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability, total_sessions")
+        .select("id, approval_status, onboarding_step, onboarding_data, onboarding_status, last_saved_at, dob, whatsapp, address, pincode, portfolio_url, secondary_skill, work_email, expertise_areas, verification_method, verification_value, course_title, course_duration, course_fee, course_description, additional_services_details, course_materials, bank_account_number, ifsc_code, account_holder_name, upi_id, govt_id_type, services_offered, current_role, current_company, experience_years, linkedin_url, bio, skills, aadhaar_url, referral_code, trainer_type, session_duration_per_day, available_time_bands, weekend_availability, total_sessions")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (!trainer) { setStepLoaded(true); setInitialLoading(false); return; }
 
-      // If already submitted, redirect to thank you (but allow rejected trainers to edit)
       if (trainer.onboarding_status === "approved") {
         navigate("/trainer/dashboard", { replace: true });
         return;
@@ -160,7 +139,6 @@ const TrainerOnboarding = () => {
 
       setTrainerId(trainer.id);
 
-      // Restore from onboarding_data JSONB if available, fallback to individual columns
       const saved = (trainer.onboarding_data && typeof trainer.onboarding_data === 'object' && Object.keys(trainer.onboarding_data as object).length > 0)
         ? trainer.onboarding_data as Record<string, any>
         : null;
@@ -188,8 +166,8 @@ const TrainerOnboarding = () => {
           verificationValue: saved.verificationValue || trainer.verification_value || "",
           bio: saved.bio || trainer.bio || "",
           courseTitle: saved.courseTitle || trainer.course_title || "",
-           courseDuration: saved.courseDuration || trainer.course_duration || "",
-           totalSessions: saved.totalSessions || String(trainer.total_sessions || ""),
+          courseDuration: saved.courseDuration || trainer.course_duration || "",
+          totalSessions: saved.totalSessions || String(trainer.total_sessions || ""),
           courseFee: saved.courseFee || String(trainer.course_fee || ""),
           courseDescription: saved.courseDescription || trainer.course_description || "",
           additionalServicesDetails: saved.additionalServicesDetails || trainer.additional_services_details || "",
@@ -211,7 +189,6 @@ const TrainerOnboarding = () => {
         else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
         if (saved.uploadedDocKeys) setUploadedDocKeys(saved.uploadedDocKeys);
       } else {
-        // Load from profile + trainer columns
         setForm(f => ({
           ...f,
           phone: profile?.phone || "",
@@ -234,8 +211,8 @@ const TrainerOnboarding = () => {
           verificationValue: trainer.verification_value || "",
           bio: trainer.bio || "",
           courseTitle: trainer.course_title || "",
-           courseDuration: trainer.course_duration || "",
-           totalSessions: String(trainer.total_sessions || ""),
+          courseDuration: trainer.course_duration || "",
+          totalSessions: String(trainer.total_sessions || ""),
           courseFee: String(trainer.course_fee || ""),
           courseDescription: trainer.course_description || "",
           additionalServicesDetails: trainer.additional_services_details || "",
@@ -254,15 +231,14 @@ const TrainerOnboarding = () => {
         if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
       }
 
-      // Restore previously uploaded file indicators from trainer columns & trainer_documents
+      // Restore previously uploaded file indicators
       const restoredKeys: string[] = saved?.uploadedDocKeys || [];
       const restoredPaths: Record<string, string> = saved?.uploadedPaths || {};
 
-      // Rebuild paths from trainer columns if they exist
-      if (trainer.selfie_url) { if (!restoredKeys.includes("selfie")) restoredKeys.push("selfie"); restoredPaths["selfie"] = trainer.selfie_url; }
-      if (trainer.demo_video_url) { if (!restoredKeys.includes("demo_video")) restoredKeys.push("demo_video"); restoredPaths["demo_video"] = trainer.demo_video_url; }
-      if ((trainer as any).intro_video_url) { if (!restoredKeys.includes("intro_video")) restoredKeys.push("intro_video"); restoredPaths["intro_video"] = (trainer as any).intro_video_url; }
-      if (trainer.aadhaar_url) { if (!restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar"); restoredPaths["aadhaar"] = trainer.aadhaar_url; }
+      if (trainer.aadhaar_url) {
+        if (!restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar");
+        restoredPaths["aadhaar"] = trainer.aadhaar_url;
+      }
 
       // Check trainer_documents table for resume and other docs
       const { data: existingDocs } = await supabase
@@ -280,12 +256,6 @@ const TrainerOnboarding = () => {
         }
       }
 
-      // Restore selfie preview from storage
-      if (trainer.selfie_url) {
-        const { data: signedData } = await supabase.storage.from("trainer-documents").createSignedUrl(trainer.selfie_url, 3600);
-        if (signedData?.signedUrl) setSelfiePreview(signedData.signedUrl);
-      }
-
       // Restore profile picture preview
       if (profile?.profile_picture_url) {
         setProfilePhotoPreview(profile.profile_picture_url);
@@ -294,8 +264,8 @@ const TrainerOnboarding = () => {
       setUploadedDocKeys(restoredKeys);
       setUploadedPaths(restoredPaths);
 
-      // Resume from saved step
-      const savedStep = trainer.onboarding_step || 0;
+      // Resume from saved step, capped at LAST_STEP (2)
+      const savedStep = Math.min(trainer.onboarding_step || 0, steps.length - 1);
       setStep(savedStep);
       localStorage.setItem("trainer_onboarding_step", String(savedStep));
       if (trainer.last_saved_at) setLastSaved(new Date(trainer.last_saved_at));
@@ -304,18 +274,13 @@ const TrainerOnboarding = () => {
     })();
   }, [user, profile, navigate]);
 
-  // Ref that always holds the latest saveDraft function. useCallback with [] would capture
-  // the initial (stale) saveDraft closure, so we use a ref instead. The ref is updated
-  // after every render via the useEffect below (declared after saveDraft is defined).
   const saveDraftRef = useRef<((showToast: boolean) => Promise<boolean>) | null>(null);
 
-  // Auto-save draft
   const scheduleAutoSave = useCallback(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => saveDraftRef.current?.(false), 3000);
   }, []);
 
-  // Save draft when user switches away from tab
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden" && trainerId && user) {
@@ -370,8 +335,6 @@ const TrainerOnboarding = () => {
     return succeeded;
   };
 
-  // Keep saveDraftRef current so scheduleAutoSave always calls the latest saveDraft
-  // (which closes over the current form state, trainerId, etc.)
   useEffect(() => { saveDraftRef.current = saveDraft; });
 
   const handleSaveAndContinueLater = async () => {
@@ -379,26 +342,14 @@ const TrainerOnboarding = () => {
     if (saved) navigate("/trainer/dashboard");
   };
 
-  const handlePhoneChange = (val: string) => {
-    const cleaned = cleanPhone(val);
-    update("phone", cleaned);
-    if (sameAsPhone) update("whatsapp", cleaned);
-  };
   const handleSameAsPhone = (checked: boolean) => {
     setSameAsPhone(checked);
     if (checked) update("whatsapp", form.phone);
   };
 
-  // File size limits config
   const fileSizeLimits: Record<string, { min: number; max: number; minLabel: string; maxLabel: string }> = {
     resume: { min: 0, max: 5 * 1024 * 1024, minLabel: "0", maxLabel: "5MB" },
     aadhaar: { min: 20 * 1024, max: 5 * 1024 * 1024, minLabel: "20KB", maxLabel: "5MB" },
-    demo_video: { min: 500 * 1024, max: 100 * 1024 * 1024, minLabel: "500KB", maxLabel: "100MB" },
-    intro_video: { min: 500 * 1024, max: 100 * 1024 * 1024, minLabel: "500KB", maxLabel: "100MB" },
-    curriculum_pdf: { min: 5 * 1024, max: 10 * 1024 * 1024, minLabel: "5KB", maxLabel: "10MB" },
-    joining_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
-    relieving_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
-    experience_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
   };
 
   const handleFileSelect = async (docKey: string, file: File | null) => {
@@ -406,7 +357,6 @@ const TrainerOnboarding = () => {
 
     const limits = fileSizeLimits[docKey] || { min: 5 * 1024, max: 5 * 1024 * 1024, minLabel: "5KB", maxLabel: "5MB" };
 
-    // Strict validation for Aadhaar document
     if (docKey === "aadhaar") {
       const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
       const allowedExts = [".jpg", ".jpeg", ".png", ".pdf"];
@@ -415,17 +365,10 @@ const TrainerOnboarding = () => {
         toast({ title: "Invalid file format", description: "Please upload only JPG, PNG or PDF format. Aadhaar card image or PDF only.", variant: "destructive" });
         return;
       }
-    } else if (docKey === "demo_video" || docKey === "intro_video") {
-      if (!file.type.startsWith("video/")) {
-        toast({ title: "Invalid file format", description: "Please upload a video file (MP4, MOV, etc.)", variant: "destructive" });
-        return;
-      }
     } else if (docKey === "resume") {
-      const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
-      const allowedExts = [".pdf", ".doc", ".docx"];
       const ext = file.name.toLowerCase().substring(file.name.lastIndexOf("."));
-      if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
-        toast({ title: "Invalid file format", description: "Please upload PDF or DOC/DOCX format only.", variant: "destructive" });
+      if (file.type !== "application/pdf" && ext !== ".pdf") {
+        toast({ title: "Invalid file format", description: "Please upload PDF format only.", variant: "destructive" });
         return;
       }
     }
@@ -442,34 +385,21 @@ const TrainerOnboarding = () => {
     setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
     setUploadedDocKeys(prev => prev.includes(docKey) ? prev : [...prev, docKey]);
 
-    // Immediately upload the file to storage so the path persists across page reloads
     const ext = file.name.split('.').pop();
-    const isPublicBucket = docKey === "demo_video" || docKey === "intro_video";
-    const bucket = isPublicBucket ? "intro-videos" : "trainer-documents";
     const path = `${user.id}/${docKey}.${ext}`;
-    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+    const { error: upErr } = await supabase.storage.from("trainer-documents").upload(path, file, { upsert: true });
     if (upErr) {
       console.error(`Immediate upload failed for ${docKey}:`, upErr);
       toast({ title: "Upload failed", description: `Could not upload ${docKey}. Please try again.`, variant: "destructive" });
       return;
     }
 
-    // Store the path (or public URL for public buckets)
-    let storedPath = path;
-    if (isPublicBucket) {
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
-      storedPath = urlData.publicUrl;
-    }
-    setUploadedPaths(prev => ({ ...prev, [docKey]: storedPath }));
+    setUploadedPaths(prev => ({ ...prev, [docKey]: path }));
     toast({ title: "File uploaded", description: `${file.name} uploaded successfully.`, variant: "success" });
     scheduleAutoSave();
   };
 
-  const isPhoneFilled = isValidPhone(form.phone);
   const hasLetters = (val: string) => /[a-zA-Z]/.test(val);
-  const isValidName = (val: string) => /^[a-zA-Z\s.'-]+$/.test(val.trim());
-  const isValidIFSC = (val: string) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(val);
-  const isValidPincode = (val: string) => /^\d{6}$/.test(val);
 
   const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -481,111 +411,34 @@ const TrainerOnboarding = () => {
       setProfilePhotoPreview(URL.createObjectURL(file));
     }
   };
-  const removeProfilePhoto = () => { setProfilePhoto(null); setProfilePhotoPreview(null); if (profilePhotoRef.current) profilePhotoRef.current.value = ""; };
-
-  const openCameraForSelfie = async () => {
-    setShowCameraModal(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-      cameraStreamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-    } catch (err) {
-      console.error("Camera access failed:", err);
-      toast({ title: "Camera unavailable", description: "You can upload a photo instead.", variant: "warning" });
-      setShowCameraModal(false);
-      setCameraUnavailable(true);
-    }
+  const removeProfilePhoto = () => {
+    setProfilePhoto(null);
+    setProfilePhotoPreview(null);
+    if (profilePhotoRef.current) profilePhotoRef.current.value = "";
   };
 
-  const handleSelfieFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Please select an image file", variant: "warning" });
-      return;
+  const addCustomExpertise = () => {
+    const trimmed = customExpertise.trim();
+    if (trimmed && !expertiseAreas.includes(trimmed)) {
+      setExpertiseAreas(prev => [...prev, trimmed]);
+      scheduleAutoSave();
     }
-    if (file.size < 10 * 1024) {
-      toast({ title: "Photo too small", description: "Minimum file size is 10KB. Please upload a clear photo.", variant: "warning" });
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Image must be under 5MB", variant: "warning" });
-      return;
-    }
-    setSelfie(file);
-    setSelfiePreview(URL.createObjectURL(file));
-    // Immediately upload selfie
-    if (user) {
-      const ext = file.name.split('.').pop();
-      const selfiePath = `${user.id}/selfie.${ext}`;
-      const { error: sErr } = await supabase.storage.from("trainer-documents").upload(selfiePath, file, { upsert: true });
-      if (!sErr) {
-        setUploadedPaths(prev => ({ ...prev, selfie: selfiePath }));
-        setUploadedDocKeys(prev => prev.includes("selfie") ? prev : [...prev, "selfie"]);
-        scheduleAutoSave();
-      }
-    }
+    setCustomExpertise("");
   };
-
-  const captureSelfie = () => {
-    if (!videoRef.current) return;
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
-    canvas.toBlob(async (blob) => {
-      if (blob) {
-        const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
-        setSelfie(file);
-        setSelfiePreview(URL.createObjectURL(file));
-        // Immediately upload selfie
-        if (user) {
-          const selfiePath = `${user.id}/selfie.jpg`;
-          const { error: sErr } = await supabase.storage.from("trainer-documents").upload(selfiePath, file, { upsert: true });
-          if (!sErr) {
-            setUploadedPaths(prev => ({ ...prev, selfie: selfiePath }));
-            setUploadedDocKeys(prev => prev.includes("selfie") ? prev : [...prev, "selfie"]);
-            scheduleAutoSave();
-          }
-        }
-      }
-      closeCameraStream();
-    }, "image/jpeg", 0.9);
-  };
-
-  const closeCameraStream = () => {
-    cameraStreamRef.current?.getTracks().forEach(t => t.stop());
-    cameraStreamRef.current = null;
-    setShowCameraModal(false);
-  };
-
-  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); setUploadedPaths(prev => { const p = { ...prev }; delete p["selfie"]; return p; }); setUploadedDocKeys(prev => prev.filter(k => k !== "selfie")); };
 
   const toggleReadiness = (key: string) => setReadinessChecks(p => ({ ...p, [key]: !p[key] }));
   const allReadinessChecked = Object.values(readinessChecks).every(Boolean);
 
-  const previewBadges = getTrainerBadges({
-    hasAadhaar: !!docs["aadhaar"]?.file || uploadedDocKeys.includes("aadhaar") || !!form.govtIdType,
-    hasExperienceDocs: !!(docs["joining_letter"]?.file || docs["relieving_letter"]?.file || docs["experience_letter"]?.file || uploadedDocKeys.includes("joining_letter") || uploadedDocKeys.includes("relieving_letter") || uploadedDocKeys.includes("experience_letter")),
-    hasDemoVideo: !!docs["demo_video"]?.file || uploadedDocKeys.includes("demo_video"),
-  });
-
   const toggleExpertise = (e: string) => { setExpertiseAreas(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]); scheduleAutoSave(); };
-  const toggleService = (s: string) => { setServicesOffered(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]); scheduleAutoSave(); };
-  const toggleTimeBand = (band: string) => { setAvailableTimeBands(p => p.includes(band) ? p.filter(x => x !== band) : [...p, band]); scheduleAutoSave(); };
   const toggleTeachingLanguage = (lang: string) => { setTeachingLanguages(p => p.includes(lang) ? p.filter(x => x !== lang) : [...p, lang]); scheduleAutoSave(); };
 
-  const LAST_STEP = steps.length - 1; // 6
+  const LAST_STEP = steps.length - 1; // 2
 
   const validateStep = (s: number): boolean => {
     setStepAttempted(p => ({ ...p, [s]: true }));
     if (s === 0) {
       if (!form.dob) { toast({ title: "Date of birth is required", variant: "warning" }); return false; }
       if (!form.gender) { toast({ title: "Gender is required", variant: "warning" }); return false; }
-      if (!isValidPhone(form.phone)) { toast({ title: "Valid 10-digit Indian mobile number required", variant: "warning" }); return false; }
       if (!form.city.trim() || !/^[a-zA-Z\s'-]+$/.test(form.city.trim())) { toast({ title: "Please enter a valid city name (letters only)", variant: "warning" }); return false; }
       if (!form.state) { toast({ title: "State is required", variant: "warning" }); return false; }
     }
@@ -593,42 +446,15 @@ const TrainerOnboarding = () => {
       if (!form.experience.trim()) { toast({ title: "Total experience is required", variant: "warning" }); return false; }
       if (!form.currentRole.trim() || !hasLetters(form.currentRole)) { toast({ title: "Valid current role is required", variant: "warning" }); return false; }
       if (!form.currentCompany.trim() || !hasLetters(form.currentCompany)) { toast({ title: "Valid company name is required", variant: "warning" }); return false; }
-      if (!form.primarySkill.trim()) { toast({ title: "Primary skill is required", variant: "warning" }); return false; }
       if (expertiseAreas.length === 0) { toast({ title: "Select at least one area of expertise", variant: "warning" }); return false; }
-      if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
-      if (!docs["resume"]?.file && !uploadedDocKeys.includes("resume")) { toast({ title: "Please upload your resume to continue", variant: "warning" }); return false; }
       if (teachingLanguages.length === 0) { toast({ title: "Please select at least one teaching language to continue", variant: "warning" }); return false; }
+      if (!form.bio.trim() || form.bio.trim().length < 100) { toast({ title: "Bio must be at least 100 characters", variant: "warning" }); return false; }
     }
     if (s === 2) {
-      if (!docs["demo_video"]?.file && !uploadedDocKeys.includes("demo_video")) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
-      if (!docs["intro_video"]?.file && !uploadedDocKeys.includes("intro_video")) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
-      if (!docs["curriculum_pdf"]?.file && !uploadedDocKeys.includes("curriculum_pdf")) { toast({ title: "Course curriculum PDF is required", variant: "warning" }); return false; }
-      if (!form.courseTitle.trim()) { toast({ title: "Course title is required", variant: "warning" }); return false; }
-      if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
-    }
-    if (s === 3) {
-      if (!form.trainerType) { toast({ title: "Please select Full-Time or Part-Time", variant: "warning" }); return false; }
-      if (!form.sessionDurationPerDay) { toast({ title: "Please select session duration per day", variant: "warning" }); return false; }
-      if (availableTimeBands.length === 0) { toast({ title: "Please select at least one available time band", variant: "warning" }); return false; }
-      if (!form.weekendAvailability) { toast({ title: "Please select weekend availability", variant: "warning" }); return false; }
-      if (!form.courseDuration) { toast({ title: "Please select course duration", variant: "warning" }); return false; }
-      if (!form.totalSessions) { toast({ title: "Please select total number of sessions", variant: "warning" }); return false; }
-      if (!form.courseFee.trim() || isNaN(Number(form.courseFee)) || Number(form.courseFee) < 500) { toast({ title: "Course fee must be minimum ₹500", variant: "warning" }); return false; }
-    }
-    if (s === 4) {
-      if (servicesOffered.length === 0) { toast({ title: "Select at least one service to offer", variant: "warning" }); return false; }
-    }
-    if (s === 5) {
       if (!profilePhoto && !profilePhotoPreview) { toast({ title: "Profile photo is required", variant: "warning" }); return false; }
-      if (!selfie && !selfiePreview) { toast({ title: "Selfie is required for verification", variant: "warning" }); return false; }
-      if (!form.bankAccount.trim()) { toast({ title: "Bank account number is required", variant: "warning" }); return false; }
-      if (!form.ifsc.trim() || !isValidIFSC(form.ifsc)) { toast({ title: "Valid IFSC code is required (e.g. SBIN0001234)", variant: "warning" }); return false; }
-      const effectiveAccountName = (profile?.full_name || form.accountHolderName || "").trim();
-      if (!effectiveAccountName) { toast({ title: "Account holder name is required", variant: "warning" }); return false; }
-      if (!form.govtIdType) { toast({ title: "Government ID type is required", variant: "warning" }); return false; }
+      if (!docs["resume"]?.file && !uploadedDocKeys.includes("resume")) { toast({ title: "Please upload your resume (PDF) to continue", variant: "warning" }); return false; }
       if (!docs["aadhaar"]?.file && !uploadedDocKeys.includes("aadhaar")) { toast({ title: "Aadhaar document upload is required", variant: "warning" }); return false; }
-    }
-    if (s === 6) {
+      if (!form.trainerType) { toast({ title: "Please select Full-Time or Part-Time", variant: "warning" }); return false; }
       if (referralStatus === "invalid") { toast({ title: "Please fix or remove the invalid referral code", variant: "warning" }); return false; }
       if (referralStatus === "checking") { toast({ title: "Referral code is being verified, please wait", variant: "warning" }); return false; }
       if (!agreedTraining) { toast({ title: "Please confirm 1-on-1 training commitment", variant: "warning" }); return false; }
@@ -642,7 +468,6 @@ const TrainerOnboarding = () => {
     if (validateStep(step)) {
       const newStep = step + 1;
       setStep(newStep);
-      // Save draft after advancing
       if (trainerId && user) {
         const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands, uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])], uploadedPaths: { ...uploadedPaths } };
         await supabase.from("trainers").update({
@@ -660,8 +485,7 @@ const TrainerOnboarding = () => {
     if (!validateStep(LAST_STEP) || !user || !trainerId) return;
     setSubmitting(true);
     try {
-      // Upload files — use already-uploaded paths from uploadedPaths as fallback
-      // when File objects are no longer in memory (e.g. after page reload)
+      // Upload profile photo
       let profilePictureUrl: string | null = null;
       if (profilePhoto) {
         const ext = profilePhoto.name.split('.').pop();
@@ -670,117 +494,92 @@ const TrainerOnboarding = () => {
         if (!photoErr) { const { data: u } = supabase.storage.from("profile-pictures").getPublicUrl(photoPath); profilePictureUrl = u.publicUrl; }
       }
 
-      let selfieUrl: string | null = uploadedPaths["selfie"] || null;
-      if (selfie) {
-        const ext = selfie.name.split('.').pop();
-        const selfiePath = `${user.id}/selfie.${ext}`;
-        const { error: sErr } = await supabase.storage.from("trainer-documents").upload(selfiePath, selfie, { upsert: true });
-        if (!sErr) { selfieUrl = selfiePath; }
-      }
-
-      let demoVideoUrl: string | null = uploadedPaths["demo_video"] || null;
-      let introVideoUrl: string | null = uploadedPaths["intro_video"] || null;
-      let curriculumPdfUrl: string | null = uploadedPaths["curriculum_pdf"] || null;
+      // Handle resume and aadhaar (uploaded immediately on select, paths already in uploadedPaths)
       let aadhaarUrl: string | null = uploadedPaths["aadhaar"] || null;
       const uploadedDocs: { document_type: string; document_name: string; document_url: string }[] = [];
 
       for (const [key, docFile] of Object.entries(docs)) {
         if (!docFile?.file) {
-          // File object lost (page reload) — use previously uploaded path if we have one
-          // For resume and other docs that go to trainer_documents, add them if path exists
-          if (uploadedPaths[key] && !["demo_video", "intro_video", "curriculum_pdf", "aadhaar", "selfie"].includes(key)) {
+          // File object lost (page reload) — use previously uploaded path
+          if (uploadedPaths[key] && key === "resume") {
             uploadedDocs.push({ document_type: key, document_name: docFile?.name || key, document_url: uploadedPaths[key] });
           }
           continue;
         }
         const ext = docFile.file.name.split('.').pop();
-        const isPublicBucket = key === "demo_video" || key === "intro_video";
-        const bucket = isPublicBucket ? "intro-videos" : "trainer-documents";
         const path = `${user.id}/${key}.${ext}`;
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, docFile.file, { upsert: true });
+        const { error: upErr } = await supabase.storage.from("trainer-documents").upload(path, docFile.file, { upsert: true });
         if (upErr) { console.error(`Upload failed for ${key}:`, upErr); continue; }
-        if (isPublicBucket) {
-          const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
-          if (key === "demo_video") demoVideoUrl = urlData.publicUrl;
-          else if (key === "intro_video") introVideoUrl = urlData.publicUrl;
-        } else if (key === "curriculum_pdf") {
-          curriculumPdfUrl = path;
-        } else if (key === "aadhaar") {
+        if (key === "aadhaar") {
           aadhaarUrl = path;
         } else {
           uploadedDocs.push({ document_type: key, document_name: docFile.name, document_url: path });
         }
       }
 
-      // Also pick up any uploadedPaths for doc keys that weren't in docs state at all
+      // Pick up resume from uploadedPaths if not already captured
       for (const [key, path] of Object.entries(uploadedPaths)) {
-        if (["demo_video", "intro_video", "curriculum_pdf", "aadhaar", "selfie"].includes(key)) continue;
-        if (!docs[key] && path) {
+        if (key === "aadhaar") { aadhaarUrl = aadhaarUrl || path; continue; }
+        if (key === "resume" && !docs[key] && path) {
           uploadedDocs.push({ document_type: key, document_name: key, document_url: path });
         }
       }
 
-      // Save all trainer profile data via edge function FIRST.
-      // Only mark onboarding_status as "pending" after this succeeds so that if the
-      // function call fails the trainer is not left with incomplete data but a pending status.
       const { error: completeErr } = await supabase.functions.invoke("complete-signup", {
         body: {
           user_id: user.id,
           role: "trainer",
           trainer_data: {
             bio: form.bio,
-            skills: [form.primarySkill, form.secondarySkill].filter(Boolean),
+            skills: [],
             teaching_languages: teachingLanguages,
             experience_years: parseInt(form.experience) || 0,
             current_role: form.currentRole,
             current_company: form.currentCompany,
-            linkedin_url: form.linkedinUrl || null,
+            linkedin_url: null,
             previous_companies: [],
-            bank_account_number: form.bankAccount || null,
-            ifsc_code: form.ifsc || null,
-            upi_id: form.upiId || null,
+            bank_account_number: null,
+            ifsc_code: null,
+            upi_id: null,
             pan_number: null,
-            account_holder_name: (profile?.full_name || form.accountHolderName || "").trim() || null,
-            intro_video_url: introVideoUrl,
+            account_holder_name: null,
+            intro_video_url: null,
             profile_picture_url: profilePictureUrl,
             documents: uploadedDocs,
             dob: form.dob || null,
             whatsapp: form.whatsapp || null,
-            selfie_url: selfieUrl,
-            address: form.address || null,
-            pincode: form.pincode || null,
-            portfolio_url: form.portfolioUrl || null,
-            secondary_skill: form.secondarySkill || null,
-            work_email: form.workEmail || null,
+            selfie_url: null,
+            address: null,
+            pincode: null,
+            portfolio_url: null,
+            secondary_skill: null,
+            work_email: null,
             expertise_areas: expertiseAreas,
-            demo_video_url: demoVideoUrl,
-            curriculum_pdf_url: curriculumPdfUrl,
-            services_offered: servicesOffered,
-            course_materials: form.courseMaterials || null,
+            demo_video_url: null,
+            curriculum_pdf_url: null,
+            services_offered: [],
+            course_materials: null,
             govt_id_type: form.govtIdType || null,
             aadhaar_url: aadhaarUrl,
-            additional_services_details: form.additionalServicesDetails || null,
-            course_title: form.courseTitle || null,
-            course_duration: form.courseDuration || null,
-            total_sessions: form.totalSessions ? parseInt(form.totalSessions) : null,
-            course_fee: parseFloat(form.courseFee) || 0,
-            course_description: form.courseDescription || null,
-            verification_method: form.verificationMethod || null,
-            verification_value: form.verificationValue || null,
+            additional_services_details: null,
+            course_title: null,
+            course_duration: null,
+            total_sessions: null,
+            course_fee: 0,
+            course_description: null,
+            verification_method: null,
+            verification_value: null,
             trainer_type: form.trainerType || null,
-            session_duration_per_day: form.sessionDurationPerDay || null,
-            available_time_bands: availableTimeBands,
-            weekend_availability: form.weekendAvailability || null,
+            session_duration_per_day: null,
+            available_time_bands: [],
+            weekend_availability: null,
           },
           notify_phone: form.phone || null,
           notify_city: form.city || null,
         },
       });
-      // complete-signup already sets onboarding_status="pending" inside the edge function.
-      // If it fails, throw so the catch block shows the error and does NOT redirect.
       if (completeErr) throw new Error("Failed to save your application data. Please try again.");
 
-      // Belt-and-suspenders: also update status from the client side after confirmed success.
       const { error: statusUpdateErr } = await supabase.from("trainers").update({
         onboarding_status: "pending",
         onboarding_step: steps.length,
@@ -788,8 +587,7 @@ const TrainerOnboarding = () => {
       }).eq("id", trainerId);
       if (statusUpdateErr) console.error("Status update error:", statusUpdateErr);
 
-      // Process referral — awaited so we can write referred_by as a fallback if the
-      // edge function fails (ensures admin approval still triggers the reward later).
+      // Process referral
       const trimmedRef = form.referralCode.trim().toUpperCase();
       if (trimmedRef) {
         const { data: refResult, error: refErr } = await supabase.functions.invoke(
@@ -802,7 +600,7 @@ const TrainerOnboarding = () => {
         }
       }
 
-      // Update profile with city/state if changed
+      // Update profile with city/state/gender
       if (form.city || form.state || form.gender) {
         await supabase.from("profiles").update({
           city: form.city || undefined,
@@ -827,30 +625,30 @@ const TrainerOnboarding = () => {
     const hasPreviousUpload = uploadedDocKeys.includes(docKey);
     const hasFile = hasNewFile || hasPreviousUpload;
     const limits = fileSizeLimits[docKey];
-    const sizeHint = limits ? `Min ${limits.minLabel}, Max ${limits.maxLabel}` : "";
+    const sizeHint = limits ? `Max ${limits.maxLabel}` : "";
     return (
-    <div className={`border rounded-xl p-4 transition-colors ${required && stepAttempted[step] && !hasFile ? "border-destructive" : "border-dashed border-border hover:border-primary/30"}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-foreground">{label}{required && <RequiredMark />}</p>
-          {hasNewFile ? (
-            <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />{docs[docKey].name}</p>
-          ) : hasPreviousUpload ? (
-            <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />Previously uploaded</p>
-          ) : (
-            <p className="text-xs text-muted-foreground mt-0.5">{hint || "PDF, JPG, PNG up to 10MB"}</p>
-          )}
-          {sizeHint && <p className="text-[10px] text-muted-foreground mt-0.5">{sizeHint}</p>}
+      <div className={`border rounded-xl p-4 transition-colors ${required && stepAttempted[step] && !hasFile ? "border-destructive" : "border-dashed border-border hover:border-primary/30"}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">{label}{required && <RequiredMark />}</p>
+            {hasNewFile ? (
+              <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />{docs[docKey].name}</p>
+            ) : hasPreviousUpload ? (
+              <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1"><FileCheck className="w-3 h-3" />Previously uploaded</p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-0.5">{hint || "Upload file"}</p>
+            )}
+            {sizeHint && <p className="text-[10px] text-muted-foreground mt-0.5">{sizeHint}</p>}
+          </div>
+          <div>
+            <input type="file" ref={el => { fileRefs.current[docKey] = el; }} accept={accept} className="hidden" onChange={e => handleFileSelect(docKey, e.target.files?.[0] || null)} />
+            <Button variant="outline" size="sm" onClick={() => fileRefs.current[docKey]?.click()}><Upload className="w-4 h-4 mr-2" />{hasFile ? "Change" : "Upload"}</Button>
+          </div>
         </div>
-        <div>
-          <input type="file" ref={el => { fileRefs.current[docKey] = el; }} accept={accept} className="hidden" onChange={e => handleFileSelect(docKey, e.target.files?.[0] || null)} />
-          <Button variant="outline" size="sm" onClick={() => fileRefs.current[docKey]?.click()}><Upload className="w-4 h-4 mr-2" />{hasFile ? "Change" : "Upload"}</Button>
-        </div>
+        {required && stepAttempted[step] && !hasFile && (
+          <p className="text-xs text-destructive mt-1.5">This upload is mandatory. Please upload the file to continue.</p>
+        )}
       </div>
-      {required && stepAttempted[step] && !hasFile && (
-        <p className="text-xs text-destructive mt-1.5">This upload is mandatory. Please upload the file to continue.</p>
-      )}
-    </div>
     );
   };
 
@@ -885,8 +683,6 @@ const TrainerOnboarding = () => {
       </div>
     );
   }
-
-  const totalHours = calculateTotalHours();
 
   return (
     <div className="min-h-screen bg-background">
@@ -937,10 +733,13 @@ const TrainerOnboarding = () => {
           {/* ========== STEP 0: Personal Details ========== */}
           {step === 0 && (
             <div className="mt-6 space-y-4">
+              {/* Read-only context banner */}
               <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">{profile?.full_name}</span> · {profile?.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">{profile?.full_name}</span>
+                  {profile?.email ? <> · {profile.email}</> : null}
+                </p>
               </div>
-              <FieldHint text="Enter your full name as per Aadhaar and banking records for verification purposes." />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -953,68 +752,50 @@ const TrainerOnboarding = () => {
                   <Label>Gender<RequiredMark /></Label>
                   <Select value={form.gender} onValueChange={v => { update("gender", v); markTouched("gender"); }}>
                     <SelectTrigger className={`mt-1.5 h-11 ${touched.gender ? (form.gender ? "border-green-500" : "border-destructive") : ""}`}><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent><SelectItem value="male">Male</SelectItem><SelectItem value="female">Female</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
                   </Select>
-                  <FieldHint text="Some students prefer trainers of a specific gender. Helps with matching." />
+                  <FieldHint text="Helps with student matching preferences." />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Phone Number<RequiredMark /></Label>
-                  <Input value={form.phone} onChange={e => handlePhoneChange(e.target.value)} onBlur={() => markTouched("phone")} placeholder="9876543210" maxLength={10} inputMode="numeric"
-                    className={`mt-1.5 h-11 ${touched.phone ? (isPhoneFilled ? "border-green-500" : "border-destructive") : ""}`} />
-                  <FieldHint text="We may call you for onboarding assistance or to connect you with students." />
-                </div>
-                 <div>
-                  <div className="flex items-center justify-between">
-                    <Label>WhatsApp <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-                      <Checkbox checked={sameAsPhone} onCheckedChange={handleSameAsPhone} className="w-3.5 h-3.5" />
-                      Same as phone
-                    </label>
-                  </div>
-                  <Input value={form.whatsapp} onChange={e => { update("whatsapp", cleanPhone(e.target.value)); setSameAsPhone(false); }} placeholder="9876543210" maxLength={10} inputMode="numeric" disabled={sameAsPhone}
-                    className={`mt-1.5 h-11 ${sameAsPhone ? "bg-muted" : ""}`} />
-                </div>
-              </div>
-
-              <div>
-                <Label>Complete Address <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
-                <Textarea value={form.address} onChange={e => update("address", e.target.value)} onBlur={() => markTouched("address")} placeholder="House/Flat No, Street, Area, Landmark" className="mt-1.5 min-h-[70px]" />
-                <FieldHint text="Kept private. Used only for KYC and document verification." />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
                   <Label>City<RequiredMark /></Label>
-                  <Input value={form.city} onChange={e => update("city", e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} onBlur={() => markTouched("city")} placeholder="City" className="mt-1.5 h-11" />
+                  <Input value={form.city} onChange={e => update("city", e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} onBlur={() => markTouched("city")} placeholder="City"
+                    className={`mt-1.5 h-11 ${touched.city ? (form.city.trim() && /^[a-zA-Z\s'-]+$/.test(form.city.trim()) ? "border-green-500" : "border-destructive") : ""}`} />
                   <FieldHint text="Shown to students to find local trainers." />
                 </div>
                 <div>
                   <Label>State<RequiredMark /></Label>
                   <Select value={form.state} onValueChange={v => { update("state", v); markTouched("state"); }}>
-                    <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="State" /></SelectTrigger>
+                    <SelectTrigger className={`mt-1.5 h-11 ${touched.state ? (form.state ? "border-green-500" : "border-destructive") : ""}`}><SelectValue placeholder="State" /></SelectTrigger>
                     <SelectContent>{stateOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label>PIN Code <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
-                  <Input value={form.pincode} onChange={e => update("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))} onBlur={() => markTouched("pincode")} placeholder="6 digits" maxLength={6} inputMode="numeric" className="mt-1.5 h-11" />
-                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>LinkedIn <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <Input value={form.linkedinUrl} onChange={e => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/in/you" className="mt-1.5 h-11" />
-                  <FieldHint text="Helps verify your professional background. Speeds up approval." />
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <Label>WhatsApp <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                    <Checkbox checked={sameAsPhone} onCheckedChange={handleSameAsPhone} className="w-3.5 h-3.5" />
+                    Same as phone
+                  </label>
                 </div>
-                <div>
-                  <Label>Portfolio <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <Input value={form.portfolioUrl} onChange={e => update("portfolioUrl", e.target.value)} placeholder="https://yoursite.com" className="mt-1.5 h-11" />
-                  <FieldHint text="Showcase your work. Students love seeing real projects." />
-                </div>
+                <Input
+                  value={form.whatsapp}
+                  onChange={e => { update("whatsapp", cleanPhone(e.target.value)); setSameAsPhone(false); }}
+                  placeholder="9876543210"
+                  maxLength={10}
+                  inputMode="numeric"
+                  disabled={sameAsPhone}
+                  className={`h-11 ${sameAsPhone ? "bg-muted" : ""}`}
+                />
+                <FieldHint text="Receive updates from SkillMitra and students. Optional but recommended." />
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
@@ -1024,7 +805,7 @@ const TrainerOnboarding = () => {
             </div>
           )}
 
-          {/* ========== STEP 1: Experience ========== */}
+          {/* ========== STEP 1: Professional Details ========== */}
           {step === 1 && (
             <div className="mt-6 space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1042,37 +823,19 @@ const TrainerOnboarding = () => {
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>Current/Previous Company<RequiredMark /></Label>
-                  <Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} placeholder="e.g. Google" className="mt-1.5 h-11" />
-                  <FieldHint text="Builds trust. Students prefer trainers from reputed companies." />
-                  {stepAttempted[1] && form.currentCompany.trim() && !hasLetters(form.currentCompany) && (
-                    <p className="text-xs text-destructive mt-1">Company name must contain at least one letter</p>
-                  )}
-                </div>
-                <div>
-                  <Label>Work Email <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <Input type="email" value={form.workEmail} onChange={e => update("workEmail", e.target.value)} placeholder="you@company.com" className="mt-1.5 h-11" />
-                  <FieldHint text="Helps us verify your employment. Not shown publicly." />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>Primary Skill<RequiredMark /></Label>
-                  <Input value={form.primarySkill} onChange={e => update("primarySkill", e.target.value)} placeholder="e.g. React.js" className="mt-1.5 h-11" />
-                  <FieldHint text="This is the main skill students will search and find you for." />
-                </div>
-                <div>
-                  <Label>Secondary Skill <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <Input value={form.secondarySkill} onChange={e => update("secondarySkill", e.target.value)} placeholder="e.g. Node.js" className="mt-1.5 h-11" />
-                  <FieldHint text="Add a complementary skill to attract more students." />
-                </div>
+
+              <div>
+                <Label>Current/Previous Company<RequiredMark /></Label>
+                <Input value={form.currentCompany} onChange={e => update("currentCompany", e.target.value)} placeholder="e.g. Google" className="mt-1.5 h-11" />
+                <FieldHint text="Builds trust. Students prefer trainers from reputed companies." />
+                {stepAttempted[1] && form.currentCompany.trim() && !hasLetters(form.currentCompany) && (
+                  <p className="text-xs text-destructive mt-1">Company name must contain at least one letter</p>
+                )}
               </div>
 
               <div>
                 <Label>Areas of Expertise<RequiredMark /></Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Select at least one area</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Select at least one area, or add your own below</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {expertiseOptions.map(e => (
                     <button key={e} type="button" onClick={() => toggleExpertise(e)}
@@ -1080,13 +843,27 @@ const TrainerOnboarding = () => {
                       {e}
                     </button>
                   ))}
+                  {/* Custom expertise chips */}
+                  {expertiseAreas.filter(e => !expertiseOptions.includes(e)).map(e => (
+                    <button key={e} type="button" onClick={() => toggleExpertise(e)}
+                      className="px-3 py-1.5 rounded-full text-sm font-medium transition-all hero-gradient text-primary-foreground flex items-center gap-1.5">
+                      {e} <X className="w-3 h-3" />
+                    </button>
+                  ))}
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label>Resume<RequiredMark /></Label>
-                <FieldHint text="Helps our team verify your experience and qualifications before approval." />
-                <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, max 5MB" />
+                <div className="flex gap-2 mt-3">
+                  <Input
+                    value={customExpertise}
+                    onChange={e => setCustomExpertise(e.target.value)}
+                    placeholder="Add custom expertise..."
+                    className="h-9 text-sm"
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addCustomExpertise(); } }}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={addCustomExpertise} className="shrink-0">Add</Button>
+                </div>
+                {stepAttempted[1] && expertiseAreas.length === 0 && (
+                  <p className="text-xs text-destructive mt-1">Select at least one area of expertise</p>
+                )}
               </div>
 
               <div>
@@ -1100,7 +877,9 @@ const TrainerOnboarding = () => {
                     </button>
                   ))}
                 </div>
-                {stepAttempted[1] && teachingLanguages.length === 0 && <p className="text-xs text-destructive mt-1">Please select at least one teaching language</p>}
+                {stepAttempted[1] && teachingLanguages.length === 0 && (
+                  <p className="text-xs text-destructive mt-1">Please select at least one teaching language</p>
+                )}
               </div>
 
               <div>
@@ -1108,307 +887,84 @@ const TrainerOnboarding = () => {
                 <Textarea value={form.bio} onChange={e => update("bio", e.target.value)} onBlur={() => markTouched("bio")}
                   placeholder="Tell students about yourself — your background, experience, teaching style and passion for teaching..."
                   className={`mt-1.5 min-h-[120px] ${touched.bio ? (form.bio.trim().length >= 100 ? "border-green-500" : "border-destructive") : ""}`} />
-                <FieldHint text="Tell students about yourself — your background, experience, teaching style and passion for teaching." />
-                <p className="text-xs text-muted-foreground mt-1">{form.bio.trim().length}/100 characters minimum</p>
-              </div>
-
-              <div className="space-y-3">
-                <Label>Documents Upload <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <FileUploadBox docKey="joining_letter" label="Joining Letter" accept=".pdf,.jpg,.jpeg,.png" />
-                <FileUploadBox docKey="relieving_letter" label="Relieving Letter" accept=".pdf,.jpg,.jpeg,.png" />
-                <FileUploadBox docKey="experience_letter" label="Experience Letter" accept=".pdf,.jpg,.jpeg,.png" />
-              </div>
-
-              <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-3">
-                <Label className="flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Professional Verification <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
-                <p className="text-xs text-muted-foreground">Add verification for faster approval</p>
-                <Select value={form.verificationMethod} onValueChange={v => update("verificationMethod", v)}>
-                  <SelectTrigger className="h-11"><SelectValue placeholder="Select verification method" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="company_email">Company Email</SelectItem>
-                    <SelectItem value="employee_id">Employee ID</SelectItem>
-                    <SelectItem value="client_references">Client References</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.verificationMethod && (
-                  <Input value={form.verificationValue} onChange={e => update("verificationValue", e.target.value)}
-                    placeholder={form.verificationMethod === "company_email" ? "you@company.com" : form.verificationMethod === "employee_id" ? "Your Employee ID" : "Client name & contact details"}
-                    className="h-11" />
-                )}
+                <div className="flex items-center justify-between mt-1">
+                  <FieldHint text="Helps students understand your background and teaching approach." />
+                  <p className={`text-xs shrink-0 ml-2 ${form.bio.trim().length >= 100 ? "text-green-600" : "text-muted-foreground"}`}>
+                    {form.bio.trim().length}/100 min
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
-          {/* ========== STEP 2: Course Details ========== */}
+          {/* ========== STEP 2: Basic Verification ========== */}
           {step === 2 && (
             <div className="mt-6 space-y-5">
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              {/* Profile Photo */}
+              <div>
+                <Label>Profile Photo<RequiredMark /></Label>
+                <FieldHint text="Displayed publicly to students. Use a clear, professional photo." />
+                <div className="flex items-center gap-4 mt-2">
+                  {profilePhotoPreview ? (
+                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary shrink-0">
+                      <img src={profilePhotoPreview} alt="Profile" className="w-full h-full object-cover" />
+                      <button type="button" onClick={removeProfilePhoto} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => profilePhotoRef.current?.click()}
+                      className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 shrink-0 ${stepAttempted[2] && !profilePhoto && !profilePhotoPreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
+                      <Upload className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-[9px] text-muted-foreground">Upload</span>
+                    </button>
+                  )}
+                  <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
+                  <div className="flex-1">
+                    <Button type="button" variant="outline" size="sm" onClick={() => profilePhotoRef.current?.click()} className="w-full">
+                      <Upload className="w-4 h-4 mr-2" />{profilePhotoPreview ? "Change Photo" : "Choose Photo"}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground mt-1.5">JPG or PNG, min 10KB, max 5MB</p>
+                  </div>
+                </div>
+                {stepAttempted[2] && !profilePhoto && !profilePhotoPreview && (
+                  <p className="text-xs text-destructive mt-1.5">Profile photo is required</p>
+                )}
+              </div>
+
+              <div className="border-t border-border pt-5 space-y-3">
+                <Label>Resume<RequiredMark /></Label>
+                <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf" hint="Upload your resume in PDF format — max 5MB" />
+              </div>
+
+              <div className="border-t border-border pt-5 space-y-3">
+                <Label>Government ID / Aadhaar<RequiredMark /></Label>
+                <FileUploadBox docKey="aadhaar" label="Aadhaar / Government ID Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="For admin verification only, not public — JPG, PNG or PDF, max 5MB" />
                 <div>
-                  <p className="text-sm font-semibold text-amber-800">Important Notice</p>
-                  <p className="text-xs text-amber-700 mt-1">SkillMitra supports only <strong>1-on-1 personalized training</strong>. No batch classes, recorded sessions, or group training allowed.</p>
+                  <Label>ID Type <span className="text-muted-foreground font-normal text-xs">Optional</span></Label>
+                  <Select value={form.govtIdType} onValueChange={v => update("govtIdType", v)}>
+                    <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="Select ID type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="aadhaar">Aadhaar</SelectItem>
+                      <SelectItem value="pan">PAN Card</SelectItem>
+                      <SelectItem value="passport">Passport</SelectItem>
+                      <SelectItem value="driving_license">Driving License</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <FileUploadBox docKey="demo_video" label="Course Demo Video (5-10 min)" required accept="video/*" hint="MP4/MOV video, min 500KB, max 100MB" />
-              <FileUploadBox docKey="intro_video" label="About Yourself Video (2-3 min)" required accept="video/*" hint="MP4/MOV video, min 500KB, max 100MB" />
-              <FileUploadBox docKey="curriculum_pdf" label="Course Curriculum PDF" required accept=".pdf" hint="PDF document, min 5KB, max 10MB" />
-
-              <div>
-                <Label>Course Title<RequiredMark /></Label>
-                <Input value={form.courseTitle} onChange={e => update("courseTitle", e.target.value)} placeholder="e.g. Full Stack Web Development" className="mt-1.5 h-11" />
-                <FieldHint text="Choose a clear, specific title. Students search by course name." />
-              </div>
-              <div>
-                <Label>Course Description<RequiredMark /></Label>
-                <Textarea value={form.courseDescription} onChange={e => update("courseDescription", e.target.value)} placeholder="Describe what students will learn..." className="mt-1.5 min-h-[120px]" />
-                <FieldHint text="This is your first impression to students. Make it clear and professional." />
-                <p className="text-xs text-muted-foreground mt-1">{form.courseDescription.trim().length}/100 characters minimum</p>
-              </div>
-
-              <Button type="button" variant="outline" className="w-full mt-4 border-primary text-primary hover:bg-primary/5" onClick={() => setShowPreview(true)}>
-                <Eye className="w-4 h-4 mr-2" /> Preview Your Profile
-              </Button>
-            </div>
-          )}
-
-          {/* ========== STEP 3: Availability & Schedule ========== */}
-          {step === 3 && (
-            <div className="mt-6 space-y-6">
-              {/* 1. Trainer Type */}
-              <div>
-                <Label className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Trainer Type<RequiredMark /></Label>
+              <div className="border-t border-border pt-5">
+                <Label>Teaching Availability<RequiredMark /></Label>
                 <FieldHint text="Are you available to teach full-time or part-time?" />
                 <div className="grid grid-cols-2 gap-3 mt-2">
                   <RadioOption value="full_time" selected={form.trainerType === "full_time"} label="Full-Time" sublabel="Available daily" onClick={() => update("trainerType", "full_time")} />
                   <RadioOption value="part_time" selected={form.trainerType === "part_time"} label="Part-Time" sublabel="Limited hours" onClick={() => update("trainerType", "part_time")} />
                 </div>
-                {stepAttempted[3] && !form.trainerType && <p className="text-xs text-destructive mt-1">Please select trainer type</p>}
+                {stepAttempted[2] && !form.trainerType && <p className="text-xs text-destructive mt-1">Please select trainer type</p>}
               </div>
 
-              {/* 2. Daily Session Duration */}
-              <div>
-                <Label>Daily Session Duration<RequiredMark /></Label>
-                <FieldHint text="How long will each daily session be?" />
-                <div className="grid grid-cols-3 gap-3 mt-2">
-                  <RadioOption value="1 Hour" selected={form.sessionDurationPerDay === "1 Hour"} label="1 Hour" onClick={() => update("sessionDurationPerDay", "1 Hour")} />
-                  <RadioOption value="1.5 Hours" selected={form.sessionDurationPerDay === "1.5 Hours"} label="1.5 Hours" onClick={() => update("sessionDurationPerDay", "1.5 Hours")} />
-                  <RadioOption value="2 Hours" selected={form.sessionDurationPerDay === "2 Hours"} label="2 Hours" onClick={() => update("sessionDurationPerDay", "2 Hours")} />
-                </div>
-                {stepAttempted[3] && !form.sessionDurationPerDay && <p className="text-xs text-destructive mt-1">Please select session duration</p>}
-              </div>
-
-              {/* 3. Available Time Bands */}
-              <div>
-                <Label>Available Time Bands<RequiredMark /></Label>
-                <FieldHint text="Select when you are available to teach. You can select multiple." />
-                <div className="space-y-2.5 mt-2">
-                  {[
-                    { value: "morning", label: "Morning", time: "6:00 AM – 9:00 AM" },
-                    { value: "afternoon", label: "Afternoon", time: "9:00 AM – 4:00 PM" },
-                    { value: "evening", label: "Evening", time: "4:00 PM – 9:00 PM" },
-                  ].map(band => (
-                    <label key={band.value}
-                      className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${availableTimeBands.includes(band.value) ? "bg-primary/5 border-primary/40 ring-1 ring-primary/20" : "bg-secondary/30 border-border hover:bg-secondary/60"}`}>
-                      <Checkbox checked={availableTimeBands.includes(band.value)} onCheckedChange={() => toggleTimeBand(band.value)} />
-                      <div>
-                        <span className="text-sm font-medium text-foreground">{band.label}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{band.time}</span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {stepAttempted[3] && availableTimeBands.length === 0 && <p className="text-xs text-destructive mt-1">Select at least one time band</p>}
-              </div>
-
-              {/* 4. Weekend Availability */}
-              <div>
-                <Label>Weekend Availability<RequiredMark /></Label>
-                <FieldHint text="Which weekend days are you available to teach?" />
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <RadioOption value="both" selected={form.weekendAvailability === "both"} label="Sat & Sun" sublabel="Both days" onClick={() => update("weekendAvailability", "both")} />
-                  <RadioOption value="saturday_only" selected={form.weekendAvailability === "saturday_only"} label="Saturday Only" onClick={() => update("weekendAvailability", "saturday_only")} />
-                  <RadioOption value="sunday_only" selected={form.weekendAvailability === "sunday_only"} label="Sunday Only" onClick={() => update("weekendAvailability", "sunday_only")} />
-                  <RadioOption value="no_weekends" selected={form.weekendAvailability === "no_weekends"} label="No Weekends" sublabel="Weekdays only" onClick={() => update("weekendAvailability", "no_weekends")} />
-                </div>
-                {stepAttempted[3] && !form.weekendAvailability && <p className="text-xs text-destructive mt-1">Please select weekend availability</p>}
-              </div>
-
-              {/* 5. Total Number of Sessions */}
-              <div>
-                <Label>Total Number of Sessions<RequiredMark /></Label>
-                <FieldHint text="Total number of sessions in the complete course." />
-                <div className="grid grid-cols-4 gap-3 mt-2">
-                  {["30", "45", "60", "90"].map(s => (
-                    <RadioOption key={s} value={s} selected={form.totalSessions === s} label={`${s} Sessions`} onClick={() => update("totalSessions", s)} />
-                  ))}
-                </div>
-                {stepAttempted[3] && !form.totalSessions && <p className="text-xs text-destructive mt-1">Please select total sessions</p>}
-              </div>
-
-              {/* 6. Total Course Duration */}
-              <div>
-                <Label>Total Course Duration<RequiredMark /></Label>
-                <FieldHint text="Total duration of your complete course in days." />
-                <div className="grid grid-cols-4 gap-3 mt-2">
-                  {["30", "45", "60", "90"].map(d => (
-                    <RadioOption key={d} value={d} selected={form.courseDuration === d} label={`${d} Days`} onClick={() => update("courseDuration", d)} />
-                  ))}
-                </div>
-                {stepAttempted[3] && !form.courseDuration && <p className="text-xs text-destructive mt-1">Please select course duration</p>}
-
-                {/* Auto-calculated total hours */}
-                {totalHours !== null && (
-                  <div className="mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <p className="text-sm font-medium text-emerald-800">Total course hours: <strong>{totalHours} hours</strong></p>
-                  </div>
-                )}
-              </div>
-
-              {/* 6. Course Fee */}
-              <div>
-                <Label>Course Fee (₹)<RequiredMark /></Label>
-                <Input type="number" value={form.courseFee} onChange={e => update("courseFee", e.target.value)} onBlur={() => markTouched("courseFee")} placeholder="e.g. 15000" className="mt-1.5 h-11" min="500" />
-                <FieldHint text="Total fee for complete course. Not per session or per hour." />
-                {touched.courseFee && form.courseFee && parseInt(form.courseFee) < 500 && <p className="text-xs text-destructive mt-1">Minimum fee is ₹500</p>}
-              </div>
-            </div>
-          )}
-
-          {/* ========== STEP 4: Services & Materials ========== */}
-          {step === 4 && (
-            <div className="mt-6 space-y-5">
-              <div>
-                <Label>Additional Services You Offer<RequiredMark /></Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Select at least one service</p>
-                <div className="space-y-3 mt-3">
-                  {["Resume Review and Optimization", "Mock Interview Sessions", "Real Time Project Guidance"].map(s => (
-                    <label key={s} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 cursor-pointer hover:bg-secondary/80 transition-colors">
-                      <Checkbox checked={servicesOffered.includes(s)} onCheckedChange={() => toggleService(s)} />
-                      <span className="text-sm text-foreground">{s}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Label>Additional Services Details <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Textarea value={form.additionalServicesDetails} onChange={e => update("additionalServicesDetails", e.target.value)} placeholder="Describe your additional services..." className="mt-1.5 min-h-[100px]" />
-                <FieldHint text="Students value trainers who go beyond just teaching. Describe what extra you offer." />
-              </div>
-              <div>
-                <Label>Course Materials & Resources <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Textarea value={form.courseMaterials} onChange={e => update("courseMaterials", e.target.value)} placeholder="PDFs, code samples, projects..." className="mt-1.5 min-h-[100px]" />
-                <FieldHint text="Let students know what study materials they'll receive." />
-              </div>
-            </div>
-          )}
-
-          {/* ========== STEP 5: Payment & Documents ========== */}
-          {step === 5 && (
-            <div className="mt-6 space-y-5">
-              {/* Profile Photo & Selfie */}
-              <div className="flex gap-6 items-start justify-center">
-                <div className="flex flex-col items-center gap-2">
-                  <Label className="text-xs font-medium">Profile Photo<RequiredMark /></Label>
-                  <div className="relative">
-                    {profilePhotoPreview ? (
-                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary">
-                        <img src={profilePhotoPreview} alt="Profile" className="w-full h-full object-cover" />
-                        <button type="button" onClick={removeProfilePhoto} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={() => profilePhotoRef.current?.click()} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[5] && !profilePhoto && !profilePhotoPreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
-                        <Upload className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
-                      </button>
-                    )}
-                    <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoSelect} />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">This photo will be displayed on your public profile. A clear, professional photo gets more bookings.</p>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <Label className="text-xs font-medium">Selfie<RequiredMark /></Label>
-                  <div className="relative">
-                    {selfiePreview ? (
-                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary">
-                        <img src={selfiePreview} alt="Selfie" className="w-full h-full object-cover" />
-                        <button type="button" onClick={removeSelfie} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md"><X className="w-3 h-3" /></button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <button type="button" onClick={openCameraForSelfie} className={`w-20 h-20 rounded-full border-2 border-dashed flex flex-col items-center justify-center gap-1 bg-muted/50 ${stepAttempted[5] && !selfie && !selfiePreview ? "border-destructive" : "border-border hover:border-primary/50"}`}>
-                          <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-destructive">Required</span>
-                        </button>
-                        {cameraUnavailable && (
-                          <>
-                            <button type="button" onClick={() => selfieFileRef.current?.click()} className="text-xs text-primary underline hover:text-primary/80">
-                              <Upload className="w-3 h-3 inline mr-1" />Upload photo instead
-                            </button>
-                            <input ref={selfieFileRef} type="file" accept="image/*" onChange={handleSelfieFileUpload} className="hidden" />
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center max-w-[140px] leading-tight">{cameraUnavailable ? "Upload a clear photo of your face for identity verification. NOT shown publicly." : "Live camera capture only. Used for identity verification. NOT shown publicly."}</p>
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-5"></div>
-
-              <div>
-                <Label>Bank Account Number<RequiredMark /></Label>
-                <Input value={form.bankAccount} onChange={e => update("bankAccount", e.target.value)} placeholder="Account number" className="mt-1.5 h-11" />
-                <FieldHint text="Required for receiving your earnings. Kept securely encrypted." />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>IFSC Code<RequiredMark /></Label>
-                  <Input value={form.ifsc} onChange={e => update("ifsc", e.target.value.toUpperCase())} placeholder="e.g. SBIN0001234" className="mt-1.5 h-11 uppercase" maxLength={11} />
-                  {touched.ifsc && form.ifsc && !isValidIFSC(form.ifsc) && <p className="text-xs text-destructive mt-1">Invalid IFSC format</p>}
-                </div>
-                <div>
-                  <Label>Account Holder Name<RequiredMark /></Label>
-                  {profile?.full_name ? (
-                    <>
-                      <Input value={profile.full_name} readOnly disabled placeholder="Name as per bank" className="mt-1.5 h-11 bg-muted cursor-not-allowed" />
-                      <FieldHint text="Account holder name is automatically set from your registered profile name to prevent misuse and ensure secure payments." />
-                    </>
-                  ) : (
-                    <>
-                      <Input value={form.accountHolderName} onChange={e => setForm(f => ({ ...f, accountHolderName: e.target.value }))} placeholder="Enter name as per bank account" className="mt-1.5 h-11" />
-                      <FieldHint text="Please enter your name exactly as it appears on your bank account." />
-                    </>
-                  )}
-                </div>
-              </div>
-              <div>
-                <Label>UPI ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Input value={form.upiId} onChange={e => update("upiId", e.target.value)} placeholder="yourname@upi" className="mt-1.5 h-11" />
-                <FieldHint text="Faster payouts via UPI. Add if you prefer instant transfers." />
-              </div>
-
-              <div className="border-t border-border pt-5 space-y-4">
-                <Label>Government ID Type<RequiredMark /></Label>
-                <FieldHint text="Mandatory KYC for identity verification. Kept private and secure." />
-                <Select value={form.govtIdType} onValueChange={v => { update("govtIdType", v); markTouched("govtIdType"); }}>
-                  <SelectTrigger className="h-11"><SelectValue placeholder="Select ID type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="aadhaar">Aadhaar</SelectItem>
-                    <SelectItem value="pan">PAN Card</SelectItem>
-                    <SelectItem value="passport">Passport</SelectItem>
-                    <SelectItem value="driving_license">Driving License</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FileUploadBox docKey="aadhaar" label="Aadhaar Document Upload" required accept=".pdf,.jpg,.jpeg,.png" hint="JPG, PNG or PDF, min 20KB, max 5MB" />
-              </div>
-            </div>
-          )}
-
-          {/* ========== STEP 6: Referral & Declaration ========== */}
-          {step === 6 && (
-            <div className="mt-6 space-y-5">
-              <div>
+              <div className="border-t border-border pt-5">
                 <Label>Referral Code <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Input
                   value={form.referralCode}
@@ -1441,10 +997,10 @@ const TrainerOnboarding = () => {
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
+              <div className="border-t border-border pt-5 space-y-3">
                 <label className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${agreedTraining ? "bg-primary/5 border-primary/30" : "bg-secondary/50 border-border"}`}>
                   <Checkbox checked={agreedTraining} onCheckedChange={(c) => setAgreedTraining(!!c)} className="mt-0.5" />
-                  <span className="text-sm text-foreground">I confirm I will only provide <strong>1-on-1 personalized training</strong> sessions.<RequiredMark /></span>
+                  <span className="text-sm text-foreground">I confirm I will only provide <strong>1-on-1 personalised sessions</strong>.<RequiredMark /></span>
                 </label>
                 <label className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${agreedTerms ? "bg-primary/5 border-primary/30" : "bg-secondary/50 border-border"}`}>
                   <Checkbox checked={agreedTerms} onCheckedChange={(c) => setAgreedTerms(!!c)} className="mt-0.5" />
@@ -1453,7 +1009,7 @@ const TrainerOnboarding = () => {
               </div>
 
               {/* Teaching Readiness Checklist */}
-              <div className="border-t border-border pt-5 mt-5">
+              <div className="border-t border-border pt-5">
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-primary" />
                   Are You Ready to Teach?<RequiredMark />
@@ -1465,7 +1021,6 @@ const TrainerOnboarding = () => {
                     { key: "webcam", icon: <Camera className="w-4 h-4" />, label: "I have a working webcam" },
                     { key: "microphone", icon: <Mic className="w-4 h-4" />, label: "I have a working microphone" },
                     { key: "environment", icon: <Volume2 className="w-4 h-4" />, label: "I have a quiet, distraction-free environment" },
-                    
                     { key: "cancel", icon: <Clock className="w-4 h-4" />, label: "I will not cancel sessions less than 24 hours before scheduled time" },
                   ].map(item => (
                     <label key={item.key} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${readinessChecks[item.key] ? "bg-emerald-50 border-emerald-200" : "bg-secondary/50 border-border hover:bg-secondary/80"}`}>
@@ -1475,7 +1030,7 @@ const TrainerOnboarding = () => {
                     </label>
                   ))}
                 </div>
-                {!allReadinessChecked && stepAttempted[6] && (
+                {!allReadinessChecked && stepAttempted[2] && (
                   <p className="text-xs text-destructive mt-2">All teaching readiness items must be confirmed</p>
                 )}
               </div>
@@ -1510,119 +1065,6 @@ const TrainerOnboarding = () => {
           </p>
         </motion.div>
       </div>
-
-      {/* Profile Preview Modal */}
-      <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Profile Preview</DialogTitle>
-            <p className="text-xs text-muted-foreground">This is how students will see you. Make edits before submitting.</p>
-          </DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div className="flex items-start gap-4">
-              {profilePhotoPreview ? (
-                <img src={profilePhotoPreview} alt="Profile" className="w-16 h-16 rounded-xl object-cover" />
-              ) : (
-                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <span className="text-xl font-bold text-primary">
-                    {(profile?.full_name || "").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() || "TR"}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground text-lg">{profile?.full_name || "Your Name"}</h3>
-                <p className="text-sm text-muted-foreground">{form.currentRole || "Your Role"}{form.currentCompany ? ` at ${form.currentCompany}` : ""}</p>
-                <p className="text-xs text-muted-foreground">{form.city}{form.state ? `, ${form.state}` : ""}</p>
-              </div>
-            </div>
-            {previewBadges.length > 0 && <TrainerBadges badges={previewBadges} size="md" />}
-            {(form.primarySkill || form.secondarySkill) && (
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Skills</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {[form.primarySkill, form.secondarySkill].filter(Boolean).map(s => (
-                    <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {form.courseTitle && (
-              <div className="border border-border rounded-xl p-4 bg-card">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Featured Course</p>
-                <h4 className="font-semibold text-foreground text-sm">{form.courseTitle}</h4>
-                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
-                  {form.sessionDurationPerDay && <span>{form.sessionDurationPerDay} sessions</span>}
-                  {form.sessionDurationPerDay && form.totalSessions && <span>|</span>}
-                  {form.totalSessions && <span>{form.totalSessions} Sessions</span>}
-                  {form.totalSessions && form.courseDuration && <span>|</span>}
-                  {form.courseDuration && <span>{form.courseDuration} Days</span>}
-                  {(form.sessionDurationPerDay || form.totalSessions || form.courseDuration) && form.courseFee && <span>|</span>}
-                  {form.courseFee && <span className="font-semibold text-foreground">₹{parseInt(form.courseFee).toLocaleString()}</span>}
-                </div>
-              </div>
-            )}
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About the Trainer</p>
-              <p className="text-sm text-foreground leading-relaxed">
-                {form.bio || "No bio added yet."}
-              </p>
-            </div>
-            {form.courseDescription && (
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">About the Course</p>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {form.courseDescription}
-                </p>
-              </div>
-            )}
-            <div className="flex items-center gap-4 text-sm">
-              {form.experience && (
-                <div className="text-center">
-                  <p className="font-bold text-foreground">{form.experience}+</p>
-                  <p className="text-[10px] text-muted-foreground">Years Exp.</p>
-                </div>
-              )}
-              <div className="text-center">
-                <div className="flex items-center gap-0.5">
-                  <Star className="w-3.5 h-3.5 text-accent fill-accent" />
-                  <span className="font-bold text-foreground">New</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground">Rating</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Button variant="outline" className="w-full" onClick={() => setShowPreview(false)}>Close Preview</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Camera Capture Modal for Selfie */}
-      <Dialog open={showCameraModal} onOpenChange={(open) => { if (!open) closeCameraStream(); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Take a Selfie</DialogTitle>
-            <p className="text-xs text-muted-foreground">Position your face in the frame and click capture.</p>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 mt-2">
-            <div className="w-64 h-64 rounded-xl overflow-hidden bg-black">
-              <video ref={(el) => {
-                videoRef.current = el;
-                if (el && cameraStreamRef.current) {
-                  el.srcObject = cameraStreamRef.current;
-                  el.play();
-                }
-              }} autoPlay playsInline muted className="w-full h-full object-cover" style={{ transform: "scaleX(-1)" }} />
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={closeCameraStream}>Cancel</Button>
-              <Button onClick={captureSelfie} className="hero-gradient border-0">
-                <Camera className="w-4 h-4 mr-2" /> Capture
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

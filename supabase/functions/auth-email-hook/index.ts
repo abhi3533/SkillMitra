@@ -277,6 +277,41 @@ async function handleWebhook(req: Request): Promise<Response> {
 
   console.log('Auth email enqueued', { emailType, email: payload.data.email, run_id })
 
+  // When a trainer signs up, fire the welcome-trainer email alongside the
+  // verification email so they receive onboarding instructions right away.
+  if (emailType === 'signup') {
+    try {
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('email', payload.data.email)
+        .maybeSingle()
+
+      if (profileRow) {
+        const { data: roleRow } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', profileRow.id)
+          .eq('role', 'trainer')
+          .maybeSingle()
+
+        if (roleRow) {
+          await supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'welcome-trainer',
+              recipientEmail: payload.data.email,
+              idempotencyKey: `welcome-trainer-signup-${profileRow.id}`,
+              templateData: { name: profileRow.full_name || '' },
+            },
+          })
+          console.log('Welcome-trainer email triggered for', payload.data.email)
+        }
+      }
+    } catch (welcomeErr) {
+      console.error('Welcome-trainer trigger failed (non-blocking):', welcomeErr)
+    }
+  }
+
   return new Response(
     JSON.stringify({ success: true, queued: true }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

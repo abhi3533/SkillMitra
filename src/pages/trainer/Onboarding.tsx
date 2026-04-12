@@ -772,6 +772,8 @@ const TrainerOnboarding = () => {
             available_time_bands: availableTimeBands,
             weekend_availability: form.weekendAvailability || null,
           },
+          notify_phone: form.phone || null,
+          notify_city: form.city || null,
         },
       });
       // complete-signup already sets onboarding_status="pending" inside the edge function.
@@ -799,20 +801,6 @@ const TrainerOnboarding = () => {
           await supabase.from("trainers").update({ referred_by: trimmedRef }).eq("user_id", user.id);
         }
       }
-
-      // Notifications
-      supabase.functions.invoke("notify-admin-new-trainer", {
-        body: {
-          user_id: user.id,
-          trainer_name: profile?.full_name,
-          email: profile?.email || user.email,
-          phone: form.phone,
-          city: form.city,
-          skills: [form.primarySkill],
-          experience_years: parseInt(form.experience) || 0,
-          application_submitted: true,
-        },
-      }).catch(console.error);
 
       // Update profile with city/state if changed
       if (form.city || form.state || form.gender) {

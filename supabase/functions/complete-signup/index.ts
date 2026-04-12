@@ -18,7 +18,7 @@ serve(async (req) => {
       });
     }
 
-    const { user_id, role, trainer_data, student_data } = await req.json();
+    const { user_id, role, trainer_data, student_data, notify_phone, notify_city } = await req.json();
 
     if (!user_id || !role) {
       return new Response(JSON.stringify({ error: "user_id and role are required" }), {
@@ -169,26 +169,28 @@ serve(async (req) => {
       }).eq("id", trainer.id);
       if (statusErr) console.error("Onboarding status update failed:", statusErr);
 
-      // Send welcome email to trainer (server-side — reliable regardless of whether
-      // the browser tab is open when the verification link is clicked)
+      // Notify admin of new application server-side — more reliable than the
+      // fire-and-forget browser call. Also sends the "Application submitted" email
+      // to the trainer (handled inside notify-admin-new-trainer when registration_only is falsy).
       try {
         const { data: trainerProfile } = await supabaseAdmin
           .from("profiles")
           .select("full_name, email")
           .eq("id", user_id)
           .single();
-        if (trainerProfile?.email) {
-          await supabaseAdmin.functions.invoke("send-transactional-email", {
-            body: {
-              templateName: "welcome-trainer",
-              recipientEmail: trainerProfile.email,
-              idempotencyKey: `welcome-trainer-${user_id}`,
-              templateData: { name: trainerProfile.full_name || "" },
-            },
-          });
-        }
-      } catch (emailErr) {
-        console.error("Trainer welcome email failed (non-blocking):", emailErr);
+        await supabaseAdmin.functions.invoke("notify-admin-new-trainer", {
+          body: {
+            user_id,
+            trainer_name: trainerProfile?.full_name || "",
+            email: trainerProfile?.email || "",
+            phone: notify_phone || "",
+            city: notify_city || "",
+            skills: trainer_data.skills || [],
+            experience_years: trainer_data.experience_years || 0,
+          },
+        });
+      } catch (notifyErr) {
+        console.error("Admin notification failed (non-blocking):", notifyErr);
       }
 
       // Insert availability if provided

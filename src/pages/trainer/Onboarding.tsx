@@ -536,11 +536,21 @@ const TrainerOnboarding = () => {
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
     canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
-    canvas.toBlob((blob) => {
+    canvas.toBlob(async (blob) => {
       if (blob) {
         const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
         setSelfie(file);
         setSelfiePreview(URL.createObjectURL(file));
+        // Immediately upload selfie
+        if (user) {
+          const selfiePath = `${user.id}/selfie.jpg`;
+          const { error: sErr } = await supabase.storage.from("trainer-documents").upload(selfiePath, file, { upsert: true });
+          if (!sErr) {
+            setUploadedPaths(prev => ({ ...prev, selfie: selfiePath }));
+            setUploadedDocKeys(prev => prev.includes("selfie") ? prev : [...prev, "selfie"]);
+            scheduleAutoSave();
+          }
+        }
       }
       closeCameraStream();
     }, "image/jpeg", 0.9);

@@ -90,7 +90,7 @@ serve(async (req) => {
 
       const { data: trainer, error: trainerErr } = await supabaseAdmin
         .from("trainers")
-        .select("id")
+        .select("id, onboarding_data")
         .eq("user_id", user_id)
         .single();
 
@@ -106,42 +106,50 @@ serve(async (req) => {
       // URL/file fields are ONLY included when the incoming value is non-empty so
       // that a resubmission where the trainer didn't re-upload a file doesn't
       // overwrite the previously stored URL with null.
+      //
+      // Use ?? (nullish coalescing) for numeric/array fields so that explicit 0
+      // or empty-array values sent by the 3-step onboarding are preserved
+      // rather than being treated as falsy and replaced with defaults.
       const trainerUpdate: Record<string, unknown> = {
-        bio: trainer_data.bio || null,
-        skills: trainer_data.skills || [],
-        teaching_languages: trainer_data.teaching_languages || [],
-        experience_years: trainer_data.experience_years || 0,
-        current_role: trainer_data.current_role || null,
-        current_company: trainer_data.current_company || null,
-        linkedin_url: trainer_data.linkedin_url || null,
-        previous_companies: trainer_data.previous_companies || [],
-        bank_account_number: trainer_data.bank_account_number || null,
-        ifsc_code: trainer_data.ifsc_code || null,
-        upi_id: trainer_data.upi_id || null,
-        pan_number: trainer_data.pan_number || null,
-        account_holder_name: trainer_data.account_holder_name || null,
-        dob: trainer_data.dob || null,
-        whatsapp: trainer_data.whatsapp || null,
-        address: trainer_data.address || null,
-        pincode: trainer_data.pincode || null,
-        portfolio_url: trainer_data.portfolio_url || null,
-        secondary_skill: trainer_data.secondary_skill || null,
-        work_email: trainer_data.work_email || null,
-        expertise_areas: trainer_data.expertise_areas || [],
-        services_offered: trainer_data.services_offered || [],
-        course_materials: trainer_data.course_materials || null,
-        govt_id_type: trainer_data.govt_id_type || null,
-        additional_services_details: trainer_data.additional_services_details || null,
-        course_title: trainer_data.course_title || null,
-        course_duration: trainer_data.course_duration || null,
-        course_fee: trainer_data.course_fee || 0,
-        course_description: trainer_data.course_description || null,
-        verification_method: trainer_data.verification_method || null,
-        verification_value: trainer_data.verification_value || null,
-        trainer_type: trainer_data.trainer_type || null,
-        session_duration_per_day: trainer_data.session_duration_per_day || null,
-        available_time_bands: trainer_data.available_time_bands || [],
-        weekend_availability: trainer_data.weekend_availability || null,
+        bio: trainer_data.bio ?? null,
+        skills: trainer_data.skills ?? [],
+        teaching_languages: trainer_data.teaching_languages ?? [],
+        experience_years: trainer_data.experience_years ?? 0,
+        current_role: trainer_data.current_role ?? null,
+        current_company: trainer_data.current_company ?? null,
+        linkedin_url: trainer_data.linkedin_url ?? null,
+        previous_companies: trainer_data.previous_companies ?? [],
+        bank_account_number: trainer_data.bank_account_number ?? null,
+        ifsc_code: trainer_data.ifsc_code ?? null,
+        upi_id: trainer_data.upi_id ?? null,
+        pan_number: trainer_data.pan_number ?? null,
+        account_holder_name: trainer_data.account_holder_name ?? null,
+        dob: trainer_data.dob ?? null,
+        whatsapp: trainer_data.whatsapp ?? null,
+        address: trainer_data.address ?? null,
+        pincode: trainer_data.pincode ?? null,
+        portfolio_url: trainer_data.portfolio_url ?? null,
+        secondary_skill: trainer_data.secondary_skill ?? null,
+        work_email: trainer_data.work_email ?? null,
+        expertise_areas: trainer_data.expertise_areas ?? [],
+        services_offered: trainer_data.services_offered ?? [],
+        course_materials: trainer_data.course_materials ?? null,
+        govt_id_type: trainer_data.govt_id_type ?? null,
+        additional_services_details: trainer_data.additional_services_details ?? null,
+        course_title: trainer_data.course_title ?? null,
+        course_duration: trainer_data.course_duration ?? null,
+        // ?? so that explicit 0 from new 3-step flow is not treated as falsy
+        course_fee: trainer_data.course_fee ?? 0,
+        course_description: trainer_data.course_description ?? null,
+        verification_method: trainer_data.verification_method ?? null,
+        verification_value: trainer_data.verification_value ?? null,
+        trainer_type: trainer_data.trainer_type ?? null,
+        session_duration_per_day: trainer_data.session_duration_per_day ?? null,
+        available_time_bands: trainer_data.available_time_bands ?? [],
+        weekend_availability: trainer_data.weekend_availability ?? null,
+        // total_sessions column exists on trainers; explicitly write null when not
+        // supplied so stale values from the old 7-step flow are cleared.
+        total_sessions: trainer_data.total_sessions ?? null,
       };
 
       // Conditionally include file URL fields — never overwrite existing DB value with null
@@ -161,10 +169,12 @@ serve(async (req) => {
         });
       }
 
-      // Update onboarding_status to "pending" so trainer appears in admin Pending tab
+      // Update onboarding_status to "pending" so trainer appears in admin Pending tab.
+      // Do NOT hardcode a step number here — the UI client owns step tracking and
+      // writes the correct value (steps.length) in its own follow-up update.
+      // Hardcoding 7 broke the new 3-step flow where completion is step 3.
       const { error: statusErr } = await supabaseAdmin.from("trainers").update({
         onboarding_status: "pending",
-        onboarding_step: 7,
         last_saved_at: new Date().toISOString(),
       }).eq("id", trainer.id);
       if (statusErr) console.error("Onboarding status update failed:", statusErr);
@@ -206,9 +216,55 @@ serve(async (req) => {
         if (availErr) console.error("Availability insert failed:", availErr);
       }
 
-      // Insert documents if provided
-      if (trainer_data.documents && trainer_data.documents.length > 0) {
-        for (const doc of trainer_data.documents) {
+      // Insert/upsert documents.
+      //
+      // Root cause of missing resume:
+      //   The trainer-documents storage bucket has no UPDATE RLS policy.
+      //   handleFileSelect() uploads the file immediately (INSERT — succeeds).
+      //   handleSubmit() then tries to re-upload with { upsert: true }, which
+      //   becomes an UPDATE on the existing object → blocked by RLS → upErr set
+      //   → the file path is never added to uploadedDocs → documents: [] arrives
+      //   at this edge function.
+      //
+      // Fix: read uploadedPaths from the trainer's auto-saved onboarding_data
+      // (the Onboarding.tsx auto-save always persists uploadedPaths to the
+      // trainers.onboarding_data JSONB column).  Use those paths as a fallback
+      // for any document type that is missing from the explicit client list.
+      const savedPaths =
+        trainer.onboarding_data &&
+        typeof trainer.onboarding_data === "object" &&
+        !Array.isArray(trainer.onboarding_data)
+          ? ((trainer.onboarding_data as Record<string, any>).uploadedPaths as Record<string, string> | undefined)
+          : undefined;
+
+      // Build a merged document list: explicit docs from client + paths from
+      // onboarding_data that didn't make it into the explicit list.
+      const docsToInsert: { document_type: string; document_name: string; document_url: string }[] =
+        trainer_data.documents ? [...trainer_data.documents] : [];
+
+      if (savedPaths) {
+        for (const [key, path] of Object.entries(savedPaths)) {
+          // Skip fields handled elsewhere: aadhaar → trainers.aadhaar_url,
+          // selfie/videos → their own columns.
+          if (!path || key === "aadhaar" || key === "selfie" || key === "demo_video" || key === "intro_video") continue;
+          const alreadyIncluded = docsToInsert.some(d => d.document_type === key);
+          if (!alreadyIncluded) {
+            docsToInsert.push({ document_type: key, document_name: key, document_url: path });
+          }
+        }
+      }
+
+      if (docsToInsert.length > 0) {
+        for (const doc of docsToInsert) {
+          // Delete any existing row for this (trainer, document_type) pair first
+          // to avoid duplicate rows on resubmission (no unique constraint exists
+          // so plain INSERT would create duplicates).
+          await supabaseAdmin
+            .from("trainer_documents")
+            .delete()
+            .eq("trainer_id", trainer.id)
+            .eq("document_type", doc.document_type);
+
           const { error: docErr } = await supabaseAdmin.from("trainer_documents").insert({
             trainer_id: trainer.id,
             document_type: doc.document_type,

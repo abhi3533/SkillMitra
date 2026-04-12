@@ -266,23 +266,46 @@ const AdminTrainers = () => {
 
   const isPendingReview = (t: any) => t.approval_status === "pending" && (t.onboarding_status === "pending" || t.onboarding_status === "submitted");
 
-  const filtered = trainers
-    .filter(t => {
-      if (tab === "pipeline") return false; // pipeline handled separately
-      // Only show trainers who completed onboarding (onboarding_status === "pending"/"submitted" or beyond) in status tabs
-      if (tab === "pending") return isPendingReview(t);
-      if (tab === "all") return isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
-      return t.approval_status === tab;
-    })
-    .filter(t => {
-      if (!search) return true;
-      const q = search.toLowerCase();
-      return (
-        t.profiles?.full_name?.toLowerCase().includes(q) ||
-        t.profiles?.email?.toLowerCase().includes(q) ||
-        (t.skills || []).some((s: string) => s.toLowerCase().includes(q))
-      );
-    });
+  const filtered = useMemo(() => {
+    let result = trainers
+      .filter(t => {
+        if (tab === "pipeline") return false; // pipeline handled separately
+        if (tab === "pending") return isPendingReview(t);
+        if (tab === "all") return isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
+        return t.approval_status === tab;
+      })
+      .filter(t => {
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return (
+          t.profiles?.full_name?.toLowerCase().includes(q) ||
+          t.profiles?.email?.toLowerCase().includes(q) ||
+          (t.skills || []).some((s: string) => s.toLowerCase().includes(q))
+        );
+      });
+
+    // Apply sorting
+    switch (sortBy) {
+      case "newest":
+        result = result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case "oldest":
+        result = result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      case "name-asc":
+        result = result.sort((a, b) => (a.profiles?.full_name || "").localeCompare(b.profiles?.full_name || ""));
+        break;
+      case "name-desc":
+        result = result.sort((a, b) => (b.profiles?.full_name || "").localeCompare(a.profiles?.full_name || ""));
+        break;
+      case "status":
+        const statusOrder = { pending: 0, approved: 1, suspended: 2, rejected: 3 };
+        result = result.sort((a, b) => (statusOrder[a.approval_status as keyof typeof statusOrder] || 0) - (statusOrder[b.approval_status as keyof typeof statusOrder] || 0));
+        break;
+    }
+
+    return result;
+  }, [trainers, tab, search, sortBy]);
 
   const counts = {
     pending: trainers.filter(t => isPendingReview(t)).length,

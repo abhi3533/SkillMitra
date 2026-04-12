@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { formatDateIST } from "@/lib/dateUtils";
-import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2, Pencil, Bell } from "lucide-react";
+import { Check, X, Eye, Search, RefreshCw, ShieldOff, Trash2, Pencil, Bell, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +22,7 @@ const AdminTrainers = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("pending");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name-asc" | "name-desc" | "status">("newest");
   const [selectedTrainer, setSelectedTrainer] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<any>(null);
@@ -264,23 +266,46 @@ const AdminTrainers = () => {
 
   const isPendingReview = (t: any) => t.approval_status === "pending" && (t.onboarding_status === "pending" || t.onboarding_status === "submitted");
 
-  const filtered = trainers
-    .filter(t => {
-      if (tab === "pipeline") return false; // pipeline handled separately
-      // Only show trainers who completed onboarding (onboarding_status === "pending"/"submitted" or beyond) in status tabs
-      if (tab === "pending") return isPendingReview(t);
-      if (tab === "all") return isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
-      return t.approval_status === tab;
-    })
-    .filter(t => {
-      if (!search) return true;
-      const q = search.toLowerCase();
-      return (
-        t.profiles?.full_name?.toLowerCase().includes(q) ||
-        t.profiles?.email?.toLowerCase().includes(q) ||
-        (t.skills || []).some((s: string) => s.toLowerCase().includes(q))
-      );
-    });
+  const filtered = useMemo(() => {
+    let result = trainers
+      .filter(t => {
+        if (tab === "pipeline") return false; // pipeline handled separately
+        if (tab === "pending") return isPendingReview(t);
+        if (tab === "all") return isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
+        return t.approval_status === tab;
+      })
+      .filter(t => {
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return (
+          t.profiles?.full_name?.toLowerCase().includes(q) ||
+          t.profiles?.email?.toLowerCase().includes(q) ||
+          (t.skills || []).some((s: string) => s.toLowerCase().includes(q))
+        );
+      });
+
+    // Apply sorting
+    switch (sortBy) {
+      case "newest":
+        result = result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case "oldest":
+        result = result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      case "name-asc":
+        result = result.sort((a, b) => (a.profiles?.full_name || "").localeCompare(b.profiles?.full_name || ""));
+        break;
+      case "name-desc":
+        result = result.sort((a, b) => (b.profiles?.full_name || "").localeCompare(a.profiles?.full_name || ""));
+        break;
+      case "status":
+        const statusOrder = { pending: 0, approved: 1, suspended: 2, rejected: 3 };
+        result = result.sort((a, b) => (statusOrder[a.approval_status as keyof typeof statusOrder] || 0) - (statusOrder[b.approval_status as keyof typeof statusOrder] || 0));
+        break;
+    }
+
+    return result;
+  }, [trainers, tab, search, sortBy]);
 
   const counts = {
     pending: trainers.filter(t => isPendingReview(t)).length,
@@ -316,9 +341,24 @@ const AdminTrainers = () => {
           </TabsList>
         </Tabs>
         {tab !== "pipeline" && (
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search name, email, skill..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Search name, email, skill..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+            </div>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+              <SelectTrigger className="h-9 w-[160px] text-sm">
+                <ArrowUpDown className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="name-asc">Name A-Z</SelectItem>
+                <SelectItem value="name-desc">Name Z-A</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>

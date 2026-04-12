@@ -75,6 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // Track whether getSession has completed — this is the authoritative
+    // initial-session source.  onAuthStateChange may fire INITIAL_SESSION with
+    // a null session *before* getSession resolves (e.g. during token refresh),
+    // so we must NOT set loading=false from the listener until getSession has
+    // had a chance to run.
+    let getSessionResolved = false;
+
     // Set up listener FIRST (before getSession)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       // Synchronous state updates only — no awaiting Supabase calls here
@@ -99,7 +106,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Fire and forget — do NOT await inside onAuthStateChange.
         // setLoading(false) is owned by fetchUserData; do not call it here.
         setTimeout(() => { fetchUserData(newSession); }, 0);
-      } else {
+      } else if (getSessionResolved) {
+        // Only set loading=false for non-session events AFTER getSession has
+        // resolved.  Before that, the null session may be transient (token
+        // being refreshed) and we must keep the loading state to prevent
+        // ProtectedRoute from redirecting to login prematurely.
         setLoading(false);
       }
     });
@@ -108,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // chain it here — doing so caused the race where loading became false before
     // fetchUserData finished when fetchingRef blocked a duplicate call.
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      getSessionResolved = true;
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
       fetchUserData(existingSession);

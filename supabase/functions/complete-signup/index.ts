@@ -169,6 +169,28 @@ serve(async (req) => {
       }).eq("id", trainer.id);
       if (statusErr) console.error("Onboarding status update failed:", statusErr);
 
+      // Send welcome email to trainer (server-side — reliable regardless of whether
+      // the browser tab is open when the verification link is clicked)
+      try {
+        const { data: trainerProfile } = await supabaseAdmin
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", user_id)
+          .single();
+        if (trainerProfile?.email) {
+          await supabaseAdmin.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "welcome-trainer",
+              recipientEmail: trainerProfile.email,
+              idempotencyKey: `welcome-trainer-${user_id}`,
+              templateData: { name: trainerProfile.full_name || "" },
+            },
+          });
+        }
+      } catch (emailErr) {
+        console.error("Trainer welcome email failed (non-blocking):", emailErr);
+      }
+
       // Insert availability if provided
       if (trainer_data.availability && trainer_data.availability.length > 0) {
         const availRows = trainer_data.availability.map((a: any) => ({

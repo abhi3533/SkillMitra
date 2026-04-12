@@ -141,18 +141,20 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Atomically claim the referral: only update if status is still 'pending'.
+    // Atomically claim the referral: flip directly from 'pending' → 'paid'.
+    // trainer_referrals only allows 'pending' | 'paid' — 'processing' is not a
+    // valid status and causes a constraint violation.
     // If two admin approvals race, only one UPDATE will match the eq('status','pending')
     // filter — the other gets 0 rows back and returns early, preventing double-credit.
     const { data: claimed } = await supabase
       .from('trainer_referrals')
-      .update({ status: 'processing' })
+      .update({ status: 'paid' })
       .eq('id', referral.id)
       .eq('status', 'pending')
       .select('id')
 
     if (!claimed || claimed.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'Referral already being processed' }), {
+      return new Response(JSON.stringify({ success: false, message: 'Referral already processed' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -177,9 +179,6 @@ Deno.serve(async (req) => {
       if (!credited) {
         throw new Error(`Failed to credit referrer wallet for user ${referrerUserId}`)
       }
-
-      // Mark referral as paid only after wallet credit succeeded
-      await supabase.from('trainer_referrals').update({ status: 'paid' }).eq('id', referral.id)
 
       // Update referral_credits on trainers table
       const { data: referrerTrainer } = await supabase

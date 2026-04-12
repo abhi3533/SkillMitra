@@ -24,8 +24,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<any>(null);
   
   const fetchingRef = useRef(false);
-  const emailConfirmedRef = useRef(false);
-  const prevEmailConfirmedAtRef = useRef<string | null | undefined>(undefined);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -89,55 +87,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
         return;
       }
-
-      // Send post-verification emails when email is confirmed
-      // Detect email_confirmed_at transition: null/undefined → timestamp
-      const currentConfirmedAt = newSession?.user?.email_confirmed_at ?? null;
-      const prevConfirmedAt = prevEmailConfirmedAtRef.current;
-      const isFirstLoad = prevConfirmedAt === undefined;
-      
-      if (
-        !emailConfirmedRef.current &&
-        currentConfirmedAt &&
-        !isFirstLoad &&
-        !prevConfirmedAt
-      ) {
-        // email_confirmed_at just transitioned from null → timestamp (USER_UPDATED after verification)
-        emailConfirmedRef.current = true;
-        const confirmedUser = newSession!.user;
-        const name = confirmedUser.user_metadata?.full_name || "";
-        const userRole = confirmedUser.user_metadata?.role || "student";
-        setTimeout(async () => {
-          try {
-            if (userRole === "trainer") {
-              // Trainers get the welcome-trainer email only (not email-confirmed)
-              await supabase.functions.invoke("send-transactional-email", {
-                body: {
-                  templateName: "welcome-trainer",
-                  recipientEmail: confirmedUser.email,
-                  idempotencyKey: `welcome-trainer-${confirmedUser.id}`,
-                  templateData: { name },
-                },
-              });
-            } else {
-              // Students (and other roles) get the email-confirmed template only
-              await supabase.functions.invoke("send-transactional-email", {
-                body: {
-                  templateName: "email-confirmed",
-                  recipientEmail: confirmedUser.email,
-                  idempotencyKey: `email-confirmed-${confirmedUser.id}`,
-                  templateData: { name },
-                },
-              });
-            }
-          } catch (err) {
-            console.error("Failed to send post-verification emails:", err);
-          }
-        }, 0);
-      }
-      
-      // Track previous value for next event
-      prevEmailConfirmedAtRef.current = currentConfirmedAt;
 
       if (event === "TOKEN_REFRESHED" && !newSession) {
         setRole(null);

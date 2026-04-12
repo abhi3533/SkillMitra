@@ -393,8 +393,8 @@ const TrainerOnboarding = () => {
     experience_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
   };
 
-  const handleFileSelect = (docKey: string, file: File | null) => {
-    if (!file) return;
+  const handleFileSelect = async (docKey: string, file: File | null) => {
+    if (!file || !user) return;
 
     const limits = fileSizeLimits[docKey] || { min: 5 * 1024, max: 5 * 1024 * 1024, minLabel: "5KB", maxLabel: "5MB" };
 
@@ -433,6 +433,28 @@ const TrainerOnboarding = () => {
 
     setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
     setUploadedDocKeys(prev => prev.includes(docKey) ? prev : [...prev, docKey]);
+
+    // Immediately upload the file to storage so the path persists across page reloads
+    const ext = file.name.split('.').pop();
+    const isPublicBucket = docKey === "demo_video" || docKey === "intro_video";
+    const bucket = isPublicBucket ? "intro-videos" : "trainer-documents";
+    const path = `${user.id}/${docKey}.${ext}`;
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+    if (upErr) {
+      console.error(`Immediate upload failed for ${docKey}:`, upErr);
+      toast({ title: "Upload failed", description: `Could not upload ${docKey}. Please try again.`, variant: "destructive" });
+      return;
+    }
+
+    // Store the path (or public URL for public buckets)
+    let storedPath = path;
+    if (isPublicBucket) {
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+      storedPath = urlData.publicUrl;
+    }
+    setUploadedPaths(prev => ({ ...prev, [docKey]: storedPath }));
+    toast({ title: "File uploaded", description: `${file.name} uploaded successfully.`, variant: "success" });
+    scheduleAutoSave();
   };
 
   const isPhoneFilled = isValidPhone(form.phone);

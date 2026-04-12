@@ -341,9 +341,24 @@ const AdminTrainers = () => {
           </TabsList>
         </Tabs>
         {tab !== "pipeline" && (
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search name, email, skill..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Search name, email, skill..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+            </div>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+              <SelectTrigger className="h-9 w-[160px] text-sm">
+                <ArrowUpDown className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="name-asc">Name A-Z</SelectItem>
+                <SelectItem value="name-desc">Name Z-A</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>

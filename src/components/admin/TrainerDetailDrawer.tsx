@@ -59,6 +59,10 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
   const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string; status: string } | null>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("Message from SkillMitra Admin");
+  const [emailBody, setEmailBody] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const resolveUrls = async (t: any) => {
     const urls: Record<string, string> = {};

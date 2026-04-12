@@ -498,13 +498,18 @@ Deno.serve(async (req) => {
   // calls from other edge functions) OR a valid Supabase user JWT (for browser calls).
   const authHeader = req.headers.get('Authorization') ?? ''
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  let isServiceRole = false
+  let authenticatedUserId: string | null = null
+
   if (!authHeader.startsWith('Bearer ')) {
     return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
-  if (serviceKey && authHeader !== `Bearer ${serviceKey}`) {
+  if (serviceKey && authHeader === `Bearer ${serviceKey}`) {
+    isServiceRole = true
+  } else {
     // Not service-role — verify as user JWT
     const authClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -518,6 +523,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+    authenticatedUserId = user.id
   }
 
   try {

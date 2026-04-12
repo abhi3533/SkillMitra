@@ -11,11 +11,13 @@ import { useToast } from "@/hooks/use-toast";
 interface Props {
   trainers: any[];
   loading: boolean;
+  search?: string;
+  sortBy?: "newest" | "oldest" | "name-asc" | "name-desc" | "status";
   onTrainerClick?: (trainer: any) => void;
   onDeleteTrainer?: (trainer: any) => void;
 }
 
-const OnboardingPipeline = ({ trainers, loading, onTrainerClick, onDeleteTrainer }: Props) => {
+const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest", onTrainerClick, onDeleteTrainer }: Props) => {
   const { toast } = useToast();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
   const [sendingAll, setSendingAll] = useState(false);

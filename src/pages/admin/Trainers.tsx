@@ -363,7 +363,7 @@ const AdminTrainers = () => {
 
       <div className="mt-4">
         {tab === "pipeline" ? (
-          <OnboardingPipeline trainers={trainers} loading={loading} onTrainerClick={(t) => { setSelectedTrainer(t); setDrawerOpen(true); }} onDeleteTrainer={(t) => { setTrainers(prev => prev.filter(tr => tr.id !== t.id)); }} />
+          <OnboardingPipeline trainers={trainers} loading={loading} search={search} sortBy={sortBy} onTrainerClick={(t) => { setSelectedTrainer(t); setDrawerOpen(true); }} onDeleteTrainer={(t) => { setTrainers(prev => prev.filter(tr => tr.id !== t.id)); }} />
         ) : loading ? (
           <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-card rounded-xl border animate-pulse" />)}</div>
         ) : filtered.length === 0 ? (

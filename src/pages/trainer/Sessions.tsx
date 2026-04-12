@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { formatDateTimeIST, generateGoogleCalendarUrl, generateOutlookCalendarUrl } from "@/lib/dateUtils";
+import { formatDateTimeIST, formatDateTimeWeekdayIST, generateGoogleCalendarUrl, generateOutlookCalendarUrl } from "@/lib/dateUtils";
 import { Calendar, Clock, Video, ExternalLink, FileText, CheckCircle, Upload, Plus, Loader2, Link2, CalendarClock, Star, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -191,7 +191,7 @@ const TrainerSessions = () => {
         await supabase.from("notifications").insert({
           user_id: enrollment.students.user_id,
           title: "New Session Scheduled",
-          body: `Your trainer has scheduled a session on ${scheduledAt.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} at ${newSession.time}`,
+          body: `Your trainer has scheduled a session on ${formatDateTimeWeekdayIST(scheduledAt)}`,
           type: "session_scheduled",
           action_url: "/student/sessions",
         });
@@ -271,7 +271,7 @@ const TrainerSessions = () => {
         await supabase.from("notifications").insert({
           user_id: student.user_id,
           title: "Session Rescheduled",
-          body: `Your trainer has rescheduled a session to ${newDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} at ${postponeData.time}. Reason: ${postponeData.reason || "Not specified"}`,
+          body: `Your trainer has rescheduled a session to ${formatDateTimeWeekdayIST(newDate)}. Reason: ${postponeData.reason || "Not specified"}`,
           type: "session_rescheduled",
           action_url: "/student/sessions",
         });

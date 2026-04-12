@@ -498,13 +498,18 @@ Deno.serve(async (req) => {
   // calls from other edge functions) OR a valid Supabase user JWT (for browser calls).
   const authHeader = req.headers.get('Authorization') ?? ''
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  let isServiceRole = false
+  let authenticatedUserId: string | null = null
+
   if (!authHeader.startsWith('Bearer ')) {
     return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
-  if (serviceKey && authHeader !== `Bearer ${serviceKey}`) {
+  if (serviceKey && authHeader === `Bearer ${serviceKey}`) {
+    isServiceRole = true
+  } else {
     // Not service-role — verify as user JWT
     const authClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -518,6 +523,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+    authenticatedUserId = user.id
   }
 
   try {
@@ -539,13 +545,24 @@ Deno.serve(async (req) => {
       subject = built.subject
       html = built.html
     } else if (body.to && body.subject && body.html) {
-      // Direct email (admin replies etc.) — require service-role Authorization
-      const authHeader = req.headers.get('Authorization') ?? ''
-      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      if (!serviceKey || authHeader !== `Bearer ${serviceKey}`) {
-        return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+      // Direct email (admin replies etc.) — require service-role or admin user
+      if (!isServiceRole) {
+        if (!authenticatedUserId) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+            status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        // Check if authenticated user has admin role
+        const adminClient = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        )
+        const { data: isAdmin } = await adminClient.rpc('has_role', { _user_id: authenticatedUserId, _role: 'admin' })
+        if (!isAdmin) {
+          return new Response(JSON.stringify({ success: false, error: 'Admin access required' }), {
+            status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
       }
       to = body.to
       subject = body.subject

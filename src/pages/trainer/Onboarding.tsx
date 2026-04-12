@@ -638,7 +638,8 @@ const TrainerOnboarding = () => {
     if (!validateStep(LAST_STEP) || !user || !trainerId) return;
     setSubmitting(true);
     try {
-      // Upload files
+      // Upload files — use already-uploaded paths from uploadedPaths as fallback
+      // when File objects are no longer in memory (e.g. after page reload)
       let profilePictureUrl: string | null = null;
       if (profilePhoto) {
         const ext = profilePhoto.name.split('.').pop();
@@ -647,7 +648,7 @@ const TrainerOnboarding = () => {
         if (!photoErr) { const { data: u } = supabase.storage.from("profile-pictures").getPublicUrl(photoPath); profilePictureUrl = u.publicUrl; }
       }
 
-      let selfieUrl: string | null = null;
+      let selfieUrl: string | null = uploadedPaths["selfie"] || null;
       if (selfie) {
         const ext = selfie.name.split('.').pop();
         const selfiePath = `${user.id}/selfie.${ext}`;
@@ -655,14 +656,21 @@ const TrainerOnboarding = () => {
         if (!sErr) { selfieUrl = selfiePath; }
       }
 
-      let demoVideoUrl: string | null = null;
-      let introVideoUrl: string | null = null;
-      let curriculumPdfUrl: string | null = null;
-      let aadhaarUrl: string | null = null;
+      let demoVideoUrl: string | null = uploadedPaths["demo_video"] || null;
+      let introVideoUrl: string | null = uploadedPaths["intro_video"] || null;
+      let curriculumPdfUrl: string | null = uploadedPaths["curriculum_pdf"] || null;
+      let aadhaarUrl: string | null = uploadedPaths["aadhaar"] || null;
       const uploadedDocs: { document_type: string; document_name: string; document_url: string }[] = [];
 
       for (const [key, docFile] of Object.entries(docs)) {
-        if (!docFile?.file) continue;
+        if (!docFile?.file) {
+          // File object lost (page reload) — use previously uploaded path if we have one
+          // For resume and other docs that go to trainer_documents, add them if path exists
+          if (uploadedPaths[key] && !["demo_video", "intro_video", "curriculum_pdf", "aadhaar", "selfie"].includes(key)) {
+            uploadedDocs.push({ document_type: key, document_name: docFile?.name || key, document_url: uploadedPaths[key] });
+          }
+          continue;
+        }
         const ext = docFile.file.name.split('.').pop();
         const isPublicBucket = key === "demo_video" || key === "intro_video";
         const bucket = isPublicBucket ? "intro-videos" : "trainer-documents";
@@ -679,6 +687,14 @@ const TrainerOnboarding = () => {
           aadhaarUrl = path;
         } else {
           uploadedDocs.push({ document_type: key, document_name: docFile.name, document_url: path });
+        }
+      }
+
+      // Also pick up any uploadedPaths for doc keys that weren't in docs state at all
+      for (const [key, path] of Object.entries(uploadedPaths)) {
+        if (["demo_video", "intro_video", "curriculum_pdf", "aadhaar", "selfie"].includes(key)) continue;
+        if (!docs[key] && path) {
+          uploadedDocs.push({ document_type: key, document_name: key, document_url: path });
         }
       }
 

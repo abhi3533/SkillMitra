@@ -391,7 +391,7 @@ const TrainerOnboarding = () => {
 
   // File size limits config
   const fileSizeLimits: Record<string, { min: number; max: number; minLabel: string; maxLabel: string }> = {
-    resume: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
+    resume: { min: 0, max: 5 * 1024 * 1024, minLabel: "0", maxLabel: "5MB" },
     aadhaar: { min: 20 * 1024, max: 5 * 1024 * 1024, minLabel: "20KB", maxLabel: "5MB" },
     demo_video: { min: 500 * 1024, max: 100 * 1024 * 1024, minLabel: "500KB", maxLabel: "100MB" },
     intro_video: { min: 500 * 1024, max: 100 * 1024 * 1024, minLabel: "500KB", maxLabel: "100MB" },
@@ -602,6 +602,7 @@ const TrainerOnboarding = () => {
     if (s === 2) {
       if (!docs["demo_video"]?.file && !uploadedDocKeys.includes("demo_video")) { toast({ title: "Course demo video is required (5-10 min)", variant: "warning" }); return false; }
       if (!docs["intro_video"]?.file && !uploadedDocKeys.includes("intro_video")) { toast({ title: "Please upload your intro video to continue", variant: "warning" }); return false; }
+      if (!docs["curriculum_pdf"]?.file && !uploadedDocKeys.includes("curriculum_pdf")) { toast({ title: "Course curriculum PDF is required", variant: "warning" }); return false; }
       if (!form.courseTitle.trim()) { toast({ title: "Course title is required", variant: "warning" }); return false; }
       if (!form.courseDescription.trim() || form.courseDescription.trim().length < 100) { toast({ title: "Course description must be at least 100 characters", variant: "warning" }); return false; }
     }
@@ -1097,7 +1098,7 @@ const TrainerOnboarding = () => {
               <div className="space-y-3">
                 <Label>Resume<RequiredMark /></Label>
                 <FieldHint text="Helps our team verify your experience and qualifications before approval." />
-                <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, min 10KB, max 5MB" />
+                <FileUploadBox docKey="resume" label="Upload Your Resume" required accept=".pdf,.doc,.docx" hint="PDF or DOC, max 5MB" />
               </div>
 
               <div>
@@ -1163,7 +1164,7 @@ const TrainerOnboarding = () => {
 
               <FileUploadBox docKey="demo_video" label="Course Demo Video (5-10 min)" required accept="video/*" hint="MP4/MOV video, min 500KB, max 100MB" />
               <FileUploadBox docKey="intro_video" label="About Yourself Video (2-3 min)" required accept="video/*" hint="MP4/MOV video, min 500KB, max 100MB" />
-              <FileUploadBox docKey="curriculum_pdf" label="Course Curriculum PDF" accept=".pdf" hint="PDF document, min 5KB, max 10MB (optional)" />
+              <FileUploadBox docKey="curriculum_pdf" label="Course Curriculum PDF" required accept=".pdf" hint="PDF document, min 5KB, max 10MB" />
 
               <div>
                 <Label>Course Title<RequiredMark /></Label>

@@ -338,6 +338,7 @@ const TrainerOnboarding = () => {
         servicesOffered,
         availableTimeBands,
         uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])],
+        uploadedPaths: { ...uploadedPaths },
       };
 
       const { error } = await supabase.from("trainers").update({

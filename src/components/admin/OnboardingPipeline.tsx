@@ -31,6 +31,15 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
 
   const pipeline = trainers
     .filter(t => t.onboarding_status === "draft" || t.onboarding_status === "registered")
+    .filter(t => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        t.profiles?.full_name?.toLowerCase().includes(q) ||
+        t.profiles?.email?.toLowerCase().includes(q) ||
+        (t.skills || []).some((s: string) => s.toLowerCase().includes(q))
+      );
+    })
     .map(t => {
       const createdAt = new Date(t.created_at);
       const now = new Date();
@@ -38,7 +47,19 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
       const lastActive = t.last_saved_at ? new Date(t.last_saved_at) : createdAt;
       return { ...t, daysSince, lastActive };
     })
-    .sort((a, b) => b.daysSince - a.daysSince);
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "name-asc":
+          return (a.profiles?.full_name || "").localeCompare(b.profiles?.full_name || "");
+        case "name-desc":
+          return (b.profiles?.full_name || "").localeCompare(a.profiles?.full_name || "");
+        case "newest":
+        default:
+          return b.daysSince - a.daysSince;
+      }
+    });
 
   const sendReminder = async (trainer: any) => {
     const today = new Date().toISOString().slice(0, 10);

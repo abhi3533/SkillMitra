@@ -562,7 +562,7 @@ const TrainerOnboarding = () => {
     setShowCameraModal(false);
   };
 
-  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); };
+  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); setUploadedPaths(prev => { const p = { ...prev }; delete p["selfie"]; return p; }); setUploadedDocKeys(prev => prev.filter(k => k !== "selfie")); };
 
   const toggleReadiness = (key: string) => setReadinessChecks(p => ({ ...p, [key]: !p[key] }));
   const allReadinessChecked = Object.values(readinessChecks).every(Boolean);

@@ -88,6 +88,7 @@ const TrainerOnboarding = () => {
   });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [uploadedDocKeys, setUploadedDocKeys] = useState<string[]>([]);
+  const [uploadedPaths, setUploadedPaths] = useState<Record<string, string>>({});
   const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
 
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);

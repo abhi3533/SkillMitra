@@ -517,6 +517,17 @@ const TrainerOnboarding = () => {
     }
     setSelfie(file);
     setSelfiePreview(URL.createObjectURL(file));
+    // Immediately upload selfie
+    if (user) {
+      const ext = file.name.split('.').pop();
+      const selfiePath = `${user.id}/selfie.${ext}`;
+      const { error: sErr } = await supabase.storage.from("trainer-documents").upload(selfiePath, file, { upsert: true });
+      if (!sErr) {
+        setUploadedPaths(prev => ({ ...prev, selfie: selfiePath }));
+        setUploadedDocKeys(prev => prev.includes("selfie") ? prev : [...prev, "selfie"]);
+        scheduleAutoSave();
+      }
+    }
   };
 
   const captureSelfie = () => {

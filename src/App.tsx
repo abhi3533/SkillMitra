@@ -137,7 +137,15 @@ const useAuthRedirect = () => {
 
     if (role === "student") navigate("/student/dashboard", { replace: true });
     else if (role === "trainer") navigate("/trainer/dashboard", { replace: true });
-    else if (role === "admin") navigate("/admin/dashboard", { replace: true });
+    else if (role === "admin") {
+      const returnTo = sessionStorage.getItem("admin_return_to");
+      if (returnTo) {
+        sessionStorage.removeItem("admin_return_to");
+        navigate(returnTo, { replace: true });
+      } else {
+        navigate("/admin/dashboard", { replace: true });
+      }
+    }
   }, [user, role, loading, location.pathname, navigate]);
 
   // Reset flag when user signs out

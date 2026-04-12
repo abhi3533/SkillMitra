@@ -48,32 +48,53 @@ const TrainerReferrals = () => {
       if (t) {
         const { data: refs } = await supabase
           .from("trainer_referrals")
-          .select("*, referred:referred_id(user_id, approval_status)")
+          .select("*")
           .eq("referrer_id", t.id)
           .order("created_at", { ascending: false });
 
         if (refs && refs.length > 0) {
-          const userIds = refs.map((r: any) => r.referred?.user_id).filter(Boolean);
-          let profileMap: Record<string, any> = {};
-          if (userIds.length > 0) {
-            const { data: profiles } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: userIds });
-            (profiles || []).forEach((p: any) => {
-              profileMap[p.p_id] = {
-                id: p.p_id,
-                full_name: p.p_full_name,
-                profile_picture_url: p.p_profile_picture_url,
-              };
-            });
+          // Step 1: fetch the referred trainer rows (user_id + approval_status).
+          // The "Trainers read referred by them" RLS policy allows this even for
+          // pending trainers who are not yet publicly visible.
+          const referredIds = refs.map((r: any) => r.referred_id).filter(Boolean);
+          let trainerProfileMap: Record<string, { full_name: string; profile_picture_url: string | null; approval_status: string }> = {};
+
+          if (referredIds.length > 0) {
+            const { data: referredTrainers } = await supabase
+              .from("trainers")
+              .select("id, user_id, approval_status")
+              .in("id", referredIds);
+
+            const trainerToUser: Record<string, string> = {};
+            (referredTrainers || []).forEach((tr: any) => { trainerToUser[tr.id] = tr.user_id; });
+
+            // Step 2: fetch profiles via SECURITY DEFINER RPC (bypasses profiles RLS).
+            const userIds = Object.values(trainerToUser).filter(Boolean);
+            if (userIds.length > 0) {
+              const { data: profiles } = await supabase.rpc("get_public_profiles_bulk", { profile_ids: userIds });
+              const profileByUserId: Record<string, any> = {};
+              (profiles || []).forEach((p: any) => { profileByUserId[p.p_id] = p; });
+
+              (referredTrainers || []).forEach((tr: any) => {
+                const p = profileByUserId[tr.user_id];
+                trainerProfileMap[tr.id] = {
+                  full_name: p?.p_full_name || "Trainer",
+                  profile_picture_url: p?.p_profile_picture_url || null,
+                  approval_status: tr.approval_status || "pending",
+                };
+              });
+            }
           }
+
           setReferrals(refs.map((r: any) => {
-            const profile = profileMap[r.referred?.user_id];
+            const tp = trainerProfileMap[r.referred_id] || { full_name: "Trainer", profile_picture_url: null, approval_status: "pending" };
             return {
               ...r,
-              referred_name: profile?.full_name || "Trainer",
+              referred_name: tp.full_name,
               referred_email: "",
-              referred_photo: profile?.profile_picture_url || null,
+              referred_photo: tp.profile_picture_url,
               referred_date: r.created_at,
-              approval_status: r.referred?.approval_status || "pending",
+              approval_status: tp.approval_status,
             };
           }));
         } else {

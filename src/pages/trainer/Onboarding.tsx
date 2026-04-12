@@ -883,6 +883,7 @@ const TrainerOnboarding = () => {
               <div className="p-3 rounded-lg bg-muted/50 border border-border">
                 <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">{profile?.full_name}</span> · {profile?.email}</p>
               </div>
+              <FieldHint text="Enter your full name as per Aadhaar and banking records for verification purposes." />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

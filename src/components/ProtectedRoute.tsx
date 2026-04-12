@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
 
 const ProtectedRoute = ({ children, allowedRoles }: Props) => {
   const { user, role, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -23,8 +24,15 @@ const ProtectedRoute = ({ children, allowedRoles }: Props) => {
   }
 
   if (!user) {
-    // Redirect to appropriate login
-    if (allowedRoles.includes("admin")) return <Navigate to="/admin/login" replace />;
+    // Save the current URL so we can restore it after login.
+    // Only save admin paths (the other roles don't have this issue yet).
+    if (allowedRoles.includes("admin")) {
+      const currentPath = location.pathname + location.search;
+      if (currentPath !== "/admin/login") {
+        sessionStorage.setItem("admin_return_to", currentPath);
+      }
+      return <Navigate to="/admin/login" replace />;
+    }
     if (allowedRoles.includes("trainer")) return <Navigate to="/trainer/login" replace />;
     return <Navigate to="/student/login" replace />;
   }

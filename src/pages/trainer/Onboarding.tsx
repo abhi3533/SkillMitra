@@ -88,6 +88,7 @@ const TrainerOnboarding = () => {
   });
   const [docs, setDocs] = useState<Record<string, DocFile>>({});
   const [uploadedDocKeys, setUploadedDocKeys] = useState<string[]>([]);
+  const [uploadedPaths, setUploadedPaths] = useState<Record<string, string>>({});
   const [referralStatus, setReferralStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
 
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
@@ -255,20 +256,26 @@ const TrainerOnboarding = () => {
 
       // Restore previously uploaded file indicators from trainer columns & trainer_documents
       const restoredKeys: string[] = saved?.uploadedDocKeys || [];
-      if (trainer.selfie_url && !restoredKeys.includes("selfie")) restoredKeys.push("selfie");
-      if (trainer.demo_video_url && !restoredKeys.includes("demo_video")) restoredKeys.push("demo_video");
-      if ((trainer as any).intro_video_url && !restoredKeys.includes("intro_video")) restoredKeys.push("intro_video");
-      if (trainer.aadhaar_url && !restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar");
+      const restoredPaths: Record<string, string> = saved?.uploadedPaths || {};
+
+      // Rebuild paths from trainer columns if they exist
+      if (trainer.selfie_url) { if (!restoredKeys.includes("selfie")) restoredKeys.push("selfie"); restoredPaths["selfie"] = trainer.selfie_url; }
+      if (trainer.demo_video_url) { if (!restoredKeys.includes("demo_video")) restoredKeys.push("demo_video"); restoredPaths["demo_video"] = trainer.demo_video_url; }
+      if ((trainer as any).intro_video_url) { if (!restoredKeys.includes("intro_video")) restoredKeys.push("intro_video"); restoredPaths["intro_video"] = (trainer as any).intro_video_url; }
+      if (trainer.aadhaar_url) { if (!restoredKeys.includes("aadhaar")) restoredKeys.push("aadhaar"); restoredPaths["aadhaar"] = trainer.aadhaar_url; }
 
       // Check trainer_documents table for resume and other docs
       const { data: existingDocs } = await supabase
         .from("trainer_documents")
-        .select("document_type, document_name")
+        .select("document_type, document_name, document_url")
         .eq("trainer_id", trainer.id);
       if (existingDocs) {
         for (const doc of existingDocs) {
           if (doc.document_type && !restoredKeys.includes(doc.document_type)) {
             restoredKeys.push(doc.document_type);
+          }
+          if (doc.document_type && doc.document_url) {
+            restoredPaths[doc.document_type] = doc.document_url;
           }
         }
       }
@@ -285,6 +292,7 @@ const TrainerOnboarding = () => {
       }
 
       setUploadedDocKeys(restoredKeys);
+      setUploadedPaths(restoredPaths);
 
       // Resume from saved step
       const savedStep = trainer.onboarding_step || 0;
@@ -337,6 +345,7 @@ const TrainerOnboarding = () => {
         servicesOffered,
         availableTimeBands,
         uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])],
+        uploadedPaths: { ...uploadedPaths },
       };
 
       const { error } = await supabase.from("trainers").update({
@@ -392,8 +401,8 @@ const TrainerOnboarding = () => {
     experience_letter: { min: 10 * 1024, max: 5 * 1024 * 1024, minLabel: "10KB", maxLabel: "5MB" },
   };
 
-  const handleFileSelect = (docKey: string, file: File | null) => {
-    if (!file) return;
+  const handleFileSelect = async (docKey: string, file: File | null) => {
+    if (!file || !user) return;
 
     const limits = fileSizeLimits[docKey] || { min: 5 * 1024, max: 5 * 1024 * 1024, minLabel: "5KB", maxLabel: "5MB" };
 
@@ -432,6 +441,28 @@ const TrainerOnboarding = () => {
 
     setDocs(prev => ({ ...prev, [docKey]: { file, name: file.name } }));
     setUploadedDocKeys(prev => prev.includes(docKey) ? prev : [...prev, docKey]);
+
+    // Immediately upload the file to storage so the path persists across page reloads
+    const ext = file.name.split('.').pop();
+    const isPublicBucket = docKey === "demo_video" || docKey === "intro_video";
+    const bucket = isPublicBucket ? "intro-videos" : "trainer-documents";
+    const path = `${user.id}/${docKey}.${ext}`;
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+    if (upErr) {
+      console.error(`Immediate upload failed for ${docKey}:`, upErr);
+      toast({ title: "Upload failed", description: `Could not upload ${docKey}. Please try again.`, variant: "destructive" });
+      return;
+    }
+
+    // Store the path (or public URL for public buckets)
+    let storedPath = path;
+    if (isPublicBucket) {
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+      storedPath = urlData.publicUrl;
+    }
+    setUploadedPaths(prev => ({ ...prev, [docKey]: storedPath }));
+    toast({ title: "File uploaded", description: `${file.name} uploaded successfully.`, variant: "success" });
+    scheduleAutoSave();
   };
 
   const isPhoneFilled = isValidPhone(form.phone);
@@ -469,7 +500,7 @@ const TrainerOnboarding = () => {
     }
   };
 
-  const handleSelfieFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelfieFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -486,6 +517,17 @@ const TrainerOnboarding = () => {
     }
     setSelfie(file);
     setSelfiePreview(URL.createObjectURL(file));
+    // Immediately upload selfie
+    if (user) {
+      const ext = file.name.split('.').pop();
+      const selfiePath = `${user.id}/selfie.${ext}`;
+      const { error: sErr } = await supabase.storage.from("trainer-documents").upload(selfiePath, file, { upsert: true });
+      if (!sErr) {
+        setUploadedPaths(prev => ({ ...prev, selfie: selfiePath }));
+        setUploadedDocKeys(prev => prev.includes("selfie") ? prev : [...prev, "selfie"]);
+        scheduleAutoSave();
+      }
+    }
   };
 
   const captureSelfie = () => {
@@ -494,11 +536,21 @@ const TrainerOnboarding = () => {
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
     canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
-    canvas.toBlob((blob) => {
+    canvas.toBlob(async (blob) => {
       if (blob) {
         const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
         setSelfie(file);
         setSelfiePreview(URL.createObjectURL(file));
+        // Immediately upload selfie
+        if (user) {
+          const selfiePath = `${user.id}/selfie.jpg`;
+          const { error: sErr } = await supabase.storage.from("trainer-documents").upload(selfiePath, file, { upsert: true });
+          if (!sErr) {
+            setUploadedPaths(prev => ({ ...prev, selfie: selfiePath }));
+            setUploadedDocKeys(prev => prev.includes("selfie") ? prev : [...prev, "selfie"]);
+            scheduleAutoSave();
+          }
+        }
       }
       closeCameraStream();
     }, "image/jpeg", 0.9);
@@ -510,7 +562,7 @@ const TrainerOnboarding = () => {
     setShowCameraModal(false);
   };
 
-  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); };
+  const removeSelfie = () => { setSelfie(null); setSelfiePreview(null); setUploadedPaths(prev => { const p = { ...prev }; delete p["selfie"]; return p; }); setUploadedDocKeys(prev => prev.filter(k => k !== "selfie")); };
 
   const toggleReadiness = (key: string) => setReadinessChecks(p => ({ ...p, [key]: !p[key] }));
   const allReadinessChecked = Object.values(readinessChecks).every(Boolean);
@@ -591,7 +643,7 @@ const TrainerOnboarding = () => {
       setStep(newStep);
       // Save draft after advancing
       if (trainerId && user) {
-        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands, uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])] };
+        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands, uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])], uploadedPaths: { ...uploadedPaths } };
         await supabase.from("trainers").update({
           onboarding_step: newStep,
           onboarding_data: onboardingData as any,
@@ -607,7 +659,8 @@ const TrainerOnboarding = () => {
     if (!validateStep(LAST_STEP) || !user || !trainerId) return;
     setSubmitting(true);
     try {
-      // Upload files
+      // Upload files — use already-uploaded paths from uploadedPaths as fallback
+      // when File objects are no longer in memory (e.g. after page reload)
       let profilePictureUrl: string | null = null;
       if (profilePhoto) {
         const ext = profilePhoto.name.split('.').pop();
@@ -616,7 +669,7 @@ const TrainerOnboarding = () => {
         if (!photoErr) { const { data: u } = supabase.storage.from("profile-pictures").getPublicUrl(photoPath); profilePictureUrl = u.publicUrl; }
       }
 
-      let selfieUrl: string | null = null;
+      let selfieUrl: string | null = uploadedPaths["selfie"] || null;
       if (selfie) {
         const ext = selfie.name.split('.').pop();
         const selfiePath = `${user.id}/selfie.${ext}`;
@@ -624,14 +677,21 @@ const TrainerOnboarding = () => {
         if (!sErr) { selfieUrl = selfiePath; }
       }
 
-      let demoVideoUrl: string | null = null;
-      let introVideoUrl: string | null = null;
-      let curriculumPdfUrl: string | null = null;
-      let aadhaarUrl: string | null = null;
+      let demoVideoUrl: string | null = uploadedPaths["demo_video"] || null;
+      let introVideoUrl: string | null = uploadedPaths["intro_video"] || null;
+      let curriculumPdfUrl: string | null = uploadedPaths["curriculum_pdf"] || null;
+      let aadhaarUrl: string | null = uploadedPaths["aadhaar"] || null;
       const uploadedDocs: { document_type: string; document_name: string; document_url: string }[] = [];
 
       for (const [key, docFile] of Object.entries(docs)) {
-        if (!docFile?.file) continue;
+        if (!docFile?.file) {
+          // File object lost (page reload) — use previously uploaded path if we have one
+          // For resume and other docs that go to trainer_documents, add them if path exists
+          if (uploadedPaths[key] && !["demo_video", "intro_video", "curriculum_pdf", "aadhaar", "selfie"].includes(key)) {
+            uploadedDocs.push({ document_type: key, document_name: docFile?.name || key, document_url: uploadedPaths[key] });
+          }
+          continue;
+        }
         const ext = docFile.file.name.split('.').pop();
         const isPublicBucket = key === "demo_video" || key === "intro_video";
         const bucket = isPublicBucket ? "intro-videos" : "trainer-documents";
@@ -648,6 +708,14 @@ const TrainerOnboarding = () => {
           aadhaarUrl = path;
         } else {
           uploadedDocs.push({ document_type: key, document_name: docFile.name, document_url: path });
+        }
+      }
+
+      // Also pick up any uploadedPaths for doc keys that weren't in docs state at all
+      for (const [key, path] of Object.entries(uploadedPaths)) {
+        if (["demo_video", "intro_video", "curriculum_pdf", "aadhaar", "selfie"].includes(key)) continue;
+        if (!docs[key] && path) {
+          uploadedDocs.push({ document_type: key, document_name: key, document_url: path });
         }
       }
 

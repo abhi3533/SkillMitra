@@ -622,7 +622,7 @@ const TrainerOnboarding = () => {
       setStep(newStep);
       // Save draft after advancing
       if (trainerId && user) {
-        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands, uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])] };
+        const onboardingData = { ...form, expertiseAreas, teachingLanguages, servicesOffered, availableTimeBands, uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])], uploadedPaths: { ...uploadedPaths } };
         await supabase.from("trainers").update({
           onboarding_step: newStep,
           onboarding_data: onboardingData as any,

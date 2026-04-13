@@ -352,11 +352,18 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
                         <span className="flex items-center gap-1"><IndianRupee className="w-3 h-3" />₹{Number(c.course_fee).toLocaleString("en-IN")}</span>
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{c.duration_days} days</span>
                         <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" />{c.total_sessions} sessions</span>
+                        {c.sessions_per_week && <span>{c.sessions_per_week}x/week</span>}
                         <span>{c.level}</span>
                         <span>{c.language}</span>
                       </div>
                       {c.description && <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{c.description}</p>}
-                      {c.has_free_trial && <Badge variant="secondary" className="text-[10px] mt-1.5">Free Trial</Badge>}
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {(c.has_free_trial || c.free_trial_enabled) && <Badge variant="secondary" className="text-[10px]">Free Trial</Badge>}
+                        {c.intro_video_url && <a href={c.intro_video_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline">▶ Intro</a>}
+                        {c.demo_video_url && <a href={c.demo_video_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline">▶ Demo</a>}
+                        {c.curriculum_pdf_url && <span className="text-[10px] text-muted-foreground">📄 PDF</span>}
+                        {c.verification_selfie_url && <span className="text-[10px] text-muted-foreground">🤳 Selfie</span>}
+                      </div>
                       {c.what_you_learn?.length > 0 && (
                         <div className="mt-1.5">
                           <p className="text-[10px] text-muted-foreground font-medium">What students learn:</p>
@@ -367,6 +374,9 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
                             {c.what_you_learn.length > 3 && <li className="text-[10px]">+{c.what_you_learn.length - 3} more</li>}
                           </ul>
                         </div>
+                      )}
+                      {c.weekly_curriculum?.summary && (
+                        <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2 italic">{c.weekly_curriculum.summary}</p>
                       )}
                       <p className="text-[10px] text-muted-foreground mt-1">Created {formatDateIST(c.created_at)}</p>
                     </div>

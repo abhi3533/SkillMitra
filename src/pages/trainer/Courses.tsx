@@ -33,6 +33,7 @@ const defaultForm = {
   session_duration_mins: "60", session_frequency: "3x/week",
   has_free_trial: true, what_you_learn: "", who_is_it_for: "",
   custom_duration: "", custom_session_duration: "", custom_frequency: "", custom_language: "",
+  sessions_per_week: "3", weekly_curriculum: "",
 };
 
 const TrainerCourses = () => {
@@ -52,6 +53,8 @@ const TrainerCourses = () => {
   const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateModalCourse, setUpdateModalCourse] = useState<string>("");
+  const [uploadUrls, setUploadUrls] = useState({ introVideo: "", demoVideo: "", curriculumPdf: "", certification: "", verificationSelfie: "" });
+  const [uploadingFile, setUploadingFile] = useState({ introVideo: false, demoVideo: false, curriculumPdf: false, certification: false, verificationSelfie: false });
 
   // Whether the course being edited is approved (locked)
   const isApprovedCourse = editingCourse?.approval_status === "approved";
@@ -75,6 +78,7 @@ const TrainerCourses = () => {
     setEditingCourse(null);
     setForm({ ...defaultForm });
     setCurriculum([{ weekTitle: "", topics: "", learningOutcome: "", sessionCount: "3" }]);
+    setUploadUrls({ introVideo: "", demoVideo: "", curriculumPdf: "", certification: "", verificationSelfie: "" });
     setSheetOpen(true);
   };
 
@@ -102,6 +106,15 @@ const TrainerCourses = () => {
       custom_session_duration: PRESET_SESSION_DURATIONS.includes(sessionDurVal) ? "" : sessionDurVal,
       custom_frequency: PRESET_FREQUENCIES.includes(freqVal) ? "" : freqVal,
       custom_language: PRESET_LANGUAGES.includes(langVal) ? "" : langVal,
+      sessions_per_week: String(course.sessions_per_week || 3),
+      weekly_curriculum: (course.weekly_curriculum as any)?.summary || "",
+    });
+    setUploadUrls({
+      introVideo: course.intro_video_url || "",
+      demoVideo: course.demo_video_url || "",
+      curriculumPdf: course.curriculum_pdf_url || "",
+      certification: course.certification_url || "",
+      verificationSelfie: course.verification_selfie_url || "",
     });
     // Load curriculum
     const { data: weeks } = await supabase.from("course_curriculum").select("*").eq("course_id", course.id).order("week_number", { ascending: true });
@@ -154,8 +167,13 @@ const TrainerCourses = () => {
   const setField = (field: string, value: any) => {
     setForm(f => {
       const updated = { ...f, [field]: value };
-      // Auto-calculate total_sessions when duration or frequency changes
-      if (["duration_days", "custom_duration", "session_frequency"].includes(field)) {
+      // Auto-calculate total_sessions from sessions_per_week × duration (primary formula)
+      if (["duration_days", "custom_duration", "sessions_per_week"].includes(field)) {
+        const days = updated.duration_days === "custom" ? parseInt(updated.custom_duration) : parseInt(updated.duration_days);
+        const spw = parseInt(updated.sessions_per_week);
+        if (days > 0 && spw > 0) updated.total_sessions = String(Math.round(days * spw / 7));
+      } else if (field === "session_frequency") {
+        // Fallback: frequency-based calculation when sessions_per_week isn't driving it
         const calc = calculateSessions(updated.duration_days, updated.custom_duration, updated.session_frequency);
         if (calc) updated.total_sessions = calc;
       }
@@ -179,7 +197,8 @@ const TrainerCourses = () => {
     else if (parseFloat(form.course_fee) < 500) errors.course_fee = "Minimum course fee is ₹500";
     else if (parseFloat(form.course_fee) > 500000) errors.course_fee = "Maximum course fee is ₹5,00,000";
 
-    if (!form.what_you_learn.trim()) errors.what_you_learn = "At least one learning point is required";
+    const wylLines = form.what_you_learn.split("\n").map(l => l.trim()).filter(Boolean);
+    if (wylLines.length < 3) errors.what_you_learn = "Add at least 3 learning points (one per line)";
     if (!form.who_is_it_for.trim()) errors.who_is_it_for = "Target audience is required";
     else if (form.who_is_it_for.trim().length < 10) errors.who_is_it_for = "Please describe the target audience (min 10 chars)";
     else if (form.who_is_it_for.trim().length > 200) errors.who_is_it_for = "Must be under 200 characters";
@@ -197,7 +216,31 @@ const TrainerCourses = () => {
       errors.language = "Please specify the language";
     }
 
+    if (!editingCourse || !uploadUrls.introVideo) {
+      if (!uploadUrls.introVideo) errors.introVideo = "Intro video is required";
+    }
+    if (!editingCourse || !uploadUrls.demoVideo) {
+      if (!uploadUrls.demoVideo) errors.demoVideo = "Demo video is required";
+    }
+    if (!editingCourse || !uploadUrls.curriculumPdf) {
+      if (!uploadUrls.curriculumPdf) errors.curriculumPdf = "Curriculum PDF is required";
+    }
+    if (!editingCourse || !uploadUrls.verificationSelfie) {
+      if (!uploadUrls.verificationSelfie) errors.verificationSelfie = "Verification selfie is required";
+    }
+
     return errors;
+  };
+
+  const uploadCourseFile = async (file: File, bucket: string, pathPrefix: string): Promise<string> => {
+    const ext = file.name.split(".").pop() || "bin";
+    const path = `${user!.id}/${pathPrefix}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+    if (error) throw error;
+    if (bucket === "intro-videos" || bucket === "certificates") {
+      return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+    }
+    return path; // private bucket — store path, admin will generate signed URL
   };
 
   const handleSubmit = async () => {
@@ -254,6 +297,14 @@ const TrainerCourses = () => {
         has_free_trial: form.has_free_trial,
         what_you_learn: form.what_you_learn.split("\n").map(l => l.trim()).filter(Boolean),
         who_is_it_for: form.who_is_it_for.trim(),
+        sessions_per_week: parseInt(form.sessions_per_week) || null,
+        free_trial_enabled: form.has_free_trial,
+        weekly_curriculum: form.weekly_curriculum.trim() ? { summary: form.weekly_curriculum.trim() } : null,
+        intro_video_url: uploadUrls.introVideo || null,
+        demo_video_url: uploadUrls.demoVideo || null,
+        curriculum_pdf_url: uploadUrls.curriculumPdf || null,
+        certification_url: uploadUrls.certification || null,
+        verification_selfie_url: uploadUrls.verificationSelfie || null,
       };
 
       let courseId: string;
@@ -485,9 +536,19 @@ const TrainerCourses = () => {
               </div>
               <div>
                 <Label>Total Sessions <span className="text-xs text-muted-foreground font-normal">(auto-calculated)</span></Label>
-                <Input type="number" value={form.total_sessions} onChange={e => setField("total_sessions", e.target.value)} className="mt-1.5" min={1} max={365} disabled={isApprovedCourse} />
-                <p className="text-[11px] text-muted-foreground mt-1">Auto-calculated excluding weekends</p>
+                <Input type="number" value={form.total_sessions} onChange={e => setField("total_sessions", e.target.value)} className="mt-1.5" min={1} max={365} disabled />
+                <p className="text-[11px] text-muted-foreground mt-1">Auto-calculated: duration × sessions/week ÷ 7</p>
               </div>
+            </div>
+            <div>
+              <Label>Sessions Per Week *</Label>
+              <Select value={form.sessions_per_week} onValueChange={v => setField("sessions_per_week", v)} disabled={isApprovedCourse}>
+                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select sessions per week" /></SelectTrigger>
+                <SelectContent>
+                  {[1,2,3,4,5,6,7].map(n => <SelectItem key={n} value={String(n)}>{n} {n === 1 ? "session" : "sessions"} / week</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground mt-1">How many live sessions per week. Updates total sessions automatically.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -581,7 +642,7 @@ const TrainerCourses = () => {
             <div>
               <Label>What You'll Learn *</Label>
               <Textarea value={form.what_you_learn} onChange={e => { setField("what_you_learn", e.target.value); setValidationErrors(prev => ({ ...prev, what_you_learn: "" })); }} className="mt-1.5" placeholder="One learning point per line, e.g.&#10;Build REST APIs&#10;Deploy to cloud&#10;Master React fundamentals" rows={4} disabled={isApprovedCourse} />
-              <p className="text-[11px] text-muted-foreground mt-1">List key skills students will gain — one per line (minimum 1 point)</p>
+              <p className="text-[11px] text-muted-foreground mt-1">List key skills students will gain — one per line (minimum 3 points required)</p>
               {validationErrors.what_you_learn && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.what_you_learn}</p>}
             </div>
             <div>
@@ -589,6 +650,133 @@ const TrainerCourses = () => {
               <Input value={form.who_is_it_for} onChange={e => { setField("who_is_it_for", e.target.value); setValidationErrors(prev => ({ ...prev, who_is_it_for: "" })); }} className="mt-1.5" placeholder="e.g. College students looking to enter tech" maxLength={200} disabled={isApprovedCourse} />
               <p className="text-[11px] text-muted-foreground mt-1">Describe your target audience (10–200 characters). {form.who_is_it_for.length}/200</p>
               {validationErrors.who_is_it_for && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.who_is_it_for}</p>}
+            </div>
+
+            <div>
+              <Label>Weekly Curriculum Summary <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
+              <Textarea value={form.weekly_curriculum} onChange={e => setField("weekly_curriculum", e.target.value)} className="mt-1.5" placeholder="Describe your week-by-week plan in plain text, e.g. Week 1: HTML basics, Week 2: CSS layouts..." rows={3} disabled={isApprovedCourse} />
+              <p className="text-[11px] text-muted-foreground mt-1">A high-level summary of what each week covers (optional, supplements the detailed curriculum below)</p>
+            </div>
+
+            <Separator />
+
+            {/* Media Uploads */}
+            <div className="space-y-4">
+              <Label className="text-sm font-semibold">Course Media & Verification</Label>
+
+              {/* Intro Video */}
+              <div>
+                <Label>Intro Video *</Label>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <input type="file" accept="video/mp4,video/mov,video/avi,video/webm" className="hidden" id="intro-video-input"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      setUploadingFile(u => ({ ...u, introVideo: true }));
+                      try {
+                        const url = await uploadCourseFile(file, "intro-videos", "intro");
+                        setUploadUrls(u => ({ ...u, introVideo: url }));
+                      } catch (err: any) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
+                      finally { setUploadingFile(u => ({ ...u, introVideo: false })); }
+                    }} />
+                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => document.getElementById("intro-video-input")?.click()} disabled={uploadingFile.introVideo || isApprovedCourse}>
+                    {uploadingFile.introVideo ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</> : "Upload Intro Video"}
+                  </Button>
+                  {uploadUrls.introVideo && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Uploaded</span>}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Short 1–3 minute intro for students to see before enrolling (mp4, mov, webm)</p>
+                {(validationErrors as any).introVideo && <p className="text-[11px] text-destructive mt-0.5">{(validationErrors as any).introVideo}</p>}
+              </div>
+
+              {/* Demo Video */}
+              <div>
+                <Label>Demo Class Video *</Label>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <input type="file" accept="video/mp4,video/mov,video/avi,video/webm" className="hidden" id="demo-video-input"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      setUploadingFile(u => ({ ...u, demoVideo: true }));
+                      try {
+                        const url = await uploadCourseFile(file, "intro-videos", "demo");
+                        setUploadUrls(u => ({ ...u, demoVideo: url }));
+                      } catch (err: any) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
+                      finally { setUploadingFile(u => ({ ...u, demoVideo: false })); }
+                    }} />
+                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => document.getElementById("demo-video-input")?.click()} disabled={uploadingFile.demoVideo || isApprovedCourse}>
+                    {uploadingFile.demoVideo ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</> : "Upload Demo Video"}
+                  </Button>
+                  {uploadUrls.demoVideo && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Uploaded</span>}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">A sample class recording so students can preview your teaching style</p>
+                {(validationErrors as any).demoVideo && <p className="text-[11px] text-destructive mt-0.5">{(validationErrors as any).demoVideo}</p>}
+              </div>
+
+              {/* Curriculum PDF */}
+              <div>
+                <Label>Curriculum PDF *</Label>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <input type="file" accept="application/pdf" className="hidden" id="curriculum-pdf-input"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      setUploadingFile(u => ({ ...u, curriculumPdf: true }));
+                      try {
+                        const url = await uploadCourseFile(file, "course-materials", "curriculum");
+                        setUploadUrls(u => ({ ...u, curriculumPdf: url }));
+                      } catch (err: any) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
+                      finally { setUploadingFile(u => ({ ...u, curriculumPdf: false })); }
+                    }} />
+                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => document.getElementById("curriculum-pdf-input")?.click()} disabled={uploadingFile.curriculumPdf || isApprovedCourse}>
+                    {uploadingFile.curriculumPdf ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</> : "Upload PDF"}
+                  </Button>
+                  {uploadUrls.curriculumPdf && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Uploaded</span>}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">PDF version of your full course curriculum (PDF only)</p>
+                {(validationErrors as any).curriculumPdf && <p className="text-[11px] text-destructive mt-0.5">{(validationErrors as any).curriculumPdf}</p>}
+              </div>
+
+              {/* Certification (optional) */}
+              <div>
+                <Label>Certification / Achievement <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <input type="file" accept="image/*,application/pdf" className="hidden" id="certification-input"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      setUploadingFile(u => ({ ...u, certification: true }));
+                      try {
+                        const url = await uploadCourseFile(file, "certificates", "trainer-cert");
+                        setUploadUrls(u => ({ ...u, certification: url }));
+                      } catch (err: any) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
+                      finally { setUploadingFile(u => ({ ...u, certification: false })); }
+                    }} />
+                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => document.getElementById("certification-input")?.click()} disabled={uploadingFile.certification || isApprovedCourse}>
+                    {uploadingFile.certification ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</> : "Upload Certification"}
+                  </Button>
+                  {uploadUrls.certification && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Uploaded</span>}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Upload any relevant certification or achievement that supports this course</p>
+              </div>
+
+              {/* Verification Selfie */}
+              <div>
+                <Label>Verification Selfie *</Label>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <input type="file" accept="image/*" capture="user" className="hidden" id="selfie-input"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      setUploadingFile(u => ({ ...u, verificationSelfie: true }));
+                      try {
+                        const url = await uploadCourseFile(file, "trainer-documents", "selfie");
+                        setUploadUrls(u => ({ ...u, verificationSelfie: url }));
+                      } catch (err: any) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
+                      finally { setUploadingFile(u => ({ ...u, verificationSelfie: false })); }
+                    }} />
+                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => document.getElementById("selfie-input")?.click()} disabled={uploadingFile.verificationSelfie || isApprovedCourse}>
+                    {uploadingFile.verificationSelfie ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</> : "Take / Upload Selfie"}
+                  </Button>
+                  {uploadUrls.verificationSelfie && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Uploaded</span>}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">A clear selfie for identity verification — used only by admin reviewers (camera or file)</p>
+                {(validationErrors as any).verificationSelfie && <p className="text-[11px] text-destructive mt-0.5">{(validationErrors as any).verificationSelfie}</p>}
+              </div>
             </div>
 
             <Separator />
@@ -618,7 +806,7 @@ const TrainerCourses = () => {
             </div>
 
             <Button onClick={handleSubmit} disabled={creating} className="w-full">
-              {creating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{editingCourse ? "Saving..." : "Creating..."}</> : editingCourse ? "Save Changes" : "Create Course"}
+              {creating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{editingCourse ? "Saving..." : "Submitting..."}</> : editingCourse ? "Save Changes" : "Submit & Go Live for Review"}
             </Button>
           </div>
         </SheetContent>

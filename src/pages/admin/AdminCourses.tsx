@@ -35,6 +35,14 @@ interface CourseWithTrainer {
   trainerName: string;
   trainerEmail: string;
   rejection_reason: string | null;
+  sessions_per_week: number | null;
+  free_trial_enabled: boolean | null;
+  weekly_curriculum: any | null;
+  intro_video_url: string | null;
+  demo_video_url: string | null;
+  curriculum_pdf_url: string | null;
+  certification_url: string | null;
+  verification_selfie_url: string | null;
 }
 
 const AdminCourses = () => {
@@ -46,6 +54,15 @@ const AdminCourses = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [curriculum, setCurriculum] = useState<any[]>([]);
   const [loadingCurriculum, setLoadingCurriculum] = useState(false);
+
+  const [signedCourseUrls, setSignedCourseUrls] = useState<Record<string, string>>({});
+
+  const resolveAdminCourseUrl = async (pathOrUrl: string, bucket: string): Promise<string> => {
+    if (!pathOrUrl) return "";
+    if (pathOrUrl.startsWith("http")) return pathOrUrl;
+    const { data } = await supabase.storage.from(bucket).createSignedUrl(pathOrUrl, 3600);
+    return data?.signedUrl || "";
+  };
 
   // Comment modal state
   const [commentModalOpen, setCommentModalOpen] = useState(false);
@@ -127,9 +144,15 @@ const AdminCourses = () => {
     setSelectedCourse(course);
     setDrawerOpen(true);
     setLoadingCurriculum(true);
+    setSignedCourseUrls({});
     const { data } = await supabase.from("course_curriculum").select("*").eq("course_id", course.id).order("week_number", { ascending: true });
     setCurriculum(data || []);
     setLoadingCurriculum(false);
+    // Resolve signed URLs for private-bucket files
+    const urls: Record<string, string> = {};
+    if (course.curriculum_pdf_url) urls.curriculumPdf = await resolveAdminCourseUrl(course.curriculum_pdf_url, "course-materials");
+    if (course.verification_selfie_url) urls.verificationSelfie = await resolveAdminCourseUrl(course.verification_selfie_url, "trainer-documents");
+    setSignedCourseUrls(urls);
   };
 
   const openCommentModal = (courseId: string, action: "rejected" | "changes_requested") => {
@@ -427,6 +450,85 @@ const AdminCourses = () => {
                   <div>
                     <h4 className="text-sm font-semibold text-foreground mb-1">Who Is It For</h4>
                     <p className="text-sm text-muted-foreground">{selectedCourse.who_is_it_for}</p>
+                  </div>
+                </>
+              )}
+
+              {/* New fields: sessions_per_week, free_trial_enabled */}
+              {(selectedCourse.sessions_per_week != null || selectedCourse.free_trial_enabled != null) && (
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Schedule & Trial</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedCourse.sessions_per_week != null && (
+                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/30">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <div><p className="text-[11px] text-muted-foreground">Sessions / Week</p><p className="text-sm font-medium text-foreground">{selectedCourse.sessions_per_week}</p></div>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/30">
+                        <Star className="w-4 h-4 text-muted-foreground" />
+                        <div><p className="text-[11px] text-muted-foreground">Free Trial Enabled</p><p className="text-sm font-medium text-foreground">{selectedCourse.free_trial_enabled || selectedCourse.has_free_trial ? "Yes" : "No"}</p></div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Weekly curriculum summary */}
+              {selectedCourse.weekly_curriculum?.summary && (
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1">Weekly Curriculum Summary</h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/30 p-2.5 rounded-lg">{selectedCourse.weekly_curriculum.summary}</p>
+                  </div>
+                </>
+              )}
+
+              {/* Media & Uploads */}
+              {(selectedCourse.intro_video_url || selectedCourse.demo_video_url || selectedCourse.curriculum_pdf_url || selectedCourse.certification_url || selectedCourse.verification_selfie_url) && (
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Media & Verification</h4>
+                    <div className="space-y-2">
+                      {selectedCourse.intro_video_url && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground w-28 shrink-0">Intro Video</span>
+                          <a href={selectedCourse.intro_video_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate">▶ View</a>
+                        </div>
+                      )}
+                      {selectedCourse.demo_video_url && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground w-28 shrink-0">Demo Video</span>
+                          <a href={selectedCourse.demo_video_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate">▶ View</a>
+                        </div>
+                      )}
+                      {selectedCourse.curriculum_pdf_url && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground w-28 shrink-0">Curriculum PDF</span>
+                          {signedCourseUrls.curriculumPdf ? (
+                            <a href={signedCourseUrls.curriculumPdf} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">⬇ Download</a>
+                          ) : <span className="text-xs text-muted-foreground">Loading…</span>}
+                        </div>
+                      )}
+                      {selectedCourse.certification_url && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground w-28 shrink-0">Certification</span>
+                          <a href={selectedCourse.certification_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">View</a>
+                        </div>
+                      )}
+                      {selectedCourse.verification_selfie_url && (
+                        <div>
+                          <p className="text-[11px] text-muted-foreground mb-1">Verification Selfie</p>
+                          {signedCourseUrls.verificationSelfie ? (
+                            <img src={signedCourseUrls.verificationSelfie} alt="Verification selfie" className="w-24 h-24 object-cover rounded-lg border" loading="lazy" />
+                          ) : <span className="text-xs text-muted-foreground">Loading…</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </>
               )}

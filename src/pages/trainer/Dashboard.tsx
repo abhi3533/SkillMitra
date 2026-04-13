@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { formatTimeIST, formatDateIST } from "@/lib/dateUtils";
 import { Link } from "react-router-dom";
-import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck, Sparkles, GraduationCap, MapPin, Smartphone, CheckCircle, Info, Eye, Mail as MailIcon, Gift } from "lucide-react";
+import { Users, IndianRupee, Calendar, Star, BookOpen, Clock, AlertTriangle, TrendingUp, ArrowRight, Wallet, CreditCard, Bell, ClipboardCheck, Sparkles, GraduationCap, MapPin, Smartphone, CheckCircle, Info, Eye, Mail as MailIcon, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfilesMap } from "@/lib/profileHelpers";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,15 +37,24 @@ const TrainerDashboard = () => {
   const [trainerRowId, setTrainerRowId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [showApplication, setShowApplication] = useState(false);
+  const [showBankDialog, setShowBankDialog] = useState(false);
+  const [bankForm, setBankForm] = useState({ accountHolderName: "", bankAccountNumber: "", ifscCode: "", upiId: "" });
+  const [savingBank, setSavingBank] = useState(false);
   useLoadingTitle(loading);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
     await (async () => {
-      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status, rejection_reason, referred_by").eq("user_id", user.id).maybeSingle();
+      const { data: trainer } = await supabase.from("trainers").select("id, average_rating, total_students, approval_status, onboarding_step, onboarding_status, profile_status, course_status, trainer_status, rejection_reason, referred_by, bank_account_number, ifsc_code, account_holder_name, upi_id").eq("user_id", user.id).maybeSingle();
       if (!trainer) { setLoading(false); return; }
       setTrainerRowId(trainer.id);
       setRejectionReason(trainer.rejection_reason || null);
+
+      // Show bank details dialog once when trainer goes live and bank details are missing
+      if (trainer.trainer_status === "live" && !trainer.bank_account_number && !trainer.upi_id && !sessionStorage.getItem("bank_dialog_shown")) {
+        setShowBankDialog(true);
+        sessionStorage.setItem("bank_dialog_shown", "true");
+      }
 
       // Look up referrer name if referred_by is set
       if (trainer.referred_by) {
@@ -191,6 +203,27 @@ const TrainerDashboard = () => {
 
   const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
   const firstName = profile?.full_name?.split(" ")[0] || "Trainer";
+
+  const saveBankDetails = async () => {
+    if (!bankForm.accountHolderName.trim() || !bankForm.bankAccountNumber.trim() || !bankForm.ifscCode.trim()) {
+      toast({ title: "Required fields missing", description: "Please fill in account holder name, account number and IFSC code.", variant: "warning" });
+      return;
+    }
+    setSavingBank(true);
+    const { error } = await supabase.from("trainers").update({
+      account_holder_name: bankForm.accountHolderName.trim(),
+      bank_account_number: bankForm.bankAccountNumber.trim(),
+      ifsc_code: bankForm.ifscCode.trim().toUpperCase(),
+      upi_id: bankForm.upiId.trim() || null,
+    }).eq("id", trainerRowId);
+    setSavingBank(false);
+    if (error) {
+      toast({ title: "Error saving bank details", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Bank details saved!", description: "You're all set to receive payouts.", variant: "success" });
+      setShowBankDialog(false);
+    }
+  };
 
   return (
     <TrainerLayout>
@@ -584,6 +617,39 @@ const TrainerDashboard = () => {
           ))}
         </div>
       </div>
+      {/* Bank Details Dialog — shown once when trainer goes live with missing bank details */}
+      <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Bank Details for Payouts 🎉</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Your first course was approved — congratulations! Add your bank details so we can send your earnings directly to you.</p>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label htmlFor="bank-holder">Account Holder Name *</Label>
+              <Input id="bank-holder" className="mt-1.5" placeholder="As per bank records" value={bankForm.accountHolderName} onChange={e => setBankForm(f => ({ ...f, accountHolderName: e.target.value }))} />
+            </div>
+            <div>
+              <Label htmlFor="bank-account">Bank Account Number *</Label>
+              <Input id="bank-account" className="mt-1.5" placeholder="e.g. 1234567890" value={bankForm.bankAccountNumber} onChange={e => setBankForm(f => ({ ...f, bankAccountNumber: e.target.value }))} />
+            </div>
+            <div>
+              <Label htmlFor="bank-ifsc">IFSC Code *</Label>
+              <Input id="bank-ifsc" className="mt-1.5" placeholder="e.g. SBIN0001234" value={bankForm.ifscCode} onChange={e => setBankForm(f => ({ ...f, ifscCode: e.target.value.toUpperCase() }))} maxLength={11} />
+            </div>
+            <div>
+              <Label htmlFor="bank-upi">UPI ID <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
+              <Input id="bank-upi" className="mt-1.5" placeholder="e.g. yourname@upi" value={bankForm.upiId} onChange={e => setBankForm(f => ({ ...f, upiId: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBankDialog(false)} disabled={savingBank}>Skip for now</Button>
+            <Button onClick={saveBankDetails} disabled={savingBank}>
+              {savingBank ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : "Save Bank Details"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </TrainerLayout>
   );
 };

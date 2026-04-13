@@ -478,66 +478,90 @@ export type Database = {
         Row: {
           approval_status: string | null
           average_rating: number | null
+          certification_url: string | null
           course_fee: number
           created_at: string | null
+          curriculum_pdf_url: string | null
+          demo_video_url: string | null
           description: string | null
           duration_days: number | null
+          free_trial_enabled: boolean | null
           has_free_trial: boolean | null
           id: string
+          intro_video_url: string | null
           is_active: boolean | null
           language: string | null
           level: string | null
           rejection_reason: string | null
           session_duration_mins: number | null
           session_frequency: string | null
+          sessions_per_week: number | null
           title: string
           total_enrolled: number | null
           total_sessions: number | null
           trainer_id: string
+          verification_selfie_url: string | null
+          weekly_curriculum: Json | null
           what_you_learn: string[] | null
           who_is_it_for: string | null
         }
         Insert: {
           approval_status?: string | null
           average_rating?: number | null
+          certification_url?: string | null
           course_fee?: number
           created_at?: string | null
+          curriculum_pdf_url?: string | null
+          demo_video_url?: string | null
           description?: string | null
           duration_days?: number | null
+          free_trial_enabled?: boolean | null
           has_free_trial?: boolean | null
           id?: string
+          intro_video_url?: string | null
           is_active?: boolean | null
           language?: string | null
           level?: string | null
           rejection_reason?: string | null
           session_duration_mins?: number | null
           session_frequency?: string | null
+          sessions_per_week?: number | null
           title: string
           total_enrolled?: number | null
           total_sessions?: number | null
           trainer_id: string
+          verification_selfie_url?: string | null
+          weekly_curriculum?: Json | null
           what_you_learn?: string[] | null
           who_is_it_for?: string | null
         }
         Update: {
           approval_status?: string | null
           average_rating?: number | null
+          certification_url?: string | null
           course_fee?: number
           created_at?: string | null
+          curriculum_pdf_url?: string | null
+          demo_video_url?: string | null
           description?: string | null
           duration_days?: number | null
+          free_trial_enabled?: boolean | null
           has_free_trial?: boolean | null
           id?: string
+          intro_video_url?: string | null
           is_active?: boolean | null
           language?: string | null
           level?: string | null
           rejection_reason?: string | null
           session_duration_mins?: number | null
           session_frequency?: string | null
+          sessions_per_week?: number | null
           title?: string
           total_enrolled?: number | null
           total_sessions?: number | null
           trainer_id?: string
+          verification_selfie_url?: string | null
+          weekly_curriculum?: Json | null
           what_you_learn?: string[] | null
           who_is_it_for?: string | null
         }

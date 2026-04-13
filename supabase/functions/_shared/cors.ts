@@ -1,6 +1,9 @@
 const ALLOWED_ORIGINS = [
   "https://skillmitra.online",
   "https://www.skillmitra.online",
+  "https://skillmitra-online.lovable.app",
+  "https://preview--skillmitra-online.lovable.app",
+  "https://id-preview--74dea9d9-e666-4a62-9a41-89f5bbddf9c0.lovable.app",
   "http://localhost:5173", // dev only
 ];
 

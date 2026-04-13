@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, GraduationCap, Shield, Download, Gift, Clock, Image, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2 } from "lucide-react";
+import { Check, X, FileText, User, Briefcase, MapPin, Phone, Mail, Calendar, Shield, Download, Gift, Clock, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -28,7 +28,6 @@ const resolveStorageUrl = async (
   bucket = "trainer-documents",
   expiresIn = 3600,
 ): Promise<string> => {
-  // If it's a full URL pointing to a private bucket (trainer-documents), extract the path and get a signed URL
   if (pathOrUrl.startsWith("http")) {
     const privateBucketMatch = pathOrUrl.match(/\/storage\/v1\/object\/(?:public|sign)\/trainer-documents\/(.+?)(\?.*)?$/);
     if (privateBucketMatch) {
@@ -56,7 +55,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
   const [documents, setDocuments] = useState<any[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
-  const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string; status: string } | null>(null);
+  const [referralInfo, setReferralInfo] = useState<{ referrerName: string; code: string } | null>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
@@ -66,15 +65,9 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
 
   const resolveUrls = async (t: any) => {
     const urls: Record<string, string> = {};
-    const promises: Promise<void>[] = [];
-
-    if (t.selfie_url) {
-      promises.push(resolveStorageUrl(t.selfie_url).then(u => { urls.selfie = u; }));
-    }
     if (t.aadhaar_url) {
-      promises.push(resolveStorageUrl(t.aadhaar_url).then(u => { urls.aadhaar = u; }));
+      urls.aadhaar = await resolveStorageUrl(t.aadhaar_url);
     }
-    await Promise.all(promises);
     setSignedUrls(urls);
   };
 
@@ -120,12 +113,10 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
       setLoadingDocs(false);
     })();
 
-    // Always check trainer_referrals by referred_id — referred_by on the trainer row
-    // may not be set if the async complete-signup edge function hadn't finished yet.
     (async () => {
       const { data: refData } = await supabase
         .from("trainer_referrals")
-        .select("status, referral_code, referrer_id")
+        .select("referral_code, referrer_id")
         .eq("referred_id", trainer.id)
         .limit(1)
         .maybeSingle();
@@ -150,14 +141,11 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
         setReferralInfo({
           referrerName,
           code: refData.referral_code || trainer.referred_by || "—",
-          status: refData.status || "pending",
         });
       } else if (trainer.referred_by) {
-        // Fallback: referral row doesn't exist yet but referred_by is set
         setReferralInfo({
           referrerName: "—",
           code: trainer.referred_by,
-          status: "pending",
         });
       }
     })();
@@ -169,7 +157,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
   const profile = trainer.profiles;
   const isPending = trainer.approval_status === "pending";
 
-  const InfoRow = ({ icon: Icon, label, value, masked }: { icon: any; label: string; value: string | number | null | undefined; masked?: boolean }) => {
+  const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number | null | undefined }) => {
     const display = value ? String(value) : NP;
     return (
       <div className="flex items-start gap-2.5 py-1.5">
@@ -231,41 +219,18 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             <InfoRow icon={User} label="Gender" value={profile?.gender} />
             <InfoRow icon={MapPin} label="City" value={profile?.city} />
             <InfoRow icon={MapPin} label="State" value={profile?.state} />
-            <InfoRow icon={MapPin} label="PIN Code" value={trainer.pincode} />
-            <InfoRow icon={MapPin} label="Address" value={trainer.address} />
           </div>
 
           {/* ─── PROFESSIONAL DETAILS ─── */}
           <Separator />
           <div>
             <SectionTitle>Professional Details</SectionTitle>
+            <InfoRow icon={Calendar} label="Total Experience" value={trainer.experience_years ? `${trainer.experience_years} years` : null} />
             <InfoRow icon={Briefcase} label="Current Role" value={trainer.current_role} />
-            <InfoRow icon={Briefcase} label="Company" value={trainer.current_company} />
-            <InfoRow icon={Mail} label="Work Email" value={trainer.work_email} />
-            <InfoRow icon={Calendar} label="Experience" value={trainer.experience_years ? `${trainer.experience_years} years` : null} />
-            <InfoRow icon={Globe} label="LinkedIn" value={trainer.linkedin_url} />
-            <InfoRow icon={Globe} label="Portfolio" value={trainer.portfolio_url} />
-            <InfoRow icon={Shield} label="Verification Method" value={trainer.verification_method ? `${trainer.verification_method}${trainer.verification_value ? `: ${trainer.verification_value}` : ""}` : null} />
-            {trainer.previous_companies?.length > 0 && (
-              <InfoRow icon={Briefcase} label="Previous Companies" value={trainer.previous_companies.join(", ")} />
-            )}
+            <InfoRow icon={Briefcase} label="Current / Previous Company" value={trainer.current_company} />
 
             <div className="mt-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Skills</p>
-              {trainer.skills?.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.skills.map((s: string) => <Badge key={s} variant="outline" className="text-xs">{s}</Badge>)}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
-              )}
-              {trainer.secondary_skill && (
-                <p className="text-xs text-muted-foreground mt-1">Secondary: {trainer.secondary_skill}</p>
-              )}
-            </div>
-
-            <div className="mt-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Expertise Areas</p>
+              <p className="text-[11px] text-muted-foreground mb-1">Areas of Expertise</p>
               {trainer.expertise_areas?.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {trainer.expertise_areas.map((a: string) => <Badge key={a} variant="secondary" className="text-xs">{a}</Badge>)}
@@ -287,21 +252,13 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             </div>
 
             <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type ? trainer.trainer_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
-          </div>
 
-          {/* ─── ABOUT ─── */}
-          <Separator />
-          <div>
-            <SectionTitle>About the Trainer</SectionTitle>
-            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${trainer.bio ? "text-foreground" : "text-muted-foreground italic"}`}>
-              {trainer.bio || NP}
-            </p>
-          </div>
-          <div>
-            <SectionTitle>Course Description</SectionTitle>
-            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${trainer.course_description ? "text-foreground" : "text-muted-foreground italic"}`}>
-              {trainer.course_description || NP}
-            </p>
+            <div className="mt-2">
+              <p className="text-[11px] text-muted-foreground mb-1">About You / Bio</p>
+              <p className={`text-sm leading-relaxed whitespace-pre-wrap ${trainer.bio ? "text-foreground" : "text-muted-foreground italic"}`}>
+                {trainer.bio || NP}
+              </p>
+            </div>
           </div>
 
           {/* ─── DOCUMENTS & MEDIA ─── */}
@@ -314,20 +271,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
               <p className="text-[11px] text-muted-foreground mb-1">Profile Photo</p>
               {profile?.profile_picture_url ? (
                 <img src={profile.profile_picture_url} alt="Profile" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" />
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
-              )}
-            </div>
-
-            {/* Selfie */}
-            <div className="py-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Verification Selfie</p>
-              {trainer.selfie_url ? (
-                signedUrls.selfie ? (
-                  <img src={signedUrls.selfie} alt="Selfie" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" />
-                ) : (
-                  <div className="w-20 h-20 rounded-lg bg-muted animate-pulse" />
-                )
               ) : (
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}
@@ -359,7 +302,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
 
             {/* Aadhaar / Govt ID */}
             <div className="py-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Aadhaar / Govt ID ({trainer.govt_id_type || "aadhaar"})</p>
+              <p className="text-[11px] text-muted-foreground mb-1">Government ID / Aadhaar ({trainer.govt_id_type || "aadhaar"})</p>
               {trainer.aadhaar_url ? (
                 signedUrls.aadhaar ? (
                   <a href={signedUrls.aadhaar} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
@@ -372,76 +315,15 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}
             </div>
-
-            {/* Other uploaded documents */}
-            {loadingDocs ? (
-              <div className="space-y-2 mt-2">{[1, 2].map(i => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}</div>
-            ) : documents.filter(d => d.document_type !== "resume").length > 0 && (
-              <div className="mt-2 space-y-2">
-                <p className="text-[11px] text-muted-foreground">Other Documents</p>
-                {documents.filter(d => d.document_type !== "resume").map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 border">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{doc.document_name || doc.document_type || "Document"}</p>
-                        <p className="text-[11px] text-muted-foreground">{doc.document_type} • {doc.verification_status}</p>
-                      </div>
-                    </div>
-                    {doc.resolved_url && (
-                      <a href={doc.resolved_url} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" variant="ghost" className="h-7 text-xs gap-1"><Download className="w-3 h-3" /> View</Button>
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* ─── REFERRAL INFO ─── */}
+          {/* ─── REFERRAL INFORMATION ─── */}
           <Separator />
           <div>
             <SectionTitle>Referral Information</SectionTitle>
-            {referralInfo ? (
-              <>
-                <InfoRow icon={User} label="Referred By" value={referralInfo.referrerName} />
-                <InfoRow icon={Gift} label="Referral Code Used" value={referralInfo.code} />
-                <div className="flex items-start gap-2.5 py-1.5">
-                  <Shield className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Bonus Status</p>
-                    <Badge variant={referralInfo.status === "paid" ? "default" : referralInfo.status === "pending" ? "secondary" : "destructive"} className="text-[11px] mt-0.5">
-                      {referralInfo.status === "paid" ? "₹1,500 Credited" : referralInfo.status === "pending" ? "₹1,500 Pending Approval" : referralInfo.status}
-                    </Badge>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <InfoRow icon={User} label="Referred By" value={trainer.referred_by} />
-                <InfoRow icon={Gift} label="Own Referral Code" value={trainer.referral_code} />
-              </>
-            )}
+            <InfoRow icon={User} label="Referred By" value={referralInfo?.referrerName || trainer.referred_by} />
+            <InfoRow icon={Gift} label="Own Referral Code" value={trainer.referral_code} />
           </div>
-
-          {/* Services Offered */}
-          {trainer.services_offered?.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <SectionTitle>Services Offered</SectionTitle>
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.services_offered.map((svc: string) => (
-                    <Badge key={svc} variant="outline" className="text-xs">{svc}</Badge>
-                  ))}
-                </div>
-                {trainer.additional_services_details && (
-                  <p className="text-xs text-muted-foreground mt-2">{trainer.additional_services_details}</p>
-                )}
-              </div>
-            </>
-          )}
 
           {/* ─── COURSES ─── */}
           <Separator />
@@ -509,7 +391,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
           <Separator />
           <p className="text-xs text-muted-foreground">Applied on {formatLongDateIST(trainer.created_at)}</p>
 
-          {/* ─── CONTACT BUTTON ─── */}
+          {/* ─── EMAIL BUTTON ─── */}
           <div className="pt-1">
             <Button
               variant="outline"
@@ -607,7 +489,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             )}
             {trainer.approval_status === "approved" && onSuspend && (
               <Button variant="outline" size="sm" className="gap-1.5 text-xs border-orange-300 text-orange-600 hover:bg-orange-50" onClick={() => onSuspend(trainer)}>
-                <ShieldOff className="w-3.5 h-3.5" /> Suspend
+                <Shield className="w-3.5 h-3.5" /> Suspend
               </Button>
             )}
             {onRemove && (

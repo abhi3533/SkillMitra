@@ -53,8 +53,8 @@ const TrainerCourses = () => {
   const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateModalCourse, setUpdateModalCourse] = useState<string>("");
-  const [uploadUrls, setUploadUrls] = useState({ introVideo: "", demoVideo: "", curriculumPdf: "", certification: "", verificationSelfie: "" });
-  const [uploadingFile, setUploadingFile] = useState({ introVideo: false, demoVideo: false, curriculumPdf: false, certification: false, verificationSelfie: false });
+  const [uploadUrls, setUploadUrls] = useState({ introVideo: "", curriculumPdf: "", certification: "", verificationSelfie: "" });
+  const [uploadingFile, setUploadingFile] = useState({ introVideo: false, curriculumPdf: false, certification: false, verificationSelfie: false });
 
   // Whether the course being edited is approved (locked)
   const isApprovedCourse = editingCourse?.approval_status === "approved";
@@ -78,7 +78,7 @@ const TrainerCourses = () => {
     setEditingCourse(null);
     setForm({ ...defaultForm });
     setCurriculum([{ weekTitle: "", topics: "", learningOutcome: "", sessionCount: "3" }]);
-    setUploadUrls({ introVideo: "", demoVideo: "", curriculumPdf: "", certification: "", verificationSelfie: "" });
+    setUploadUrls({ introVideo: "", curriculumPdf: "", certification: "", verificationSelfie: "" });
     setSheetOpen(true);
   };
 
@@ -111,7 +111,6 @@ const TrainerCourses = () => {
     });
     setUploadUrls({
       introVideo: course.intro_video_url || "",
-      demoVideo: course.demo_video_url || "",
       curriculumPdf: course.curriculum_pdf_url || "",
       certification: course.certification_url || "",
       verificationSelfie: course.verification_selfie_url || "",
@@ -219,9 +218,6 @@ const TrainerCourses = () => {
     if (!editingCourse || !uploadUrls.introVideo) {
       if (!uploadUrls.introVideo) errors.introVideo = "Intro video is required";
     }
-    if (!editingCourse || !uploadUrls.demoVideo) {
-      if (!uploadUrls.demoVideo) errors.demoVideo = "Demo video is required";
-    }
     if (!editingCourse || !uploadUrls.curriculumPdf) {
       if (!uploadUrls.curriculumPdf) errors.curriculumPdf = "Curriculum PDF is required";
     }
@@ -301,7 +297,7 @@ const TrainerCourses = () => {
         free_trial_enabled: form.has_free_trial,
         weekly_curriculum: form.weekly_curriculum.trim() ? { summary: form.weekly_curriculum.trim() } : null,
         intro_video_url: uploadUrls.introVideo || null,
-        demo_video_url: uploadUrls.demoVideo || null,
+        
         curriculum_pdf_url: uploadUrls.curriculumPdf || null,
         certification_url: uploadUrls.certification || null,
         verification_selfie_url: uploadUrls.verificationSelfie || null,
@@ -687,28 +683,6 @@ const TrainerCourses = () => {
                 {(validationErrors as any).introVideo && <p className="text-[11px] text-destructive mt-0.5">{(validationErrors as any).introVideo}</p>}
               </div>
 
-              {/* Demo Video */}
-              <div>
-                <Label>Demo Class Video *</Label>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <input type="file" accept="video/mp4,video/mov,video/avi,video/webm" className="hidden" id="demo-video-input"
-                    onChange={async e => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      setUploadingFile(u => ({ ...u, demoVideo: true }));
-                      try {
-                        const url = await uploadCourseFile(file, "intro-videos", "demo");
-                        setUploadUrls(u => ({ ...u, demoVideo: url }));
-                      } catch (err: any) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
-                      finally { setUploadingFile(u => ({ ...u, demoVideo: false })); }
-                    }} />
-                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => document.getElementById("demo-video-input")?.click()} disabled={uploadingFile.demoVideo || isApprovedCourse}>
-                    {uploadingFile.demoVideo ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</> : "Upload Demo Video"}
-                  </Button>
-                  {uploadUrls.demoVideo && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Uploaded</span>}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-1">A sample class recording so students can preview your teaching style</p>
-                {(validationErrors as any).demoVideo && <p className="text-[11px] text-destructive mt-0.5">{(validationErrors as any).demoVideo}</p>}
-              </div>
 
               {/* Curriculum PDF */}
               <div>

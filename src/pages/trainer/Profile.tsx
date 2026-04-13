@@ -477,7 +477,7 @@ const TrainerProfile = () => {
                 const badges = getTrainerBadges({
                   aadhaar_url: trainer.aadhaar_url,
                   govt_id_type: trainer.govt_id_type,
-                  demo_video_url: trainer.demo_video_url,
+                  
                   intro_video_url: trainer.intro_video_url,
                   experience_years: trainer.experience_years,
                   total_students: trainer.total_students,

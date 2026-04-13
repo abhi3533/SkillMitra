@@ -555,7 +555,7 @@ const TrainerOnboarding = () => {
             secondary_skill: null,
             work_email: null,
             expertise_areas: expertiseAreas,
-            demo_video_url: null,
+            
             curriculum_pdf_url: null,
             services_offered: [],
             course_materials: null,

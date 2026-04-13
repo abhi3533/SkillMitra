@@ -14,14 +14,14 @@ export interface TrainerBadgeInfo {
 export const getTrainerBadges = (trainer: {
   govt_id_type?: string | null;
   aadhaar_url?: string | null;
-  demo_video_url?: string | null;
+  
   intro_video_url?: string | null;
   experience_years?: number | null;
   total_students?: number | null;
   // Also check for document-based flags
   hasExperienceDocs?: boolean;
   hasAadhaar?: boolean;
-  hasDemoVideo?: boolean;
+  
 }): TrainerBadgeInfo[] => {
   const badges: TrainerBadgeInfo[] = [];
 
@@ -45,8 +45,8 @@ export const getTrainerBadges = (trainer: {
     });
   }
 
-  // Video Verified — has demo video uploaded
-  if (trainer.demo_video_url || trainer.intro_video_url || trainer.hasDemoVideo) {
+  // Video Verified — has intro video uploaded
+  if (trainer.intro_video_url) {
     badges.push({
       key: "video_verified",
       label: "Video Verified",

@@ -39,7 +39,7 @@ interface CourseWithTrainer {
   free_trial_enabled: boolean | null;
   weekly_curriculum: any | null;
   intro_video_url: string | null;
-  demo_video_url: string | null;
+  
   curriculum_pdf_url: string | null;
   certification_url: string | null;
   verification_selfie_url: string | null;
@@ -488,7 +488,7 @@ const AdminCourses = () => {
               )}
 
               {/* Media & Uploads */}
-              {(selectedCourse.intro_video_url || selectedCourse.demo_video_url || selectedCourse.curriculum_pdf_url || selectedCourse.certification_url || selectedCourse.verification_selfie_url) && (
+              {(selectedCourse.intro_video_url || selectedCourse.curriculum_pdf_url || selectedCourse.certification_url || selectedCourse.verification_selfie_url) && (
                 <>
                   <Separator />
                   <div>
@@ -498,12 +498,6 @@ const AdminCourses = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] text-muted-foreground w-28 shrink-0">Intro Video</span>
                           <a href={selectedCourse.intro_video_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate">▶ View</a>
-                        </div>
-                      )}
-                      {selectedCourse.demo_video_url && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] text-muted-foreground w-28 shrink-0">Demo Video</span>
-                          <a href={selectedCourse.demo_video_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate">▶ View</a>
                         </div>
                       )}
                       {selectedCourse.curriculum_pdf_url && (

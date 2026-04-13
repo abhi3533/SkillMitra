@@ -360,7 +360,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {(c.has_free_trial || c.free_trial_enabled) && <Badge variant="secondary" className="text-[10px]">Free Trial</Badge>}
                         {c.intro_video_url && <a href={c.intro_video_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline">▶ Intro</a>}
-                        {c.demo_video_url && <a href={c.demo_video_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline">▶ Demo</a>}
+                        
                         {c.curriculum_pdf_url && <span className="text-[10px] text-muted-foreground">📄 PDF</span>}
                         {c.verification_selfie_url && <span className="text-[10px] text-muted-foreground">🤳 Selfie</span>}
                       </div>

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, CreditCard, GraduationCap, Shield, Download, Gift, Clock, Video, Image, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2 } from "lucide-react";
+import { Check, X, ExternalLink, FileText, User, Briefcase, MapPin, Phone, Mail, Globe, Calendar, GraduationCap, Shield, Download, Gift, Clock, Image, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -74,17 +74,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     if (t.aadhaar_url) {
       promises.push(resolveStorageUrl(t.aadhaar_url).then(u => { urls.aadhaar = u; }));
     }
-    if (t.curriculum_pdf_url) {
-      promises.push(resolveStorageUrl(t.curriculum_pdf_url).then(u => { urls.curriculum_pdf = u; }));
-    }
-    // Resolve intro/demo video URLs in case they're stored as paths
-    if (t.intro_video_url && !t.intro_video_url.startsWith("http")) {
-      promises.push(resolveStorageUrl(t.intro_video_url, "intro-videos").then(u => { urls.intro_video = u; }));
-    }
-    if (t.demo_video_url && !t.demo_video_url.startsWith("http")) {
-      promises.push(resolveStorageUrl(t.demo_video_url, "intro-videos").then(u => { urls.demo_video = u; }));
-    }
-
     await Promise.all(promises);
     setSignedUrls(urls);
   };
@@ -315,39 +304,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
             </p>
           </div>
 
-          {/* ─── AVAILABILITY & SCHEDULE ─── */}
-          <Separator />
-          <div>
-            <SectionTitle>Availability & Schedule</SectionTitle>
-            <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type ? trainer.trainer_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
-            <InfoRow icon={Clock} label="Session Duration/Day" value={trainer.session_duration_per_day || null} />
-            <div className="mt-1">
-              <p className="text-[11px] text-muted-foreground mb-1">Available Time Bands</p>
-              {trainer.available_time_bands?.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.available_time_bands.map((b: string) => <Badge key={b} variant="outline" className="text-xs">{b}</Badge>)}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
-              )}
-            </div>
-            <InfoRow icon={Calendar} label="Weekend Availability" value={trainer.weekend_availability ? trainer.weekend_availability.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
-            <InfoRow icon={Calendar} label="Course Schedule" value={
-              [trainer.session_duration_per_day && `${trainer.session_duration_per_day} sessions`,
-               (trainer as any).total_sessions && `${(trainer as any).total_sessions} Sessions`,
-               trainer.course_duration && `${trainer.course_duration} Days`
-              ].filter(Boolean).join(" | ") || null
-            } />
-            <InfoRow icon={Clock} label="Total Hours" value={(() => {
-              const sessionHoursMap: Record<string, number> = { "1 Hour": 1, "1.5 Hours": 1.5, "2 Hours": 2 };
-              const totalSessions = Number((trainer as any).total_sessions) || 0;
-              const sessionHours = sessionHoursMap[trainer.session_duration_per_day] || 0;
-              if (!sessionHours || !totalSessions) return null;
-              return `${Math.round(totalSessions * sessionHours)} hrs`;
-            })()} />
-            <InfoRow icon={CreditCard} label="Course Fee" value={trainer.course_fee ? `₹${trainer.course_fee}` : null} />
-          </div>
-
           {/* ─── DOCUMENTS & MEDIA ─── */}
           <Separator />
           <div>
@@ -417,42 +373,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
               )}
             </div>
 
-            {/* Intro Video */}
-            <div className="py-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Intro Video</p>
-              {trainer.intro_video_url ? (
-                <a href={signedUrls.intro_video || trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                  <Video className="w-3.5 h-3.5" /> Watch Intro Video
-                </a>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
-              )}
-            </div>
-
-            {/* Demo Video */}
-            <div className="py-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Demo Video</p>
-              {trainer.demo_video_url ? (
-                <a href={signedUrls.demo_video || trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                  <Video className="w-3.5 h-3.5" /> Watch Demo Video
-                </a>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
-              )}
-            </div>
-
-            {/* Curriculum PDF */}
-            <div className="py-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Curriculum PDF</p>
-              {trainer.curriculum_pdf_url ? (
-                <a href={signedUrls.curriculum_pdf || trainer.curriculum_pdf_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                  <FileText className="w-3.5 h-3.5" /> Download Curriculum
-                </a>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
-              )}
-            </div>
-
             {/* Other uploaded documents */}
             {loadingDocs ? (
               <div className="space-y-2 mt-2">{[1, 2].map(i => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}</div>
@@ -477,16 +397,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
                 ))}
               </div>
             )}
-          </div>
-
-          {/* ─── BANK DETAILS (masked) ─── */}
-          <Separator />
-          <div>
-            <SectionTitle>Bank Details</SectionTitle>
-            <InfoRow icon={CreditCard} label="Account Holder Name" value={trainer.account_holder_name} />
-            <InfoRow icon={CreditCard} label="Bank Account" value={trainer.bank_account_number ? `****${trainer.bank_account_number.slice(-4)}` : null} />
-            <InfoRow icon={CreditCard} label="IFSC Code" value={trainer.ifsc_code} />
-            <InfoRow icon={CreditCard} label="UPI ID" value={trainer.upi_id} />
           </div>
 
           {/* ─── REFERRAL INFO ─── */}

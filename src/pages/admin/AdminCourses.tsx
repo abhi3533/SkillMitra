@@ -127,7 +127,7 @@ const AdminCourses = () => {
           ...c,
           trainerName: profile?.full_name || "Unknown",
           trainerEmail: profile?.email || "",
-        };
+        } as CourseWithTrainer;
       });
 
       setCourses(merged);

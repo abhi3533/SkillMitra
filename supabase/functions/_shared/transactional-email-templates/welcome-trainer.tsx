@@ -54,18 +54,18 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
             <strong>We specialize in:</strong>
           </Text>
           <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', marginBottom: '16px' }}>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}><strong>Advanced Technologies:</strong> AI, Machine Learning, Data Science, Java, Python, Cloud</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>IT & Software Development</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}><strong>Non-IT Skills:</strong> Communication, Leadership, Finance, Design</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>All trending and in-demand skills</td></tr>
+            <tr><td style={bulletRow}>&#8226;</td><td style={bulletText}><strong>Advanced Technologies:</strong> AI, Machine Learning, Data Science, Java, Python, Cloud</td></tr>
+            <tr><td style={bulletRow}>&#8226;</td><td style={bulletText}>IT & Software Development</td></tr>
+            <tr><td style={bulletRow}>&#8226;</td><td style={bulletText}><strong>Non-IT Skills:</strong> Communication, Leadership, Finance, Design</td></tr>
+            <tr><td style={bulletRow}>&#8226;</td><td style={bulletText}>All trending and in-demand skills</td></tr>
           </table>
 
           <Section style={statsBox}>
             <Text style={statsTitle}>Our Vision:</Text>
             <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
-              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}><strong>5 Lakh+</strong> students by this year</td></tr>
-              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}><strong>15 Lakh+</strong> students next year</td></tr>
-              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}><strong>50 Lakh+</strong> students across India in the next 2 years</td></tr>
+              <tr><td style={statsBulletRow}>&#8226;</td><td style={statsBulletText}><strong>5 Lakh+</strong> students by this year</td></tr>
+              <tr><td style={statsBulletRow}>&#8226;</td><td style={statsBulletText}><strong>15 Lakh+</strong> students next year</td></tr>
+              <tr><td style={statsBulletRow}>&#8226;</td><td style={statsBulletText}><strong>50 Lakh+</strong> students across India in the next 2 years</td></tr>
             </table>
           </Section>
 
@@ -95,15 +95,15 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
 
           <Section style={checklistBox}>
             <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
-              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Profile Photo</strong> (for students)</td></tr>
+              <tr><td style={bulletRow}>&#8226;</td><td style={checklistContent}><strong>Profile Photo</strong> (for students)</td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Selfie</strong> (for verification – not public)</td></tr>
+              <tr><td style={bulletRow}>&#8226;</td><td style={checklistContent}><strong>Selfie</strong> (for verification – not public)</td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Resume</strong></td></tr>
+              <tr><td style={bulletRow}>&#8226;</td><td style={checklistContent}><strong>Resume</strong></td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Aadhaar / Govt ID</strong></td></tr>
+              <tr><td style={bulletRow}>&#8226;</td><td style={checklistContent}><strong>Aadhaar / Govt ID</strong></td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Basic course idea</strong> (what you want to teach)</td></tr>
+              <tr><td style={bulletRow}>&#8226;</td><td style={checklistContent}><strong>Basic course idea</strong> (what you want to teach)</td></tr>
             </table>
           </Section>
 
@@ -133,9 +133,9 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
             We onboard only trainers who are:
           </Text>
           <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', marginBottom: '16px' }}>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Genuine and verified</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Skilled and experienced</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Committed to students</td></tr>
+            <tr><td style={bulletRow}>&#8226;</td><td style={bulletText}>Genuine and verified</td></tr>
+            <tr><td style={bulletRow}>&#8226;</td><td style={bulletText}>Skilled and experienced</td></tr>
+            <tr><td style={bulletRow}>&#8226;</td><td style={bulletText}>Committed to students</td></tr>
           </table>
           <Text style={{ ...text, fontStyle: 'italic', color: '#1A56DB' }}>
             If you've signed up, we already see strong potential in you.

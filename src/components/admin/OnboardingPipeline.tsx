@@ -124,8 +124,8 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
 
   const stepColor = (step: number) => {
     if (step === 0) return "bg-destructive/10 text-destructive";
-    if (step < 3) return "bg-amber-50 text-amber-700";
-    if (step < 5) return "bg-blue-50 text-blue-700";
+    if (step < 2) return "bg-amber-50 text-amber-700";
+    if (step < 3) return "bg-blue-50 text-blue-700";
     return "bg-emerald-50 text-emerald-700";
   };
 
@@ -188,8 +188,8 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
                 {formatShortDateIST(t.created_at)}
               </TableCell>
               <TableCell>
-                <Badge variant="secondary" className={`text-xs ${stepColor(t.onboarding_step || 0)}`}>
-                  {t.onboarding_step || 0}/7
+                <Badge variant="secondary" className={`text-xs ${stepColor(Math.min(t.onboarding_step || 0, 3))}`}>
+                  {Math.min(t.onboarding_step || 0, 3)}/3
                 </Badge>
               </TableCell>
               <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">

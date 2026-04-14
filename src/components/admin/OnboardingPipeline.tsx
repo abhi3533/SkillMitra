@@ -55,9 +55,13 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
           return (a.profiles?.full_name || "").localeCompare(b.profiles?.full_name || "");
         case "name-desc":
           return (b.profiles?.full_name || "").localeCompare(a.profiles?.full_name || "");
+        case "status": {
+          const order: Record<string, number> = { registered: 0, draft: 1 };
+          return (order[a.onboarding_status] ?? 2) - (order[b.onboarding_status] ?? 2);
+        }
         case "newest":
         default:
-          return b.daysSince - a.daysSince;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
 
@@ -155,14 +159,14 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Trainer</TableHead>
-            <TableHead className="hidden sm:table-cell">Mobile</TableHead>
-            <TableHead className="hidden md:table-cell">Email</TableHead>
-            <TableHead className="hidden lg:table-cell">Signup Date</TableHead>
-            <TableHead>Step</TableHead>
-            <TableHead className="hidden sm:table-cell">Last Active</TableHead>
-            <TableHead>Days</TableHead>
-            <TableHead className="text-right">Action</TableHead>
+            <TableHead className="w-[18%] min-w-[120px]">Trainer</TableHead>
+            <TableHead className="hidden sm:table-cell w-[14%] min-w-[120px]">Mobile</TableHead>
+            <TableHead className="hidden md:table-cell w-[20%] min-w-[150px]">Email</TableHead>
+            <TableHead className="hidden lg:table-cell w-[10%] min-w-[80px]">Signup Date</TableHead>
+            <TableHead className="w-[7%] min-w-[55px] text-center">Step</TableHead>
+            <TableHead className="hidden sm:table-cell w-[10%] min-w-[80px]">Last Active</TableHead>
+            <TableHead className="w-[6%] min-w-[45px] text-center">Days</TableHead>
+            <TableHead className="text-right w-[15%] min-w-[130px]">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -187,7 +191,7 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
               <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
                 {formatShortDateIST(t.created_at)}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-center">
                 <Badge variant="secondary" className={`text-xs ${stepColor(Math.min(t.onboarding_step || 0, 3))}`}>
                   {Math.min(t.onboarding_step || 0, 3)}/3
                 </Badge>
@@ -195,7 +199,7 @@ const OnboardingPipeline = ({ trainers, loading, search = "", sortBy = "newest",
               <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
                 {formatShortDateIST(t.lastActive)}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-center">
                 <span className={`text-sm font-medium ${t.daysSince >= 3 ? "text-destructive" : t.daysSince >= 1 ? "text-amber-600" : "text-muted-foreground"}`}>
                   {t.daysSince}d
                 </span>

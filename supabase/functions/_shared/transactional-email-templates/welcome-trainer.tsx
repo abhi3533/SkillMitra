@@ -15,7 +15,7 @@ interface Props {
 const WelcomeTrainerEmail = ({ name }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to {SITE_NAME} — Please read before starting your onboarding</Preview>
+    <Preview>Welcome to {SITE_NAME} – Complete Your Trainer Profile</Preview>
     <Body style={main}>
       <Container style={container}>
         {/* Header */}
@@ -37,121 +37,115 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
           </Heading>
 
           <Text style={text}>
-            Welcome to <strong>SkillMitra — India's Premier 1-on-1 Training Platform!</strong>
+            Welcome to <strong>SkillMitra — India's 1-on-1 Training Platform!</strong>
           </Text>
           <Text style={text}>
-            We are thrilled to have you here. Before you begin your onboarding, please take 2 minutes to read this email carefully. It will help you complete your application smoothly without any interruptions.
+            We're excited to have you join us. You're just a few steps away from becoming a SkillMitra trainer.
           </Text>
 
           <Hr style={divider} />
 
           {/* About SkillMitra */}
-          <Heading as="h4" style={sectionHeading}>ABOUT SKILLMITRA</Heading>
+          <Heading as="h4" style={sectionHeading}>🌟 ABOUT SKILLMITRA</Heading>
           <Text style={text}>
-            SkillMitra is India's fastest growing 1-on-1 personalized training platform. We specialize in connecting passionate trainers with motivated students across India.
+            SkillMitra is a fast-growing platform focused on personalized 1-on-1 training, connecting passionate trainers with motivated students across India.
           </Text>
           <Text style={text}>
-            <strong>We are focused on:</strong>
+            <strong>We specialize in:</strong>
           </Text>
           <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', marginBottom: '16px' }}>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Advanced Technologies: AI, Machine Learning, Data Science, Java, Python, Cloud Computing</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}><strong>Advanced Technologies:</strong> AI, Machine Learning, Data Science, Java, Python, Cloud</td></tr>
             <tr><td style={bulletRow}>•</td><td style={bulletText}>IT & Software Development</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Non-IT Skills: Communication, Leadership, Finance, Design</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}><strong>Non-IT Skills:</strong> Communication, Leadership, Finance, Design</td></tr>
             <tr><td style={bulletRow}>•</td><td style={bulletText}>All trending and in-demand skills</td></tr>
           </table>
 
           <Section style={statsBox}>
-            <Text style={statsTitle}>Our Numbers:</Text>
+            <Text style={statsTitle}>Our Vision:</Text>
             <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
-              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Currently onboarding students across India</td></tr>
-              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Target: <strong>5 Lakh+</strong> active students by this year end</td></tr>
-              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Target: <strong>15 Lakh+</strong> students by next year</td></tr>
-              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}>Target: <strong>50 Lakh+</strong> students across India in 2 years</td></tr>
+              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}><strong>5 Lakh+</strong> students by this year</td></tr>
+              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}><strong>15 Lakh+</strong> students next year</td></tr>
+              <tr><td style={statsBulletRow}>•</td><td style={statsBulletText}><strong>50 Lakh+</strong> students across India in the next 2 years</td></tr>
             </table>
           </Section>
 
           <Text style={text}>
-            We are not just a platform — we are a <strong>movement</strong> to make quality 1-on-1 training accessible to every student in India.
+            We are not just a platform — we are building a <strong>movement</strong> to make quality learning accessible to every student.
           </Text>
 
           <Hr style={divider} />
 
-          {/* Why Selective */}
-          <Heading as="h4" style={sectionHeading}>WHY WE ARE SELECTIVE ABOUT TRAINERS</Heading>
-          <Text style={text}>
-            At SkillMitra, we believe that great students deserve great trainers. We onboard only passionate, skilled, and committed trainers who are serious about making a difference.
-          </Text>
-          <Text style={text}>
-            <strong>We do not onboard:</strong>
-          </Text>
-          <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', marginBottom: '16px' }}>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Fake or unverified profiles</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Trainers without genuine expertise</td></tr>
-            <tr><td style={bulletRow}>•</td><td style={bulletText}>Anyone who is not committed to their students</td></tr>
-          </table>
-          <Text style={{ ...text, fontStyle: 'italic', color: '#1A56DB' }}>
-            If you are reading this, we believe YOU have what it takes. Let us make this official!
-          </Text>
+          {/* How It Works */}
+          <Heading as="h4" style={sectionHeading}>🚀 HOW IT WORKS (2 SIMPLE STEPS)</Heading>
+          <Section style={stepsBox}>
+            <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
+              <tr><td style={stepNum}>Step 1:</td><td style={stepContent}><strong>Complete Your Basic Profile</strong> (2–3 minutes){'\n'}Share your personal and professional details.</td></tr>
+              <tr><td style={{ height: '12px' }} colSpan={2}></td></tr>
+              <tr><td style={stepNum}>Step 2:</td><td style={stepContent}><strong>Set Up Your Course & Go Live</strong>{'\n'}Add your course details, videos, and verification to start receiving students.</td></tr>
+            </table>
+          </Section>
 
           <Hr style={divider} />
 
           {/* Keep Ready */}
-          <Heading as="h4" style={sectionHeading}>BEFORE YOU START YOUR ONBOARDING — PLEASE KEEP READY</Heading>
+          <Heading as="h4" style={sectionHeading}>📌 BEFORE YOU START — KEEP THESE READY</Heading>
           <Text style={text}>
-            To complete your application without interruptions, please prepare the following in advance:
+            To complete your profile smoothly:
           </Text>
 
           <Section style={checklistBox}>
             <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
-              <tr><td style={checklistNum}>1.</td><td style={checklistContent}><strong>SELFIE PHOTO</strong> — A clear, well-lit selfie for identity verification (not shown publicly)</td></tr>
+              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Profile Photo</strong> (for students)</td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>2.</td><td style={checklistContent}><strong>PROFESSIONAL PROFILE PHOTO</strong> — A clean, professional photo that will be displayed to students</td></tr>
+              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Selfie</strong> (for verification – not public)</td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>3.</td><td style={checklistContent}><strong>RESUME</strong> — Updated resume in PDF or image format</td></tr>
+              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Resume</strong></td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>4.</td><td style={checklistContent}><strong>COURSE DETAILS</strong> — Course name, description, curriculum outline</td></tr>
+              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Aadhaar / Govt ID</strong></td></tr>
               <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>5.</td><td style={checklistContent}><strong>COURSE DURATION</strong> — Total hours, session duration, number of sessions</td></tr>
-              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>6.</td><td style={checklistContent}><strong>COURSE FEE</strong> — Your pricing per student</td></tr>
-              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>7.</td><td style={checklistContent}><strong>AVAILABILITY</strong> — Your weekly schedule and available time slots</td></tr>
-              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>8.</td><td style={checklistContent}><strong>DEMO CLASS TIMING</strong> — When you can conduct a free demo session</td></tr>
-              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>9.</td><td style={checklistContent}><strong>BANK DETAILS</strong> — For receiving your earnings</td></tr>
-              <tr><td style={checklistSpacer} colSpan={2}></td></tr>
-              <tr><td style={checklistNum}>10.</td><td style={checklistContent}><strong>EDUCATION & CERTIFICATIONS</strong> — Your qualifications and credentials</td></tr>
+              <tr><td style={bulletRow}>•</td><td style={checklistContent}><strong>Basic course idea</strong> (what you want to teach)</td></tr>
             </table>
           </Section>
 
           <Text style={tipText}>
-            💡 Having all of this ready will help you complete onboarding in one sitting without any interruptions.
+            👉 You can complete Step 1 quickly and continue Step 2 anytime from your dashboard.
           </Text>
 
           <Hr style={divider} />
 
-          {/* What Happens After */}
-          <Heading as="h4" style={sectionHeading}>WHAT HAPPENS AFTER YOU SUBMIT?</Heading>
-          <Section style={stepsBox}>
+          {/* What Happens Next */}
+          <Heading as="h4" style={sectionHeading}>🎯 WHAT HAPPENS NEXT?</Heading>
+          <Section style={stepsBoxAlt}>
             <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%' }}>
-              <tr><td style={stepNum}>1.</td><td style={stepContent}>Our team will review your application within 24 hours</td></tr>
-              <tr><td style={stepNum}>2.</td><td style={stepContent}>If approved, you will receive an email to create your first course</td></tr>
-              <tr><td style={stepNum}>3.</td><td style={stepContent}>Once your course is approved, you go LIVE on SkillMitra</td></tr>
-              <tr><td style={stepNum}>4.</td><td style={stepContent}>Students across India can find and book you</td></tr>
-              <tr><td style={stepNum}>5.</td><td style={stepContent}>You start earning! 🎉</td></tr>
+              <tr><td style={stepNumAlt}>1.</td><td style={stepContentAlt}>Complete your basic profile</td></tr>
+              <tr><td style={stepNumAlt}>2.</td><td style={stepContentAlt}>Set up your course</td></tr>
+              <tr><td style={stepNumAlt}>3.</td><td style={stepContentAlt}>Submit for review</td></tr>
+              <tr><td style={stepNumAlt}>4.</td><td style={stepContentAlt}>Get approved and go LIVE</td></tr>
+              <tr><td style={stepNumAlt}>5.</td><td style={stepContentAlt}>Start receiving students and earning 🎉</td></tr>
             </table>
           </Section>
 
           <Hr style={divider} />
 
-          <Text style={{ ...text, textAlign: 'center' as const, fontSize: '16px', fontWeight: '600' as const }}>
-            We are building something truly special for India.{'\n'}And we want YOU to be part of it.
+          {/* Why Selective */}
+          <Heading as="h4" style={sectionHeading}>🔒 WHY WE ARE SELECTIVE</Heading>
+          <Text style={text}>
+            We onboard only trainers who are:
           </Text>
+          <table cellPadding="0" cellSpacing="0" role="presentation" style={{ width: '100%', marginBottom: '16px' }}>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Genuine and verified</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Skilled and experienced</td></tr>
+            <tr><td style={bulletRow}>•</td><td style={bulletText}>Committed to students</td></tr>
+          </table>
+          <Text style={{ ...text, fontStyle: 'italic', color: '#1A56DB' }}>
+            If you've signed up, we already see strong potential in you.
+          </Text>
+
+          <Hr style={divider} />
 
           <Section style={{ textAlign: 'center' as const, margin: '28px 0' }}>
             <Button href={`${SITE_URL}/trainer/onboarding`} style={button}>
-              START MY ONBOARDING →
+              👉 Start Your Profile Setup Now
             </Button>
           </Section>
 
@@ -159,7 +153,7 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
           <Text style={{ ...text, margin: '0 0 4px', fontWeight: '600' as const }}>Team SkillMitra</Text>
           <Text style={{ ...text, margin: '0', fontSize: '13px', color: '#666' }}>
             India's 1-on-1 Training Platform{'\n'}
-            <Link href={SITE_URL} style={{ color: '#1A56DB', textDecoration: 'underline' }}>skillmitra.online</Link>
+            <Link href="mailto:contact@skillmitra.online" style={{ color: '#1A56DB', textDecoration: 'underline' }}>contact@skillmitra.online</Link>
           </Text>
         </Section>
 
@@ -180,7 +174,7 @@ const WelcomeTrainerEmail = ({ name }: Props) => (
 
 export const template = {
   component: WelcomeTrainerEmail,
-  subject: 'Welcome to SkillMitra — Please Read Before Starting Your Onboarding',
+  subject: 'Welcome to SkillMitra – Complete Your Trainer Profile',
   displayName: 'Welcome trainer (pre-onboarding)',
   previewData: { name: 'Mohith' },
 } satisfies TemplateEntry
@@ -196,34 +190,30 @@ const sectionHeading: React.CSSProperties = { margin: '0 0 14px', fontSize: '15p
 const text: React.CSSProperties = { fontSize: '15px', color: '#444', lineHeight: '1.7', margin: '0 0 16px' }
 const divider: React.CSSProperties = { borderColor: '#e5e7eb', margin: '28px 0' }
 
-// Bullet point styles using table layout for proper indentation
 const bulletRow: React.CSSProperties = { width: '20px', verticalAlign: 'top' as const, fontSize: '14px', color: '#444', lineHeight: '1.8', paddingRight: '4px' }
 const bulletText: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#444', lineHeight: '1.8', paddingBottom: '2px' }
 
-// Stats box
 const statsBox: React.CSSProperties = { background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '20px 24px', margin: '16px 0' }
 const statsTitle: React.CSSProperties = { fontSize: '14px', color: '#1e40af', margin: '0 0 12px', fontWeight: '600' as const }
 const statsBulletRow: React.CSSProperties = { width: '20px', verticalAlign: 'top' as const, fontSize: '14px', color: '#1e40af', lineHeight: '1.8', paddingRight: '4px' }
 const statsBulletText: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#1e40af', lineHeight: '1.8', paddingBottom: '2px' }
 
-// Checklist box
 const checklistBox: React.CSSProperties = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px 24px 16px', margin: '16px 0' }
-const checklistNum: React.CSSProperties = { width: '28px', verticalAlign: 'top' as const, fontSize: '14px', color: '#334155', fontWeight: '600' as const, lineHeight: '1.6', paddingRight: '4px' }
 const checklistContent: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#334155', lineHeight: '1.6' }
 const checklistSpacer: React.CSSProperties = { height: '10px' }
 
-// Tip
 const tipText: React.CSSProperties = { fontSize: '14px', color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px 20px', margin: '16px 0', lineHeight: '1.5' }
 
-// Steps box
 const stepsBox: React.CSSProperties = { background: '#fefce8', border: '1px solid #fde68a', borderRadius: '8px', padding: '20px 24px', margin: '16px 0' }
-const stepNum: React.CSSProperties = { width: '24px', verticalAlign: 'top' as const, fontSize: '14px', color: '#713f12', fontWeight: '600' as const, lineHeight: '1.8', paddingRight: '4px' }
+const stepNum: React.CSSProperties = { width: '56px', verticalAlign: 'top' as const, fontSize: '14px', color: '#713f12', fontWeight: '600' as const, lineHeight: '1.8', paddingRight: '4px', whiteSpace: 'nowrap' as const }
 const stepContent: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#713f12', lineHeight: '1.8', paddingBottom: '2px' }
 
-// Button
+const stepsBoxAlt: React.CSSProperties = { background: '#fefce8', border: '1px solid #fde68a', borderRadius: '8px', padding: '20px 24px', margin: '16px 0' }
+const stepNumAlt: React.CSSProperties = { width: '24px', verticalAlign: 'top' as const, fontSize: '14px', color: '#713f12', fontWeight: '600' as const, lineHeight: '1.8', paddingRight: '4px' }
+const stepContentAlt: React.CSSProperties = { verticalAlign: 'top' as const, fontSize: '14px', color: '#713f12', lineHeight: '1.8', paddingBottom: '2px' }
+
 const button: React.CSSProperties = { backgroundColor: '#1A56DB', color: '#ffffff', padding: '14px 32px', borderRadius: '8px', fontSize: '16px', fontWeight: '700' as const, textDecoration: 'none', display: 'inline-block' }
 
-// Footer
 const footerHelpText: React.CSSProperties = { fontSize: '12px', color: '#9ca3af', margin: '0 0 8px' }
 const footerLink: React.CSSProperties = { color: '#9ca3af', textDecoration: 'underline' }
 const footerCopyright: React.CSSProperties = { fontSize: '12px', color: '#9ca3af', margin: '0' }

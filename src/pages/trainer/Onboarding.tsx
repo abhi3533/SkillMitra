@@ -78,6 +78,7 @@ const TrainerOnboarding = () => {
   const [availableTimeBands, setAvailableTimeBands] = useState<string[]>([]);
   const [agreedTraining, setAgreedTraining] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
   const [readinessChecks, setReadinessChecks] = useState<Record<string, boolean>>({
     internet: false, webcam: false, microphone: false, environment: false, cancel: false,
   });

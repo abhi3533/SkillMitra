@@ -452,7 +452,7 @@ const TrainerProfile = () => {
       <div className="hero-gradient pt-24 pb-12 lg:pt-28 lg:pb-16">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-6 items-start">
-            {trainer.profile?.profile_picture_url ? (
+            {trainer.profile?.profile_picture_url && !trainer.hide_photo ? (
               <img src={trainer.profile.profile_picture_url} alt={name} className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 object-cover flex-shrink-0" />
             ) : (
               <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 border-primary-foreground/20 flex items-center justify-center flex-shrink-0"

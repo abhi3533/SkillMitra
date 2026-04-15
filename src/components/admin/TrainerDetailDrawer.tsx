@@ -80,6 +80,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     setDocuments([]);
     setReferralInfo(null);
     setCourses([]);
+    setHidePhoto(trainer.hide_photo || false);
     resolveUrls(trainer);
 
     // Fetch courses for this trainer

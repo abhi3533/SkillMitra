@@ -438,6 +438,7 @@ const TrainerProfile = () => {
   }
 
   const trainerCourses = courses;
+  const anyTrialEnabled = trainerCourses.some((c: any) => c.has_free_trial || c.free_trial_enabled);
   const minFee = trainerCourses.length > 0
     ? Math.min(...trainerCourses.map((c: any) => Number(c.fee || c.course_fee || 0)))
     : 0;
@@ -564,8 +565,8 @@ const TrainerProfile = () => {
                   <div className="text-center py-12 bg-card rounded-xl border border-border">
                     <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto" />
                     <p className="text-sm text-muted-foreground mt-2">This trainer has not added courses yet.</p>
-                    <p className="text-xs text-muted-foreground mt-1">Check back soon or Book a Free Trial to discuss your learning goals.</p>
-                    <Button size="sm" className="mt-4 hero-gradient border-0" onClick={handleTrialClick}>Book a Free Trial</Button>
+                    <p className="text-xs text-muted-foreground mt-1">Check back soon{anyTrialEnabled ? " or Book a Free Trial to discuss your learning goals." : "."}</p>
+                    {anyTrialEnabled && <Button size="sm" className="mt-4 hero-gradient border-0" onClick={handleTrialClick}>Book a Free Trial</Button>}
                   </div>
                 ) : trainerCourses.map((c: any) => {
                   const fee = c.fee || c.course_fee || 0;
@@ -600,7 +601,7 @@ const TrainerProfile = () => {
                             <Button size="sm" className="mt-3 hero-gradient border-0 text-xs">View Course</Button>
                           </Link>
                           <Button size="sm" variant="outline" className="mt-2 text-xs w-full" onClick={() => handleEnrollClick(c)}>Enroll Now</Button>
-                          <p className="text-xs text-accent mt-2 cursor-pointer hover:underline" onClick={handleTrialClick}>Free Trial Available</p>
+                          {(c.has_free_trial || c.free_trial_enabled) && <p className="text-xs text-accent mt-2 cursor-pointer hover:underline" onClick={handleTrialClick}>Free Trial Available</p>}
                         </div>
                       </div>
                     </div>
@@ -688,9 +689,11 @@ const TrainerProfile = () => {
               <Button className="w-full mt-4 hero-gradient border-0 font-semibold h-11" onClick={() => handleEnrollClick()}>
                 Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-              <Button variant="outline" className="w-full mt-2 h-11 font-semibold" onClick={handleTrialClick}>
-                Book Free Trial
-              </Button>
+              {anyTrialEnabled && (
+                <Button variant="outline" className="w-full mt-2 h-11 font-semibold" onClick={handleTrialClick}>
+                  Book Free Trial
+                </Button>
+              )}
               <div className="mt-6 pt-4 border-t border-border space-y-3 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Next available slot</span>
@@ -787,7 +790,7 @@ const TrainerProfile = () => {
           </DialogHeader>
           <div className="py-4 space-y-3">
             <AlertCircle className="w-12 h-12 text-accent mx-auto" />
-            <p className="text-sm text-muted-foreground">Payments will be available shortly. Please book a free trial session first to experience the training.</p>
+            <p className="text-sm text-muted-foreground">Payments will be available shortly.{anyTrialEnabled ? " Please book a free trial session first to experience the training." : ""}</p>
             <Button className="w-full" onClick={() => { setShowPaymentComing(false); handleTrialClick(); }}>
               Book Free Trial Instead
             </Button>

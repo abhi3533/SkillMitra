@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2,
-  Camera, X, Gift, Shield, Wifi, Mic, Volume2, Clock, Save
+  Camera, X, Gift, Shield, Wifi, Mic, Volume2, Clock, Save, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanPhone } from "@/lib/formValidation";
@@ -78,6 +79,7 @@ const TrainerOnboarding = () => {
   const [availableTimeBands, setAvailableTimeBands] = useState<string[]>([]);
   const [agreedTraining, setAgreedTraining] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
   const [readinessChecks, setReadinessChecks] = useState<Record<string, boolean>>({
     internet: false, webcam: false, microphone: false, environment: false, cancel: false,
   });
@@ -188,6 +190,7 @@ const TrainerOnboarding = () => {
         if (saved.availableTimeBands) setAvailableTimeBands(saved.availableTimeBands);
         else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
         if (saved.uploadedDocKeys) setUploadedDocKeys(saved.uploadedDocKeys);
+        if (typeof saved.freeTrialEnabled === "boolean") setFreeTrialEnabled(saved.freeTrialEnabled);
       } else {
         setForm(f => ({
           ...f,
@@ -309,6 +312,7 @@ const TrainerOnboarding = () => {
         teachingLanguages,
         servicesOffered,
         availableTimeBands,
+        freeTrialEnabled,
         uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])],
         uploadedPaths: { ...uploadedPaths },
       };
@@ -994,6 +998,28 @@ const TrainerOnboarding = () => {
                 <div className="mt-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2">
                   <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
                   <p className="text-xs text-emerald-700">Earn <strong>₹1,500 bonus</strong> per successful trainer referral!</p>
+                </div>
+              </div>
+
+              {/* Free Trial Toggle */}
+              <div className="border-t border-border pt-5">
+                <div className="flex items-center justify-between p-4 rounded-lg border bg-secondary/50">
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      Enable Free Trial Sessions
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1">Allow students to book a free trial session before enrolling.</p>
+                  </div>
+                  <Switch
+                    checked={freeTrialEnabled}
+                    onCheckedChange={(checked) => { setFreeTrialEnabled(checked); scheduleAutoSave(); }}
+                  />
+                </div>
+                <div className="mt-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <p className="text-xs text-foreground leading-relaxed">
+                    <strong>💡 Tip:</strong> Trainers who offer at least <strong>5 free trial sessions/month</strong> get <strong>higher profile visibility</strong> and appear more often in student searches. You can change this setting anytime from your dashboard.
+                  </p>
                 </div>
               </div>
 

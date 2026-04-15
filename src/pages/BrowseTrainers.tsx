@@ -120,7 +120,7 @@ const BrowseTrainers = () => {
         teaching_languages: t.trainer_teaching_languages, average_rating: t.trainer_average_rating,
         total_students: t.trainer_total_students, approval_status: t.trainer_approval_status,
         subscription_plan: t.trainer_subscription_plan, is_job_seeker: t.trainer_is_job_seeker,
-        boost_score: t.trainer_boost_score,
+        boost_score: t.trainer_boost_score, hide_photo: t.trainer_hide_photo,
       }));
       let realTrainers: any[] = [];
       if (trainerData.length > 0) {

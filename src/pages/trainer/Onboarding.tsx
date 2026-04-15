@@ -311,6 +311,7 @@ const TrainerOnboarding = () => {
         teachingLanguages,
         servicesOffered,
         availableTimeBands,
+        freeTrialEnabled,
         uploadedDocKeys: [...new Set([...uploadedDocKeys, ...Object.keys(docs).filter(k => docs[k]?.file)])],
         uploadedPaths: { ...uploadedPaths },
       };

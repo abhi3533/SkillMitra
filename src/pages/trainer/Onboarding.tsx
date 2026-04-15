@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Check, ChevronRight, ChevronLeft, Upload, FileCheck, Loader2, CheckCircle2,
-  Camera, X, Gift, Shield, Wifi, Mic, Volume2, Clock, Save
+  Camera, X, Gift, Shield, Wifi, Mic, Volume2, Clock, Save, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

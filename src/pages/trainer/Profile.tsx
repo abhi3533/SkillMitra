@@ -601,7 +601,7 @@ const TrainerProfile = () => {
                             <Button size="sm" className="mt-3 hero-gradient border-0 text-xs">View Course</Button>
                           </Link>
                           <Button size="sm" variant="outline" className="mt-2 text-xs w-full" onClick={() => handleEnrollClick(c)}>Enroll Now</Button>
-                          <p className="text-xs text-accent mt-2 cursor-pointer hover:underline" onClick={handleTrialClick}>Free Trial Available</p>
+                          {(c.has_free_trial || c.free_trial_enabled) && <p className="text-xs text-accent mt-2 cursor-pointer hover:underline" onClick={handleTrialClick}>Free Trial Available</p>}
                         </div>
                       </div>
                     </div>

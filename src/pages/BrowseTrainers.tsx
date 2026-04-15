@@ -504,9 +504,9 @@ const BrowseTrainers = () => {
                         <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300">
                           <div className="p-5">
                           <div className="flex items-start gap-3">
-                              {t.profile?.profile_picture_url ? (
+                              {t.profile?.profile_picture_url && !t.hide_photo ? (
                                 <img src={t.profile.profile_picture_url} alt={name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                              ) : t.avatarUrl ? (
+                              ) : t.avatarUrl && !t.hide_photo ? (
                                 <img src={t.avatarUrl} alt={name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
                               ) : (
                                 <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-muted">

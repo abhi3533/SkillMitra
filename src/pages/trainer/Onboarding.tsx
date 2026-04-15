@@ -1001,6 +1001,28 @@ const TrainerOnboarding = () => {
                 </div>
               </div>
 
+              {/* Free Trial Toggle */}
+              <div className="border-t border-border pt-5">
+                <div className="flex items-center justify-between p-4 rounded-lg border bg-secondary/50">
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      Enable Free Trial Sessions
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1">Allow students to book a free trial session before enrolling.</p>
+                  </div>
+                  <Switch
+                    checked={freeTrialEnabled}
+                    onCheckedChange={(checked) => { setFreeTrialEnabled(checked); scheduleAutoSave(); }}
+                  />
+                </div>
+                <div className="mt-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <p className="text-xs text-foreground leading-relaxed">
+                    <strong>💡 Tip:</strong> Trainers who offer at least <strong>5 free trial sessions/month</strong> get <strong>higher profile visibility</strong> and appear more often in student searches. You can change this setting anytime from your dashboard.
+                  </p>
+                </div>
+              </div>
+
               <div className="border-t border-border pt-5 space-y-3">
                 <label className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${agreedTraining ? "bg-primary/5 border-primary/30" : "bg-secondary/50 border-border"}`}>
                   <Checkbox checked={agreedTraining} onCheckedChange={(c) => setAgreedTraining(!!c)} className="mt-0.5" />

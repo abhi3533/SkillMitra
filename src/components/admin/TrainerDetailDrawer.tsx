@@ -285,9 +285,29 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
 
             {/* Profile Photo */}
             <div className="py-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Profile Photo</p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[11px] text-muted-foreground">Profile Photo</p>
+                {profile?.profile_picture_url && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground">{hidePhoto ? "Hidden" : "Visible"} on website</span>
+                    <Switch
+                      checked={!hidePhoto}
+                      onCheckedChange={handleTogglePhoto}
+                      disabled={togglingPhoto}
+                      className="h-5 w-9"
+                    />
+                  </div>
+                )}
+              </div>
               {profile?.profile_picture_url ? (
-                <img src={profile.profile_picture_url} alt="Profile" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" />
+                <div className="relative">
+                  <img src={profile.profile_picture_url} alt="Profile" className={`w-20 h-20 rounded-lg object-cover border ${hidePhoto ? "opacity-40 grayscale" : ""}`} loading="lazy" />
+                  {hidePhoto && (
+                    <div className="absolute inset-0 w-20 h-20 rounded-lg flex items-center justify-center bg-background/50">
+                      <EyeOff className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}

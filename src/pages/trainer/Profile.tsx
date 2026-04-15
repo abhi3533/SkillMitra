@@ -107,6 +107,7 @@ const TrainerProfile = () => {
           subscription_plan: r.trainer_subscription_plan, is_job_seeker: r.trainer_is_job_seeker,
           intro_video_url: r.trainer_intro_video_url, linkedin_url: r.trainer_linkedin_url,
           previous_companies: r.trainer_previous_companies, boost_score: r.trainer_boost_score,
+          hide_photo: r.trainer_hide_photo,
         });
 
         // Try by trainer ID first

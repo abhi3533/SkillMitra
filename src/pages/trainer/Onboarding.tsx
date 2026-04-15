@@ -189,6 +189,7 @@ const TrainerOnboarding = () => {
         if (saved.availableTimeBands) setAvailableTimeBands(saved.availableTimeBands);
         else if (trainer.available_time_bands) setAvailableTimeBands(trainer.available_time_bands as string[]);
         if (saved.uploadedDocKeys) setUploadedDocKeys(saved.uploadedDocKeys);
+        if (typeof saved.freeTrialEnabled === "boolean") setFreeTrialEnabled(saved.freeTrialEnabled);
       } else {
         setForm(f => ({
           ...f,

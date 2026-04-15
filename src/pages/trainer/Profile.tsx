@@ -790,7 +790,7 @@ const TrainerProfile = () => {
           </DialogHeader>
           <div className="py-4 space-y-3">
             <AlertCircle className="w-12 h-12 text-accent mx-auto" />
-            <p className="text-sm text-muted-foreground">Payments will be available shortly. Please book a free trial session first to experience the training.</p>
+            <p className="text-sm text-muted-foreground">Payments will be available shortly.{anyTrialEnabled ? " Please book a free trial session first to experience the training." : ""}</p>
             <Button className="w-full" onClick={() => { setShowPaymentComing(false); handleTrialClick(); }}>
               Book Free Trial Instead
             </Button>

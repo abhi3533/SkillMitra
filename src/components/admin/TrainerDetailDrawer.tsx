@@ -63,6 +63,8 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
   const [emailSubject, setEmailSubject] = useState("Message from SkillMitra Admin");
   const [emailBody, setEmailBody] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [hidePhoto, setHidePhoto] = useState(false);
+  const [togglingPhoto, setTogglingPhoto] = useState(false);
 
   const resolveUrls = async (t: any) => {
     const urls: Record<string, string> = {};

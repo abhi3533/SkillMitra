@@ -1811,6 +1811,7 @@ export type Database = {
           experience_years: number | null
           expertise_areas: string[] | null
           govt_id_type: string | null
+          hide_photo: boolean
           id: string
           ifsc_code: string | null
           intro_video_url: string | null
@@ -1877,6 +1878,7 @@ export type Database = {
           experience_years?: number | null
           expertise_areas?: string[] | null
           govt_id_type?: string | null
+          hide_photo?: boolean
           id?: string
           ifsc_code?: string | null
           intro_video_url?: string | null
@@ -1943,6 +1945,7 @@ export type Database = {
           experience_years?: number | null
           expertise_areas?: string[] | null
           govt_id_type?: string | null
+          hide_photo?: boolean
           id?: string
           ifsc_code?: string | null
           intro_video_url?: string | null

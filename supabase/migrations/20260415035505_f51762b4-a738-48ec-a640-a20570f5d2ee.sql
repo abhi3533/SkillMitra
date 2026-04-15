@@ -1,0 +1,1 @@
+ALTER TABLE public.trainers ADD COLUMN hide_photo boolean NOT NULL DEFAULT false;

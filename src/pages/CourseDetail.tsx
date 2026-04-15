@@ -152,7 +152,7 @@ const CourseDetail = () => {
         total_students: t.trainer_total_students, approval_status: t.trainer_approval_status,
         intro_video_url: t.trainer_intro_video_url, linkedin_url: t.trainer_linkedin_url,
         previous_companies: t.trainer_previous_companies, subscription_plan: t.trainer_subscription_plan,
-        is_job_seeker: t.trainer_is_job_seeker,
+        is_job_seeker: t.trainer_is_job_seeker, hide_photo: t.trainer_hide_photo,
       };
       setTrainer(trainerData);
       const { data: profileRpc } = await supabase.rpc("get_public_profile", { profile_id: t.trainer_user_id });

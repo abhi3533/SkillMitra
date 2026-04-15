@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, FileText, User, Briefcase, MapPin, Phone, Mail, Calendar, Shield, Download, Gift, Clock, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2 } from "lucide-react";
+import { Check, X, FileText, User, Briefcase, MapPin, Phone, Mail, Calendar, Shield, Download, Gift, Clock, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2, Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 

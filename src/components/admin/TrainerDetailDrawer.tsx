@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, FileText, User, Briefcase, MapPin, Phone, Mail, Calendar, Shield, Download, Gift, Clock, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2 } from "lucide-react";
+import { Check, X, FileText, User, Briefcase, MapPin, Phone, Mail, Calendar, Shield, Download, Gift, Clock, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2, Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -62,6 +63,8 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
   const [emailSubject, setEmailSubject] = useState("Message from SkillMitra Admin");
   const [emailBody, setEmailBody] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [hidePhoto, setHidePhoto] = useState(false);
+  const [togglingPhoto, setTogglingPhoto] = useState(false);
 
   const resolveUrls = async (t: any) => {
     const urls: Record<string, string> = {};
@@ -77,6 +80,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     setDocuments([]);
     setReferralInfo(null);
     setCourses([]);
+    setHidePhoto(trainer.hide_photo || false);
     resolveUrls(trainer);
 
     // Fetch courses for this trainer
@@ -153,6 +157,19 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
   }, [trainer?.id, open]);
 
   if (!trainer) return null;
+
+  const handleTogglePhoto = async (checked: boolean) => {
+    setTogglingPhoto(true);
+    const newVal = !checked; // checked = "show photo", so hide_photo = !checked
+    const { error } = await supabase.from("trainers").update({ hide_photo: newVal }).eq("id", trainer.id);
+    if (error) {
+      toast.error("Failed to update photo visibility");
+    } else {
+      setHidePhoto(newVal);
+      toast.success(newVal ? "Photo hidden from website" : "Photo visible on website");
+    }
+    setTogglingPhoto(false);
+  };
 
   const profile = trainer.profiles;
   const isPending = trainer.approval_status === "pending";
@@ -268,9 +285,29 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
 
             {/* Profile Photo */}
             <div className="py-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Profile Photo</p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[11px] text-muted-foreground">Profile Photo</p>
+                {profile?.profile_picture_url && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground">{hidePhoto ? "Hidden" : "Visible"} on website</span>
+                    <Switch
+                      checked={!hidePhoto}
+                      onCheckedChange={handleTogglePhoto}
+                      disabled={togglingPhoto}
+                      className="h-5 w-9"
+                    />
+                  </div>
+                )}
+              </div>
               {profile?.profile_picture_url ? (
-                <img src={profile.profile_picture_url} alt="Profile" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" />
+                <div className="relative">
+                  <img src={profile.profile_picture_url} alt="Profile" className={`w-20 h-20 rounded-lg object-cover border ${hidePhoto ? "opacity-40 grayscale" : ""}`} loading="lazy" />
+                  {hidePhoto && (
+                    <div className="absolute inset-0 w-20 h-20 rounded-lg flex items-center justify-center bg-background/50">
+                      <EyeOff className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}

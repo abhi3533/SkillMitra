@@ -152,7 +152,7 @@ const CourseDetail = () => {
         total_students: t.trainer_total_students, approval_status: t.trainer_approval_status,
         intro_video_url: t.trainer_intro_video_url, linkedin_url: t.trainer_linkedin_url,
         previous_companies: t.trainer_previous_companies, subscription_plan: t.trainer_subscription_plan,
-        is_job_seeker: t.trainer_is_job_seeker,
+        is_job_seeker: t.trainer_is_job_seeker, hide_photo: t.trainer_hide_photo,
       };
       setTrainer(trainerData);
       const { data: profileRpc } = await supabase.rpc("get_public_profile", { profile_id: t.trainer_user_id });
@@ -338,7 +338,7 @@ const CourseDetail = () => {
                     className="bg-card rounded-xl border border-border p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Your Trainer</h3>
                     <Link to={`/trainer/${trainer.id}`} className="flex items-center gap-3 group">
-                      {trainerProfile?.profile_picture_url ? (
+                      {trainerProfile?.profile_picture_url && !trainer?.hide_photo ? (
                         <img src={trainerProfile.profile_picture_url} alt={trainerProfile?.full_name}
                           className="w-12 h-12 rounded-xl object-cover" />
                       ) : (

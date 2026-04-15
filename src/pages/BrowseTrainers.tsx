@@ -120,7 +120,7 @@ const BrowseTrainers = () => {
         teaching_languages: t.trainer_teaching_languages, average_rating: t.trainer_average_rating,
         total_students: t.trainer_total_students, approval_status: t.trainer_approval_status,
         subscription_plan: t.trainer_subscription_plan, is_job_seeker: t.trainer_is_job_seeker,
-        boost_score: t.trainer_boost_score,
+        boost_score: t.trainer_boost_score, hide_photo: t.trainer_hide_photo,
       }));
       let realTrainers: any[] = [];
       if (trainerData.length > 0) {
@@ -504,9 +504,9 @@ const BrowseTrainers = () => {
                         <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300">
                           <div className="p-5">
                           <div className="flex items-start gap-3">
-                              {t.profile?.profile_picture_url ? (
+                              {t.profile?.profile_picture_url && !t.hide_photo ? (
                                 <img src={t.profile.profile_picture_url} alt={name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                              ) : t.avatarUrl ? (
+                              ) : t.avatarUrl && !t.hide_photo ? (
                                 <img src={t.avatarUrl} alt={name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
                               ) : (
                                 <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-muted">

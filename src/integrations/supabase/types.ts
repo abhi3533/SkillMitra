@@ -1811,6 +1811,7 @@ export type Database = {
           experience_years: number | null
           expertise_areas: string[] | null
           govt_id_type: string | null
+          hide_photo: boolean
           id: string
           ifsc_code: string | null
           intro_video_url: string | null
@@ -1877,6 +1878,7 @@ export type Database = {
           experience_years?: number | null
           expertise_areas?: string[] | null
           govt_id_type?: string | null
+          hide_photo?: boolean
           id?: string
           ifsc_code?: string | null
           intro_video_url?: string | null
@@ -1943,6 +1945,7 @@ export type Database = {
           experience_years?: number | null
           expertise_areas?: string[] | null
           govt_id_type?: string | null
+          hide_photo?: boolean
           id?: string
           ifsc_code?: string | null
           intro_video_url?: string | null
@@ -2181,6 +2184,7 @@ export type Database = {
           trainer_current_company: string
           trainer_current_role: string
           trainer_experience_years: number
+          trainer_hide_photo: boolean
           trainer_id: string
           trainer_is_job_seeker: boolean
           trainer_skills: string[]
@@ -2248,6 +2252,7 @@ export type Database = {
           trainer_current_company: string
           trainer_current_role: string
           trainer_experience_years: number
+          trainer_hide_photo: boolean
           trainer_id: string
           trainer_intro_video_url: string
           trainer_is_job_seeker: boolean

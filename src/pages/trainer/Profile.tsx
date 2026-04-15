@@ -438,6 +438,7 @@ const TrainerProfile = () => {
   }
 
   const trainerCourses = courses;
+  const anyTrialEnabled = trainerCourses.some((c: any) => c.has_free_trial || c.free_trial_enabled);
   const minFee = trainerCourses.length > 0
     ? Math.min(...trainerCourses.map((c: any) => Number(c.fee || c.course_fee || 0)))
     : 0;

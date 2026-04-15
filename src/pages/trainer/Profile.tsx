@@ -689,9 +689,11 @@ const TrainerProfile = () => {
               <Button className="w-full mt-4 hero-gradient border-0 font-semibold h-11" onClick={() => handleEnrollClick()}>
                 Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-              <Button variant="outline" className="w-full mt-2 h-11 font-semibold" onClick={handleTrialClick}>
-                Book Free Trial
-              </Button>
+              {anyTrialEnabled && (
+                <Button variant="outline" className="w-full mt-2 h-11 font-semibold" onClick={handleTrialClick}>
+                  Book Free Trial
+                </Button>
+              )}
               <div className="mt-6 pt-4 border-t border-border space-y-3 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Next available slot</span>

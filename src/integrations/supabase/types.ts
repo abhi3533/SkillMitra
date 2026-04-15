@@ -2184,6 +2184,7 @@ export type Database = {
           trainer_current_company: string
           trainer_current_role: string
           trainer_experience_years: number
+          trainer_hide_photo: boolean
           trainer_id: string
           trainer_is_job_seeker: boolean
           trainer_skills: string[]

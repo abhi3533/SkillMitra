@@ -158,6 +158,19 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
 
   if (!trainer) return null;
 
+  const handleTogglePhoto = async (checked: boolean) => {
+    setTogglingPhoto(true);
+    const newVal = !checked; // checked = "show photo", so hide_photo = !checked
+    const { error } = await supabase.from("trainers").update({ hide_photo: newVal }).eq("id", trainer.id);
+    if (error) {
+      toast.error("Failed to update photo visibility");
+    } else {
+      setHidePhoto(newVal);
+      toast.success(newVal ? "Photo hidden from website" : "Photo visible on website");
+    }
+    setTogglingPhoto(false);
+  };
+
   const profile = trainer.profiles;
   const isPending = trainer.approval_status === "pending";
 

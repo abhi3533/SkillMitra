@@ -2272,7 +2272,6 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_trainer_id_for_user: { Args: { _user_id: string }; Returns: string }
       get_trainer_trial_count_this_month: {
         Args: { p_trainer_id: string }
         Returns: number

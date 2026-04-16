@@ -20,7 +20,7 @@ const AdminTrainers = () => {
   const { role } = useAuth();
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("pipeline");
+  const [tab, setTab] = useState("pending");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name-asc" | "name-desc" | "status">("newest");
   const [selectedTrainer, setSelectedTrainer] = useState<any>(null);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatLongDateIST, formatDateIST } from "@/lib/dateUtils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, FileText, User, Briefcase, MapPin, Phone, Mail, Calendar, Shield, Download, Gift, Clock, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2, Eye, EyeOff } from "lucide-react";
+import { Check, X, FileText, User, Briefcase, MapPin, Phone, Mail, Calendar, Shield, Download, Gift, Clock, Pencil, ShieldOff, Trash2, BookOpen, IndianRupee, Send, Loader2, Eye, EyeOff, Upload, Save, RotateCcw, MessageSquare } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -66,12 +66,48 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
   const [hidePhoto, setHidePhoto] = useState(false);
   const [togglingPhoto, setTogglingPhoto] = useState(false);
 
+  // Edit mode
+  const [editMode, setEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
+  const [requestingField, setRequestingField] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingUploadField, setPendingUploadField] = useState<string | null>(null);
+
   const resolveUrls = async (t: any) => {
     const urls: Record<string, string> = {};
     if (t.aadhaar_url) {
       urls.aadhaar = await resolveStorageUrl(t.aadhaar_url);
     }
     setSignedUrls(urls);
+  };
+
+  const initEditForm = (t: any) => {
+    const p = t.profiles || {};
+    setEditForm({
+      full_name: p.full_name || "",
+      phone: p.phone || "",
+      email: p.email || "",
+      city: p.city || "",
+      state: p.state || "",
+      gender: p.gender || "",
+      bio: t.bio || "",
+      experience_years: t.experience_years?.toString() || "",
+      current_role: t.current_role || "",
+      current_company: t.current_company || "",
+      linkedin_url: t.linkedin_url || "",
+      address: t.address || "",
+      whatsapp: t.whatsapp || "",
+      dob: t.dob || "",
+      account_holder_name: t.account_holder_name || "",
+      bank_account_number: t.bank_account_number || "",
+      ifsc_code: t.ifsc_code || "",
+      upi_id: t.upi_id || "",
+      skills: (t.skills || []).join(", "),
+      expertise_areas: (t.expertise_areas || []).join(", "),
+      teaching_languages: (t.teaching_languages || []).join(", "),
+    });
   };
 
   useEffect(() => {
@@ -81,9 +117,10 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     setReferralInfo(null);
     setCourses([]);
     setHidePhoto(trainer.hide_photo || false);
+    setEditMode(false);
+    initEditForm(trainer);
     resolveUrls(trainer);
 
-    // Fetch courses for this trainer
     (async () => {
       setLoadingCourses(true);
       const { data } = await supabase
@@ -160,7 +197,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
 
   const handleTogglePhoto = async (checked: boolean) => {
     setTogglingPhoto(true);
-    const newVal = !checked; // checked = "show photo", so hide_photo = !checked
+    const newVal = !checked;
     const { error } = await supabase.from("trainers").update({ hide_photo: newVal }).eq("id", trainer.id);
     if (error) {
       toast.error("Failed to update photo visibility");
@@ -171,8 +208,207 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     setTogglingPhoto(false);
   };
 
+  const handleSaveAll = async () => {
+    setSaving(true);
+    try {
+      const profileUpdate: Record<string, any> = {
+        full_name: editForm.full_name.trim(),
+        phone: editForm.phone.trim(),
+        email: editForm.email.trim() || null,
+        city: editForm.city.trim() || null,
+        state: editForm.state.trim() || null,
+        gender: editForm.gender.trim() || null,
+      };
+
+      const trainerUpdate: Record<string, any> = {
+        bio: editForm.bio.trim(),
+        experience_years: editForm.experience_years ? parseInt(editForm.experience_years) : null,
+        "current_role": editForm.current_role.trim(),
+        current_company: editForm.current_company.trim(),
+        linkedin_url: editForm.linkedin_url.trim() || null,
+        address: editForm.address.trim() || null,
+        whatsapp: editForm.whatsapp.trim() || null,
+        dob: editForm.dob.trim() || null,
+        account_holder_name: editForm.account_holder_name.trim() || null,
+        bank_account_number: editForm.bank_account_number.trim() || null,
+        ifsc_code: editForm.ifsc_code.trim() || null,
+        upi_id: editForm.upi_id.trim() || null,
+        skills: editForm.skills.split(",").map(s => s.trim()).filter(Boolean),
+        expertise_areas: editForm.expertise_areas.split(",").map(s => s.trim()).filter(Boolean),
+        teaching_languages: editForm.teaching_languages.split(",").map(s => s.trim()).filter(Boolean),
+      };
+
+      const [profileRes, trainerRes] = await Promise.all([
+        supabase.from("profiles").update(profileUpdate).eq("id", trainer.user_id),
+        supabase.from("trainers").update(trainerUpdate).eq("id", trainer.id),
+      ]);
+
+      if (profileRes.error) throw profileRes.error;
+      if (trainerRes.error) throw trainerRes.error;
+
+      toast.success("All changes saved successfully");
+      setEditMode(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save changes");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleFileUpload = async (field: string, file: File) => {
+    setUploadingField(field);
+    try {
+      const ext = file.name.split(".").pop();
+      const timestamp = Date.now();
+
+      if (field === "profile_photo") {
+        const path = `${trainer.user_id}/${timestamp}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("profile-pictures").upload(path, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        const { data: pubUrl } = supabase.storage.from("profile-pictures").getPublicUrl(path);
+        await supabase.from("profiles").update({ profile_picture_url: pubUrl.publicUrl }).eq("id", trainer.user_id);
+        toast.success("Profile photo updated");
+      } else if (field === "aadhaar") {
+        const path = `${trainer.user_id}/aadhaar_${timestamp}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("trainer-documents").upload(path, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        await supabase.from("trainers").update({ aadhaar_url: path }).eq("id", trainer.id);
+        toast.success("Aadhaar/ID updated");
+      } else if (field === "resume") {
+        const path = `${trainer.user_id}/resume_${timestamp}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("trainer-documents").upload(path, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        const existingResume = documents.find(d => d.document_type === "resume");
+        if (existingResume) {
+          await supabase.from("trainer_documents").update({ document_url: path, document_name: file.name }).eq("id", existingResume.id);
+        } else {
+          await supabase.from("trainer_documents").insert({ trainer_id: trainer.id, document_type: "resume", document_url: path, document_name: file.name });
+        }
+        toast.success("Resume updated");
+      } else if (field === "intro_video") {
+        const path = `${trainer.user_id}/${timestamp}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("intro-videos").upload(path, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        const { data: pubUrl } = supabase.storage.from("intro-videos").getPublicUrl(path);
+        await supabase.from("trainers").update({ intro_video_url: pubUrl.publicUrl }).eq("id", trainer.id);
+        toast.success("Intro video updated");
+      } else if (field === "demo_video") {
+        const path = `${trainer.user_id}/demo_${timestamp}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("intro-videos").upload(path, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        const { data: pubUrl } = supabase.storage.from("intro-videos").getPublicUrl(path);
+        await supabase.from("trainers").update({ demo_video_url: pubUrl.publicUrl }).eq("id", trainer.id);
+        toast.success("Demo video updated");
+      } else if (field === "curriculum_pdf") {
+        const path = `${trainer.user_id}/curriculum_${timestamp}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("course-materials").upload(path, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        const { data: pubUrl } = supabase.storage.from("course-materials").getPublicUrl(path);
+        await supabase.from("trainers").update({ curriculum_pdf_url: pubUrl.publicUrl }).eq("id", trainer.id);
+        toast.success("Curriculum PDF updated");
+      } else if (field === "selfie") {
+        const path = `${trainer.user_id}/selfie_${timestamp}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("trainer-documents").upload(path, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        // Store as a trainer document
+        const existingSelfie = documents.find(d => d.document_type === "selfie");
+        if (existingSelfie) {
+          await supabase.from("trainer_documents").update({ document_url: path, document_name: file.name }).eq("id", existingSelfie.id);
+        } else {
+          await supabase.from("trainer_documents").insert({ trainer_id: trainer.id, document_type: "selfie", document_url: path, document_name: file.name });
+        }
+        toast.success("Verification selfie updated");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
+  const handleRequestUpdate = async (fieldLabel: string) => {
+    setRequestingField(fieldLabel);
+    try {
+      const { error } = await supabase.functions.invoke("request-profile-update", {
+        body: { field: fieldLabel, reason: `Admin has requested you to update your "${fieldLabel}" on your profile.` },
+      });
+      if (error) throw error;
+      toast.success(`Update request sent for "${fieldLabel}"`);
+    } catch (err: any) {
+      // Send email directly as fallback
+      try {
+        const profile = trainer.profiles;
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: profile?.email,
+            subject: `SkillMitra: Please update your ${fieldLabel}`,
+            html: `<p>Hi ${profile?.full_name || "Trainer"},</p><p>Our admin team has reviewed your profile and would like you to update your <strong>${fieldLabel}</strong>.</p><p>Please log in to your SkillMitra account and update this information at your earliest convenience.</p><p>Best regards,<br/>SkillMitra Admin Team</p>`,
+          },
+        });
+        toast.success(`Update request email sent for "${fieldLabel}"`);
+      } catch (e2: any) {
+        toast.error("Failed to send update request");
+      }
+    } finally {
+      setRequestingField(null);
+    }
+  };
+
   const profile = trainer.profiles;
   const isPending = trainer.approval_status === "pending";
+
+  const EditableField = ({ icon: Icon, label, fieldKey, type = "text", multiline = false }: { icon: any; label: string; fieldKey: string; type?: string; multiline?: boolean }) => {
+    const value = editForm[fieldKey] ?? "";
+    const display = value || NP;
+
+    if (!editMode) {
+      return (
+        <div className="flex items-start gap-2.5 py-1.5 group">
+          <Icon className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-muted-foreground">{label}</p>
+            <p className={`text-sm break-words ${display === NP ? "text-muted-foreground italic" : "text-foreground"}`}>{display}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-start gap-2.5 py-1.5">
+        <Icon className="w-4 h-4 text-muted-foreground mt-2 shrink-0" />
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-muted-foreground">{label}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-primary gap-0.5"
+              disabled={requestingField === label}
+              onClick={() => handleRequestUpdate(label)}
+            >
+              {requestingField === label ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageSquare className="w-3 h-3" />}
+              Request
+            </Button>
+          </div>
+          {multiline ? (
+            <Textarea
+              value={value}
+              onChange={e => setEditForm(f => ({ ...f, [fieldKey]: e.target.value }))}
+              className="text-sm min-h-[60px]"
+              rows={3}
+            />
+          ) : (
+            <Input
+              type={type}
+              value={value}
+              onChange={e => setEditForm(f => ({ ...f, [fieldKey]: e.target.value }))}
+              className="text-sm h-8"
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number | null | undefined }) => {
     const display = value ? String(value) : NP;
@@ -191,6 +427,32 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
     <h4 className="text-sm font-semibold text-foreground mb-2">{children}</h4>
   );
 
+  const FileUploadButton = ({ field, label, accept }: { field: string; label: string; accept: string }) => {
+    if (!editMode) return null;
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-[11px] gap-1 mt-1"
+        disabled={uploadingField === field}
+        onClick={() => {
+          setPendingUploadField(field);
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = accept;
+          input.onchange = (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) handleFileUpload(field, file);
+          };
+          input.click();
+        }}
+      >
+        {uploadingField === field ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+        {uploadingField === field ? "Uploading..." : `Upload / Replace ${label}`}
+      </Button>
+    );
+  };
+
   const resumeDoc = documents.find(d => d.document_type === "resume");
 
   return (
@@ -201,6 +463,30 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {/* Edit Mode Toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant={editMode ? "default" : "outline"}
+              size="sm"
+              className="gap-1.5 text-xs"
+              onClick={() => {
+                if (editMode) {
+                  initEditForm(trainer);
+                }
+                setEditMode(!editMode);
+              }}
+            >
+              {editMode ? <RotateCcw className="w-3.5 h-3.5" /> : <Pencil className="w-3.5 h-3.5" />}
+              {editMode ? "Cancel Edit" : "Edit All Fields"}
+            </Button>
+            {editMode && (
+              <Button size="sm" className="gap-1.5 text-xs" onClick={handleSaveAll} disabled={saving}>
+                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                {saving ? "Saving..." : "Save All Changes"}
+              </Button>
+            )}
+          </div>
+
           {/* Profile Header */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden border-2 border-border">
@@ -228,54 +514,75 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
           <Separator />
           <div>
             <SectionTitle>Personal Details</SectionTitle>
-            <InfoRow icon={User} label="Full Name" value={profile?.full_name} />
-            <InfoRow icon={Mail} label="Email" value={profile?.email} />
-            <InfoRow icon={Phone} label="Phone" value={profile?.phone} />
-            <InfoRow icon={Phone} label="WhatsApp" value={trainer.whatsapp} />
-            <InfoRow icon={Calendar} label="Date of Birth" value={trainer.dob} />
-            <InfoRow icon={User} label="Gender" value={profile?.gender} />
-            <InfoRow icon={MapPin} label="City" value={profile?.city} />
-            <InfoRow icon={MapPin} label="State" value={profile?.state} />
+            <EditableField icon={User} label="Full Name" fieldKey="full_name" />
+            <EditableField icon={Mail} label="Email" fieldKey="email" type="email" />
+            <EditableField icon={Phone} label="Phone" fieldKey="phone" />
+            <EditableField icon={Phone} label="WhatsApp" fieldKey="whatsapp" />
+            <EditableField icon={Calendar} label="Date of Birth" fieldKey="dob" />
+            <EditableField icon={User} label="Gender" fieldKey="gender" />
+            <EditableField icon={MapPin} label="City" fieldKey="city" />
+            <EditableField icon={MapPin} label="State" fieldKey="state" />
+            <EditableField icon={MapPin} label="Address" fieldKey="address" />
           </div>
 
           {/* ─── PROFESSIONAL DETAILS ─── */}
           <Separator />
           <div>
             <SectionTitle>Professional Details</SectionTitle>
-            <InfoRow icon={Calendar} label="Total Experience" value={trainer.experience_years ? `${trainer.experience_years} years` : null} />
-            <InfoRow icon={Briefcase} label="Current Role" value={trainer.current_role} />
-            <InfoRow icon={Briefcase} label="Current / Previous Company" value={trainer.current_company} />
+            <EditableField icon={Calendar} label="Experience (Years)" fieldKey="experience_years" type="number" />
+            <EditableField icon={Briefcase} label="Current Role" fieldKey="current_role" />
+            <EditableField icon={Briefcase} label="Current / Previous Company" fieldKey="current_company" />
+            <EditableField icon={Briefcase} label="LinkedIn URL" fieldKey="linkedin_url" />
+            <EditableField icon={Briefcase} label="Skills (comma-separated)" fieldKey="skills" />
+            <EditableField icon={Briefcase} label="Expertise Areas (comma-separated)" fieldKey="expertise_areas" />
+            <EditableField icon={Briefcase} label="Teaching Languages (comma-separated)" fieldKey="teaching_languages" />
+
+            {!editMode && (
+              <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type ? trainer.trainer_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
+            )}
 
             <div className="mt-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Areas of Expertise</p>
-              {trainer.expertise_areas?.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.expertise_areas.map((a: string) => <Badge key={a} variant="secondary" className="text-xs">{a}</Badge>)}
+              <SectionTitle>Bio</SectionTitle>
+              {editMode ? (
+                <div className="flex items-start gap-2.5">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] text-muted-foreground">About / Bio</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-primary gap-0.5"
+                        disabled={requestingField === "Bio"}
+                        onClick={() => handleRequestUpdate("Bio")}
+                      >
+                        {requestingField === "Bio" ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageSquare className="w-3 h-3" />}
+                        Request
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={editForm.bio}
+                      onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
+                      className="text-sm"
+                      rows={4}
+                    />
+                  </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${trainer.bio ? "text-foreground" : "text-muted-foreground italic"}`}>
+                  {trainer.bio || NP}
+                </p>
               )}
             </div>
+          </div>
 
-            <div className="mt-2">
-              <p className="text-[11px] text-muted-foreground mb-1">Teaching Languages</p>
-              {trainer.teaching_languages?.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.teaching_languages.map((l: string) => <Badge key={l} variant="secondary" className="text-xs">{l}</Badge>)}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{NP}</p>
-              )}
-            </div>
-
-            <InfoRow icon={Briefcase} label="Trainer Type" value={trainer.trainer_type ? trainer.trainer_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : null} />
-
-            <div className="mt-2">
-              <p className="text-[11px] text-muted-foreground mb-1">About You / Bio</p>
-              <p className={`text-sm leading-relaxed whitespace-pre-wrap ${trainer.bio ? "text-foreground" : "text-muted-foreground italic"}`}>
-                {trainer.bio || NP}
-              </p>
-            </div>
+          {/* ─── BANK DETAILS ─── */}
+          <Separator />
+          <div>
+            <SectionTitle>Bank / Payout Details</SectionTitle>
+            <EditableField icon={IndianRupee} label="Account Holder Name" fieldKey="account_holder_name" />
+            <EditableField icon={IndianRupee} label="Bank Account Number" fieldKey="bank_account_number" />
+            <EditableField icon={IndianRupee} label="IFSC Code" fieldKey="ifsc_code" />
+            <EditableField icon={IndianRupee} label="UPI ID" fieldKey="upi_id" />
           </div>
 
           {/* ─── DOCUMENTS & MEDIA ─── */}
@@ -311,6 +618,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
               ) : (
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}
+              <FileUploadButton field="profile_photo" label="Photo" accept="image/*" />
             </div>
 
             {/* Resume */}
@@ -335,6 +643,7 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
               ) : (
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}
+              <FileUploadButton field="resume" label="Resume" accept=".pdf,.doc,.docx" />
             </div>
 
             {/* Aadhaar / Govt ID */}
@@ -351,6 +660,51 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
               ) : (
                 <p className="text-sm text-muted-foreground italic">{NP}</p>
               )}
+              <FileUploadButton field="aadhaar" label="Aadhaar/ID" accept="image/*,.pdf" />
+            </div>
+
+            {/* Verification Selfie */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Verification Selfie</p>
+              {trainer.verification_selfie_url ? (
+                <p className="text-sm text-primary">✓ Uploaded</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+              <FileUploadButton field="selfie" label="Selfie" accept="image/*" />
+            </div>
+
+            {/* Intro Video */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Intro Video</p>
+              {trainer.intro_video_url ? (
+                <a href={trainer.intro_video_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">▶ View Intro Video</a>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+              <FileUploadButton field="intro_video" label="Intro Video" accept="video/*" />
+            </div>
+
+            {/* Demo Video */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Demo Video</p>
+              {trainer.demo_video_url ? (
+                <a href={trainer.demo_video_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">▶ View Demo Video</a>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+              <FileUploadButton field="demo_video" label="Demo Video" accept="video/*" />
+            </div>
+
+            {/* Curriculum PDF */}
+            <div className="py-2">
+              <p className="text-[11px] text-muted-foreground mb-1">Curriculum PDF</p>
+              {trainer.curriculum_pdf_url ? (
+                <a href={trainer.curriculum_pdf_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">📄 View PDF</a>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{NP}</p>
+              )}
+              <FileUploadButton field="curriculum_pdf" label="Curriculum PDF" accept=".pdf" />
             </div>
           </div>
 
@@ -397,7 +751,6 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {(c.has_free_trial || c.free_trial_enabled) && <Badge variant="secondary" className="text-[10px]">Free Trial</Badge>}
                         {c.intro_video_url && <a href={c.intro_video_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline">▶ Intro</a>}
-                        
                         {c.curriculum_pdf_url && <span className="text-[10px] text-muted-foreground">📄 PDF</span>}
                         {c.verification_selfie_url && <span className="text-[10px] text-muted-foreground">🤳 Selfie</span>}
                       </div>
@@ -437,6 +790,16 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
           {/* Application date */}
           <Separator />
           <p className="text-xs text-muted-foreground">Applied on {formatLongDateIST(trainer.created_at)}</p>
+
+          {/* ─── SAVE BUTTON (sticky at bottom in edit mode) ─── */}
+          {editMode && (
+            <div className="sticky bottom-0 bg-background border-t pt-3 pb-2 -mx-6 px-6">
+              <Button className="w-full gap-1.5" onClick={handleSaveAll} disabled={saving}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {saving ? "Saving All Changes..." : "Save All Changes"}
+              </Button>
+            </div>
+          )}
 
           {/* ─── EMAIL BUTTON ─── */}
           <div className="pt-1">
@@ -529,9 +892,9 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
                 </Button>
               </>
             )}
-            {onEdit && (
+            {onEdit && !editMode && (
               <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => onEdit(trainer)}>
-                <Pencil className="w-3.5 h-3.5" /> Edit
+                <Pencil className="w-3.5 h-3.5" /> Edit (Modal)
               </Button>
             )}
             {trainer.approval_status === "approved" && onSuspend && (

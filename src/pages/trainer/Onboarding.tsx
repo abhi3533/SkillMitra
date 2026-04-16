@@ -743,6 +743,7 @@ const TrainerOnboarding = () => {
                   <span className="font-medium text-foreground">{profile?.full_name}</span>
                   {profile?.email ? <> · {profile.email}</> : null}
                 </p>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-snug">Enter your full name as per Aadhaar and banking records for verification purposes.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1064,17 +1065,26 @@ const TrainerOnboarding = () => {
           )}
 
           {/* Navigation */}
-          <div className="mt-8 flex items-center justify-between">
-            {step > 0 ? (
-              <Button variant="outline" onClick={() => setStep(step - 1)}><ChevronLeft className="w-4 h-4 mr-1" /> Back</Button>
-            ) : <div />}
-            {step < LAST_STEP ? (
-              <Button onClick={nextStep} className="hero-gradient border-0">Next <ChevronRight className="w-4 h-4 ml-1" /></Button>
-            ) : (
-              <Button onClick={handleSubmit} disabled={submitting || !agreedTraining || !agreedTerms || !allReadinessChecked} className="gold-gradient text-accent-foreground border-0 font-semibold">
-                {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <>Submit Application <ArrowRight className="ml-2 w-4 h-4" /></>}
-              </Button>
-            )}
+          <div className="mt-8 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              {step > 0 ? (
+                <Button variant="outline" onClick={() => setStep(step - 1)}><ChevronLeft className="w-4 h-4 mr-1" /> Back</Button>
+              ) : <div />}
+              <div className="flex items-center gap-2">
+                {step < LAST_STEP && (
+                  <Button variant="outline" onClick={() => saveDraft(true)} disabled={saving}>
+                    <Save className="w-4 h-4 mr-1" /> Save
+                  </Button>
+                )}
+                {step < LAST_STEP ? (
+                  <Button onClick={nextStep} className="hero-gradient border-0">Next <ChevronRight className="w-4 h-4 ml-1" /></Button>
+                ) : (
+                  <Button onClick={handleSubmit} disabled={submitting || !agreedTraining || !agreedTerms || !allReadinessChecked} className="gold-gradient text-accent-foreground border-0 font-semibold">
+                    {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <>Submit Application <ArrowRight className="ml-2 w-4 h-4" /></>}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Last saved indicator */}

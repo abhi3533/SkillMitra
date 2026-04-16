@@ -310,7 +310,13 @@ const TrainerDetailDrawer = ({ trainer, open, onClose, onApprove, onReject, onSu
         const path = `${trainer.user_id}/selfie_${timestamp}.${ext}`;
         const { error: uploadErr } = await supabase.storage.from("trainer-documents").upload(path, file, { upsert: true });
         if (uploadErr) throw uploadErr;
-        await supabase.from("trainers").update({ verification_selfie_url: path }).eq("id", trainer.id);
+        // Store as a trainer document
+        const existingSelfie = documents.find(d => d.document_type === "selfie");
+        if (existingSelfie) {
+          await supabase.from("trainer_documents").update({ document_url: path, document_name: file.name }).eq("id", existingSelfie.id);
+        } else {
+          await supabase.from("trainer_documents").insert({ trainer_id: trainer.id, document_type: "selfie", document_url: path, document_name: file.name });
+        }
         toast.success("Verification selfie updated");
       }
     } catch (err: any) {

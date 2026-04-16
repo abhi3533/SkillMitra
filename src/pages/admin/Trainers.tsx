@@ -64,26 +64,51 @@ const AdminTrainers = () => {
 
   const fetchTrainers = async () => {
     setLoading(true);
-    const { data: trainerRows } = await supabase
-      .from("trainers")
-      .select("*")
-      .order("created_at", { ascending: false });
-    const trainersArr = trainerRows || [];
+    try {
+      const { data: trainerRows, error: trainerError } = await supabase
+        .from("trainers")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (trainersArr.length > 0) {
-      const userIds = trainersArr.map(t => t.user_id);
-      const { data: profileRows } = await supabase
+      if (trainerError) throw trainerError;
+
+      const trainersArr = trainerRows || [];
+
+      if (trainersArr.length === 0) {
+        setTrainers([]);
+        return;
+      }
+
+      const userIds = trainersArr.map((t) => t.user_id).filter(Boolean);
+      const { data: profileRows, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .in("id", userIds);
+
+      if (profileError) throw profileError;
+
       const profileMap: Record<string, any> = {};
-      (profileRows || []).forEach(p => { profileMap[p.id] = p; });
-      const enriched = trainersArr.map(t => ({ ...t, profiles: profileMap[t.user_id] || null }));
+      (profileRows || []).forEach((p) => {
+        profileMap[p.id] = p;
+      });
+
+      const enriched = trainersArr.map((t) => ({
+        ...t,
+        profiles: profileMap[t.user_id] || null,
+      }));
+
       setTrainers(enriched);
-    } else {
+    } catch (error: any) {
+      console.error("Failed to load admin trainers:", error);
+      toast({
+        title: "Could not load trainers",
+        description: error?.message || "Please refresh and try again.",
+        variant: "destructive",
+      });
       setTrainers([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchTrainers(); }, []);

@@ -372,23 +372,15 @@ Deno.serve(async (req) => {
       }).eq("id", trainer_id);
     }
 
-    // Credit trainer wallet
-    const { data: trainerWallet } = await serviceClient.from("wallets").select("id, balance, total_earned").eq("user_id", trainer?.user_id).single();
-    if (trainerWallet) {
-      await serviceClient.from("wallets").update({
-        balance: Number(trainerWallet.balance) + trainerPayout,
-        total_earned: Number(trainerWallet.total_earned) + trainerPayout,
-        last_updated: new Date().toISOString(),
-      }).eq("id", trainerWallet.id);
-
-      await serviceClient.from("wallet_transactions").insert({
-        wallet_id: trainerWallet.id,
-        user_id: trainer?.user_id,
-        type: "credit",
-        amount: trainerPayout,
-        description: `Earning from "${course.title}" enrollment`,
-        reference_id: enrollment.id,
+    // Credit trainer wallet via atomic RPC (auto-creates wallet, idempotent on enrollment.id)
+    if (trainer?.user_id && trainerPayout > 0) {
+      const { error: trainerCreditErr } = await serviceClient.rpc("credit_wallet_atomic", {
+        p_user_id: trainer.user_id,
+        p_amount: trainerPayout,
+        p_description: `Earning from "${course.title}" enrollment`,
+        p_reference_id: enrollment.id,
       });
+      if (trainerCreditErr) console.error("Trainer wallet credit failed (non-blocking):", trainerCreditErr);
     }
 
     // Increment enrolled count

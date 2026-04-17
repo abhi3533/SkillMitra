@@ -20,7 +20,7 @@ const AdminTrainers = () => {
   const { role } = useAuth();
   const [trainers, setTrainers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("pending");
+  const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name-asc" | "name-desc" | "status">("newest");
   const [selectedTrainer, setSelectedTrainer] = useState<any>(null);
@@ -296,7 +296,7 @@ const AdminTrainers = () => {
       .filter(t => {
         if (tab === "pipeline") return false; // pipeline handled separately
         if (tab === "pending") return isPendingReview(t);
-        if (tab === "all") return isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended";
+        if (tab === "all") return true;
         return t.approval_status === tab;
       })
       .filter(t => {
@@ -337,7 +337,7 @@ const AdminTrainers = () => {
     approved: trainers.filter(t => t.approval_status === "approved").length,
     rejected: trainers.filter(t => t.approval_status === "rejected").length,
     suspended: trainers.filter(t => t.approval_status === "suspended").length,
-    all: trainers.filter(t => isPendingReview(t) || t.approval_status === "approved" || t.approval_status === "rejected" || t.approval_status === "suspended").length,
+    all: trainers.length,
   };
 
   return (

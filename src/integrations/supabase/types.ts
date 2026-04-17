@@ -2145,6 +2145,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_referred_trainer: {
+        Args: { _trainer_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_trainer_referral: {
+        Args: { _referred_id: string; _referrer_id: string; _user_id: string }
+        Returns: boolean
+      }
       create_verified_enrollment: {
         Args: {
           p_amount_paid: number

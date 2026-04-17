@@ -2174,6 +2174,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      debit_wallet_atomic: {
+        Args: {
+          p_amount: number
+          p_description: string
+          p_reference_id?: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2295,6 +2304,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_course_enrolled: {
+        Args: { course_id_param: string }
+        Returns: undefined
       }
       is_student_owner: {
         Args: { _student_id: string; _user_id: string }

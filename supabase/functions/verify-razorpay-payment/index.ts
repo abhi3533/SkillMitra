@@ -96,27 +96,32 @@ Deno.serve(async (req) => {
       booking_type,
     } = await req.json();
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    // Free-enrollment path: order_id begins with "free_" and there's no Razorpay signature
+    const isFreeEnrollment = typeof razorpay_order_id === "string" && razorpay_order_id.startsWith("free_");
+
+    if (!razorpay_order_id || (!isFreeEnrollment && (!razorpay_payment_id || !razorpay_signature))) {
       return new Response(JSON.stringify({ error: "Missing payment data" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Verify signature
-    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
-    const isValid = await verifySignature(
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      keySecret
-    );
+    // Verify signature only for paid Razorpay flow
+    if (!isFreeEnrollment) {
+      const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
+      const isValid = await verifySignature(
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        keySecret
+      );
 
-    if (!isValid) {
-      return new Response(JSON.stringify({ error: "Invalid payment signature" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (!isValid) {
+        return new Response(JSON.stringify({ error: "Invalid payment signature" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const serviceClient = createClient(
@@ -157,15 +162,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update payment record
-    await serviceClient
-      .from("payments")
-      .update({
-        razorpay_payment_id,
-        razorpay_signature,
-        status: "captured",
-      })
-      .eq("razorpay_order_id", razorpay_order_id);
+    // Update payment record (skip signature update for free enrollments)
+    if (!isFreeEnrollment) {
+      await serviceClient
+        .from("payments")
+        .update({
+          razorpay_payment_id,
+          razorpay_signature,
+          status: "captured",
+        })
+        .eq("razorpay_order_id", razorpay_order_id);
+    }
 
     // Get course details
     const { data: course } = await serviceClient
@@ -181,6 +188,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Read saved payment row to get the actual Razorpay-charged amount
+    const { data: paymentRow } = await serviceClient
+      .from("payments")
+      .select("amount")
+      .eq("razorpay_order_id", razorpay_order_id)
+      .single();
+    const amountChargedRzp = Number(paymentRow?.amount || 0);
+
     // Get platform commission
     const { data: settings } = await serviceClient
       .from("platform_settings")
@@ -190,8 +205,27 @@ Deno.serve(async (req) => {
 
     const commissionPercent = settings?.commission_percent || 10;
     const courseFee = Number(course.course_fee);
+
+    // Trainer is paid based on the FULL course fee (discounts are platform-funded)
     const platformCommission = Math.round((courseFee * commissionPercent) / 100);
     const trainerPayout = courseFee - platformCommission;
+
+    // Recompute referral discount + wallet deduction server-side
+    const { data: studentRow } = await serviceClient
+      .from("students")
+      .select("referred_by")
+      .eq("id", student_id)
+      .single();
+
+    const { count: priorActive } = await serviceClient
+      .from("enrollments")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", student_id)
+      .eq("status", "active");
+
+    const referralDiscount = (studentRow?.referred_by && (priorActive || 0) === 0) ? 100 : 0;
+    const walletDeduction = Math.max(0, courseFee - referralDiscount - amountChargedRzp);
+    const studentNetPaid = amountChargedRzp + walletDeduction;
 
     // Create enrollment
     const { data: enrollment, error: enrollError } = await serviceClient
@@ -201,10 +235,10 @@ Deno.serve(async (req) => {
         course_id,
         trainer_id,
         status: "active",
-        amount_paid: courseFee,
+        amount_paid: studentNetPaid,
         sessions_total: course.total_sessions || 1,
         start_date: new Date().toISOString().split("T")[0],
-        razorpay_payment_id,
+        razorpay_payment_id: isFreeEnrollment ? null : razorpay_payment_id,
         platform_commission: platformCommission,
         trainer_payout: trainerPayout,
       })
@@ -224,6 +258,19 @@ Deno.serve(async (req) => {
       .from("payments")
       .update({ enrollment_id: enrollment.id })
       .eq("razorpay_order_id", razorpay_order_id);
+
+    // Debit student wallet if used (atomic, idempotent on enrollment.id)
+    if (walletDeduction > 0) {
+      const { data: debitOk, error: debitErr } = await serviceClient.rpc("debit_wallet_atomic", {
+        p_user_id: userId,
+        p_amount: walletDeduction,
+        p_description: `Wallet used for "${course.title}" enrollment`,
+        p_reference_id: enrollment.id,
+      });
+      if (debitErr || !debitOk) {
+        console.error("Wallet debit failed (non-blocking):", debitErr, "ok=", debitOk);
+      }
+    }
 
     // Generate sessions
     const TIME_SLOTS: Record<string, number> = {

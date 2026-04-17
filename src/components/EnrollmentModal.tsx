@@ -324,6 +324,28 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         throw new Error(orderData?.error || "Failed to create payment order");
       }
 
+      // Free-enrollment path: wallet + referral discount fully covered the fee
+      if (orderData.free_enrollment) {
+        const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-razorpay-payment", {
+          body: {
+            razorpay_order_id: orderData.order_id,
+            course_id: course.id,
+            trainer_id: trainer.id,
+            student_id: studentId,
+            selected_day: selectedDay,
+            selected_slot: selectedSlot,
+            booking_type: "enroll",
+          },
+        });
+        if (verifyError || !verifyData?.success) {
+          throw new Error(verifyData?.error || "Free enrollment failed");
+        }
+        toast({ title: "Enrolled Successfully! 🎉", description: "Fully covered by your wallet/referral credit.", variant: "success" });
+        onClose();
+        navigate(`/student/receipt/${verifyData.enrollment_id}`);
+        return;
+      }
+
       const options = {
         key: orderData.key_id,
         amount: orderData.amount,

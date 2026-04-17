@@ -96,27 +96,32 @@ Deno.serve(async (req) => {
       booking_type,
     } = await req.json();
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    // Free-enrollment path: order_id begins with "free_" and there's no Razorpay signature
+    const isFreeEnrollment = typeof razorpay_order_id === "string" && razorpay_order_id.startsWith("free_");
+
+    if (!razorpay_order_id || (!isFreeEnrollment && (!razorpay_payment_id || !razorpay_signature))) {
       return new Response(JSON.stringify({ error: "Missing payment data" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Verify signature
-    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
-    const isValid = await verifySignature(
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      keySecret
-    );
+    // Verify signature only for paid Razorpay flow
+    if (!isFreeEnrollment) {
+      const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
+      const isValid = await verifySignature(
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        keySecret
+      );
 
-    if (!isValid) {
-      return new Response(JSON.stringify({ error: "Invalid payment signature" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (!isValid) {
+        return new Response(JSON.stringify({ error: "Invalid payment signature" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const serviceClient = createClient(

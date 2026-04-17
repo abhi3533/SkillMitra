@@ -173,15 +173,13 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
       const firstDate = getNextScheduledDate(selectedDay, selectedSlot);
       const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
 
-      // Check for duplicate trial: same student, same trainer, same scheduled date
-      const scheduledDateStr = firstDate.toISOString().slice(0, 10);
+      // Check for duplicate trial: any pending/approved trial with this trainer (one trial per trainer rule)
       const { data: existingOnDate } = await supabase
         .from("trial_bookings")
         .select("id")
         .eq("student_id", studentId)
         .eq("trainer_id", trainer.id)
-        .gte("scheduled_at", `${scheduledDateStr}T00:00:00.000Z`)
-        .lt("scheduled_at", `${scheduledDateStr}T23:59:59.999Z`)
+        .in("status", ["pending", "approved"])
         .limit(1);
 
       if (existingOnDate && existingOnDate.length > 0) {

@@ -304,7 +304,16 @@ const CourseDetail = () => {
                     <p className="text-sm text-muted-foreground mt-1">Full course fee</p>
                   </div>
 
-                  {hasExistingEnrollment ? (
+                  {courseId?.startsWith("demo-") ? (
+                    <div className="space-y-3">
+                      <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+                        This is a sample course shown for preview. Browse our verified trainers to enroll in a real course.
+                      </div>
+                      <Button className="w-full" size="lg" onClick={() => navigate("/browse")}>
+                        Browse Real Trainers
+                      </Button>
+                    </div>
+                  ) : hasExistingEnrollment ? (
                     <Button className="w-full" onClick={() => navigate("/student/courses")}>
                       Go to My Courses
                     </Button>

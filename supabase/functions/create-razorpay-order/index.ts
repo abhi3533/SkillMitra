@@ -49,9 +49,15 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.user.id;
 
-    const { course_id, student_id, amount } = await req.json();
+    const {
+      course_id,
+      student_id,
+      amount,
+      wallet_deduction = 0,
+      referral_discount = 0,
+    } = await req.json();
 
-    if (!course_id || !student_id || !amount || amount <= 0) {
+    if (!course_id || !student_id || amount === undefined || amount === null || amount < 0) {
       return new Response(JSON.stringify({ error: "Invalid parameters" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -61,7 +67,7 @@ Deno.serve(async (req) => {
     // Verify student belongs to authenticated user
     const { data: student } = await supabase
       .from("students")
-      .select("id, user_id")
+      .select("id, user_id, referred_by")
       .eq("id", student_id)
       .single();
 
@@ -72,7 +78,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify course exists and fee matches
+    // Verify course exists and recompute final amount server-side
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -91,14 +97,68 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (Number(course.course_fee) !== Number(amount)) {
+    const courseFee = Number(course.course_fee);
+
+    // Validate referral discount: only ₹100 if student is referred AND has no prior active enrollment
+    let serverReferralDiscount = 0;
+    if (Number(referral_discount) > 0 && student.referred_by) {
+      const { count: prevEnroll } = await serviceClient
+        .from("enrollments")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", student_id)
+        .eq("status", "active");
+      if ((prevEnroll || 0) === 0) serverReferralDiscount = 100;
+    }
+
+    // Validate wallet deduction: cap at user's actual balance and at remaining fee
+    let serverWalletDeduction = 0;
+    const requestedWallet = Math.max(0, Number(wallet_deduction) || 0);
+    if (requestedWallet > 0) {
+      const { data: wallet } = await serviceClient
+        .from("wallets")
+        .select("balance")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const balance = Number(wallet?.balance || 0);
+      const remainingAfterReferral = Math.max(0, courseFee - serverReferralDiscount);
+      serverWalletDeduction = Math.min(requestedWallet, balance, remainingAfterReferral);
+    }
+
+    const finalAmount = Math.max(0, courseFee - serverReferralDiscount - serverWalletDeduction);
+
+    // Sanity check client-submitted amount matches our computation (within 1 rupee)
+    if (Math.abs(Number(amount) - finalAmount) > 1) {
       return new Response(JSON.stringify({ error: "Amount mismatch" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create Razorpay order
+    // ---- Free enrollment path: fully covered by wallet + referral ----
+    if (finalAmount <= 0) {
+      // Insert a $0 payment record so verify-payment can pick it up
+      const { data: payment } = await serviceClient.from("payments").insert({
+        student_id,
+        amount: 0,
+        razorpay_order_id: `free_${Date.now()}_${course_id.slice(0, 8)}`,
+        status: "captured",
+        payment_method: "wallet",
+      }).select("id, razorpay_order_id").single();
+
+      return new Response(
+        JSON.stringify({
+          free_enrollment: true,
+          order_id: payment?.razorpay_order_id,
+          amount: 0,
+          currency: "INR",
+          wallet_deduction: serverWalletDeduction,
+          referral_discount: serverReferralDiscount,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ---- Razorpay path ----
     const keyId = Deno.env.get("RAZORPAY_KEY_ID")!;
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
 
@@ -109,13 +169,15 @@ Deno.serve(async (req) => {
         Authorization: "Basic " + btoa(`${keyId}:${keySecret}`),
       },
       body: JSON.stringify({
-        amount: Math.trunc(Number(amount)) * 100, // paise — integer-safe, no float precision errors
+        amount: Math.trunc(finalAmount) * 100, // paise — integer-safe
         currency: "INR",
         receipt: `sm_${course_id.slice(0, 8)}_${Date.now()}`,
         notes: {
           course_id,
           student_id,
           course_title: course.title,
+          wallet_deduction: String(serverWalletDeduction),
+          referral_discount: String(serverReferralDiscount),
         },
       }),
     });
@@ -130,10 +192,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create payment record in DB
+    // Create payment record in DB — store discounts in metadata via amount fields
     await serviceClient.from("payments").insert({
       student_id,
-      amount: Number(amount),
+      amount: finalAmount,
       razorpay_order_id: razorpayOrder.id,
       status: "created",
       payment_method: "razorpay",
@@ -152,6 +214,8 @@ Deno.serve(async (req) => {
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
         key_id: keyId,
+        wallet_deduction: serverWalletDeduction,
+        referral_discount: serverReferralDiscount,
         prefill: {
           name: profile?.full_name || "",
           email: profile?.email || "",

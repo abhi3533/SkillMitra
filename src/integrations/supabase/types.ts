@@ -762,6 +762,9 @@ export type Database = {
           platform_commission: number | null
           progress_percent: number | null
           razorpay_payment_id: string | null
+          refund_eligible_until: string | null
+          refund_requested_at: string | null
+          refund_status: string
           resume_unlocked: boolean | null
           sessions_completed: number | null
           sessions_total: number | null
@@ -783,6 +786,9 @@ export type Database = {
           platform_commission?: number | null
           progress_percent?: number | null
           razorpay_payment_id?: string | null
+          refund_eligible_until?: string | null
+          refund_requested_at?: string | null
+          refund_status?: string
           resume_unlocked?: boolean | null
           sessions_completed?: number | null
           sessions_total?: number | null
@@ -804,6 +810,9 @@ export type Database = {
           platform_commission?: number | null
           progress_percent?: number | null
           razorpay_payment_id?: string | null
+          refund_eligible_until?: string | null
+          refund_requested_at?: string | null
+          refund_status?: string
           resume_unlocked?: boolean | null
           sessions_completed?: number | null
           sessions_total?: number | null

@@ -262,12 +262,15 @@ Deno.serve(async (req) => {
       .limit(1)
       .single();
 
-    const commissionPercent = settings?.commission_percent || 10;
+    const commissionPercent = Number(settings?.commission_percent ?? 0);
     const courseFee = Number(course.course_fee);
 
     // Trainer is paid based on the FULL course fee (discounts are platform-funded)
     const platformCommission = Math.round((courseFee * commissionPercent) / 100);
     const trainerPayout = courseFee - platformCommission;
+
+    // Refund window: student can cancel within 5 days of enrollment
+    const refundEligibleUntil = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString();
 
     // Recompute referral discount + wallet deduction server-side
     const { data: studentRow } = await serviceClient
@@ -300,6 +303,8 @@ Deno.serve(async (req) => {
         razorpay_payment_id: isFreeEnrollment ? null : razorpay_payment_id,
         platform_commission: platformCommission,
         trainer_payout: trainerPayout,
+        refund_eligible_until: refundEligibleUntil,
+        refund_status: 'none',
       })
       .select()
       .single();

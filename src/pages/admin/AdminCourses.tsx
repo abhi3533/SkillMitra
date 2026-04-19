@@ -691,6 +691,35 @@ const AdminCourses = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </Dialog>
+
+      {/* Edit Course Modal */}
+      {editCourse && (
+        <EditCourseModal
+          open={editOpen}
+          onOpenChange={(o) => { setEditOpen(o); if (!o) setEditCourse(null); }}
+          course={editCourse}
+          onSaved={handleEditSaved}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this course?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes <strong>{deleteCourse?.title}</strong> and its curriculum. Existing enrollments and sessions will block deletion — deactivate instead in that case. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Deleting..." : "Delete permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

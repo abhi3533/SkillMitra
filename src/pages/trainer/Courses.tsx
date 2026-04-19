@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, BookOpen, Loader2, Edit, Eye, Users, Clock, IndianRupee, Star, Trash2, Lock, AlertCircle } from "lucide-react";
+import { Plus, BookOpen, Loader2, Edit, Eye, Users, Clock, IndianRupee, Star, Trash2, Lock, AlertCircle, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +56,7 @@ const TrainerCourses = () => {
   const [updateModalCourse, setUpdateModalCourse] = useState<string>("");
   const [uploadUrls, setUploadUrls] = useState({ introVideo: "", curriculumPdf: "", certification: "", verificationSelfie: "" });
   const [uploadingFile, setUploadingFile] = useState({ introVideo: false, curriculumPdf: false, certification: false, verificationSelfie: false });
+  const [selfieDialogOpen, setSelfieDialogOpen] = useState(false);
 
   // Whether the course being edited is approved (locked)
   const isApprovedCourse = editingCourse?.approval_status === "approved";
@@ -730,28 +731,44 @@ const TrainerCourses = () => {
                 <p className="text-[11px] text-muted-foreground mt-1">Upload any relevant certification or achievement that supports this course</p>
               </div>
 
-              {/* Verification Selfie */}
+              {/* Verification Selfie - LIVE camera capture only */}
               <div>
                 <Label>Verification Selfie *</Label>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <input type="file" accept="image/*" capture="user" className="hidden" id="selfie-input"
-                    onChange={async e => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      setUploadingFile(u => ({ ...u, verificationSelfie: true }));
-                      try {
-                        const url = await uploadCourseFile(file, "trainer-documents", "selfie");
-                        setUploadUrls(u => ({ ...u, verificationSelfie: url }));
-                      } catch (err: any) { toast({ title: "Upload failed", description: err.message, variant: "destructive" }); }
-                      finally { setUploadingFile(u => ({ ...u, verificationSelfie: false })); }
-                    }} />
-                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => document.getElementById("selfie-input")?.click()} disabled={uploadingFile.verificationSelfie || isApprovedCourse}>
-                    {uploadingFile.verificationSelfie ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</> : "Take / Upload Selfie"}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setSelfieDialogOpen(true)}
+                    disabled={uploadingFile.verificationSelfie || isApprovedCourse}
+                  >
+                    {uploadingFile.verificationSelfie
+                      ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Uploading...</>
+                      : (<><Camera className="w-3.5 h-3.5 mr-1" />{uploadUrls.verificationSelfie ? "Retake Live Selfie" : "Take Live Selfie"}</>)}
                   </Button>
-                  {uploadUrls.verificationSelfie && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Uploaded</span>}
+                  {uploadUrls.verificationSelfie && <span className="text-xs text-emerald-600 truncate max-w-[200px]">✓ Captured</span>}
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1">A clear selfie for identity verification — used only by admin reviewers (camera or file)</p>
+                <p className="text-[11px] text-muted-foreground mt-1">Live camera capture only — used solely by admin reviewers for identity verification. File uploads are not accepted.</p>
                 {(validationErrors as any).verificationSelfie && <p className="text-[11px] text-destructive mt-0.5">{(validationErrors as any).verificationSelfie}</p>}
               </div>
+
+              <LiveSelfieCapture
+                open={selfieDialogOpen}
+                onClose={() => setSelfieDialogOpen(false)}
+                onCapture={async (file) => {
+                  setUploadingFile(u => ({ ...u, verificationSelfie: true }));
+                  try {
+                    const url = await uploadCourseFile(file, "trainer-documents", "selfie");
+                    setUploadUrls(u => ({ ...u, verificationSelfie: url }));
+                    toast({ title: "Selfie captured", description: "Live selfie saved for verification." });
+                  } catch (err: any) {
+                    toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+                  } finally {
+                    setUploadingFile(u => ({ ...u, verificationSelfie: false }));
+                  }
+                }}
+              />
             </div>
 
             <Separator />

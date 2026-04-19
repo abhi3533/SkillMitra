@@ -19,7 +19,8 @@ const TrainerEarnings = () => {
   const [payoutAmount, setPayoutAmount] = useState("");
   const [requesting, setRequesting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [hasConfirmedBooking, setHasConfirmedBooking] = useState(false);
+  const [completedSessions, setCompletedSessions] = useState(0);
+  const REQUIRED_SESSIONS = 5;
 
   useEffect(() => {
     if (!user) return;
@@ -31,17 +32,19 @@ const TrainerEarnings = () => {
       setTrainer(t);
       setWallet(w);
       if (t) {
-        const [{ data: p }, { count }] = await Promise.all([
+        const [{ data: p }, { count: completedCount }] = await Promise.all([
           supabase.from("payout_requests").select("*").eq("trainer_id", t.id).order("requested_at", { ascending: false }),
-          supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("trainer_id", t.id).in("status", ["active", "completed"]),
+          supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("trainer_id", t.id).eq("status", "completed"),
         ]);
         setPayouts(p || []);
-        setHasConfirmedBooking((count ?? 0) > 0);
+        setCompletedSessions(completedCount ?? 0);
       }
       setLoading(false);
     };
     fetch();
   }, [user]);
+
+  const hasEnoughSessions = completedSessions >= REQUIRED_SESSIONS;
 
   const totalBalance = Number(wallet?.balance || 0);
   const withdrawableBalance = hasConfirmedBooking ? totalBalance : 0;

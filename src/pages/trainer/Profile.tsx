@@ -246,6 +246,22 @@ const TrainerProfile = () => {
     })();
   }, [trainer, resolvedId, user]);
 
+  // Fetch student's id and trial-with-this-trainer status (used by live EnrollmentModal)
+  useEffect(() => {
+    if (!user || role !== "student" || !trainer?.id || trainer.id?.toString().startsWith("demo-")) {
+      setStudentId(""); setHasTrialBookedWithTrainer(false);
+      return;
+    }
+    (async () => {
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
+      if (!student) return;
+      setStudentId(student.id);
+      const { data: trial } = await supabase.from("trial_bookings")
+        .select("id").eq("student_id", student.id).eq("trainer_id", trainer.id).limit(1).maybeSingle();
+      setHasTrialBookedWithTrainer(!!trial);
+    })();
+  }, [user, role, trainer?.id]);
+
   // Check for existing trial when trial modal opens
   const checkExistingTrial = async () => {
     if (!user || !resolvedId || isDemo(resolvedId)) return;

@@ -132,6 +132,56 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
     }
   }, [trainer?.id]);
 
+  // Load current profile to detect missing essentials for the JIT prompt
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: p } = await supabase.from("profiles").select("full_name, phone, city").eq("id", user.id).maybeSingle();
+      setProfileFullName(p?.full_name || "");
+      setProfilePhone(p?.phone || "");
+      setProfileCity(p?.city || "");
+      setMissingProfile({
+        full_name: !p?.full_name?.trim(),
+        phone: !p?.phone?.trim(),
+        city: !p?.city?.trim(),
+      });
+    })();
+  }, [open]);
+
+  const hasMissingProfile = missingProfile.full_name || missingProfile.phone || missingProfile.city;
+
+  const saveQuickProfile = async (): Promise<boolean> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    if (missingProfile.full_name && !profileFullName.trim()) {
+      toast({ title: "Please enter your name", variant: "warning" });
+      return false;
+    }
+    if (missingProfile.phone && !/^[6-9]\d{9}$/.test(profilePhone.trim())) {
+      toast({ title: "Please enter a valid 10-digit phone", variant: "warning" });
+      return false;
+    }
+    if (missingProfile.city && !profileCity.trim()) {
+      toast({ title: "Please enter your city", variant: "warning" });
+      return false;
+    }
+    setSavingProfile(true);
+    const updates: Record<string, any> = {};
+    if (missingProfile.full_name) updates.full_name = profileFullName.trim();
+    if (missingProfile.phone) updates.phone = profilePhone.trim();
+    if (missingProfile.city) updates.city = profileCity.trim();
+    const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
+    setSavingProfile(false);
+    if (error) {
+      toast({ title: "Couldn't save details", description: error.message, variant: "destructive" });
+      return false;
+    }
+    setMissingProfile({ full_name: false, phone: false, city: false });
+    return true;
+  };
+
   const trialBlocked = hasTrialBooked || hasExistingTrialWithTrainer || trialSlotsFullThisMonth;
 
   const courseFee = Number(course?.course_fee || 0);

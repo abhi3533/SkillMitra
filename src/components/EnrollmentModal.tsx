@@ -427,8 +427,10 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
             course_id: course.id,
             trainer_id: trainer.id,
             student_id: studentId,
-            selected_day: selectedDay,
-            selected_slot: selectedSlot,
+            selected_day: selectedDate?.getDay() ?? null,
+            selected_slot: selectedHour !== null ? `${selectedHour}:00` : null,
+            selected_date: selectedDate ? toLocalDateString(selectedDate) : null,
+            selected_hour: selectedHour,
             booking_type: "enroll",
           },
         });
@@ -460,8 +462,10 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                 course_id: course.id,
                 trainer_id: trainer.id,
                 student_id: studentId,
-                selected_day: selectedDay,
-                selected_slot: selectedSlot,
+                selected_day: selectedDate?.getDay() ?? null,
+                selected_slot: selectedHour !== null ? `${selectedHour}:00` : null,
+                selected_date: selectedDate ? toLocalDateString(selectedDate) : null,
+                selected_hour: selectedHour,
                 booking_type: "enroll",
               },
             });
@@ -585,49 +589,83 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
           </div>
         )}
 
-        {/* Step 2: Time Slot Selection */}
+        {/* Step 2: Calendar + 1-hour slot selection */}
         {step === "slot" && (
-          <div className="space-y-5">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
-                <Calendar className="w-4 h-4" /> Preferred Day
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {DAYS.filter(d => availableDays.includes(d.value)).map(d => (
-                  <button key={d.value} onClick={() => { setSelectedDay(d.value); setSelectedSlot(""); }}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      selectedDay === d.value
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:border-primary/30"
-                    }`}
-                  >{d.label}</button>
-                ))}
-              </div>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-xs text-foreground space-y-1">
+              {courseStartDate && (
+                <p>📅 Available from <span className="font-medium">{courseStartDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></p>
+              )}
+              {allowedBands.length > 0 && (
+                <p>🕒 Slots: {allowedBands.map(b => SLOT_BANDS.find(s => s.id === b)?.label).filter(Boolean).join(" / ")}</p>
+              )}
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
-                <Clock className="w-4 h-4" /> Preferred Time Slot
-              </label>
-              <div className="space-y-2">
-                {(selectedDay !== null ? availableSlots : TIME_SLOTS).map(slot => (
-                  <button key={slot.label} onClick={() => setSelectedSlot(slot.label)}
-                    className={`w-full text-left px-4 py-3 rounded-lg text-sm border transition-colors ${
-                      selectedSlot === slot.label
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:border-primary/30"
-                    }`}
-                  >
-                    <span className="font-medium">{slot.label}</span>
-                    <span className="ml-2 opacity-70">({slot.display})</span>
-                  </button>
-                ))}
+            {allowedHours.length === 0 || !courseStartDate ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                This course doesn't have a start date or available time bands set yet. Please contact the trainer.
               </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4" /> Pick a date
+                  </label>
+                  <div className="rounded-lg border bg-card p-2 flex justify-center">
+                    <CalendarPicker
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(d) => { setSelectedDate(d); setSelectedHour(null); }}
+                      disabled={isDateDisabled}
+                      defaultMonth={courseStartDate}
+                      fromDate={courseStartDate}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
+                    <Clock className="w-4 h-4" /> Pick a 1-hour slot
+                  </label>
+                  {!selectedDate ? (
+                    <p className="text-xs text-muted-foreground">Select a date first to see available time slots.</p>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {allowedHours.map(h => {
+                        const taken = takenHoursOnSelectedDate.has(h);
+                        const active = selectedHour === h;
+                        return (
+                          <button
+                            key={h}
+                            disabled={taken}
+                            onClick={() => setSelectedHour(h)}
+                            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                              taken
+                                ? "bg-muted text-muted-foreground border-border cursor-not-allowed line-through"
+                                : active
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-card text-foreground border-border hover:border-primary/30"
+                            }`}
+                          >
+                            {formatHourLabel(h)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {previewDates.length > 0 && bookingType === "enroll" && (
+                  <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+                    Your sessions will recur every <span className="font-medium text-foreground">{WEEKDAY_LABELS[selectedDate!.getDay()].long}</span> at <span className="font-medium text-foreground">{formatHourLabel(selectedHour!)}</span> — {previewDates.length} sessions in total.
+                  </div>
+                )}
+              </>
+            )}
 
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setStep("type")}>Back</Button>
-              <Button className="flex-1" disabled={!selectedSlot}
+              <Button className="flex-1" disabled={!selectedDate || selectedHour === null}
                 onClick={() => setStep("confirm")}>
                 Continue
               </Button>
@@ -653,12 +691,12 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                 <span className="font-medium text-foreground">{bookingType === "trial" ? "Free Trial (Pending Approval)" : "Full Enrollment"}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Day</span>
-                <span className="font-medium text-foreground">{DAYS.find(d => d.value === selectedDay)?.label || "Auto-selected"}</span>
+                <span className="text-muted-foreground">Date</span>
+                <span className="font-medium text-foreground">{selectedDate ? selectedDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }) : "—"}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Time Slot</span>
-                <span className="font-medium text-foreground">{selectedSlot}</span>
+                <span className="text-muted-foreground">Time</span>
+                <span className="font-medium text-foreground">{selectedHour !== null ? formatHourLabel(selectedHour) : "—"}</span>
               </div>
 
               {bookingType === "enroll" && (

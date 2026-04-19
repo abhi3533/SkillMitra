@@ -662,7 +662,58 @@ const TrainerCourses = () => {
 
             <Separator />
 
-            {/* What You'll Learn */}
+            {/* Course start date + slot bands */}
+            <div className="space-y-4">
+              <div>
+                <Label>Course Start Date *</Label>
+                <Input
+                  type="date"
+                  value={form.course_start_date}
+                  min={(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split("T")[0]; })()}
+                  onChange={e => { setField("course_start_date", e.target.value); setValidationErrors(prev => ({ ...prev, course_start_date: "" })); }}
+                  className="mt-1.5"
+                  disabled={isApprovedCourse}
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">First date students can begin booking. Must be in the future.</p>
+                {validationErrors.course_start_date && <p className="text-[11px] text-destructive mt-0.5">{validationErrors.course_start_date}</p>}
+              </div>
+
+              <div>
+                <Label>Available Time Bands *</Label>
+                <p className="text-[11px] text-muted-foreground mt-1 mb-2">Choose when students can book sessions with you. Pick one or more.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {SLOT_BANDS.map(band => {
+                    const checked = form.available_slot_bands.includes(band.id);
+                    return (
+                      <button
+                        key={band.id}
+                        type="button"
+                        disabled={isApprovedCourse}
+                        onClick={() => {
+                          const next = checked
+                            ? form.available_slot_bands.filter(b => b !== band.id)
+                            : [...form.available_slot_bands, band.id];
+                          setField("available_slot_bands", next);
+                          setValidationErrors(prev => ({ ...prev, available_slot_bands: "" }));
+                        }}
+                        className={`text-left p-3 rounded-lg border transition-colors ${
+                          checked
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-card hover:border-primary/30"
+                        } ${isApprovedCourse ? "opacity-60 cursor-not-allowed" : ""}`}
+                      >
+                        <p className="text-sm font-medium text-foreground">{band.label}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{band.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+                {validationErrors.available_slot_bands && <p className="text-[11px] text-destructive mt-1">{validationErrors.available_slot_bands}</p>}
+              </div>
+            </div>
+
+            <Separator />
+
             <div>
               <Label>What You'll Learn *</Label>
               <Textarea value={form.what_you_learn} onChange={e => { setField("what_you_learn", e.target.value); setValidationErrors(prev => ({ ...prev, what_you_learn: "" })); }} className="mt-1.5" placeholder="One learning point per line, e.g.&#10;Build REST APIs&#10;Deploy to cloud&#10;Master React fundamentals" rows={4} disabled={isApprovedCourse} />

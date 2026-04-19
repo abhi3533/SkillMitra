@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { formatIST } from "../_shared/dateUtils.ts";
-import { isHourInBands, buildWeeklySessionDates, toLocalDateString } from "../_shared/slotBands.ts";
+import { isHourInBands, buildScheduledSessionDates, toLocalDateString } from "../_shared/slotBands.ts";
 
 const ALLOWED_ORIGINS = [
   "https://skillmitra.online",
@@ -226,11 +226,12 @@ Deno.serve(async (req) => {
     // Build all weekly session dates and check none are already booked
     const [yy, mm, dd] = selected_date.split("-").map(Number);
     const firstSessionDate = new Date(yy, mm - 1, dd, selected_hour, 0, 0, 0);
-    const allSessionDates = buildWeeklySessionDates({
+    const allSessionDates = buildScheduledSessionDates({
       startDate: firstSessionDate,
-      weekday: firstSessionDate.getDay(),
       hour: selected_hour,
       count: totalSessionsForBooking,
+      sessionsPerWeek: course.sessions_per_week || 1,
+      frequency: course.session_frequency || "weekly",
     });
     const allDateStrs = allSessionDates.map(toLocalDateString);
 

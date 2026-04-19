@@ -115,13 +115,18 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
     checkReferral();
   }, [studentId, open]);
 
+  // Load already-booked trainer slots so we can disable taken hours
   useEffect(() => {
-    if (trainer?.id && !trainer.id.startsWith("demo-")) {
-      supabase.from("trainer_availability").select("*")
-        .eq("trainer_id", trainer.id).eq("is_available", true)
-        .then(({ data }) => setTrainerAvailability(data || []));
-    }
-  }, [trainer?.id]);
+    if (!trainer?.id || trainer.id.startsWith("demo-") || !open) return;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const horizon = new Date(today); horizon.setDate(today.getDate() + 120);
+    supabase.from("trainer_booked_slots")
+      .select("slot_date, slot_hour")
+      .eq("trainer_id", trainer.id)
+      .gte("slot_date", toLocalDateString(today))
+      .lte("slot_date", toLocalDateString(horizon))
+      .then(({ data }) => setBookedSlots(data || []));
+  }, [trainer?.id, open]);
 
   // Load current profile to detect missing essentials for the JIT prompt
   useEffect(() => {
@@ -180,34 +185,52 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
   const walletDeduction = (bookingType === "enroll" && useWallet) ? Math.min(walletBalance, courseFee - referralDiscount) : 0;
   const finalAmount = Math.max(0, courseFee - referralDiscount - walletDeduction);
 
-  const availableDays = trainerAvailability.length > 0
-    ? [...new Set(trainerAvailability.map(a => a.day_of_week))].sort()
-    : DAYS.map(d => d.value);
+  // ---- Calendar / slot derivations ----
+  const courseStartDate: Date | null = useMemo(() => {
+    if (!course?.course_start_date) return null;
+    const d = new Date(course.course_start_date + "T00:00:00");
+    return isNaN(d.getTime()) ? null : d;
+  }, [course?.course_start_date]);
 
-  const availableSlots = trainerAvailability.length > 0 && selectedDay !== null
-    ? TIME_SLOTS.filter(slot => {
-        const slotHour = parseInt(slot.time.split(":")[0]);
-        return trainerAvailability.some(a => {
-          if (a.day_of_week !== selectedDay) return false;
-          const startH = parseInt(a.start_time?.split(":")[0] || "0");
-          const endH = parseInt(a.end_time?.split(":")[0] || "24");
-          return slotHour >= startH && slotHour < endH;
-        });
-      })
-    : TIME_SLOTS;
+  const allowedBands: string[] = useMemo(() => {
+    return (course?.available_slot_bands as string[] | undefined) || [];
+  }, [course?.available_slot_bands]);
 
-  const getNextScheduledDate = (day: number | null, slotLabel: string): Date => {
-    const now = new Date();
-    const slot = TIME_SLOTS.find(s => s.label === slotLabel);
-    const hour = slot ? parseInt(slot.time.split(":")[0]) : 10;
-    const targetDay = day ?? ((now.getDay() + 2) % 7);
-    let daysUntil = targetDay - now.getDay();
-    if (daysUntil <= 1) daysUntil += 7;
-    const scheduled = new Date(now);
-    scheduled.setDate(now.getDate() + daysUntil);
-    scheduled.setHours(hour, 0, 0, 0);
-    return scheduled;
+  const allowedHours: number[] = useMemo(() => hoursForBands(allowedBands), [allowedBands]);
+
+  // Calendar disabled-date predicate: disable past, dates before course_start_date.
+  const isDateDisabled = (date: Date) => {
+    const d = new Date(date); d.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (d.getTime() < today.getTime()) return true;
+    if (courseStartDate) {
+      const start = new Date(courseStartDate); start.setHours(0, 0, 0, 0);
+      if (d.getTime() < start.getTime()) return true;
+    }
+    return false;
   };
+
+  // Hours that are already booked (taken) for the selected date
+  const takenHoursOnSelectedDate: Set<number> = useMemo(() => {
+    if (!selectedDate) return new Set();
+    const ds = toLocalDateString(selectedDate);
+    return new Set(bookedSlots.filter(s => s.slot_date === ds).map(s => s.slot_hour));
+  }, [selectedDate, bookedSlots]);
+
+  const totalSessions = Number(course?.total_sessions || 1);
+
+  // Preview the recurring weekly session dates given current selection
+  const previewDates: Date[] = useMemo(() => {
+    if (!selectedDate || selectedHour === null) return [];
+    return buildWeeklySessionDates({
+      startDate: selectedDate,
+      weekday: selectedDate.getDay(),
+      hour: selectedHour,
+      count: bookingType === "trial" ? 1 : totalSessions,
+    });
+  }, [selectedDate, selectedHour, totalSessions, bookingType]);
+
+  const firstSessionDate: Date | null = previewDates[0] || null;
 
   const handleTrialBooking = async () => {
     if (submitting) return;

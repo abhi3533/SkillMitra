@@ -113,6 +113,8 @@ const TrainerCourses = () => {
       custom_language: PRESET_LANGUAGES.includes(langVal) ? "" : langVal,
       sessions_per_week: String(course.sessions_per_week || 3),
       weekly_curriculum: (course.weekly_curriculum as any)?.summary || "",
+      course_start_date: course.course_start_date || "",
+      available_slot_bands: (course.available_slot_bands as string[]) || [],
     });
     setUploadUrls({
       introVideo: course.intro_video_url || "",

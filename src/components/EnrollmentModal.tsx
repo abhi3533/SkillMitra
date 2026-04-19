@@ -800,6 +800,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                   )}
                 </div>
               </div>
+            )}
             </div>
 
             <div className="flex gap-3 px-6 py-4 border-t border-border bg-background shrink-0">

@@ -396,8 +396,11 @@ const AdminCourses = () => {
                     <p className="text-[11px] text-muted-foreground mt-1">Submitted {formatDateIST(c.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openDetail(c)}>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openDetail(c)} title="View">
                       <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEdit(c)} title="Edit">
+                      <Pencil className="w-3.5 h-3.5" />
                     </Button>
                     {(c.approval_status === "pending" || c.approval_status === "changes_requested") && (
                       <>
@@ -412,6 +415,9 @@ const AdminCourses = () => {
                         </Button>
                       </>
                     )}
+                    <Button size="sm" variant="outline" className="h-8 w-8 p-0 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => openDelete(c)} title="Delete">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
               </div>

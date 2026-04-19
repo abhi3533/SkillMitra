@@ -73,7 +73,64 @@ const AdminCourses = () => {
   const [commentCourseId, setCommentCourseId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Edit & delete state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editCourse, setEditCourse] = useState<CourseWithTrainer | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteCourse, setDeleteCourse] = useState<CourseWithTrainer | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const { toast } = useToast();
+
+  const openEdit = (course: CourseWithTrainer) => {
+    setEditCourse(course);
+    setEditOpen(true);
+  };
+
+  const handleEditSaved = (updated: any) => {
+    setCourses((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+    if (selectedCourse?.id === updated.id) setSelectedCourse((prev) => (prev ? { ...prev, ...updated } : prev));
+  };
+
+  const openDelete = (course: CourseWithTrainer) => {
+    setDeleteCourse(course);
+    setDeleteOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteCourse) return;
+    setDeleting(true);
+    // Best-effort: clear curriculum first (no FK cascade guarantee)
+    await supabase.from("course_curriculum").delete().eq("course_id", deleteCourse.id);
+    const { error } = await supabase.from("courses").delete().eq("id", deleteCourse.id);
+    if (error) {
+      console.error("Delete course failed:", error);
+      toast({
+        title: "Delete failed",
+        description: error.message.includes("violates foreign key")
+          ? "This course has enrollments or sessions. Deactivate it instead."
+          : error.message,
+        variant: "destructive",
+      });
+      setDeleting(false);
+      return;
+    }
+    setCourses((prev) => prev.filter((c) => c.id !== deleteCourse.id));
+    if (selectedCourse?.id === deleteCourse.id) {
+      setSelectedCourse(null);
+      setDrawerOpen(false);
+    }
+    supabase.from("admin_activity_log").insert({
+      event_type: "course_deleted",
+      title: "Course Deleted",
+      description: `"${deleteCourse.title}" by ${deleteCourse.trainerName} was permanently deleted`,
+      metadata: { course_id: deleteCourse.id, trainer_id: deleteCourse.trainer_id },
+    });
+    toast({ title: "Course deleted" });
+    setDeleting(false);
+    setDeleteOpen(false);
+    setDeleteCourse(null);
+  };
 
   const fetchCourses = async () => {
     setLoading(true);

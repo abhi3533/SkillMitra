@@ -94,6 +94,8 @@ Deno.serve(async (req) => {
       student_id,
       selected_day,
       selected_slot,
+      selected_date,   // YYYY-MM-DD (course start date or later)
+      selected_hour,   // 0–23, must fall within course.available_slot_bands
       booking_type,
     } = await req.json();
 

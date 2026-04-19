@@ -47,7 +47,7 @@ const TrainerEarnings = () => {
   const hasEnoughSessions = completedSessions >= REQUIRED_SESSIONS;
 
   const totalBalance = Number(wallet?.balance || 0);
-  const withdrawableBalance = hasConfirmedBooking ? totalBalance : 0;
+  const withdrawableBalance = hasEnoughSessions ? totalBalance : 0;
   const totalEarned = Number(wallet?.total_earned || 0);
   const totalWithdrawn = Number(wallet?.total_withdrawn || 0);
 
@@ -93,9 +93,9 @@ const TrainerEarnings = () => {
         <div><h1 className="text-2xl font-bold text-foreground">Earnings</h1><p className="mt-1 text-muted-foreground">Track your income and request payouts</p></div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gold-gradient text-accent-foreground border-0" disabled={!hasConfirmedBooking}>
-              {!hasConfirmedBooking && <Lock className="w-4 h-4 mr-2" />}
-              {hasConfirmedBooking && <Wallet className="w-4 h-4 mr-2" />}
+            <Button className="gold-gradient text-accent-foreground border-0" disabled={!hasEnoughSessions}>
+              {!hasEnoughSessions && <Lock className="w-4 h-4 mr-2" />}
+              {hasEnoughSessions && <Wallet className="w-4 h-4 mr-2" />}
               Request Payout
             </Button>
           </DialogTrigger>
@@ -111,14 +111,16 @@ const TrainerEarnings = () => {
         </Dialog>
       </div>
 
-      {/* Booking lock banner */}
-      {!loading && !hasConfirmedBooking && totalBalance > 0 && (
+      {/* Withdrawal lock banner */}
+      {!loading && !hasEnoughSessions && (
         <div className="mt-4 p-4 bg-accent/10 border border-accent/30 rounded-xl flex items-start gap-3">
           <Lock className="w-5 h-5 text-accent mt-0.5 shrink-0" />
           <div>
-            <p className="text-sm font-medium text-foreground">Withdrawals locked</p>
+            <p className="text-sm font-medium text-foreground">
+              Withdrawals unlock after {REQUIRED_SESSIONS} successful sessions ({completedSessions}/{REQUIRED_SESSIONS} done)
+            </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Get your first student to unlock withdrawals! Your balance will become withdrawable once your first student booking is confirmed.
+              You receive 100% of every course fee — no platform commission. Your earnings stay safe in your wallet and become withdrawable once you complete {REQUIRED_SESSIONS} sessions. Students can request a refund within 5 days of enrollment, so this protects everyone.
             </p>
           </div>
         </div>
@@ -127,7 +129,7 @@ const TrainerEarnings = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {[
           { label: "Total Balance", value: `₹${totalBalance.toLocaleString("en-IN")}`, icon: Wallet, color: "bg-success" },
-          { label: "Withdrawable", value: `₹${withdrawableBalance.toLocaleString("en-IN")}`, icon: hasConfirmedBooking ? Wallet : Lock, color: hasConfirmedBooking ? "hero-gradient" : "bg-muted" },
+          { label: "Withdrawable", value: `₹${withdrawableBalance.toLocaleString("en-IN")}`, icon: hasEnoughSessions ? Wallet : Lock, color: hasEnoughSessions ? "hero-gradient" : "bg-muted" },
           { label: "Total Earned", value: `₹${totalEarned.toLocaleString("en-IN")}`, icon: TrendingUp, color: "hero-gradient" },
           { label: "Total Withdrawn", value: `₹${totalWithdrawn.toLocaleString("en-IN")}`, icon: ArrowUpRight, color: "gold-gradient" },
         ].map(c => (

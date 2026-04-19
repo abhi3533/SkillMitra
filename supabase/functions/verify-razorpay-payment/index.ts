@@ -330,29 +330,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Generate sessions
-    const TIME_SLOTS: Record<string, number> = {
-      "Early Morning": 6,
-      Morning: 9,
-      Afternoon: 12,
-      Evening: 16,
-      Night: 20,
-    };
+    // Generate sessions using validated slot
+    const firstDate = firstSessionDate;
+    const totalSessions = totalSessionsForBooking;
+    const sessionsToInsert: any[] = [];
 
-    const hour = TIME_SLOTS[selected_slot] ?? 10;
-    const now = new Date();
-    const targetDay = selected_day ?? ((now.getDay() + 2) % 7);
-    let daysUntil = targetDay - now.getDay();
-    if (daysUntil <= 1) daysUntil += 7;
-
-    const firstDate = new Date(now);
-    firstDate.setDate(now.getDate() + daysUntil);
-    firstDate.setHours(hour, 0, 0, 0);
-
-    const totalSessions = course.total_sessions || 1;
-    const sessionsToInsert = [];
-
-    // Generate real Jitsi meet links
     function generateMeetLink(courseTitle: string, sessionNumber?: number): string {
       const slug = courseTitle.replace(/[^a-zA-Z0-9\s]/g, "").trim().replace(/\s+/g, "-").toLowerCase().slice(0, 30);
       const uniqueId = Math.random().toString(36).substring(2, 10);
@@ -360,12 +342,8 @@ Deno.serve(async (req) => {
       return `https://meet.jit.si/skillmitra-${slug}${sessionTag}-${uniqueId}`;
     }
 
-    const firstMeetLink = generateMeetLink(course.title, 1);
-
     for (let i = 0; i < totalSessions; i++) {
-      const sessionDate = new Date(firstDate);
-      sessionDate.setDate(firstDate.getDate() + i * 7);
-
+      const sessionDate = allSessionDates[i];
       sessionsToInsert.push({
         enrollment_id: enrollment.id,
         trainer_id,
@@ -379,7 +357,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    await serviceClient.from("course_sessions").insert(sessionsToInsert);
+    const { data: insertedSessions, error: sessionsErr } = await serviceClient
+      .from("course_sessions")
+      .insert(sessionsToInsert)
+      .select("id, scheduled_at");
+
+    if (sessionsErr) {
+      console.error("Sessions insert failed:", sessionsErr);
+    }
+
+    // Atomically reserve slots in trainer_booked_slots (unique constraint = double-book guard)
+    if (insertedSessions && insertedSessions.length > 0) {
+      const slotRows = insertedSessions.map((s) => ({
+        trainer_id,
+        slot_date: toLocalDateString(new Date(s.scheduled_at)),
+        slot_hour: selected_hour,
+        session_id: s.id,
+        enrollment_id: enrollment.id,
+      }));
+      const { error: slotErr } = await serviceClient.from("trainer_booked_slots").insert(slotRows);
+      if (slotErr) {
+        console.error("Slot reservation failed (post-enrollment):", slotErr);
+      }
+    }
+
 
     // Get trainer + student info for emails
     const [{ data: trainer }, { data: studentProfile }, { data: trainerProfile }] = await Promise.all([

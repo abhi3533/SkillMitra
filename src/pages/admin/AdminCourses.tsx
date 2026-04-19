@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layouts/AdminLayout";
-import { BookOpen, Check, X, Eye, Search, RefreshCw, Clock, Users, IndianRupee, Calendar, Star, MessageSquare } from "lucide-react";
+import EditCourseModal from "@/components/admin/EditCourseModal";
+import { BookOpen, Check, X, Eye, Search, RefreshCw, Clock, Users, IndianRupee, Calendar, Star, MessageSquare, Pencil, Trash2 } from "lucide-react";
 
 interface CourseWithTrainer {
   id: string;
@@ -71,7 +73,64 @@ const AdminCourses = () => {
   const [commentCourseId, setCommentCourseId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Edit & delete state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editCourse, setEditCourse] = useState<CourseWithTrainer | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteCourse, setDeleteCourse] = useState<CourseWithTrainer | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const { toast } = useToast();
+
+  const openEdit = (course: CourseWithTrainer) => {
+    setEditCourse(course);
+    setEditOpen(true);
+  };
+
+  const handleEditSaved = (updated: any) => {
+    setCourses((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+    if (selectedCourse?.id === updated.id) setSelectedCourse((prev) => (prev ? { ...prev, ...updated } : prev));
+  };
+
+  const openDelete = (course: CourseWithTrainer) => {
+    setDeleteCourse(course);
+    setDeleteOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteCourse) return;
+    setDeleting(true);
+    // Best-effort: clear curriculum first (no FK cascade guarantee)
+    await supabase.from("course_curriculum").delete().eq("course_id", deleteCourse.id);
+    const { error } = await supabase.from("courses").delete().eq("id", deleteCourse.id);
+    if (error) {
+      console.error("Delete course failed:", error);
+      toast({
+        title: "Delete failed",
+        description: error.message.includes("violates foreign key")
+          ? "This course has enrollments or sessions. Deactivate it instead."
+          : error.message,
+        variant: "destructive",
+      });
+      setDeleting(false);
+      return;
+    }
+    setCourses((prev) => prev.filter((c) => c.id !== deleteCourse.id));
+    if (selectedCourse?.id === deleteCourse.id) {
+      setSelectedCourse(null);
+      setDrawerOpen(false);
+    }
+    supabase.from("admin_activity_log").insert({
+      event_type: "course_deleted",
+      title: "Course Deleted",
+      description: `"${deleteCourse.title}" by ${deleteCourse.trainerName} was permanently deleted`,
+      metadata: { course_id: deleteCourse.id, trainer_id: deleteCourse.trainer_id },
+    });
+    toast({ title: "Course deleted" });
+    setDeleting(false);
+    setDeleteOpen(false);
+    setDeleteCourse(null);
+  };
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -337,8 +396,11 @@ const AdminCourses = () => {
                     <p className="text-[11px] text-muted-foreground mt-1">Submitted {formatDateIST(c.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openDetail(c)}>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openDetail(c)} title="View">
                       <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEdit(c)} title="Edit">
+                      <Pencil className="w-3.5 h-3.5" />
                     </Button>
                     {(c.approval_status === "pending" || c.approval_status === "changes_requested") && (
                       <>
@@ -353,6 +415,9 @@ const AdminCourses = () => {
                         </Button>
                       </>
                     )}
+                    <Button size="sm" variant="outline" className="h-8 w-8 p-0 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => openDelete(c)} title="Delete">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -565,19 +630,27 @@ const AdminCourses = () => {
               <p className="text-xs text-muted-foreground">Submitted on {formatLongDateIST(selectedCourse.created_at)}</p>
 
               {/* Actions */}
-              {(selectedCourse.approval_status === "pending" || selectedCourse.approval_status === "changes_requested") && (
-                <div className="flex gap-2 pt-2">
-                  <Button className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700" onClick={() => handleApprove(selectedCourse.id)} disabled={submitting}>
-                    <Check className="w-4 h-4" /> Approve
-                  </Button>
-                  <Button variant="outline" className="flex-1 gap-1.5 border-orange-300 text-orange-600 hover:bg-orange-50" onClick={() => openCommentModal(selectedCourse.id, "changes_requested")} disabled={submitting}>
-                    <MessageSquare className="w-4 h-4" /> Request Changes
-                  </Button>
-                  <Button variant="destructive" className="flex-1 gap-1.5" onClick={() => openCommentModal(selectedCourse.id, "rejected")} disabled={submitting}>
-                    <X className="w-4 h-4" /> Reject
-                  </Button>
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button variant="outline" className="gap-1.5" onClick={() => openEdit(selectedCourse)}>
+                  <Pencil className="w-4 h-4" /> Edit
+                </Button>
+                {(selectedCourse.approval_status === "pending" || selectedCourse.approval_status === "changes_requested") && (
+                  <>
+                    <Button className="gap-1.5 bg-emerald-600 hover:bg-emerald-700" onClick={() => handleApprove(selectedCourse.id)} disabled={submitting}>
+                      <Check className="w-4 h-4" /> Approve
+                    </Button>
+                    <Button variant="outline" className="gap-1.5 border-orange-300 text-orange-600 hover:bg-orange-50" onClick={() => openCommentModal(selectedCourse.id, "changes_requested")} disabled={submitting}>
+                      <MessageSquare className="w-4 h-4" /> Request Changes
+                    </Button>
+                    <Button variant="outline" className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => openCommentModal(selectedCourse.id, "rejected")} disabled={submitting}>
+                      <X className="w-4 h-4" /> Reject
+                    </Button>
+                  </>
+                )}
+                <Button variant="destructive" className="gap-1.5 ml-auto" onClick={() => openDelete(selectedCourse)}>
+                  <Trash2 className="w-4 h-4" /> Delete
+                </Button>
+              </div>
             </div>
           )}
         </SheetContent>
@@ -618,6 +691,34 @@ const AdminCourses = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Course Modal */}
+      {editCourse && (
+        <EditCourseModal
+          open={editOpen}
+          onOpenChange={(o) => { setEditOpen(o); if (!o) setEditCourse(null); }}
+          course={editCourse}
+          onSaved={handleEditSaved}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this course?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes <strong>{deleteCourse?.title}</strong> and its curriculum. Existing enrollments and sessions will block deletion — deactivate instead in that case. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Deleting..." : "Delete permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

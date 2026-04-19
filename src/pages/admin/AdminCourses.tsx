@@ -630,19 +630,27 @@ const AdminCourses = () => {
               <p className="text-xs text-muted-foreground">Submitted on {formatLongDateIST(selectedCourse.created_at)}</p>
 
               {/* Actions */}
-              {(selectedCourse.approval_status === "pending" || selectedCourse.approval_status === "changes_requested") && (
-                <div className="flex gap-2 pt-2">
-                  <Button className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700" onClick={() => handleApprove(selectedCourse.id)} disabled={submitting}>
-                    <Check className="w-4 h-4" /> Approve
-                  </Button>
-                  <Button variant="outline" className="flex-1 gap-1.5 border-orange-300 text-orange-600 hover:bg-orange-50" onClick={() => openCommentModal(selectedCourse.id, "changes_requested")} disabled={submitting}>
-                    <MessageSquare className="w-4 h-4" /> Request Changes
-                  </Button>
-                  <Button variant="destructive" className="flex-1 gap-1.5" onClick={() => openCommentModal(selectedCourse.id, "rejected")} disabled={submitting}>
-                    <X className="w-4 h-4" /> Reject
-                  </Button>
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button variant="outline" className="gap-1.5" onClick={() => openEdit(selectedCourse)}>
+                  <Pencil className="w-4 h-4" /> Edit
+                </Button>
+                {(selectedCourse.approval_status === "pending" || selectedCourse.approval_status === "changes_requested") && (
+                  <>
+                    <Button className="gap-1.5 bg-emerald-600 hover:bg-emerald-700" onClick={() => handleApprove(selectedCourse.id)} disabled={submitting}>
+                      <Check className="w-4 h-4" /> Approve
+                    </Button>
+                    <Button variant="outline" className="gap-1.5 border-orange-300 text-orange-600 hover:bg-orange-50" onClick={() => openCommentModal(selectedCourse.id, "changes_requested")} disabled={submitting}>
+                      <MessageSquare className="w-4 h-4" /> Request Changes
+                    </Button>
+                    <Button variant="outline" className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => openCommentModal(selectedCourse.id, "rejected")} disabled={submitting}>
+                      <X className="w-4 h-4" /> Reject
+                    </Button>
+                  </>
+                )}
+                <Button variant="destructive" className="gap-1.5 ml-auto" onClick={() => openDelete(selectedCourse)}>
+                  <Trash2 className="w-4 h-4" /> Delete
+                </Button>
+              </div>
             </div>
           )}
         </SheetContent>

@@ -767,61 +767,18 @@ const TrainerProfile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Enrollment Confirmation Modal */}
-      <Dialog open={!!enrollCourse} onOpenChange={(open) => { if (!open) setEnrollCourse(null); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Enrollment</DialogTitle>
-          </DialogHeader>
-          {enrollCourse && (
-            <div className="space-y-4">
-              <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Trainer</span>
-                  <span className="font-medium text-foreground">{name}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Course</span>
-                  <span className="font-medium text-foreground">{enrollCourse.title}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Course Fee</span>
-                  <span className="font-bold text-foreground text-lg">₹{Number(enrollCourse.fee || enrollCourse.course_fee || 0).toLocaleString()}</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">SkillMitra Guarantee</p>
-                  <p className="text-xs text-muted-foreground">100% refund if not satisfied within the first session</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setEnrollCourse(null)}>Cancel</Button>
-                <Button className="flex-1 hero-gradient border-0" onClick={() => { setEnrollCourse(null); setShowPaymentComing(true); }}>
-                  Proceed to Payment
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Payment Coming Soon Modal */}
-      <Dialog open={showPaymentComing} onOpenChange={setShowPaymentComing}>
-        <DialogContent className="max-w-sm text-center">
-          <DialogHeader>
-            <DialogTitle>Coming Soon</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            <AlertCircle className="w-12 h-12 text-accent mx-auto" />
-            <p className="text-sm text-muted-foreground">Payments will be available shortly.{anyTrialEnabled ? " Please book a free trial session first to experience the training." : ""}</p>
-            <Button className="w-full" onClick={() => { setShowPaymentComing(false); handleTrialClick(); }}>
-              Book Free Trial Instead
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Live enrollment modal — full Razorpay flow (same as /course/:id) */}
+      {liveEnrollOpen && liveEnrollCourse && trainer && (
+        <EnrollmentModal
+          open={liveEnrollOpen}
+          onClose={() => { setLiveEnrollOpen(false); setLiveEnrollCourse(null); }}
+          course={liveEnrollCourse}
+          trainer={trainer}
+          trainerProfile={trainer.profile}
+          studentId={studentId}
+          hasTrialBooked={hasTrialBookedWithTrainer}
+        />
+      )}
 
       {/* Book Free Trial Modal */}
       <Dialog open={showTrialModal} onOpenChange={setShowTrialModal}>

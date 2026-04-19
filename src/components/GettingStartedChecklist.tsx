@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Circle, User, Search, Calendar, BookOpen, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { CheckCircle2, Circle, Search, Calendar, BookOpen, ChevronDown, ChevronUp, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,23 +22,26 @@ const GettingStartedChecklist = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const profileDone = !!(profile?.full_name && profile?.phone && profile?.city);
+      // Profile is "enriched" only when extras are added (city + interests).
+      // Basic name/phone are captured at signup, so we treat profile as
+      // optional polish — not a blocker.
+      const { data: student } = await supabase.from("students").select("id, course_interests").eq("user_id", user.id).maybeSingle();
+      const profileEnriched = !!(profile?.city && (student?.course_interests?.length ?? 0) > 0);
 
-      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
       let hasEnrollment = false;
       let hasTrial = false;
       if (student) {
         const { count: enrollCount } = await supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("student_id", student.id);
         hasEnrollment = (enrollCount || 0) > 0;
-        const { count: trialCount } = await supabase.from("course_sessions").select("id", { count: "exact", head: true }).eq("is_trial", true);
+        const { count: trialCount } = await supabase.from("trial_bookings").select("id", { count: "exact", head: true }).eq("student_id", student.id);
         hasTrial = (trialCount || 0) > 0;
       }
 
       setSteps([
-        { id: "profile", label: "Complete Your Profile", description: "Add name, phone, and city", link: "/student/profile", icon: User, done: profileDone },
         { id: "browse", label: "Browse Trainers", description: "Find your ideal trainer", link: "/browse", icon: Search, done: true },
         { id: "trial", label: "Book a Free Trial", description: "Try before you enroll", link: "/browse", icon: Calendar, done: hasTrial },
         { id: "enroll", label: "Enroll in a Course", description: "Start your training journey", link: "/browse", icon: BookOpen, done: hasEnrollment },
+        { id: "profile", label: "Add Profile Details", description: "Optional — helps us match you better", link: "/student/profile", icon: UserPlus, done: profileEnriched },
       ]);
       setLoading(false);
     })();
@@ -64,7 +67,7 @@ const GettingStartedChecklist = () => {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-foreground">Getting Started</h3>
-            <p className="text-xs text-muted-foreground">{doneCount}/{steps.length} completed</p>
+            <p className="text-xs text-muted-foreground">{doneCount}/{steps.length} done · profile details are optional</p>
           </div>
         </div>
         <div className="flex items-center gap-3">

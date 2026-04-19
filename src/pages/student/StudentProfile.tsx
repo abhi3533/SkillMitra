@@ -294,11 +294,9 @@ const StudentProfile = () => {
 
         {/* Editable Full Name */}
         {editing && (
-          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-            <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 shrink-0" />
-              Full name, email, phone, education level, college name, and graduation year are verified and cannot be changed. To update, please contact contact@skillmitra.online
-            </p>
+          <div>
+            <Label className="text-muted-foreground">Full Name</Label>
+            <Input value={fullName} onChange={e => setFullName(e.target.value.replace(/[^a-zA-Z\s.'\-]/g, ""))} className="mt-1" placeholder="Your full name" />
           </div>
         )}
 
@@ -360,16 +358,38 @@ const StudentProfile = () => {
         {/* Education & Experience Section */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">Education Level {editing && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-            <p className="text-sm text-foreground mt-1">{educationLevel ? educationLevel.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "-"}</p>
+            <Label className="text-sm font-medium text-muted-foreground">Education Level</Label>
+            {editing ? (
+              <Select value={educationLevel} onValueChange={setEducationLevel}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select level" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high_school">High School</SelectItem>
+                  <SelectItem value="diploma">Diploma</SelectItem>
+                  <SelectItem value="undergraduate">Undergraduate</SelectItem>
+                  <SelectItem value="postgraduate">Postgraduate</SelectItem>
+                  <SelectItem value="phd">PhD</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-foreground mt-1">{educationLevel ? educationLevel.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "-"}</p>
+            )}
           </div>
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">Graduation Year {editing && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-            <p className="text-sm text-foreground mt-1">{graduationYear || "-"}</p>
+            <Label className="text-sm font-medium text-muted-foreground">Graduation Year</Label>
+            {editing ? (
+              <Input type="number" min="1980" max="2035" value={graduationYear} onChange={e => setGraduationYear(e.target.value.replace(/\D/g, "").slice(0, 4))} className="mt-1" placeholder="e.g. 2025" />
+            ) : (
+              <p className="text-sm text-foreground mt-1">{graduationYear || "-"}</p>
+            )}
           </div>
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">College / University Name {editing && <Lock className="w-3 h-3 inline text-amber-500" />}</Label>
-            <p className="text-sm text-foreground mt-1">{collegeName || "-"}</p>
+            <Label className="text-sm font-medium text-muted-foreground">College / University Name</Label>
+            {editing ? (
+              <Input value={collegeName} onChange={e => setCollegeName(e.target.value)} className="mt-1" placeholder="e.g. IIT Hyderabad" />
+            ) : (
+              <p className="text-sm text-foreground mt-1">{collegeName || "-"}</p>
+            )}
           </div>
           <div>
             <Label className="text-sm font-medium text-muted-foreground">Years of Skill Experience</Label>

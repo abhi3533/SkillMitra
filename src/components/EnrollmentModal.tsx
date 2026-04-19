@@ -6,7 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, Calendar, Shield, Loader2, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CheckCircle2, Clock, Calendar, Shield, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { generateMeetLink } from "@/lib/meetingLink";
 
 declare global {
@@ -57,6 +59,13 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
   const [useWallet, setUseWallet] = useState(false);
   const [trialSlotsFullThisMonth, setTrialSlotsFullThisMonth] = useState(false);
   const [hasExistingTrialWithTrainer, setHasExistingTrialWithTrainer] = useState(false);
+
+  // Lightweight profile prompt — collected just-in-time at booking confirm
+  const [missingProfile, setMissingProfile] = useState<{ phone: boolean; city: boolean; full_name: boolean }>({ phone: false, city: false, full_name: false });
+  const [profileFullName, setProfileFullName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profileCity, setProfileCity] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
 
   // Check trial eligibility
   useEffect(() => {
@@ -122,6 +131,56 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         .then(({ data }) => setTrainerAvailability(data || []));
     }
   }, [trainer?.id]);
+
+  // Load current profile to detect missing essentials for the JIT prompt
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: p } = await supabase.from("profiles").select("full_name, phone, city").eq("id", user.id).maybeSingle();
+      setProfileFullName(p?.full_name || "");
+      setProfilePhone(p?.phone || "");
+      setProfileCity(p?.city || "");
+      setMissingProfile({
+        full_name: !p?.full_name?.trim(),
+        phone: !p?.phone?.trim(),
+        city: !p?.city?.trim(),
+      });
+    })();
+  }, [open]);
+
+  const hasMissingProfile = missingProfile.full_name || missingProfile.phone || missingProfile.city;
+
+  const saveQuickProfile = async (): Promise<boolean> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    if (missingProfile.full_name && !profileFullName.trim()) {
+      toast({ title: "Please enter your name", variant: "warning" });
+      return false;
+    }
+    if (missingProfile.phone && !/^[6-9]\d{9}$/.test(profilePhone.trim())) {
+      toast({ title: "Please enter a valid 10-digit phone", variant: "warning" });
+      return false;
+    }
+    if (missingProfile.city && !profileCity.trim()) {
+      toast({ title: "Please enter your city", variant: "warning" });
+      return false;
+    }
+    setSavingProfile(true);
+    const updates: Record<string, any> = {};
+    if (missingProfile.full_name) updates.full_name = profileFullName.trim();
+    if (missingProfile.phone) updates.phone = profilePhone.trim();
+    if (missingProfile.city) updates.city = profileCity.trim();
+    const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
+    setSavingProfile(false);
+    if (error) {
+      toast({ title: "Couldn't save details", description: error.message, variant: "destructive" });
+      return false;
+    }
+    setMissingProfile({ full_name: false, phone: false, city: false });
+    return true;
+  };
 
   const trialBlocked = hasTrialBooked || hasExistingTrialWithTrainer || trialSlotsFullThisMonth;
 
@@ -412,7 +471,11 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (hasMissingProfile) {
+      const ok = await saveQuickProfile();
+      if (!ok) return;
+    }
     if (bookingType === "trial") {
       handleTrialBooking();
     } else {
@@ -628,10 +691,42 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               </span>
             </div>
 
+            {hasMissingProfile && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Quick details to confirm your booking</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">We need a few essentials so the trainer can reach you. You can edit these anytime in your profile.</p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {missingProfile.full_name && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Full Name</Label>
+                      <Input value={profileFullName} onChange={e => setProfileFullName(e.target.value.replace(/[^a-zA-Z\s.'\-]/g, ""))} placeholder="Your full name" className="mt-1 h-9" />
+                    </div>
+                  )}
+                  {missingProfile.phone && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Phone (10-digit)</Label>
+                      <Input value={profilePhone} onChange={e => setProfilePhone(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="9876543210" className="mt-1 h-9" inputMode="numeric" />
+                    </div>
+                  )}
+                  {missingProfile.city && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">City</Label>
+                      <Input value={profileCity} onChange={e => setProfileCity(e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} placeholder="e.g. Hyderabad" className="mt-1 h-9" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setStep("slot")}>Back</Button>
-              <Button className="flex-1" onClick={handleSubmit} disabled={submitting}>
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              <Button className="flex-1" onClick={handleSubmit} disabled={submitting || savingProfile}>
+                {(submitting || savingProfile) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 {bookingType === "trial" ? "Send Trial Request" : finalAmount === 0 ? "Enroll Free" : "Pay & Enroll"}
               </Button>
             </div>

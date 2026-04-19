@@ -800,9 +800,9 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                   )}
                 </div>
               </div>
-            )}
+            </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 px-6 py-4 border-t border-border bg-background shrink-0">
               <Button variant="outline" className="flex-1" onClick={() => setStep("slot")}>Back</Button>
               <Button className="flex-1" onClick={handleSubmit} disabled={submitting || savingProfile}>
                 {(submitting || savingProfile) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { formatDateTimeWeekdayIST } from "@/lib/dateUtils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { CheckCircle2, Clock, Calendar, Shield, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { generateMeetLink } from "@/lib/meetingLink";
+import {
+  SLOT_BANDS,
+  hoursForBands,
+  formatHourLabel,
+  buildWeeklySessionDates,
+  toLocalDateString,
+  WEEKDAY_LABELS,
+} from "@/lib/slotBands";
 
 declare global {
   interface Window {
@@ -27,32 +36,14 @@ interface EnrollmentModalProps {
   hasTrialBooked: boolean;
 }
 
-const TIME_SLOTS = [
-  { label: "Early Morning", time: "06:00", display: "6:00 AM – 9:00 AM" },
-  { label: "Morning", time: "09:00", display: "9:00 AM – 12:00 PM" },
-  { label: "Afternoon", time: "12:00", display: "12:00 PM – 4:00 PM" },
-  { label: "Evening", time: "16:00", display: "4:00 PM – 8:00 PM" },
-  { label: "Night", time: "20:00", display: "8:00 PM – 11:00 PM" },
-];
-
-const DAYS = [
-  { label: "Mon", value: 1 },
-  { label: "Tue", value: 2 },
-  { label: "Wed", value: 3 },
-  { label: "Thu", value: 4 },
-  { label: "Fri", value: 5 },
-  { label: "Sat", value: 6 },
-  { label: "Sun", value: 0 },
-];
-
 const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, studentId, hasTrialBooked }: EnrollmentModalProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [step, setStep] = useState<"type" | "slot" | "confirm">("type");
   const [bookingType, setBookingType] = useState<"trial" | "enroll">(hasTrialBooked ? "enroll" : "trial");
-  const [selectedSlot, setSelectedSlot] = useState<string>("");
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [trainerAvailability, setTrainerAvailability] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<Array<{ slot_date: string; slot_hour: number }>>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isReferred, setIsReferred] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -124,13 +115,18 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
     checkReferral();
   }, [studentId, open]);
 
+  // Load already-booked trainer slots so we can disable taken hours
   useEffect(() => {
-    if (trainer?.id && !trainer.id.startsWith("demo-")) {
-      supabase.from("trainer_availability").select("*")
-        .eq("trainer_id", trainer.id).eq("is_available", true)
-        .then(({ data }) => setTrainerAvailability(data || []));
-    }
-  }, [trainer?.id]);
+    if (!trainer?.id || trainer.id.startsWith("demo-") || !open) return;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const horizon = new Date(today); horizon.setDate(today.getDate() + 120);
+    supabase.from("trainer_booked_slots")
+      .select("slot_date, slot_hour")
+      .eq("trainer_id", trainer.id)
+      .gte("slot_date", toLocalDateString(today))
+      .lte("slot_date", toLocalDateString(horizon))
+      .then(({ data }) => setBookedSlots(data || []));
+  }, [trainer?.id, open]);
 
   // Load current profile to detect missing essentials for the JIT prompt
   useEffect(() => {
@@ -189,34 +185,52 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
   const walletDeduction = (bookingType === "enroll" && useWallet) ? Math.min(walletBalance, courseFee - referralDiscount) : 0;
   const finalAmount = Math.max(0, courseFee - referralDiscount - walletDeduction);
 
-  const availableDays = trainerAvailability.length > 0
-    ? [...new Set(trainerAvailability.map(a => a.day_of_week))].sort()
-    : DAYS.map(d => d.value);
+  // ---- Calendar / slot derivations ----
+  const courseStartDate: Date | null = useMemo(() => {
+    if (!course?.course_start_date) return null;
+    const d = new Date(course.course_start_date + "T00:00:00");
+    return isNaN(d.getTime()) ? null : d;
+  }, [course?.course_start_date]);
 
-  const availableSlots = trainerAvailability.length > 0 && selectedDay !== null
-    ? TIME_SLOTS.filter(slot => {
-        const slotHour = parseInt(slot.time.split(":")[0]);
-        return trainerAvailability.some(a => {
-          if (a.day_of_week !== selectedDay) return false;
-          const startH = parseInt(a.start_time?.split(":")[0] || "0");
-          const endH = parseInt(a.end_time?.split(":")[0] || "24");
-          return slotHour >= startH && slotHour < endH;
-        });
-      })
-    : TIME_SLOTS;
+  const allowedBands: string[] = useMemo(() => {
+    return (course?.available_slot_bands as string[] | undefined) || [];
+  }, [course?.available_slot_bands]);
 
-  const getNextScheduledDate = (day: number | null, slotLabel: string): Date => {
-    const now = new Date();
-    const slot = TIME_SLOTS.find(s => s.label === slotLabel);
-    const hour = slot ? parseInt(slot.time.split(":")[0]) : 10;
-    const targetDay = day ?? ((now.getDay() + 2) % 7);
-    let daysUntil = targetDay - now.getDay();
-    if (daysUntil <= 1) daysUntil += 7;
-    const scheduled = new Date(now);
-    scheduled.setDate(now.getDate() + daysUntil);
-    scheduled.setHours(hour, 0, 0, 0);
-    return scheduled;
+  const allowedHours: number[] = useMemo(() => hoursForBands(allowedBands), [allowedBands]);
+
+  // Calendar disabled-date predicate: disable past, dates before course_start_date.
+  const isDateDisabled = (date: Date) => {
+    const d = new Date(date); d.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (d.getTime() < today.getTime()) return true;
+    if (courseStartDate) {
+      const start = new Date(courseStartDate); start.setHours(0, 0, 0, 0);
+      if (d.getTime() < start.getTime()) return true;
+    }
+    return false;
   };
+
+  // Hours that are already booked (taken) for the selected date
+  const takenHoursOnSelectedDate: Set<number> = useMemo(() => {
+    if (!selectedDate) return new Set();
+    const ds = toLocalDateString(selectedDate);
+    return new Set(bookedSlots.filter(s => s.slot_date === ds).map(s => s.slot_hour));
+  }, [selectedDate, bookedSlots]);
+
+  const totalSessions = Number(course?.total_sessions || 1);
+
+  // Preview the recurring weekly session dates given current selection
+  const previewDates: Date[] = useMemo(() => {
+    if (!selectedDate || selectedHour === null) return [];
+    return buildWeeklySessionDates({
+      startDate: selectedDate,
+      weekday: selectedDate.getDay(),
+      hour: selectedHour,
+      count: bookingType === "trial" ? 1 : totalSessions,
+    });
+  }, [selectedDate, selectedHour, totalSessions, bookingType]);
+
+  const firstSessionDate: Date | null = previewDates[0] || null;
 
   const handleTrialBooking = async () => {
     if (submitting) return;
@@ -229,10 +243,18 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         return;
       }
 
-      const firstDate = getNextScheduledDate(selectedDay, selectedSlot);
-      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
+      if (!selectedDate || selectedHour === null) {
+        toast({ title: "Pick a date and time", variant: "warning" });
+        setSubmitting(false);
+        return;
+      }
 
-      // Check for duplicate trial: any pending/approved trial with this trainer (one trial per trainer rule)
+      const firstDate = new Date(selectedDate);
+      firstDate.setHours(selectedHour, 0, 0, 0);
+      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
+      const slotDateStr = toLocalDateString(firstDate);
+
+      // Check for duplicate trial: any pending/approved trial with this trainer
       const { data: existingOnDate } = await supabase
         .from("trial_bookings")
         .select("id")
@@ -242,7 +264,21 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         .limit(1);
 
       if (existingOnDate && existingOnDate.length > 0) {
-        toast({ title: "Duplicate Booking", description: "You already have a trial booked with this trainer on that date. Please choose a different day.", variant: "destructive" });
+        toast({ title: "Already requested", description: "You already have a trial with this trainer.", variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+
+      // Slot taken check (trainer-wide)
+      const { data: clash } = await supabase
+        .from("trainer_booked_slots")
+        .select("id")
+        .eq("trainer_id", trainer.id)
+        .eq("slot_date", slotDateStr)
+        .eq("slot_hour", selectedHour)
+        .limit(1);
+      if (clash && clash.length > 0) {
+        toast({ title: "Slot just got booked", description: "Please pick another time.", variant: "destructive" });
         setSubmitting(false);
         return;
       }
@@ -253,14 +289,16 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         trainer_id: trainer.id,
         course_id: course.id,
         status: "pending",
-        selected_day: selectedDay,
-        selected_slot: selectedSlot,
+        selected_day: firstDate.getDay(),
+        selected_slot: `${selectedHour}:00`,
+        selected_date: slotDateStr,
+        selected_hour: selectedHour,
         scheduled_at: firstDate.toISOString(),
       });
 
       if (tbError) {
         if (tbError.code === "23505") {
-          toast({ title: "Already Requested", description: "You have already used your free trial with this trainer.", variant: "destructive" });
+          toast({ title: "Already requested", description: "You have already used your free trial with this trainer.", variant: "destructive" });
         } else {
           throw tbError;
         }
@@ -389,8 +427,10 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
             course_id: course.id,
             trainer_id: trainer.id,
             student_id: studentId,
-            selected_day: selectedDay,
-            selected_slot: selectedSlot,
+            selected_day: selectedDate?.getDay() ?? null,
+            selected_slot: selectedHour !== null ? `${selectedHour}:00` : null,
+            selected_date: selectedDate ? toLocalDateString(selectedDate) : null,
+            selected_hour: selectedHour,
             booking_type: "enroll",
           },
         });
@@ -422,8 +462,10 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                 course_id: course.id,
                 trainer_id: trainer.id,
                 student_id: studentId,
-                selected_day: selectedDay,
-                selected_slot: selectedSlot,
+                selected_day: selectedDate?.getDay() ?? null,
+                selected_slot: selectedHour !== null ? `${selectedHour}:00` : null,
+                selected_date: selectedDate ? toLocalDateString(selectedDate) : null,
+                selected_hour: selectedHour,
                 booking_type: "enroll",
               },
             });
@@ -547,49 +589,83 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
           </div>
         )}
 
-        {/* Step 2: Time Slot Selection */}
+        {/* Step 2: Calendar + 1-hour slot selection */}
         {step === "slot" && (
-          <div className="space-y-5">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
-                <Calendar className="w-4 h-4" /> Preferred Day
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {DAYS.filter(d => availableDays.includes(d.value)).map(d => (
-                  <button key={d.value} onClick={() => { setSelectedDay(d.value); setSelectedSlot(""); }}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      selectedDay === d.value
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:border-primary/30"
-                    }`}
-                  >{d.label}</button>
-                ))}
-              </div>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-xs text-foreground space-y-1">
+              {courseStartDate && (
+                <p>📅 Available from <span className="font-medium">{courseStartDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></p>
+              )}
+              {allowedBands.length > 0 && (
+                <p>🕒 Slots: {allowedBands.map(b => SLOT_BANDS.find(s => s.id === b)?.label).filter(Boolean).join(" / ")}</p>
+              )}
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
-                <Clock className="w-4 h-4" /> Preferred Time Slot
-              </label>
-              <div className="space-y-2">
-                {(selectedDay !== null ? availableSlots : TIME_SLOTS).map(slot => (
-                  <button key={slot.label} onClick={() => setSelectedSlot(slot.label)}
-                    className={`w-full text-left px-4 py-3 rounded-lg text-sm border transition-colors ${
-                      selectedSlot === slot.label
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:border-primary/30"
-                    }`}
-                  >
-                    <span className="font-medium">{slot.label}</span>
-                    <span className="ml-2 opacity-70">({slot.display})</span>
-                  </button>
-                ))}
+            {allowedHours.length === 0 || !courseStartDate ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                This course doesn't have a start date or available time bands set yet. Please contact the trainer.
               </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4" /> Pick a date
+                  </label>
+                  <div className="rounded-lg border bg-card p-2 flex justify-center">
+                    <CalendarPicker
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(d) => { setSelectedDate(d); setSelectedHour(null); }}
+                      disabled={isDateDisabled}
+                      defaultMonth={courseStartDate}
+                      fromDate={courseStartDate}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
+                    <Clock className="w-4 h-4" /> Pick a 1-hour slot
+                  </label>
+                  {!selectedDate ? (
+                    <p className="text-xs text-muted-foreground">Select a date first to see available time slots.</p>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {allowedHours.map(h => {
+                        const taken = takenHoursOnSelectedDate.has(h);
+                        const active = selectedHour === h;
+                        return (
+                          <button
+                            key={h}
+                            disabled={taken}
+                            onClick={() => setSelectedHour(h)}
+                            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                              taken
+                                ? "bg-muted text-muted-foreground border-border cursor-not-allowed line-through"
+                                : active
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-card text-foreground border-border hover:border-primary/30"
+                            }`}
+                          >
+                            {formatHourLabel(h)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {previewDates.length > 0 && bookingType === "enroll" && (
+                  <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+                    Your sessions will recur every <span className="font-medium text-foreground">{WEEKDAY_LABELS[selectedDate!.getDay()].long}</span> at <span className="font-medium text-foreground">{formatHourLabel(selectedHour!)}</span> — {previewDates.length} sessions in total.
+                  </div>
+                )}
+              </>
+            )}
 
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setStep("type")}>Back</Button>
-              <Button className="flex-1" disabled={!selectedSlot}
+              <Button className="flex-1" disabled={!selectedDate || selectedHour === null}
                 onClick={() => setStep("confirm")}>
                 Continue
               </Button>
@@ -615,12 +691,12 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
                 <span className="font-medium text-foreground">{bookingType === "trial" ? "Free Trial (Pending Approval)" : "Full Enrollment"}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Day</span>
-                <span className="font-medium text-foreground">{DAYS.find(d => d.value === selectedDay)?.label || "Auto-selected"}</span>
+                <span className="text-muted-foreground">Date</span>
+                <span className="font-medium text-foreground">{selectedDate ? selectedDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }) : "—"}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Time Slot</span>
-                <span className="font-medium text-foreground">{selectedSlot}</span>
+                <span className="text-muted-foreground">Time</span>
+                <span className="font-medium text-foreground">{selectedHour !== null ? formatHourLabel(selectedHour) : "—"}</span>
               </div>
 
               {bookingType === "enroll" && (

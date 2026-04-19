@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 import RequestCourseUpdateModal from "@/components/trainer/RequestCourseUpdateModal";
+import LiveSelfieCapture from "@/components/LiveSelfieCapture";
 
 interface CurriculumWeek {
   weekTitle: string;

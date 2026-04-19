@@ -469,10 +469,14 @@ Deno.serve(async (req) => {
       console.error("Referral completion error (non-blocking):", refErr);
     }
 
-    // Send enrollment confirmation email
+    // Send enrollment emails (student, trainer, admins)
     try {
       const { data: studentProfile } = await serviceClient.from("profiles").select("full_name, email").eq("id", userId).single();
-      const { data: trainerProfile } = await serviceClient.from("profiles").select("full_name").eq("id", trainer?.user_id).single();
+      const { data: trainerProfile } = trainer?.user_id
+        ? await serviceClient.from("profiles").select("full_name, email").eq("id", trainer.user_id).single()
+        : { data: null as any };
+
+      // 1) Student confirmation
       if (studentProfile?.email) {
         await serviceClient.functions.invoke("send-transactional-email", {
           body: {
@@ -488,8 +492,52 @@ Deno.serve(async (req) => {
           },
         });
       }
+
+      // 2) Trainer notification
+      if (trainerProfile?.email) {
+        await serviceClient.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "enrollment-trainer-notify",
+            recipientEmail: trainerProfile.email,
+            idempotencyKey: `enrollment-trainer-${enrollment.id}`,
+            templateData: {
+              trainerName: trainerProfile.full_name || "",
+              studentName: studentProfile?.full_name || "A student",
+              courseName: course.title,
+              firstSessionAt: scheduledTimeStr,
+              trainerPayout: trainerPayout.toLocaleString("en-IN"),
+            },
+          },
+        });
+      }
+
+      // 3) Admin notifications (one email per active admin)
+      const { data: admins } = await serviceClient
+        .from("admins")
+        .select("email")
+        .eq("is_active", true);
+      for (const admin of admins || []) {
+        if (!admin.email) continue;
+        await serviceClient.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "enrollment-admin-notify",
+            recipientEmail: admin.email,
+            idempotencyKey: `enrollment-admin-${enrollment.id}-${admin.email}`,
+            templateData: {
+              studentName: studentProfile?.full_name || "Student",
+              studentEmail: studentProfile?.email || "",
+              trainerName: trainerProfile?.full_name || "Trainer",
+              courseName: course.title,
+              amountPaid: courseFee.toLocaleString("en-IN"),
+              platformCommission: platformCommission.toLocaleString("en-IN"),
+              trainerPayout: trainerPayout.toLocaleString("en-IN"),
+              paymentId: isFreeEnrollment ? "FREE" : (razorpay_payment_id || ""),
+            },
+          },
+        });
+      }
     } catch (emailErr) {
-      console.error("Enrollment confirmation email failed (non-blocking):", emailErr);
+      console.error("Enrollment emails failed (non-blocking):", emailErr);
     }
 
     console.log(JSON.stringify({

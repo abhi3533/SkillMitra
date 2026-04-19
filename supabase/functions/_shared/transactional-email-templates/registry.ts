@@ -13,6 +13,8 @@ import { template as contactConfirmation } from './contact-confirmation.tsx'
 import { template as contactAdminNotify } from './contact-admin-notify.tsx'
 import { template as welcomeStudent } from './welcome-student.tsx'
 import { template as enrollmentConfirmation } from './enrollment-confirmation.tsx'
+import { template as enrollmentTrainerNotify } from './enrollment-trainer-notify.tsx'
+import { template as enrollmentAdminNotify } from './enrollment-admin-notify.tsx'
 import { template as emailConfirmed } from './email-confirmed.tsx'
 import { template as welcomeTrainer } from './welcome-trainer.tsx'
 import { template as referralSignupReferrer } from './referral-signup-referrer.tsx'
@@ -23,6 +25,8 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-admin-notify': contactAdminNotify,
   'welcome-student': welcomeStudent,
   'enrollment-confirmation': enrollmentConfirmation,
+  'enrollment-trainer-notify': enrollmentTrainerNotify,
+  'enrollment-admin-notify': enrollmentAdminNotify,
   'email-confirmed': emailConfirmed,
   'welcome-trainer': welcomeTrainer,
   'referral-signup-referrer': referralSignupReferrer,

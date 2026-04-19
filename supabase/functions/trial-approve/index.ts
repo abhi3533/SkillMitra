@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { formatIST } from "../_shared/dateUtils.ts";
+import { isHourInBands, toLocalDateString } from "../_shared/slotBands.ts";
 
 async function sendEmail(supabaseUrl: string, serviceKey: string, type: string, to: string, data: Record<string, any>) {
   try {

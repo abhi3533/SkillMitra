@@ -32,7 +32,6 @@ Deno.serve(async (req) => {
 
     const svc = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Verify ownership + window
     const { data: enrollment, error: eErr } = await svc
       .from("enrollments")
       .select("id, student_id, trainer_id, course_id, amount_paid, trainer_payout, refund_eligible_until, refund_status, status, students!inner(user_id), courses(title), trainers(user_id)")
@@ -45,7 +44,7 @@ Deno.serve(async (req) => {
     if ((enrollment as any).students?.user_id !== userId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (enrollment.refund_status !== "none") {
+    if (enrollment.refund_status && enrollment.refund_status !== "none") {
       return new Response(JSON.stringify({ error: `Refund already ${enrollment.refund_status}` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     if (!enrollment.refund_eligible_until || new Date(enrollment.refund_eligible_until) < new Date()) {
@@ -53,73 +52,100 @@ Deno.serve(async (req) => {
     }
 
     const refundAmount = Number(enrollment.amount_paid || 0);
-    const trainerPayout = Number(enrollment.trainer_payout || 0);
-    const trainerUserId = (enrollment as any).trainers?.user_id;
+    const trainerPayout = Number(enrollment.trainer_payout || refundAmount);
+    const trainerUserId = (enrollment as any).trainers?.user_id || null;
+    const courseTitle = (enrollment as any).courses?.title || "Course";
 
-    // 1. Debit trainer wallet (atomic — fails if insufficient balance)
-    if (trainerUserId && trainerPayout > 0) {
-      const { data: debitOk } = await svc.rpc("debit_wallet_atomic", {
-        p_user_id: trainerUserId,
-        p_amount: trainerPayout,
-        p_description: `Refund for "${(enrollment as any).courses?.title || 'course'}" — student cancelled`,
-        p_reference_id: `refund_${enrollment_id}`,
-      });
-      if (!debitOk) {
-        return new Response(JSON.stringify({ error: "Trainer wallet has insufficient balance — please contact support" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
+    // Create refund request (status = pending) — money does NOT move yet
+    const { data: requestRow, error: insErr } = await svc.from("refund_requests").insert({
+      enrollment_id,
+      student_user_id: userId,
+      trainer_user_id: trainerUserId,
+      course_id: enrollment.course_id,
+      course_title: courseTitle,
+      amount: refundAmount,
+      trainer_payout: trainerPayout,
+      reason: reason || null,
+      status: "pending",
+    }).select("id").single();
+
+    if (insErr) {
+      const msg = insErr.message?.includes("uq_refund_pending_per_enrollment")
+        ? "A refund request is already pending for this enrollment"
+        : insErr.message;
+      return new Response(JSON.stringify({ error: msg }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // 2. Credit student wallet
-    await svc.rpc("credit_wallet_atomic", {
-      p_user_id: userId,
-      p_amount: refundAmount,
-      p_description: `Refund for cancelled enrollment — use to book another trainer`,
-      p_reference_id: `refund_${enrollment_id}`,
-    });
-
-    // 3. Update enrollment + cancel future sessions + free up booked slots
+    // Mark enrollment as pending_admin so UI can reflect it
     await svc.from("enrollments").update({
-      refund_status: "refunded",
+      refund_status: "pending_admin",
       refund_requested_at: new Date().toISOString(),
-      status: "cancelled",
     }).eq("id", enrollment_id);
 
-    await svc.from("course_sessions").update({ status: "cancelled" })
-      .eq("enrollment_id", enrollment_id).eq("status", "upcoming");
+    // Lookup names for emails
+    const [{ data: studentProfile }, { data: trainerProfile }] = await Promise.all([
+      svc.from("profiles").select("full_name, email").eq("id", userId).maybeSingle(),
+      trainerUserId
+        ? svc.from("profiles").select("full_name, email").eq("id", trainerUserId).maybeSingle()
+        : Promise.resolve({ data: null } as any),
+    ]);
 
-    await svc.from("trainer_booked_slots").delete().eq("enrollment_id", enrollment_id);
+    const studentName = studentProfile?.full_name || "Student";
+    const studentEmail = studentProfile?.email;
+    const trainerName = trainerProfile?.full_name || "Trainer";
+    const trainerEmail = trainerProfile?.email;
+    const requestId = requestRow!.id;
 
-    // 4. Notifications
+    // In-app notifications
     await svc.from("notifications").insert([
       {
         user_id: userId,
-        title: "Refund Processed ✅",
-        body: `₹${refundAmount.toLocaleString("en-IN")} credited to your wallet. Use it to book another trainer.`,
+        title: "Refund Request Submitted ⏳",
+        body: `Your refund request of ₹${refundAmount.toLocaleString("en-IN")} for "${courseTitle}" is awaiting admin review.`,
         type: "refund",
-        action_url: "/student/wallet",
+        action_url: "/student/dashboard",
       },
       ...(trainerUserId ? [{
         user_id: trainerUserId,
-        title: "Enrollment Refunded",
-        body: `A student cancelled their enrollment within the 5-day refund window. ₹${trainerPayout.toLocaleString("en-IN")} was deducted.`,
+        title: "Refund Request Received",
+        body: `${studentName} has requested a refund for "${courseTitle}". Admin is reviewing — no money has moved yet.`,
         type: "refund",
         action_url: "/trainer/students",
       }] : []),
     ]);
 
-    // 5. Admin activity log
+    // Emails: admin + trainer + student confirmation
+    const sendEmail = (templateName: string, recipientEmail: string, templateData: any, idemSuffix: string) =>
+      svc.functions.invoke("send-transactional-email", {
+        body: { templateName, recipientEmail, idempotencyKey: `refund-req-${requestId}-${idemSuffix}`, templateData },
+      }).catch((e) => console.error(`${templateName} failed:`, e));
+
+    await Promise.all([
+      sendEmail("refund-requested-admin", "contact@skillmitra.online", {
+        studentName, trainerName, courseTitle, amount: refundAmount, reason: reason || "", enrollmentId: enrollment_id,
+        reviewUrl: "https://skillmitra.online/admin/refunds",
+      }, "admin"),
+      trainerEmail ? sendEmail("refund-requested-trainer", trainerEmail, {
+        trainerName, studentName, courseTitle, amount: refundAmount, reason: reason || "",
+      }, "trainer") : Promise.resolve(),
+      studentEmail ? sendEmail("refund-requested-student", studentEmail, {
+        studentName, courseTitle, amount: refundAmount,
+      }, "student") : Promise.resolve(),
+    ]);
+
+    // Admin activity log
     await svc.from("admin_activity_log").insert({
-      event_type: "refund",
-      title: "Student Refund Processed",
-      description: `Enrollment cancelled within 5-day window — ₹${refundAmount} returned to student wallet`,
-      metadata: { enrollment_id, student_user_id: userId, trainer_user_id: trainerUserId, amount: refundAmount, reason: reason || null },
+      event_type: "refund_requested",
+      title: "Refund Request Submitted",
+      description: `${studentName} requested ₹${refundAmount} refund for "${courseTitle}"`,
+      metadata: { request_id: requestId, enrollment_id, student_user_id: userId, trainer_user_id: trainerUserId, amount: refundAmount, reason: reason || null },
     });
 
-    return new Response(JSON.stringify({ success: true, refunded: refundAmount }), {
+    return new Response(JSON.stringify({ success: true, request_id: requestId, status: "pending" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: any) {
-    console.error("Refund error:", err);
+    console.error("Refund request error:", err);
     return new Response(JSON.stringify({ error: err.message || "Internal error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

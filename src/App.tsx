@@ -85,6 +85,7 @@ const AdminTrainers = lazy(() => import("./pages/admin/Trainers"));
 const AdminStudents = lazy(() => import("./pages/admin/Students"));
 const AdminPayments = lazy(() => import("./pages/admin/Payments"));
 const AdminPayouts = lazy(() => import("./pages/admin/Payouts"));
+const AdminRefunds = lazy(() => import("./pages/admin/Refunds"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
 const AdminCourses = lazy(() => import("./pages/admin/AdminCourses"));
 const AdminDisputes = lazy(() => import("./pages/admin/Disputes"));
@@ -239,6 +240,7 @@ const AppContent = () => {
           <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCourses /></ProtectedRoute>} />
           <Route path="/admin/payments" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPayments /></ProtectedRoute>} />
           <Route path="/admin/payouts" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPayouts /></ProtectedRoute>} />
+          <Route path="/admin/refunds" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRefunds /></ProtectedRoute>} />
           <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAnalytics /></ProtectedRoute>} />
           <Route path="/admin/disputes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDisputes /></ProtectedRoute>} />
           <Route path="/admin/certificates" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCertificates /></ProtectedRoute>} />

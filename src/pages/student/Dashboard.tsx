@@ -296,12 +296,13 @@ const StudentDashboard = () => {
                           variant="outline"
                           className="h-7 text-[11px] px-2"
                           onClick={async () => {
-                            if (!confirm(`Refund ₹${Number(e.amount_paid || 0).toLocaleString("en-IN")} to your wallet? Your sessions will be cancelled and you can pick another trainer.`)) return;
-                            const { data: r, error } = await supabase.functions.invoke("student-request-refund", { body: { enrollment_id: e.id } });
+                            const reason = prompt("Briefly tell us why you'd like a refund (optional):") ?? "";
+                            if (!confirm(`Submit refund request for ₹${Number(e.amount_paid || 0).toLocaleString("en-IN")}? An admin will review within 1–2 business days.`)) return;
+                            const { data: r, error } = await supabase.functions.invoke("student-request-refund", { body: { enrollment_id: e.id, reason } });
                             if (error || (r as any)?.error) {
-                              toast({ title: "Refund failed", description: (r as any)?.error || error?.message || "Please try again", variant: "destructive" });
+                              toast({ title: "Request failed", description: (r as any)?.error || error?.message || "Please try again", variant: "destructive" });
                             } else {
-                              toast({ title: "Refund processed", description: `₹${(r as any).refunded.toLocaleString("en-IN")} credited to your wallet`, variant: "success" });
+                              toast({ title: "Refund request submitted ⏳", description: "Admin will review and you'll be notified by email.", variant: "success" });
                               fetchDashboard();
                             }
                           }}
@@ -309,6 +310,9 @@ const StudentDashboard = () => {
                           Request Refund
                         </Button>
                       </div>
+                    )}
+                    {e.refund_status === "pending_admin" && (
+                      <p className="text-[11px] text-amber-600 mt-2 font-medium">⏳ Refund request under admin review</p>
                     )}
                     {e.refund_status === "refunded" && (
                       <p className="text-[11px] text-muted-foreground mt-2">Refunded to wallet</p>

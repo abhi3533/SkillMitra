@@ -1341,6 +1341,57 @@ export type Database = {
           },
         ]
       }
+      refund_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          course_id: string | null
+          course_title: string | null
+          created_at: string
+          enrollment_id: string
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          status: string
+          student_user_id: string
+          trainer_payout: number
+          trainer_user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          course_id?: string | null
+          course_title?: string | null
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string
+          student_user_id: string
+          trainer_payout?: number
+          trainer_user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          course_id?: string | null
+          course_title?: string | null
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string
+          student_user_id?: string
+          trainer_payout?: number
+          trainer_user_id?: string | null
+        }
+        Relationships: []
+      }
       search_logs: {
         Row: {
           created_at: string | null

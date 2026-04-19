@@ -162,6 +162,10 @@ Deno.serve(async (req) => {
     const keyId = Deno.env.get("RAZORPAY_KEY_ID")!;
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
 
+    // Diagnostic: log key mode (test vs live) — safe, only logs prefix
+    const keyMode = keyId?.startsWith("rzp_test_") ? "TEST" : keyId?.startsWith("rzp_live_") ? "LIVE" : "UNKNOWN";
+    console.log(`[razorpay] key_mode=${keyMode}, key_prefix=${keyId?.substring(0, 12)}, amount=${finalAmount}`);
+
     const razorpayRes = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {

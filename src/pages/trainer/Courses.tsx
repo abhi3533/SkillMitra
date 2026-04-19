@@ -232,6 +232,25 @@ const TrainerCourses = () => {
       if (!uploadUrls.verificationSelfie) errors.verificationSelfie = "Verification selfie is required";
     }
 
+    // Course start date — must be a valid future date
+    if (!form.course_start_date) {
+      errors.course_start_date = "Course start date is required";
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(form.course_start_date + "T00:00:00");
+      if (isNaN(start.getTime())) {
+        errors.course_start_date = "Please choose a valid date";
+      } else if (start.getTime() <= today.getTime()) {
+        errors.course_start_date = "Start date must be in the future";
+      }
+    }
+
+    // Available slot bands — at least one required
+    if (!form.available_slot_bands || form.available_slot_bands.length === 0) {
+      errors.available_slot_bands = "Pick at least one available time band";
+    }
+
     return errors;
   };
 

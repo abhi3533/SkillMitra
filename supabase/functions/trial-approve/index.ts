@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { formatIST } from "../_shared/dateUtils.ts";
+import { isHourInBands, toLocalDateString } from "../_shared/slotBands.ts";
 
 async function sendEmail(supabaseUrl: string, serviceKey: string, type: string, to: string, data: Record<string, any>) {
   try {
@@ -55,7 +56,7 @@ Deno.serve(async (req) => {
     // Get trial booking
     const { data: booking, error: bookingErr } = await serviceClient
       .from("trial_bookings")
-      .select("*, courses(title, session_duration_mins, id), students(user_id), trainers:trainer_id(user_id)")
+      .select("*, courses(title, session_duration_mins, id, course_start_date, available_slot_bands), students(user_id), trainers:trainer_id(user_id)")
       .eq("id", trial_booking_id)
       .single();
 
@@ -88,16 +89,63 @@ Deno.serve(async (req) => {
     const trainerName = trainerProfile?.full_name || "Trainer";
 
     if (action === "approve") {
-      // Calculate scheduled time
-      const TIME_SLOTS: Record<string, number> = { "Early Morning": 6, Morning: 9, Afternoon: 12, Evening: 16, Night: 20 };
-      const hour = TIME_SLOTS[booking.selected_slot] ?? 10;
-      const now = new Date();
-      const targetDay = booking.selected_day ?? ((now.getDay() + 2) % 7);
-      let daysUntil = targetDay - now.getDay();
-      if (daysUntil <= 1) daysUntil += 7;
-      const firstDate = new Date(now);
-      firstDate.setDate(now.getDate() + daysUntil);
-      firstDate.setHours(hour, 0, 0, 0);
+      // Use student-selected slot from the trial booking row.
+      // Fall back to legacy band-name mapping for older rows that lack selected_date/hour.
+      let slotDateStr: string | null = booking.selected_date ?? null;
+      let slotHour: number | null = (typeof booking.selected_hour === "number") ? booking.selected_hour : null;
+
+      if (!slotDateStr || slotHour === null) {
+        // Legacy fallback
+        const TIME_SLOTS: Record<string, number> = { "Early Morning": 6, Morning: 9, Afternoon: 12, Evening: 16, Night: 20 };
+        const fallbackHour = TIME_SLOTS[booking.selected_slot] ?? 10;
+        const now = new Date();
+        const targetDay = booking.selected_day ?? ((now.getDay() + 2) % 7);
+        let daysUntil = targetDay - now.getDay();
+        if (daysUntil <= 1) daysUntil += 7;
+        const fallback = new Date(now);
+        fallback.setDate(now.getDate() + daysUntil);
+        fallback.setHours(fallbackHour, 0, 0, 0);
+        slotDateStr = toLocalDateString(fallback);
+        slotHour = fallbackHour;
+      }
+
+      // Validate against course start date + bands
+      const todayStr = toLocalDateString(new Date());
+      if (slotDateStr < todayStr) {
+        return new Response(JSON.stringify({ error: "Trial slot is in the past. Ask student to rebook." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (booking.courses?.course_start_date && slotDateStr < booking.courses.course_start_date) {
+        return new Response(JSON.stringify({ error: `Trial date is before the course start date (${booking.courses.course_start_date}).` }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const allowedBands: string[] = Array.isArray(booking.courses?.available_slot_bands) && booking.courses.available_slot_bands.length > 0
+        ? booking.courses.available_slot_bands
+        : ["morning", "day", "evening"];
+      if (!isHourInBands(slotHour, allowedBands)) {
+        return new Response(JSON.stringify({ error: "Selected time is outside the course's available slots." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Check the slot isn't already taken
+      const { data: clash } = await serviceClient
+        .from("trainer_booked_slots")
+        .select("id")
+        .eq("trainer_id", booking.trainer_id)
+        .eq("slot_date", slotDateStr)
+        .eq("slot_hour", slotHour)
+        .maybeSingle();
+      if (clash) {
+        return new Response(JSON.stringify({ error: "That slot is already booked. Ask the student to pick another time." }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const [yy, mm, dd] = slotDateStr.split("-").map(Number);
+      const firstDate = new Date(yy, mm - 1, dd, slotHour, 0, 0, 0);
 
       // Generate real Jitsi meet link
       const slug = (booking.courses?.title || "trial").replace(/[^a-zA-Z0-9\s]/g, "").trim().replace(/\s+/g, "-").toLowerCase().slice(0, 30);
@@ -112,13 +160,13 @@ Deno.serve(async (req) => {
         status: "trial",
         amount_paid: 0,
         sessions_total: 1,
-        start_date: firstDate.toISOString().split("T")[0],
+        start_date: slotDateStr,
       }).select().single();
 
       if (enrollErr) throw enrollErr;
 
       // Create session
-      await serviceClient.from("course_sessions").insert({
+      const { data: session, error: sessionErr } = await serviceClient.from("course_sessions").insert({
         enrollment_id: enrollment.id,
         trainer_id: booking.trainer_id,
         title: `Free Trial: ${booking.courses?.title || "Course"}`,
@@ -128,7 +176,22 @@ Deno.serve(async (req) => {
         duration_mins: booking.courses?.session_duration_mins || 60,
         status: "upcoming",
         meet_link: meetLink,
+      }).select("id").single();
+
+      if (sessionErr) throw sessionErr;
+
+      // Reserve the slot (unique-constraint protects against race)
+      const { error: slotErr } = await serviceClient.from("trainer_booked_slots").insert({
+        trainer_id: booking.trainer_id,
+        slot_date: slotDateStr,
+        slot_hour: slotHour,
+        session_id: session?.id,
+        trial_booking_id,
+        enrollment_id: enrollment.id,
       });
+      if (slotErr) {
+        console.error("Trial slot reservation failed:", slotErr);
+      }
 
       // Update booking
       await serviceClient.from("trial_bookings").update({

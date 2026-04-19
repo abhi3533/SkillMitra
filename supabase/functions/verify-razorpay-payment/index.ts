@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { formatIST } from "../_shared/dateUtils.ts";
+import { isHourInBands, buildWeeklySessionDates, toLocalDateString } from "../_shared/slotBands.ts";
 
 const ALLOWED_ORIGINS = [
   "https://skillmitra.online",
@@ -93,6 +94,8 @@ Deno.serve(async (req) => {
       student_id,
       selected_day,
       selected_slot,
+      selected_date,   // YYYY-MM-DD (course start date or later)
+      selected_hour,   // 0–23, must fall within course.available_slot_bands
       booking_type,
     } = await req.json();
 
@@ -188,7 +191,62 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Read saved payment row to get the actual Razorpay-charged amount
+    // ── SLOT VALIDATION (before any state mutation) ──
+    const totalSessionsForBooking = course.total_sessions || 1;
+    const allowedBands: string[] = Array.isArray(course.available_slot_bands) && course.available_slot_bands.length > 0
+      ? course.available_slot_bands
+      : ["morning", "day", "evening"];
+
+    if (selected_date == null || selected_hour == null || typeof selected_hour !== "number") {
+      return new Response(JSON.stringify({ error: "Please select a valid date and time slot." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Date >= course_start_date (if set) and >= today
+    const todayStr = toLocalDateString(new Date());
+    if (selected_date < todayStr) {
+      return new Response(JSON.stringify({ error: "Selected date is in the past." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (course.course_start_date && selected_date < course.course_start_date) {
+      return new Response(JSON.stringify({ error: `Course starts on ${course.course_start_date}. Pick a later date.` }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Hour must fall in an allowed band
+    if (!isHourInBands(selected_hour, allowedBands)) {
+      return new Response(JSON.stringify({ error: "Selected time is outside the trainer's available slots." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Build all weekly session dates and check none are already booked
+    const [yy, mm, dd] = selected_date.split("-").map(Number);
+    const firstSessionDate = new Date(yy, mm - 1, dd, selected_hour, 0, 0, 0);
+    const allSessionDates = buildWeeklySessionDates({
+      startDate: firstSessionDate,
+      weekday: firstSessionDate.getDay(),
+      hour: selected_hour,
+      count: totalSessionsForBooking,
+    });
+    const allDateStrs = allSessionDates.map(toLocalDateString);
+
+    const { data: clashes } = await serviceClient
+      .from("trainer_booked_slots")
+      .select("slot_date")
+      .eq("trainer_id", trainer_id)
+      .eq("slot_hour", selected_hour)
+      .in("slot_date", allDateStrs);
+
+    if (clashes && clashes.length > 0) {
+      return new Response(JSON.stringify({
+        error: `Time slot already booked on ${clashes.map(c => c.slot_date).join(", ")}. Please pick another slot.`,
+      }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const { data: paymentRow } = await serviceClient
       .from("payments")
       .select("amount")
@@ -272,29 +330,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Generate sessions
-    const TIME_SLOTS: Record<string, number> = {
-      "Early Morning": 6,
-      Morning: 9,
-      Afternoon: 12,
-      Evening: 16,
-      Night: 20,
-    };
+    // Generate sessions using validated slot
+    const firstDate = firstSessionDate;
+    const totalSessions = totalSessionsForBooking;
+    const sessionsToInsert: any[] = [];
 
-    const hour = TIME_SLOTS[selected_slot] ?? 10;
-    const now = new Date();
-    const targetDay = selected_day ?? ((now.getDay() + 2) % 7);
-    let daysUntil = targetDay - now.getDay();
-    if (daysUntil <= 1) daysUntil += 7;
-
-    const firstDate = new Date(now);
-    firstDate.setDate(now.getDate() + daysUntil);
-    firstDate.setHours(hour, 0, 0, 0);
-
-    const totalSessions = course.total_sessions || 1;
-    const sessionsToInsert = [];
-
-    // Generate real Jitsi meet links
     function generateMeetLink(courseTitle: string, sessionNumber?: number): string {
       const slug = courseTitle.replace(/[^a-zA-Z0-9\s]/g, "").trim().replace(/\s+/g, "-").toLowerCase().slice(0, 30);
       const uniqueId = Math.random().toString(36).substring(2, 10);
@@ -302,12 +342,8 @@ Deno.serve(async (req) => {
       return `https://meet.jit.si/skillmitra-${slug}${sessionTag}-${uniqueId}`;
     }
 
-    const firstMeetLink = generateMeetLink(course.title, 1);
-
     for (let i = 0; i < totalSessions; i++) {
-      const sessionDate = new Date(firstDate);
-      sessionDate.setDate(firstDate.getDate() + i * 7);
-
+      const sessionDate = allSessionDates[i];
       sessionsToInsert.push({
         enrollment_id: enrollment.id,
         trainer_id,
@@ -321,7 +357,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    await serviceClient.from("course_sessions").insert(sessionsToInsert);
+    const { data: insertedSessions, error: sessionsErr } = await serviceClient
+      .from("course_sessions")
+      .insert(sessionsToInsert)
+      .select("id, scheduled_at");
+
+    if (sessionsErr) {
+      console.error("Sessions insert failed:", sessionsErr);
+    }
+
+    // Atomically reserve slots in trainer_booked_slots (unique constraint = double-book guard)
+    if (insertedSessions && insertedSessions.length > 0) {
+      const slotRows = insertedSessions.map((s) => ({
+        trainer_id,
+        slot_date: toLocalDateString(new Date(s.scheduled_at)),
+        slot_hour: selected_hour,
+        session_id: s.id,
+        enrollment_id: enrollment.id,
+      }));
+      const { error: slotErr } = await serviceClient.from("trainer_booked_slots").insert(slotRows);
+      if (slotErr) {
+        console.error("Slot reservation failed (post-enrollment):", slotErr);
+      }
+    }
+
 
     // Get trainer + student info for emails
     const [{ data: trainer }, { data: studentProfile }, { data: trainerProfile }] = await Promise.all([

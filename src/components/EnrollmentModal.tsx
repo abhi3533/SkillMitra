@@ -243,10 +243,18 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         return;
       }
 
-      const firstDate = getNextScheduledDate(selectedDay, selectedSlot);
-      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
+      if (!selectedDate || selectedHour === null) {
+        toast({ title: "Pick a date and time", variant: "warning" });
+        setSubmitting(false);
+        return;
+      }
 
-      // Check for duplicate trial: any pending/approved trial with this trainer (one trial per trainer rule)
+      const firstDate = new Date(selectedDate);
+      firstDate.setHours(selectedHour, 0, 0, 0);
+      const scheduledTimeStr = formatDateTimeWeekdayIST(firstDate);
+      const slotDateStr = toLocalDateString(firstDate);
+
+      // Check for duplicate trial: any pending/approved trial with this trainer
       const { data: existingOnDate } = await supabase
         .from("trial_bookings")
         .select("id")
@@ -256,7 +264,21 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         .limit(1);
 
       if (existingOnDate && existingOnDate.length > 0) {
-        toast({ title: "Duplicate Booking", description: "You already have a trial booked with this trainer on that date. Please choose a different day.", variant: "destructive" });
+        toast({ title: "Already requested", description: "You already have a trial with this trainer.", variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+
+      // Slot taken check (trainer-wide)
+      const { data: clash } = await supabase
+        .from("trainer_booked_slots")
+        .select("id")
+        .eq("trainer_id", trainer.id)
+        .eq("slot_date", slotDateStr)
+        .eq("slot_hour", selectedHour)
+        .limit(1);
+      if (clash && clash.length > 0) {
+        toast({ title: "Slot just got booked", description: "Please pick another time.", variant: "destructive" });
         setSubmitting(false);
         return;
       }
@@ -267,14 +289,16 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         trainer_id: trainer.id,
         course_id: course.id,
         status: "pending",
-        selected_day: selectedDay,
-        selected_slot: selectedSlot,
+        selected_day: firstDate.getDay(),
+        selected_slot: `${selectedHour}:00`,
+        selected_date: slotDateStr,
+        selected_hour: selectedHour,
         scheduled_at: firstDate.toISOString(),
       });
 
       if (tbError) {
         if (tbError.code === "23505") {
-          toast({ title: "Already Requested", description: "You have already used your free trial with this trainer.", variant: "destructive" });
+          toast({ title: "Already requested", description: "You have already used your free trial with this trainer.", variant: "destructive" });
         } else {
           throw tbError;
         }

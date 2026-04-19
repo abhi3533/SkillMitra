@@ -678,7 +678,8 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
         {/* Step 3: Confirmation */}
         {step === "confirm" && (() => {
           return (
-          <div className="space-y-5">
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="space-y-5 px-6 py-5 overflow-y-auto flex-1">
             <div className="bg-muted rounded-xl p-4 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Course</span>

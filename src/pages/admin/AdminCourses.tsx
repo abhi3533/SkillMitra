@@ -691,7 +691,6 @@ const AdminCourses = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </Dialog>
 
       {/* Edit Course Modal */}
       {editCourse && (

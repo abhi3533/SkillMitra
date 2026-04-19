@@ -51,7 +51,7 @@ const StudentDashboard = () => {
     }
 
     const [enrollRes, aiRes, resumeRes, completedSessions, certsRes, upcomingSessions, walletRes] = await Promise.all([
-      supabase.from("enrollments").select("*, courses(title, total_sessions)").eq("student_id", student.id).eq("status", "active"),
+      supabase.from("enrollments").select("*, courses(title, total_sessions), refund_eligible_until, refund_status").eq("student_id", student.id).in("status", ["active"]),
       supabase.from("ai_interviews").select("overall_score").eq("student_id", student.id).order("completed_at", { ascending: false }).limit(1),
       supabase.from("student_resumes").select("ats_score").eq("student_id", student.id).limit(1),
       supabase.from("course_sessions").select("id, enrollments!inner(student_id)", { count: "exact", head: true }).eq("status", "completed").eq("enrollments.student_id", student.id),

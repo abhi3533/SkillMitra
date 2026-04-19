@@ -191,7 +191,62 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Read saved payment row to get the actual Razorpay-charged amount
+    // ── SLOT VALIDATION (before any state mutation) ──
+    const totalSessionsForBooking = course.total_sessions || 1;
+    const allowedBands: string[] = Array.isArray(course.available_slot_bands) && course.available_slot_bands.length > 0
+      ? course.available_slot_bands
+      : ["morning", "day", "evening"];
+
+    if (selected_date == null || selected_hour == null || typeof selected_hour !== "number") {
+      return new Response(JSON.stringify({ error: "Please select a valid date and time slot." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Date >= course_start_date (if set) and >= today
+    const todayStr = toLocalDateString(new Date());
+    if (selected_date < todayStr) {
+      return new Response(JSON.stringify({ error: "Selected date is in the past." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (course.course_start_date && selected_date < course.course_start_date) {
+      return new Response(JSON.stringify({ error: `Course starts on ${course.course_start_date}. Pick a later date.` }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Hour must fall in an allowed band
+    if (!isHourInBands(selected_hour, allowedBands)) {
+      return new Response(JSON.stringify({ error: "Selected time is outside the trainer's available slots." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Build all weekly session dates and check none are already booked
+    const [yy, mm, dd] = selected_date.split("-").map(Number);
+    const firstSessionDate = new Date(yy, mm - 1, dd, selected_hour, 0, 0, 0);
+    const allSessionDates = buildWeeklySessionDates({
+      startDate: firstSessionDate,
+      weekday: firstSessionDate.getDay(),
+      hour: selected_hour,
+      count: totalSessionsForBooking,
+    });
+    const allDateStrs = allSessionDates.map(toLocalDateString);
+
+    const { data: clashes } = await serviceClient
+      .from("trainer_booked_slots")
+      .select("slot_date")
+      .eq("trainer_id", trainer_id)
+      .eq("slot_hour", selected_hour)
+      .in("slot_date", allDateStrs);
+
+    if (clashes && clashes.length > 0) {
+      return new Response(JSON.stringify({
+        error: `Time slot already booked on ${clashes.map(c => c.slot_date).join(", ")}. Please pick another slot.`,
+      }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const { data: paymentRow } = await serviceClient
       .from("payments")
       .select("amount")

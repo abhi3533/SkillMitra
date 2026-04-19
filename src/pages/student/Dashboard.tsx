@@ -266,7 +266,11 @@ const StudentDashboard = () => {
                 <p className="text-sm text-muted-foreground mt-2">You haven't enrolled in any course yet. Browse trainers to get started!</p>
                 <Link to="/browse"><Button size="sm" className="mt-3 text-xs">Browse Trainers</Button></Link>
               </div>
-            ) : data.enrollments.map((e: any) => (
+            ) : data.enrollments.map((e: any) => {
+              const refundUntil = e.refund_eligible_until ? new Date(e.refund_eligible_until) : null;
+              const canRefund = e.refund_status === "none" && refundUntil && refundUntil > new Date();
+              const daysLeft = refundUntil ? Math.max(0, Math.ceil((refundUntil.getTime() - Date.now()) / (24 * 60 * 60 * 1000))) : 0;
+              return (
               <div key={e.id} className="p-3 rounded-lg bg-muted/30 mb-2 last:mb-0">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -282,10 +286,37 @@ const StudentDashboard = () => {
                       <p className="text-[11px] text-muted-foreground">{e.progress_percent || 0}% complete</p>
                       <p className="text-[11px] text-muted-foreground">{e.sessions_completed || 0}/{e.sessions_total || e.courses?.total_sessions || 0} sessions</p>
                     </div>
+                    {canRefund && (
+                      <div className="mt-2 flex items-center justify-between gap-2 p-2 rounded-md bg-accent/10 border border-accent/20">
+                        <p className="text-[11px] text-foreground">
+                          <span className="font-medium">Not happy?</span> {daysLeft} {daysLeft === 1 ? "day" : "days"} left to request a refund.
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-[11px] px-2"
+                          onClick={async () => {
+                            if (!confirm(`Refund ₹${Number(e.amount_paid || 0).toLocaleString("en-IN")} to your wallet? Your sessions will be cancelled and you can pick another trainer.`)) return;
+                            const { data: r, error } = await supabase.functions.invoke("student-request-refund", { body: { enrollment_id: e.id } });
+                            if (error || (r as any)?.error) {
+                              toast({ title: "Refund failed", description: (r as any)?.error || error?.message || "Please try again", variant: "destructive" });
+                            } else {
+                              toast({ title: "Refund processed", description: `₹${(r as any).refunded.toLocaleString("en-IN")} credited to your wallet`, variant: "success" });
+                              fetchDashboard();
+                            }
+                          }}
+                        >
+                          Request Refund
+                        </Button>
+                      </div>
+                    )}
+                    {e.refund_status === "refunded" && (
+                      <p className="text-[11px] text-muted-foreground mt-2">Refunded to wallet</p>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
         </div>
 

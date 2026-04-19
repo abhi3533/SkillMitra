@@ -24,6 +24,7 @@ import { formatDateTimeIST } from "@/lib/dateUtils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReportTrainerModal from "@/components/ReportTrainerModal";
+import EnrollmentModal from "@/components/EnrollmentModal";
 
 const DAYS_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -45,7 +46,7 @@ const TrainerProfile = () => {
 
   // Modal states
   const [enrollCourse, setEnrollCourse] = useState<any>(null);
-  const [showPaymentComing, setShowPaymentComing] = useState(false);
+  const [showPaymentComing, setShowPaymentComing] = useState(false); // legacy, no longer used
   const [showTrialModal, setShowTrialModal] = useState(false);
   const [trialDate, setTrialDate] = useState<Date | undefined>();
   const [trialTime, setTrialTime] = useState<string>("");
@@ -53,6 +54,12 @@ const TrainerProfile = () => {
   const [bookingTrial, setBookingTrial] = useState(false);
   const [existingTrial, setExistingTrial] = useState<any>(null);
   const [checkingTrial, setCheckingTrial] = useState(false);
+
+  // Live enrollment (Razorpay) modal
+  const [studentId, setStudentId] = useState<string>("");
+  const [hasTrialBookedWithTrainer, setHasTrialBookedWithTrainer] = useState(false);
+  const [liveEnrollOpen, setLiveEnrollOpen] = useState(false);
+  const [liveEnrollCourse, setLiveEnrollCourse] = useState<any>(null);
 
   // Determine if ID is a slug (demo), UUID (real), or self-profile (no id)
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -239,6 +246,22 @@ const TrainerProfile = () => {
     })();
   }, [trainer, resolvedId, user]);
 
+  // Fetch student's id and trial-with-this-trainer status (used by live EnrollmentModal)
+  useEffect(() => {
+    if (!user || role !== "student" || !trainer?.id || trainer.id?.toString().startsWith("demo-")) {
+      setStudentId(""); setHasTrialBookedWithTrainer(false);
+      return;
+    }
+    (async () => {
+      const { data: student } = await supabase.from("students").select("id").eq("user_id", user.id).maybeSingle();
+      if (!student) return;
+      setStudentId(student.id);
+      const { data: trial } = await supabase.from("trial_bookings")
+        .select("id").eq("student_id", student.id).eq("trainer_id", trainer.id).limit(1).maybeSingle();
+      setHasTrialBookedWithTrainer(!!trial);
+    })();
+  }, [user, role, trainer?.id]);
+
   // Check for existing trial when trial modal opens
   const checkExistingTrial = async () => {
     if (!user || !resolvedId || isDemo(resolvedId)) return;
@@ -279,7 +302,9 @@ const TrainerProfile = () => {
       toast({ title: "No courses available for this trainer", variant: "info" });
       return;
     }
-    setEnrollCourse(c);
+    // Open the live Razorpay-powered enrollment modal (same flow as /course/:id)
+    setLiveEnrollCourse(c);
+    setLiveEnrollOpen(true);
   };
 
   const handleTrialClick = () => {
@@ -742,61 +767,18 @@ const TrainerProfile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Enrollment Confirmation Modal */}
-      <Dialog open={!!enrollCourse} onOpenChange={(open) => { if (!open) setEnrollCourse(null); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Enrollment</DialogTitle>
-          </DialogHeader>
-          {enrollCourse && (
-            <div className="space-y-4">
-              <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Trainer</span>
-                  <span className="font-medium text-foreground">{name}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Course</span>
-                  <span className="font-medium text-foreground">{enrollCourse.title}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Course Fee</span>
-                  <span className="font-bold text-foreground text-lg">₹{Number(enrollCourse.fee || enrollCourse.course_fee || 0).toLocaleString()}</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">SkillMitra Guarantee</p>
-                  <p className="text-xs text-muted-foreground">100% refund if not satisfied within the first session</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setEnrollCourse(null)}>Cancel</Button>
-                <Button className="flex-1 hero-gradient border-0" onClick={() => { setEnrollCourse(null); setShowPaymentComing(true); }}>
-                  Proceed to Payment
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Payment Coming Soon Modal */}
-      <Dialog open={showPaymentComing} onOpenChange={setShowPaymentComing}>
-        <DialogContent className="max-w-sm text-center">
-          <DialogHeader>
-            <DialogTitle>Coming Soon</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            <AlertCircle className="w-12 h-12 text-accent mx-auto" />
-            <p className="text-sm text-muted-foreground">Payments will be available shortly.{anyTrialEnabled ? " Please book a free trial session first to experience the training." : ""}</p>
-            <Button className="w-full" onClick={() => { setShowPaymentComing(false); handleTrialClick(); }}>
-              Book Free Trial Instead
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Live enrollment modal — full Razorpay flow (same as /course/:id) */}
+      {liveEnrollOpen && liveEnrollCourse && trainer && (
+        <EnrollmentModal
+          open={liveEnrollOpen}
+          onClose={() => { setLiveEnrollOpen(false); setLiveEnrollCourse(null); }}
+          course={liveEnrollCourse}
+          trainer={trainer}
+          trainerProfile={trainer.profile}
+          studentId={studentId}
+          hasTrialBooked={hasTrialBookedWithTrainer}
+        />
+      )}
 
       {/* Book Free Trial Modal */}
       <Dialog open={showTrialModal} onOpenChange={setShowTrialModal}>

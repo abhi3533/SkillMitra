@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layouts/AdminLayout";
-import { BookOpen, Check, X, Eye, Search, RefreshCw, Clock, Users, IndianRupee, Calendar, Star, MessageSquare } from "lucide-react";
+import EditCourseModal from "@/components/admin/EditCourseModal";
+import { BookOpen, Check, X, Eye, Search, RefreshCw, Clock, Users, IndianRupee, Calendar, Star, MessageSquare, Pencil, Trash2 } from "lucide-react";
 
 interface CourseWithTrainer {
   id: string;

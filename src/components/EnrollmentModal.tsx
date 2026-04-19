@@ -591,79 +591,81 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
         {/* Step 2: Calendar + 1-hour slot selection */}
         {step === "slot" && (
-          <div className="space-y-4">
-            <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-xs text-foreground space-y-1">
-              {courseStartDate && (
-                <p>📅 Available from <span className="font-medium">{courseStartDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></p>
-              )}
-              {allowedBands.length > 0 && (
-                <p>🕒 Slots: {allowedBands.map(b => SLOT_BANDS.find(s => s.id === b)?.label).filter(Boolean).join(" / ")}</p>
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="space-y-4 px-6 py-5 overflow-y-auto flex-1">
+              <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-xs text-foreground space-y-1">
+                {courseStartDate && (
+                  <p>📅 Available from <span className="font-medium">{courseStartDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></p>
+                )}
+                {allowedBands.length > 0 && (
+                  <p>🕒 Slots: {allowedBands.map(b => SLOT_BANDS.find(s => s.id === b)?.label).filter(Boolean).join(" / ")}</p>
+                )}
+              </div>
+
+              {allowedHours.length === 0 || !courseStartDate ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  This course doesn't have a start date or available time bands set yet. Please contact the trainer.
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4" /> Pick a date
+                    </label>
+                    <div className="rounded-lg border bg-card p-2 flex justify-center">
+                      <CalendarPicker
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(d) => { setSelectedDate(d); setSelectedHour(null); }}
+                        disabled={isDateDisabled}
+                        defaultMonth={courseStartDate}
+                        fromDate={courseStartDate}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
+                      <Clock className="w-4 h-4" /> Pick a 1-hour slot
+                    </label>
+                    {!selectedDate ? (
+                      <p className="text-xs text-muted-foreground">Select a date first to see available time slots.</p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {allowedHours.map(h => {
+                          const taken = takenHoursOnSelectedDate.has(h);
+                          const active = selectedHour === h;
+                          return (
+                            <button
+                              key={h}
+                              disabled={taken}
+                              onClick={() => setSelectedHour(h)}
+                              className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                                taken
+                                  ? "bg-muted text-muted-foreground border-border cursor-not-allowed line-through"
+                                  : active
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "bg-card text-foreground border-border hover:border-primary/30"
+                              }`}
+                            >
+                              {formatHourLabel(h)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {previewDates.length > 0 && bookingType === "enroll" && (
+                    <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+                      Your sessions will recur every <span className="font-medium text-foreground">{WEEKDAY_LABELS[selectedDate!.getDay()].long}</span> at <span className="font-medium text-foreground">{formatHourLabel(selectedHour!)}</span> — {previewDates.length} sessions in total.
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {allowedHours.length === 0 || !courseStartDate ? (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                This course doesn't have a start date or available time bands set yet. Please contact the trainer.
-              </div>
-            ) : (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" /> Pick a date
-                  </label>
-                  <div className="rounded-lg border bg-card p-2 flex justify-center">
-                    <CalendarPicker
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(d) => { setSelectedDate(d); setSelectedHour(null); }}
-                      disabled={isDateDisabled}
-                      defaultMonth={courseStartDate}
-                      fromDate={courseStartDate}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" /> Pick a 1-hour slot
-                  </label>
-                  {!selectedDate ? (
-                    <p className="text-xs text-muted-foreground">Select a date first to see available time slots.</p>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      {allowedHours.map(h => {
-                        const taken = takenHoursOnSelectedDate.has(h);
-                        const active = selectedHour === h;
-                        return (
-                          <button
-                            key={h}
-                            disabled={taken}
-                            onClick={() => setSelectedHour(h)}
-                            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
-                              taken
-                                ? "bg-muted text-muted-foreground border-border cursor-not-allowed line-through"
-                                : active
-                                  ? "bg-primary text-primary-foreground border-primary"
-                                  : "bg-card text-foreground border-border hover:border-primary/30"
-                            }`}
-                          >
-                            {formatHourLabel(h)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {previewDates.length > 0 && bookingType === "enroll" && (
-                  <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
-                    Your sessions will recur every <span className="font-medium text-foreground">{WEEKDAY_LABELS[selectedDate!.getDay()].long}</span> at <span className="font-medium text-foreground">{formatHourLabel(selectedHour!)}</span> — {previewDates.length} sessions in total.
-                  </div>
-                )}
-              </>
-            )}
-
-            <div className="flex gap-3">
+            <div className="flex gap-3 px-6 py-4 border-t border-border bg-background shrink-0">
               <Button variant="outline" className="flex-1" onClick={() => setStep("type")}>Back</Button>
               <Button className="flex-1" disabled={!selectedDate || selectedHour === null}
                 onClick={() => setStep("confirm")}>

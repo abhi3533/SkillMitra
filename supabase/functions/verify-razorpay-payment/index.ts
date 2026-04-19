@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { formatIST } from "../_shared/dateUtils.ts";
+import { isHourInBands, buildWeeklySessionDates, toLocalDateString } from "../_shared/slotBands.ts";
 
 const ALLOWED_ORIGINS = [
   "https://skillmitra.online",

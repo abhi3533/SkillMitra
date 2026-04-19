@@ -471,7 +471,11 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (hasMissingProfile) {
+      const ok = await saveQuickProfile();
+      if (!ok) return;
+    }
     if (bookingType === "trial") {
       handleTrialBooking();
     } else {
@@ -687,10 +691,42 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
               </span>
             </div>
 
+            {hasMissingProfile && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Quick details to confirm your booking</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">We need a few essentials so the trainer can reach you. You can edit these anytime in your profile.</p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {missingProfile.full_name && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Full Name</Label>
+                      <Input value={profileFullName} onChange={e => setProfileFullName(e.target.value.replace(/[^a-zA-Z\s.'\-]/g, ""))} placeholder="Your full name" className="mt-1 h-9" />
+                    </div>
+                  )}
+                  {missingProfile.phone && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Phone (10-digit)</Label>
+                      <Input value={profilePhone} onChange={e => setProfilePhone(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="9876543210" className="mt-1 h-9" inputMode="numeric" />
+                    </div>
+                  )}
+                  {missingProfile.city && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">City</Label>
+                      <Input value={profileCity} onChange={e => setProfileCity(e.target.value.replace(/[^a-zA-Z\s'-]/g, ""))} placeholder="e.g. Hyderabad" className="mt-1 h-9" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setStep("slot")}>Back</Button>
-              <Button className="flex-1" onClick={handleSubmit} disabled={submitting}>
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              <Button className="flex-1" onClick={handleSubmit} disabled={submitting || savingProfile}>
+                {(submitting || savingProfile) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 {bookingType === "trial" ? "Send Trial Request" : finalAmount === 0 ? "Enroll Free" : "Pay & Enroll"}
               </Button>
             </div>

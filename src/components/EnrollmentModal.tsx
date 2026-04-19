@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { formatDateTimeWeekdayIST } from "@/lib/dateUtils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { CheckCircle2, Clock, Calendar, Shield, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { generateMeetLink } from "@/lib/meetingLink";
+import {
+  SLOT_BANDS,
+  hoursForBands,
+  formatHourLabel,
+  buildWeeklySessionDates,
+  toLocalDateString,
+  WEEKDAY_LABELS,
+} from "@/lib/slotBands";
 
 declare global {
   interface Window {
@@ -26,24 +35,6 @@ interface EnrollmentModalProps {
   studentId: string;
   hasTrialBooked: boolean;
 }
-
-const TIME_SLOTS = [
-  { label: "Early Morning", time: "06:00", display: "6:00 AM – 9:00 AM" },
-  { label: "Morning", time: "09:00", display: "9:00 AM – 12:00 PM" },
-  { label: "Afternoon", time: "12:00", display: "12:00 PM – 4:00 PM" },
-  { label: "Evening", time: "16:00", display: "4:00 PM – 8:00 PM" },
-  { label: "Night", time: "20:00", display: "8:00 PM – 11:00 PM" },
-];
-
-const DAYS = [
-  { label: "Mon", value: 1 },
-  { label: "Tue", value: 2 },
-  { label: "Wed", value: 3 },
-  { label: "Thu", value: 4 },
-  { label: "Fri", value: 5 },
-  { label: "Sat", value: 6 },
-  { label: "Sun", value: 0 },
-];
 
 const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, studentId, hasTrialBooked }: EnrollmentModalProps) => {
   const navigate = useNavigate();

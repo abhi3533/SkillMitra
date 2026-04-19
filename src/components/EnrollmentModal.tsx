@@ -527,8 +527,8 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-3 border-b border-border shrink-0">
           <DialogTitle className="text-lg">
             {step === "type" && "Choose Booking Type"}
             {step === "slot" && "Select Your Preferred Time"}
@@ -538,7 +538,7 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
 
         {/* Step 1: Booking Type */}
         {step === "type" && (
-          <div className="space-y-4">
+          <div className="space-y-4 px-6 py-5 overflow-y-auto">
             {course.has_free_trial && !trialBlocked && (
               <button
                 onClick={() => { setBookingType("trial"); setStep("slot"); }}

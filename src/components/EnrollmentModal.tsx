@@ -60,6 +60,13 @@ const EnrollmentModal = ({ open, onClose, course, trainer, trainerProfile, stude
   const [trialSlotsFullThisMonth, setTrialSlotsFullThisMonth] = useState(false);
   const [hasExistingTrialWithTrainer, setHasExistingTrialWithTrainer] = useState(false);
 
+  // Lightweight profile prompt — collected just-in-time at booking confirm
+  const [missingProfile, setMissingProfile] = useState<{ phone: boolean; city: boolean; full_name: boolean }>({ phone: false, city: false, full_name: false });
+  const [profileFullName, setProfileFullName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profileCity, setProfileCity] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+
   // Check trial eligibility
   useEffect(() => {
     if (!studentId || !trainer?.id || !open || trainer.id.startsWith("demo-")) return;

@@ -24,6 +24,7 @@ import { formatDateTimeIST } from "@/lib/dateUtils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReportTrainerModal from "@/components/ReportTrainerModal";
+import EnrollmentModal from "@/components/EnrollmentModal";
 
 const DAYS_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -45,7 +46,7 @@ const TrainerProfile = () => {
 
   // Modal states
   const [enrollCourse, setEnrollCourse] = useState<any>(null);
-  const [showPaymentComing, setShowPaymentComing] = useState(false);
+  const [showPaymentComing, setShowPaymentComing] = useState(false); // legacy, no longer used
   const [showTrialModal, setShowTrialModal] = useState(false);
   const [trialDate, setTrialDate] = useState<Date | undefined>();
   const [trialTime, setTrialTime] = useState<string>("");
@@ -53,6 +54,12 @@ const TrainerProfile = () => {
   const [bookingTrial, setBookingTrial] = useState(false);
   const [existingTrial, setExistingTrial] = useState<any>(null);
   const [checkingTrial, setCheckingTrial] = useState(false);
+
+  // Live enrollment (Razorpay) modal
+  const [studentId, setStudentId] = useState<string>("");
+  const [hasTrialBookedWithTrainer, setHasTrialBookedWithTrainer] = useState(false);
+  const [liveEnrollOpen, setLiveEnrollOpen] = useState(false);
+  const [liveEnrollCourse, setLiveEnrollCourse] = useState<any>(null);
 
   // Determine if ID is a slug (demo), UUID (real), or self-profile (no id)
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -279,7 +286,9 @@ const TrainerProfile = () => {
       toast({ title: "No courses available for this trainer", variant: "info" });
       return;
     }
-    setEnrollCourse(c);
+    // Open the live Razorpay-powered enrollment modal (same flow as /course/:id)
+    setLiveEnrollCourse(c);
+    setLiveEnrollOpen(true);
   };
 
   const handleTrialClick = () => {

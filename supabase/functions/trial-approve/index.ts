@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     // Get trial booking
     const { data: booking, error: bookingErr } = await serviceClient
       .from("trial_bookings")
-      .select("*, courses(title, session_duration_mins, id), students(user_id), trainers:trainer_id(user_id)")
+      .select("*, courses(title, session_duration_mins, id, course_start_date, available_slot_bands), students(user_id), trainers:trainer_id(user_id)")
       .eq("id", trial_booking_id)
       .single();
 

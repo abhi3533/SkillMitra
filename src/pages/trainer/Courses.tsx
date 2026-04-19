@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
 import RequestCourseUpdateModal from "@/components/trainer/RequestCourseUpdateModal";
 import LiveSelfieCapture from "@/components/LiveSelfieCapture";
+import { SLOT_BANDS, ALL_BAND_IDS } from "@/lib/slotBands";
 
 interface CurriculumWeek {
   weekTitle: string;
@@ -35,6 +36,8 @@ const defaultForm = {
   has_free_trial: true, what_you_learn: "", who_is_it_for: "",
   custom_duration: "", custom_session_duration: "", custom_frequency: "", custom_language: "",
   sessions_per_week: "3", weekly_curriculum: "",
+  course_start_date: "",
+  available_slot_bands: [] as string[],
 };
 
 const TrainerCourses = () => {

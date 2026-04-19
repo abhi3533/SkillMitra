@@ -19,6 +19,12 @@ import { template as emailConfirmed } from './email-confirmed.tsx'
 import { template as welcomeTrainer } from './welcome-trainer.tsx'
 import { template as referralSignupReferrer } from './referral-signup-referrer.tsx'
 import { template as referralSignupReferred } from './referral-signup-referred.tsx'
+import { template as refundRequestedAdmin } from './refund-requested-admin.tsx'
+import { template as refundRequestedTrainer } from './refund-requested-trainer.tsx'
+import { template as refundRequestedStudent } from './refund-requested-student.tsx'
+import { template as refundApprovedStudent } from './refund-approved-student.tsx'
+import { template as refundApprovedTrainer } from './refund-approved-trainer.tsx'
+import { template as refundRejectedStudent } from './refund-rejected-student.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
@@ -31,4 +37,10 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome-trainer': welcomeTrainer,
   'referral-signup-referrer': referralSignupReferrer,
   'referral-signup-referred': referralSignupReferred,
+  'refund-requested-admin': refundRequestedAdmin,
+  'refund-requested-trainer': refundRequestedTrainer,
+  'refund-requested-student': refundRequestedStudent,
+  'refund-approved-student': refundApprovedStudent,
+  'refund-approved-trainer': refundApprovedTrainer,
+  'refund-rejected-student': refundRejectedStudent,
 }

@@ -477,9 +477,11 @@ export type Database = {
       courses: {
         Row: {
           approval_status: string | null
+          available_slot_bands: string[] | null
           average_rating: number | null
           certification_url: string | null
           course_fee: number
+          course_start_date: string | null
           created_at: string | null
           curriculum_pdf_url: string | null
           demo_video_url: string | null
@@ -507,9 +509,11 @@ export type Database = {
         }
         Insert: {
           approval_status?: string | null
+          available_slot_bands?: string[] | null
           average_rating?: number | null
           certification_url?: string | null
           course_fee?: number
+          course_start_date?: string | null
           created_at?: string | null
           curriculum_pdf_url?: string | null
           demo_video_url?: string | null
@@ -537,9 +541,11 @@ export type Database = {
         }
         Update: {
           approval_status?: string | null
+          available_slot_bands?: string[] | null
           average_rating?: number | null
           certification_url?: string | null
           course_fee?: number
+          course_start_date?: string | null
           created_at?: string | null
           curriculum_pdf_url?: string | null
           demo_video_url?: string | null
@@ -1582,6 +1588,68 @@ export type Database = {
           },
         ]
       }
+      trainer_booked_slots: {
+        Row: {
+          created_at: string
+          enrollment_id: string | null
+          id: string
+          session_id: string | null
+          slot_date: string
+          slot_hour: number
+          trainer_id: string
+          trial_booking_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          enrollment_id?: string | null
+          id?: string
+          session_id?: string | null
+          slot_date: string
+          slot_hour: number
+          trainer_id: string
+          trial_booking_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          enrollment_id?: string | null
+          id?: string
+          session_id?: string | null
+          slot_date?: string
+          slot_hour?: number
+          trainer_id?: string
+          trial_booking_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_booked_slots_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_booked_slots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "course_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_booked_slots_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_booked_slots_trial_booking_id_fkey"
+            columns: ["trial_booking_id"]
+            isOneToOne: false
+            referencedRelation: "trial_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainer_documents: {
         Row: {
           document_name: string | null
@@ -1806,6 +1874,7 @@ export type Database = {
           current_company: string | null
           current_role: string | null
           curriculum_pdf_url: string | null
+          default_slot_bands: string[] | null
           demo_video_url: string | null
           dob: string | null
           experience_years: number | null
@@ -1873,6 +1942,7 @@ export type Database = {
           current_company?: string | null
           current_role?: string | null
           curriculum_pdf_url?: string | null
+          default_slot_bands?: string[] | null
           demo_video_url?: string | null
           dob?: string | null
           experience_years?: number | null
@@ -1940,6 +2010,7 @@ export type Database = {
           current_company?: string | null
           current_role?: string | null
           curriculum_pdf_url?: string | null
+          default_slot_bands?: string[] | null
           demo_video_url?: string | null
           dob?: string | null
           experience_years?: number | null
@@ -1996,7 +2067,9 @@ export type Database = {
           rejection_reason: string | null
           responded_at: string | null
           scheduled_at: string | null
+          selected_date: string | null
           selected_day: number | null
+          selected_hour: number | null
           selected_slot: string | null
           status: string
           student_id: string
@@ -2010,7 +2083,9 @@ export type Database = {
           rejection_reason?: string | null
           responded_at?: string | null
           scheduled_at?: string | null
+          selected_date?: string | null
           selected_day?: number | null
+          selected_hour?: number | null
           selected_slot?: string | null
           status?: string
           student_id: string
@@ -2024,7 +2099,9 @@ export type Database = {
           rejection_reason?: string | null
           responded_at?: string | null
           scheduled_at?: string | null
+          selected_date?: string | null
           selected_day?: number | null
+          selected_hour?: number | null
           selected_slot?: string | null
           status?: string
           student_id?: string

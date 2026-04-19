@@ -322,6 +322,8 @@ const TrainerCourses = () => {
         sessions_per_week: parseInt(form.sessions_per_week) || null,
         free_trial_enabled: form.has_free_trial,
         weekly_curriculum: form.weekly_curriculum.trim() ? { summary: form.weekly_curriculum.trim() } : null,
+        course_start_date: form.course_start_date,
+        available_slot_bands: form.available_slot_bands,
         intro_video_url: uploadUrls.introVideo || null,
         
         curriculum_pdf_url: uploadUrls.curriculumPdf || null,

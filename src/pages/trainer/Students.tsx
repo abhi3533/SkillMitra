@@ -15,16 +15,40 @@ const TrainerStudents = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
+    const load = async () => {
       const { data: trainer } = await supabase.from("trainers").select("id").eq("user_id", user.id).maybeSingle();
-      if (trainer) {
-        setTrainerId(trainer.id);
-        const { data } = await supabase.from("enrollments").select("*, students(*, profiles(*)), courses(title)").eq("trainer_id", trainer.id);
-        setEnrollments(data || []);
+      if (!trainer) { setLoading(false); return; }
+      setTrainerId(trainer.id);
+
+      // Fetch enrollments WITHOUT nested profiles join (RLS on profiles can drop rows
+      // when the trainer cannot read the student's profile). Hydrate profile data
+      // separately so the roster always reflects the same enrollments as other tabs.
+      const { data: enr, error: enrErr } = await supabase
+        .from("enrollments")
+        .select("*, students(id, user_id), courses(title)")
+        .eq("trainer_id", trainer.id);
+
+      if (enrErr) console.error("Roster enrollments query failed:", enrErr);
+
+      const userIds = (enr || []).map((e: any) => e.students?.user_id).filter(Boolean);
+      let profileMap: Record<string, any> = {};
+      if (userIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name, email, profile_picture_url")
+          .in("id", userIds);
+        (profs || []).forEach((p: any) => { profileMap[p.id] = p; });
       }
+
+      const hydrated = (enr || []).map((e: any) => ({
+        ...e,
+        students: { ...(e.students || {}), profiles: profileMap[e.students?.user_id] || null },
+      }));
+
+      setEnrollments(hydrated);
       setLoading(false);
     };
-    fetch();
+    load();
   }, [user]);
 
   return (
